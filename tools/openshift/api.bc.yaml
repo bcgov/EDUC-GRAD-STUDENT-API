@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  template: 'educ-course-api-template'
+metadata:
+  name: 'educ-course-api-template'
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      build: educ-course-api-pipeline
+    name: educ-course-api-pipeline
+    namespace: wbmfsf-tools
+  spec:
+    source:
+      git:
+        ref: master
+        uri: 'https://github.com/bcgov/EDUC-COURSE-API'
+      type: Git
+    strategy:
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: tools/jenkins/Jenkinsfile-api
