@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@RequestMapping("/")
+@RequestMapping("/api/v1")
 @OpenAPIDefinition(info = @Info(title = "API for Grad Student.",
         description = "This Read API is for Reading data of a student in BC from open vms system.", version = "1"),
         security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT"})})
@@ -22,7 +22,7 @@ public interface GradStudentEndpoint {
      * @param pen the pen
      * @return the student details by pen
      */
-    @GetMapping("/api/v1/{pen}")
+    @GetMapping("/{pen}")
     //@PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT')")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "404", description = "NOT FOUND.")})
