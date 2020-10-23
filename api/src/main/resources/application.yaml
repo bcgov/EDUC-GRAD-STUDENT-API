@@ -26,6 +26,10 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: true
+  security:
+    user:
+      name: ${API_USERNAME}
+      password: ${API_PASSWORD}
 
 #Logging properties
 logging:
