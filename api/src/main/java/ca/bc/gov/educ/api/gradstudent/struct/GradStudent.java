@@ -40,4 +40,5 @@ public class GradStudent {
     private String programCode4;
     private String programCode5;
     private String programName;
+    private String schoolName;
 }
