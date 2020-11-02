@@ -1,14 +1,17 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.endpoint.GradStudentEndpoint;
-import ca.bc.gov.educ.api.gradstudent.model.GradStudentEntity;
-import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.web.bind.annotation.RestController;
+
+import ca.bc.gov.educ.api.gradstudent.endpoint.GradStudentEndpoint;
+import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
+import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 //@EnableResourceServer
@@ -21,7 +24,12 @@ public class GradStudentController implements GradStudentEndpoint {
     GradStudentService gradStudentService;
 
     @Override
-    public GradStudentEntity getGradStudentByPen(String pen) {
-        return gradStudentService.getStudentByPen(pen).get();
+    public GradStudent getGradStudentByPen(String pen) {
+        return gradStudentService.getStudentByPen(pen);
     }
+
+	@Override
+	public List<GradStudent> getGradStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
+		return gradStudentService.getStudentByLastName(lastName,pageNo,pageSize);
+	}
 }
