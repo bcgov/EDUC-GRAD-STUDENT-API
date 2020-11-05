@@ -12,6 +12,7 @@ spring:
   datasource:
     hikari:
       max-lifetime: 600000
+      maximum-pool-size: 3
     url: ${JDBC_URL}
     username: ${ORACLE_USERNAME}
     password: ${ORACLE_PASSWORD}
