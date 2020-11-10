@@ -18,7 +18,9 @@ public class School {
     private String address1;    
     private String address2;    
     private String city;    
-    private String provCode;    
+    private String provCode;  
+    private String provinceName;
+    private String countryName;
     private String countryCode;    
     private String postal;
     
