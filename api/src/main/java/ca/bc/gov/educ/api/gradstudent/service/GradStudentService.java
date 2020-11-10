@@ -3,6 +3,8 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +17,8 @@ import org.springframework.web.client.RestTemplate;
 
 import ca.bc.gov.educ.api.gradstudent.model.GradStudentEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentRepository;
+import ca.bc.gov.educ.api.gradstudent.struct.GradCountry;
+import ca.bc.gov.educ.api.gradstudent.struct.GradProvince;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.School;
 import ca.bc.gov.educ.api.gradstudent.transformer.StudentTransformer;
@@ -38,18 +42,37 @@ public class GradStudentService {
     @Value(EducGradStudentApiConstants.ENDPOINT_SCHOOL_BY_MIN_CODE_URL)
     private String getSchoolByMinCodeURL;
     
+    @Value(EducGradStudentApiConstants.ENDPOINT_COUNTRY_BY_COUNTRY_CODE_URL)
+    private String getCountryByCountryCodeURL;
+    
+    @Value(EducGradStudentApiConstants.ENDPOINT_PROVINCE_BY_PROV_CODE_URL)
+    private String getProvinceByProvCodeURL;
+    
+    
+    @Transactional
     public GradStudent getStudentByPen(String pen) {
     	GradStudent gradStudent = new GradStudent();
     	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
     	if(gradStudent != null) {
-    		School schoolData = restTemplate.getForObject(getSchoolByMinCodeURL.replace("{minCode}", gradStudent.getMincode()), School.class);
+    		School schoolData = restTemplate.getForObject(String.format(getSchoolByMinCodeURL, gradStudent.getMincode()), School.class);
             if(schoolData != null) {
     			gradStudent.setSchoolName(schoolData.getSchoolName());
+    		}
+            
+            GradCountry country = restTemplate.getForObject(String.format(getCountryByCountryCodeURL, gradStudent.getCountryCode()), GradCountry.class);
+            if(country != null) {
+    			gradStudent.setCountryName(country.getCountryName());
+    		}
+            
+            GradProvince province = restTemplate.getForObject(String.format(getProvinceByProvCodeURL, gradStudent.getProvinceCode()), GradProvince.class);
+            if(province != null) {
+    			gradStudent.setProvinceName(province.getProvName());
     		}
     	}
     	return gradStudent;
     }
 
+    @Transactional
 	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
 		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();
 		Pageable paging = PageRequest.of(pageNo, pageSize);        	 
@@ -57,9 +80,18 @@ public class GradStudentService {
 		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());
 		gradStudentList.forEach(gS -> {
 			if(gS != null) {
-				School schoolData = restTemplate.getForObject(getSchoolByMinCodeURL.replace("{minCode}", gS.getMincode()), School.class);
+				School schoolData = restTemplate.getForObject(String.format(getSchoolByMinCodeURL, gS.getMincode()), School.class);
 	    		if(schoolData != null) {
 	    			gS.setSchoolName(schoolData.getSchoolName());
+	    		}
+	    		GradCountry country = restTemplate.getForObject(String.format(getCountryByCountryCodeURL, gS.getCountryCode()), GradCountry.class);
+	            if(country != null) {
+	    			gS.setCountryName(country.getCountryName());
+	    		}
+	            
+	            GradProvince province = restTemplate.getForObject(String.format(getProvinceByProvCodeURL, gS.getProvinceCode()), GradProvince.class);
+	            if(province != null) {
+	    			gS.setProvinceName(province.getProvName());
 	    		}
 	    	}
 		});			

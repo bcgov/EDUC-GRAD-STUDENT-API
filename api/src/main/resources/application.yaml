@@ -67,7 +67,13 @@ endpoint:
   school-api:
     school-by-min-code:
       url: https://educ-grad-school-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/school/{minCode}
-
+  code-api:
+    country:
+      country-by-country-code:
+        url:https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/country/%s
+    province:
+      province-by-prov-code:
+        url:https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/province/%s
 
 #Local properties
 server:
