@@ -48,12 +48,6 @@ public class GradStudentService {
     @Value(EducGradStudentApiConstants.ENDPOINT_SCHOOL_BY_MIN_CODE_URL)
     private String getSchoolByMinCodeURL;
     
-    @Value("${spring.security.user.name}")
-    private String uName;
-    
-    @Value("${spring.security.user.password}")
-    private String pass;
-
     public GradStudent getStudentByPen(String pen) {
     	GradStudent gradStudent = new GradStudent();
     	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
