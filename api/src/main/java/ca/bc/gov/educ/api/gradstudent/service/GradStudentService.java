@@ -55,7 +55,6 @@ public class GradStudentService {
     private String pass;
 
     public GradStudent getStudentByPen(String pen) {
-    	restTemplate = restTemplateBuilder.basicAuthentication(uName, pass).build();    	
     	GradStudent gradStudent = new GradStudent();
     	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
     	if(gradStudent != null) {
@@ -68,7 +67,6 @@ public class GradStudentService {
     }
 
 	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
-		restTemplate = restTemplateBuilder.basicAuthentication(uName, pass).build();    	
 		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();
 		Pageable paging = PageRequest.of(pageNo, pageSize);        	 
         Page<GradStudentEntity> pagedResult = gradStudentRepository.findByStudSurname(StringUtils.toRootUpperCase(lastName),paging);
