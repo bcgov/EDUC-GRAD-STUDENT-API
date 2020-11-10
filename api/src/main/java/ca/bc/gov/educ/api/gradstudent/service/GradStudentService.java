@@ -5,10 +5,13 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import ca.bc.gov.educ.api.gradstudent.model.GradStudentEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentRepository;
@@ -17,6 +20,8 @@ import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.School;
 import ca.bc.gov.educ.api.gradstudent.transformer.SchoolTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.StudentTransformer;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 
 @Service
 public class GradStudentService {
@@ -32,14 +37,28 @@ public class GradStudentService {
     
     @Autowired
     SchoolRepository schoolRepository;
+    
+    @Autowired
+    RestTemplate restTemplate;    
+    
+    @Value(EducGradStudentApiConstants.ENDPOINT_SCHOOL_BY_MIN_CODE_URL)
+    private String getSchoolByMinCodeURL;
+    
+    @Value("${spring.security.user.name}")
+    private String uName;
+    
+    @Value("${spring.security.user.password}")
+    private String pass;
 
-    public GradStudent getStudentByPen(String pen) {
+    HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(uName, pass);
+    
+    public GradStudent getStudentByPen(String pen) {   	
     	GradStudent gradStudent = new GradStudent();
     	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
     	if(gradStudent != null) {
-    		School school = schoolTransformer.transformToDTO(schoolRepository.findByMinCode(gradStudent.getMincode()));
-    		if(school != null) {
-    			gradStudent.setSchoolName(school.getSchoolName());
+    		School schoolData = restTemplate.getForObject(getSchoolByMinCodeURL.replace("{minCode}", gradStudent.getMincode()), School.class);
+            if(schoolData != null) {
+    			gradStudent.setSchoolName(schoolData.getSchoolName());
     		}
     	}
     	return gradStudent;
@@ -52,9 +71,9 @@ public class GradStudentService {
 		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());
 		gradStudentList.forEach(gS -> {
 			if(gS != null) {
-	    		School school = schoolTransformer.transformToDTO(schoolRepository.findByMinCode(gS.getMincode()));
-	    		if(school != null) {
-	    			gS.setSchoolName(school.getSchoolName());
+				School schoolData = restTemplate.getForObject(getSchoolByMinCodeURL.replace("{minCode}", gS.getMincode()), School.class);
+	    		if(schoolData != null) {
+	    			gS.setSchoolName(schoolData.getSchoolName());
 	    		}
 	    	}
 		});			

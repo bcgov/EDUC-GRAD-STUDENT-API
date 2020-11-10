@@ -62,20 +62,12 @@ logging:
             logging: ${SPRING_BOOT_AUTOCONFIG_LOG_LEVEL}
 
 #Edpoint Management properties
-#management:
-#  metrics:
-#    export:
-#      prometheus:
-#        enabled: true
-#  endpoint:
-#    prometheus:
-#      enabled: true
-#    metrics:
-#      enabled: true
-#  endpoints:
-#    web:
-#      exposure:
-#        include: *
+#Endpoint properties
+endpoint:
+  school-api:
+    school-by-min-code:
+      url: https://educ-grad-school-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/school/{minCode}
+
 
 #Local properties
 server:
