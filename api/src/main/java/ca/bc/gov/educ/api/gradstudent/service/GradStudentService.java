@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -56,7 +58,8 @@ public class GradStudentService {
     	GradStudent gradStudent = new GradStudent();
     	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
     	if(gradStudent != null) {
-    		School schoolData = restTemplate.getForObject(getSchoolByMinCodeURL.replace("{minCode}", gradStudent.getMincode()), School.class);
+    		School schoolData = restTemplate.exchange(getSchoolByMinCodeURL.replace("{minCode}", gradStudent.getMincode()), HttpMethod.GET,
+                    new HttpEntity<>(httpHeaders), School.class).getBody();
             if(schoolData != null) {
     			gradStudent.setSchoolName(schoolData.getSchoolName());
     		}
@@ -71,7 +74,8 @@ public class GradStudentService {
 		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());
 		gradStudentList.forEach(gS -> {
 			if(gS != null) {
-				School schoolData = restTemplate.getForObject(getSchoolByMinCodeURL.replace("{minCode}", gS.getMincode()), School.class);
+				School schoolData = restTemplate.exchange(getSchoolByMinCodeURL.replace("{minCode}", gS.getMincode()), HttpMethod.GET,
+	                    new HttpEntity<>(httpHeaders), School.class).getBody();
 	    		if(schoolData != null) {
 	    			gS.setSchoolName(schoolData.getSchoolName());
 	    		}
