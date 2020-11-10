@@ -10,19 +10,15 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import ca.bc.gov.educ.api.gradstudent.model.GradStudentEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.SchoolRepository;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.School;
-import ca.bc.gov.educ.api.gradstudent.transformer.SchoolTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.StudentTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 
 @Service
 public class GradStudentService {
@@ -32,12 +28,6 @@ public class GradStudentService {
     
     @Autowired
     StudentTransformer studentTransformer;
-    
-    @Autowired
-    SchoolTransformer schoolTransformer;
-    
-    @Autowired
-    SchoolRepository schoolRepository;
     
     @Autowired
     RestTemplate restTemplate;
