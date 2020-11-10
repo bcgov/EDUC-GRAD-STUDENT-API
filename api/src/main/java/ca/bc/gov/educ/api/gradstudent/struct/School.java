@@ -9,6 +9,7 @@ import lombok.Data;
 public class School {
 
 	private String minCode;
+	private String districtName;
     private String schoolName;    
     private String transcriptEligibility;    
     private String certificateEligibility;
