@@ -70,10 +70,10 @@ endpoint:
   code-api:
     country:
       country-by-country-code:
-        url:https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/country/%s
+        url: https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/country/%s
     province:
       province-by-prov-code:
-        url:https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/province/%s
+        url: https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/province/%s
 
 #Local properties
 server:
