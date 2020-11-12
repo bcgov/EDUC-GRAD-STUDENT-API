@@ -12,8 +12,7 @@ public class EducGradStudentApiConstants {
     public static final String ENDPOINT_SCHOOL_BY_MIN_CODE_URL = "${endpoint.school-api.school-by-min-code.url}";
     public static final String ENDPOINT_COUNTRY_BY_COUNTRY_CODE_URL = "${endpoint.code-api.country.country-by-country-code.url}";
     public static final String ENDPOINT_PROVINCE_BY_PROV_CODE_URL = "${endpoint.code-api.province.province-by-prov-code.url}";
-    
-    
-    
+    public static final String ENDPOINT_ALL_COUNTRY_URL = "${endpoint.code-api.country.all-countries.url}";
+    public static final String ENDPOINT_ALL_PROVINCE_URL = "${endpoint.code-api.province.all-provinces.url}";    
     
 }

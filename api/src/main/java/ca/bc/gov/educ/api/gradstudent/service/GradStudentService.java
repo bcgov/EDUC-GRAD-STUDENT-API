@@ -1,7 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -48,6 +51,12 @@ public class GradStudentService {
     @Value(EducGradStudentApiConstants.ENDPOINT_PROVINCE_BY_PROV_CODE_URL)
     private String getProvinceByProvCodeURL;
     
+    @Value(EducGradStudentApiConstants.ENDPOINT_ALL_COUNTRY_URL)
+    private String getAllCountriesURL;
+    
+    @Value(EducGradStudentApiConstants.ENDPOINT_ALL_PROVINCE_URL)
+    private String getAllProvincesURL;
+    
     
     @Transactional
     public GradStudent getStudentByPen(String pen) {
@@ -75,6 +84,8 @@ public class GradStudentService {
     @Transactional
 	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
 		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();
+		Map<String,String> MAP_COUNTRY = getCountryList();
+	    Map<String,String> MAP_PROVINCE = getProvinceList();
 		Pageable paging = PageRequest.of(pageNo, pageSize);        	 
         Page<GradStudentEntity> pagedResult = gradStudentRepository.findByStudSurname(StringUtils.toRootUpperCase(lastName),paging);
 		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());
@@ -84,17 +95,29 @@ public class GradStudentService {
 	    		if(schoolData != null) {
 	    			gS.setSchoolName(schoolData.getSchoolName());
 	    		}
-	    		GradCountry country = restTemplate.getForObject(String.format(getCountryByCountryCodeURL, gS.getCountryCode()), GradCountry.class);
-	            if(country != null) {
-	    			gS.setCountryName(country.getCountryName());
-	    		}
-	            
-	            GradProvince province = restTemplate.getForObject(String.format(getProvinceByProvCodeURL, gS.getProvinceCode()), GradProvince.class);
-	            if(province != null) {
-	    			gS.setProvinceName(province.getProvName());
-	    		}
+	    		gS.setCountryName(MAP_COUNTRY.get(gS.getCountryCode()));
+	    		gS.setProvinceName(MAP_PROVINCE.get(gS.getProvinceCode()));	            
 	    	}
 		});			
     	return gradStudentList;
+	}
+    
+    public Map<String,String> getCountryList() {
+		GradCountry[] countryArray = restTemplate.getForObject(getAllCountriesURL, GradCountry[].class);
+		List<GradCountry> countryList =  Arrays.asList(countryArray);
+		if(countryList.size() > 0) {
+			Map<String,String> mapCounty = countryList.stream().collect(Collectors.toMap(GradCountry::getCountryCode, GradCountry::getCountryName));
+			return mapCounty;
+		}
+		return null;		
+	}
+
+	public Map<String, String> getProvinceList() {
+		List<GradProvince> provinceList =  Arrays.asList(restTemplate.getForObject(getAllProvincesURL, GradProvince[].class));
+		if(provinceList.size() > 0) {
+			Map<String,String> mapProvince = provinceList.stream().collect(Collectors.toMap(GradProvince::getProvCode, GradProvince::getProvName));
+			return mapProvince;
+		}
+		return null;	
 	}
 }
