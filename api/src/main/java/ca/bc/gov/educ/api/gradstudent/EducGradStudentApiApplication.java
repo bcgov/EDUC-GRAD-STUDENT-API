@@ -12,7 +12,6 @@ import ca.bc.gov.educ.api.gradstudent.model.GradStudentEntity;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
 
 @SpringBootApplication
-//@EnableSwagger2
 public class EducGradStudentApiApplication {
 
 	public static void main(String[] args) {

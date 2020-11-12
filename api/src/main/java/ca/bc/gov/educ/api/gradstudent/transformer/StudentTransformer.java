@@ -18,11 +18,10 @@ public class StudentTransformer {
 	ModelMapper modelMapper; 
 
     public GradStudent transformToDTO ( Optional<GradStudentEntity> gradStudentEntity ) {
-    	GradStudentEntity cae = new GradStudentEntity();
+    	GradStudentEntity gse = new GradStudentEntity();
         if (gradStudentEntity.isPresent())
-            cae = gradStudentEntity.get();
-        GradStudent courseAchievement = modelMapper.map(cae, GradStudent.class);
-        return courseAchievement;
+            gse = gradStudentEntity.get();
+        return modelMapper.map(gse, GradStudent.class);
     }
     
     public List<GradStudent> transformToDTO (List<GradStudentEntity> gradStudentEntities ) {
