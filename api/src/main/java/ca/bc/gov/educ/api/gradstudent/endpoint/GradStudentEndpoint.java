@@ -34,6 +34,6 @@ public interface GradStudentEndpoint {
     List<GradStudent> getGradStudentByLastName(
     		@RequestParam(value = "lastName", required = true) String lastName,
     		@RequestParam(value = "pageNo", required = false,defaultValue = "0") Integer pageNo, 
-            @RequestParam(value = "pageSize", required = false,defaultValue = "150") Integer pageSize);
+            @RequestParam(value = "pageSize", required = false,defaultValue = "50") Integer pageSize);
 
 }
