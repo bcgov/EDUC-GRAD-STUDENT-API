@@ -37,8 +37,6 @@ public class EducGradStudentApiApplication {
 	
 	@Bean
 	public RestTemplate restTemplate(RestTemplateBuilder builder) {
-		return builder.basicAuthentication(uName, pass)
-				.setConnectTimeout(Duration.ofSeconds(100))
-				.build();
+		return builder.basicAuthentication(uName, pass).build();
 	}
 }
