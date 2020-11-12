@@ -11,7 +11,7 @@
 	<groupId>ca.bc.gov.educ</groupId>
 	<artifactId>gradstudent-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>EDUC-GRAD-STUDENT-API</name>
+	<name>educ-grad-student-api</name>
 	<description>Student Demographics API for GRAD team</description>
 
 	<properties>

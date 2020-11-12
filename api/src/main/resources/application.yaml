@@ -66,6 +66,8 @@ server:
       worker: 128
       io: 16
   #port: ${HTTP_PORT}
+  tomcat:
+    connection-timeout: 200s
 
 #API Documentation
 springdoc:
