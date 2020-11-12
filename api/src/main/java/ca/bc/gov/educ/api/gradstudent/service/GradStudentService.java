@@ -1,10 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -19,11 +16,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import ca.bc.gov.educ.api.gradstudent.model.GradStudentEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GradCountryRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GradProvinceRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.SchoolRepository;
 import ca.bc.gov.educ.api.gradstudent.struct.GradCountry;
 import ca.bc.gov.educ.api.gradstudent.struct.GradProvince;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.School;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradCountryTransformer;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradProvinceTransformer;
+import ca.bc.gov.educ.api.gradstudent.transformer.SchoolTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.StudentTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 
@@ -35,6 +38,25 @@ public class GradStudentService {
     
     @Autowired
     StudentTransformer studentTransformer;
+    
+    @Autowired
+    SchoolRepository schoolRepository;
+    
+    @Autowired
+    SchoolTransformer schoolTransformer;
+    
+    @Autowired
+    GradCountryRepository gradCountryRepository;
+    
+    @Autowired
+    GradCountryTransformer gradCountryTransformer;
+    
+    @Autowired
+    GradProvinceRepository gradProvinceRepository;
+    
+    @Autowired
+    GradProvinceTransformer gradProvinceTransformer;
+    
     
     @Autowired
     RestTemplate restTemplate;
@@ -63,19 +85,17 @@ public class GradStudentService {
     	GradStudent gradStudent = new GradStudent();
     	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
     	if(gradStudent != null) {
-    		School schoolData = restTemplate.getForObject(String.format(getSchoolByMinCodeURL, gradStudent.getMincode()), School.class);
-            if(schoolData != null) {
-    			gradStudent.setSchoolName(schoolData.getSchoolName());
+    		School school = schoolTransformer.transformToDTO(schoolRepository.findByMinCode(gradStudent.getMincode()));
+    		if(school != null) {
+    			gradStudent.setSchoolName(school.getSchoolName());
     		}
-            
-            GradCountry country = restTemplate.getForObject(String.format(getCountryByCountryCodeURL, gradStudent.getCountryCode()), GradCountry.class);
-            if(country != null) {
-    			gradStudent.setCountryName(country.getCountryName());
+    		GradCountry gradCountry = gradCountryTransformer.transformToDTO(gradCountryRepository.findById(gradStudent.getCountryCode()));
+    		if(gradCountry != null) {
+    			gradStudent.setCountryName(gradCountry.getCountryName());
     		}
-            
-            GradProvince province = restTemplate.getForObject(String.format(getProvinceByProvCodeURL, gradStudent.getProvinceCode()), GradProvince.class);
-            if(province != null) {
-    			gradStudent.setProvinceName(province.getProvName());
+    		GradProvince gradProvince = gradProvinceTransformer.transformToDTO(gradProvinceRepository.findById(gradStudent.getProvinceCode()));
+    		if(gradProvince != null) {
+    			gradStudent.setProvinceName(gradProvince.getProvName());
     		}
     	}
     	return gradStudent;
@@ -84,40 +104,25 @@ public class GradStudentService {
     @Transactional
 	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
 		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();
-		//Map<String,String> MAP_COUNTRY = getCountryList();
-	   // Map<String,String> MAP_PROVINCE = getProvinceList();
 		Pageable paging = PageRequest.of(pageNo, pageSize);        	 
         Page<GradStudentEntity> pagedResult = gradStudentRepository.findByStudSurname(StringUtils.toRootUpperCase(lastName),paging);
 		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());
 		gradStudentList.forEach(gS -> {
 			if(gS != null) {
-				School schoolData = restTemplate.getForObject(String.format(getSchoolByMinCodeURL, gS.getMincode()), School.class);
-	    		if(schoolData != null) {
-	    			gS.setSchoolName(schoolData.getSchoolName());
+				School school = schoolTransformer.transformToDTO(schoolRepository.findByMinCode(gS.getMincode()));
+	    		if(school != null) {
+	    			gS.setSchoolName(school.getSchoolName());
 	    		}
-	    		//gS.setCountryName(MAP_COUNTRY.get(gS.getCountryCode()));
-	    		//gS.setProvinceName(MAP_PROVINCE.get(gS.getProvinceCode()));	            
+	    		GradCountry gradCountry = gradCountryTransformer.transformToDTO(gradCountryRepository.findById(gS.getCountryCode()));
+	    		if(gradCountry != null) {
+	    			gS.setCountryName(gradCountry.getCountryName());
+	    		}
+	    		GradProvince gradProvince = gradProvinceTransformer.transformToDTO(gradProvinceRepository.findById(gS.getProvinceCode()));
+	    		if(gradProvince != null) {
+	    			gS.setProvinceName(gradProvince.getProvName());
+	    		}	            
 	    	}
 		});			
     	return gradStudentList;
-	}
-    
-    public Map<String,String> getCountryList() {
-		GradCountry[] countryArray = restTemplate.getForObject(getAllCountriesURL, GradCountry[].class);
-		List<GradCountry> countryList =  Arrays.asList(countryArray);
-		if(countryList.size() > 0) {
-			Map<String,String> mapCounty = countryList.stream().collect(Collectors.toMap(GradCountry::getCountryCode, GradCountry::getCountryName));
-			return mapCounty;
-		}
-		return null;		
-	}
-
-	public Map<String, String> getProvinceList() {
-		List<GradProvince> provinceList =  Arrays.asList(restTemplate.getForObject(getAllProvincesURL, GradProvince[].class));
-		if(provinceList.size() > 0) {
-			Map<String,String> mapProvince = provinceList.stream().collect(Collectors.toMap(GradProvince::getProvCode, GradProvince::getProvName));
-			return mapProvince;
-		}
-		return null;	
-	}
+	}   
 }
