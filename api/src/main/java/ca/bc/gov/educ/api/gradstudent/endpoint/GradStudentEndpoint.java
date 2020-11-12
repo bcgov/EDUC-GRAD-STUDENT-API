@@ -23,9 +23,11 @@ public interface GradStudentEndpoint {
     GradStudent getGradStudentByPen(@PathVariable String pen);
     
     /**
-     * Gets Student details by pen.
+     * Gets Student details by lastname.
      *
-     * @param pen the pen
+     * @param lastName the lastname of a student
+     * @param pageNo the page number to return
+     * @param pageSize the number of result items in a page
      * @return the student details by pen
      */
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_LAST_NAME)
