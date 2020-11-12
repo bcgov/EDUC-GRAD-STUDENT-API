@@ -84,8 +84,8 @@ public class GradStudentService {
     @Transactional
 	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
 		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();
-		Map<String,String> MAP_COUNTRY = getCountryList();
-	    Map<String,String> MAP_PROVINCE = getProvinceList();
+		//Map<String,String> MAP_COUNTRY = getCountryList();
+	   // Map<String,String> MAP_PROVINCE = getProvinceList();
 		Pageable paging = PageRequest.of(pageNo, pageSize);        	 
         Page<GradStudentEntity> pagedResult = gradStudentRepository.findByStudSurname(StringUtils.toRootUpperCase(lastName),paging);
 		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());
@@ -95,8 +95,8 @@ public class GradStudentService {
 	    		if(schoolData != null) {
 	    			gS.setSchoolName(schoolData.getSchoolName());
 	    		}
-	    		gS.setCountryName(MAP_COUNTRY.get(gS.getCountryCode()));
-	    		gS.setProvinceName(MAP_PROVINCE.get(gS.getProvinceCode()));	            
+	    		//gS.setCountryName(MAP_COUNTRY.get(gS.getCountryCode()));
+	    		//gS.setProvinceName(MAP_PROVINCE.get(gS.getProvinceCode()));	            
 	    	}
 		});			
     	return gradStudentList;
