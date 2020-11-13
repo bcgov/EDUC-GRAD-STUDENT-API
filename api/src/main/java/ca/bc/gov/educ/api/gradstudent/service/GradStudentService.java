@@ -110,6 +110,11 @@ public class GradStudentService {
         Page<GradStudentEntity> pagedResult = gradStudentRepository.findByStudSurname(StringUtils.toRootUpperCase(lastName),paging);
 		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());				
     	return gradStudentList;
-	}    
+	} 
+    
+    @Transactional
+	public List<GradStudent> getStudentByPens(List<String> penList) {
+		return studentTransformer.transformToDTO(gradStudentRepository.findByPenList(penList));
+	} 
     
 }
