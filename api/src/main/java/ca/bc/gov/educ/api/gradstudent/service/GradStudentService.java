@@ -85,17 +85,19 @@ public class GradStudentService {
     	GradStudent gradStudent = new GradStudent();
     	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
     	if(gradStudent != null) {
-    		School school = schoolTransformer.transformToDTO(schoolRepository.findByMinCode(gradStudent.getMincode()));
-    		if(school != null) {
-    			gradStudent.setSchoolName(school.getSchoolName());
+    		School schoolData = restTemplate.getForObject(String.format(getSchoolByMinCodeURL, gradStudent.getMincode()), School.class);
+            if(schoolData != null) {
+    			gradStudent.setSchoolName(schoolData.getSchoolName());
     		}
-    		GradCountry gradCountry = gradCountryTransformer.transformToDTO(gradCountryRepository.findById(gradStudent.getCountryCode()));
-    		if(gradCountry != null) {
-    			gradStudent.setCountryName(gradCountry.getCountryName());
+            
+            GradCountry country = restTemplate.getForObject(String.format(getCountryByCountryCodeURL, gradStudent.getCountryCode()), GradCountry.class);
+            if(country != null) {
+    			gradStudent.setCountryName(country.getCountryName());
     		}
-    		GradProvince gradProvince = gradProvinceTransformer.transformToDTO(gradProvinceRepository.findById(gradStudent.getProvinceCode()));
-    		if(gradProvince != null) {
-    			gradStudent.setProvinceName(gradProvince.getProvName());
+            
+            GradProvince province = restTemplate.getForObject(String.format(getProvinceByProvCodeURL, gradStudent.getProvinceCode()), GradProvince.class);
+            if(province != null) {
+    			gradStudent.setProvinceName(province.getProvName());
     		}
     	}
     	return gradStudent;
@@ -103,26 +105,11 @@ public class GradStudentService {
 
     @Transactional
 	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
-		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();
+		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
 		Pageable paging = PageRequest.of(pageNo, pageSize);        	 
         Page<GradStudentEntity> pagedResult = gradStudentRepository.findByStudSurname(StringUtils.toRootUpperCase(lastName),paging);
-		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());
-		gradStudentList.forEach(gS -> {
-			if(gS != null) {
-				School school = schoolTransformer.transformToDTO(schoolRepository.findByMinCode(gS.getMincode()));
-	    		if(school != null) {
-	    			gS.setSchoolName(school.getSchoolName());
-	    		}
-	    		GradCountry gradCountry = gradCountryTransformer.transformToDTO(gradCountryRepository.findById(gS.getCountryCode()));
-	    		if(gradCountry != null) {
-	    			gS.setCountryName(gradCountry.getCountryName());
-	    		}
-	    		GradProvince gradProvince = gradProvinceTransformer.transformToDTO(gradProvinceRepository.findById(gS.getProvinceCode()));
-	    		if(gradProvince != null) {
-	    			gS.setProvinceName(gradProvince.getProvName());
-	    		}	            
-	    	}
-		});			
+		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());				
     	return gradStudentList;
-	}   
+	}    
+    
 }
