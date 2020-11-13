@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestParam;
 //import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,4 +33,9 @@ public class GradStudentController implements GradStudentEndpoint {
 	public List<GradStudent> getGradStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
 		return gradStudentService.getStudentByLastName(lastName,pageNo,pageSize);
 	}
+	
+	@Override
+    public List<GradStudent> getGradStudentByPens(@RequestParam(value = "penList", required = true) List<String> penList) {
+        return gradStudentService.getStudentByPens(penList);
+    }
 }
