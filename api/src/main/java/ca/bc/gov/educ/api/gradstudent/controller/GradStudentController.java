@@ -30,8 +30,18 @@ public class GradStudentController implements GradStudentEndpoint {
     }
 
 	@Override
-	public List<GradStudent> getGradStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
+	public List<GradStudent> getGradStudentByLastName(String lastName,Integer pageNo, Integer pageSize) {
 		return gradStudentService.getStudentByLastName(lastName,pageNo,pageSize);
+	}
+	
+	@Override
+	public List<GradStudent> getGradStudentByFirstName(String firstName, Integer pageNo, Integer pageSize) {
+		return gradStudentService.getStudentByFirstName(firstName,pageNo,pageSize);
+	}
+	
+	@Override
+	public List<GradStudent> getGradStudentByLastNameAndFirstName(String lastName,String firstName, Integer pageNo, Integer pageSize) {
+		return gradStudentService.getStudentByLastNameAndFirstName(lastName,firstName,pageNo,pageSize);
 	}
 	
 	@Override

@@ -106,11 +106,50 @@ public class GradStudentService {
     @Transactional
 	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
 		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
-		Pageable paging = PageRequest.of(pageNo, pageSize);        	 
-        Page<GradStudentEntity> pagedResult = gradStudentRepository.findByStudSurname(StringUtils.toRootUpperCase(lastName),paging);
+		Pageable paging = PageRequest.of(pageNo, pageSize);
+		Page<GradStudentEntity> pagedResult = null;
+		if(StringUtils.contains("*", lastName)) {
+			pagedResult = gradStudentRepository.findByStudSurnameContaining(StringUtils.toRootUpperCase(StringUtils.strip(lastName, "*")),paging);
+		}else {
+			pagedResult = gradStudentRepository.findByStudSurname(StringUtils.toRootUpperCase(lastName),paging);
+		}
 		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());				
     	return gradStudentList;
 	} 
+    
+    @Transactional
+	public List<GradStudent> getStudentByFirstName(String firstName, Integer pageNo, Integer pageSize) {
+		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
+		Pageable paging = PageRequest.of(pageNo, pageSize);
+		Page<GradStudentEntity> pagedResult = null;
+		if(StringUtils.contains("*", firstName)) {
+			pagedResult = gradStudentRepository.findByStudGivenContaining(StringUtils.toRootUpperCase(StringUtils.strip(firstName, "*")),paging);
+		}else {
+			pagedResult = gradStudentRepository.findByStudGiven(StringUtils.toRootUpperCase(firstName),paging);
+		}
+		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());				
+    	return gradStudentList;
+	}
+    
+    @Transactional
+	public List<GradStudent> getStudentByLastNameAndFirstName(String lastName, String firstName,Integer pageNo, Integer pageSize) {
+		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
+		Pageable paging = PageRequest.of(pageNo, pageSize);
+		Page<GradStudentEntity> pagedResult = null;
+		if(StringUtils.contains(lastName,"*") && StringUtils.contains(firstName,"*")) {
+			pagedResult = gradStudentRepository.findByStudSurnameContainingAndStudGivenContaining(StringUtils.toRootUpperCase(StringUtils.strip(lastName, "*")),StringUtils.toRootUpperCase(StringUtils.strip(firstName, "*")),paging);
+		}else {
+			if(StringUtils.contains(firstName,"*") && !StringUtils.contains(lastName,"*")) {
+				pagedResult = gradStudentRepository.findByStudSurnameAndStudGivenContaining(StringUtils.toRootUpperCase(StringUtils.strip(lastName, "*")),StringUtils.toRootUpperCase(StringUtils.strip(firstName, "*")),paging);
+			}else if(!StringUtils.contains(firstName,"*") && StringUtils.contains(lastName,"*")) {
+				pagedResult = gradStudentRepository.findByStudSurnameContainingAndStudGiven(StringUtils.toRootUpperCase(StringUtils.strip(lastName, "*")),StringUtils.toRootUpperCase(StringUtils.strip(firstName, "*")),paging);
+			}else {
+				pagedResult = gradStudentRepository.findByStudSurnameAndStudGiven(StringUtils.toRootUpperCase(lastName),StringUtils.toRootUpperCase(firstName),paging);
+			}
+		}
+		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());				
+    	return gradStudentList;
+	}
     
     @Transactional
 	public List<GradStudent> getStudentByPens(List<String> penList) {

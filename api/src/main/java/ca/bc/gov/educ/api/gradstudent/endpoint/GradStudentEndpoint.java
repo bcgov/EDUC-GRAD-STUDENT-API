@@ -36,6 +36,35 @@ public interface GradStudentEndpoint {
     		@RequestParam(value = "pageNo", required = false,defaultValue = "0") Integer pageNo, 
             @RequestParam(value = "pageSize", required = false,defaultValue = "50") Integer pageSize);
     
+    /**
+     * Gets Student details by first name.
+     *
+     * @param lastName the first name of a student
+     * @param pageNo the page number to return
+     * @param pageSize the number of result items in a page
+     * @return the student details by pen
+     */
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_FIRST_NAME)
+    List<GradStudent> getGradStudentByFirstName(
+    		@RequestParam(value = "firstName", required = true) String firstName,
+    		@RequestParam(value = "pageNo", required = false,defaultValue = "0") Integer pageNo, 
+            @RequestParam(value = "pageSize", required = false,defaultValue = "50") Integer pageSize);
+    
+    /**
+     * Gets Student details by lastname.
+     *
+     * @param lastName the lastname of a student
+     * @param pageNo the page number to return
+     * @param pageSize the number of result items in a page
+     * @return the student details by pen
+     */
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
+    List<GradStudent> getGradStudentByLastNameAndFirstName(
+    		@RequestParam(value = "lastName", required = false,defaultValue = "*") String lastName,
+    		@RequestParam(value = "firstName", required = false,defaultValue = "*") String firstName,
+    		@RequestParam(value = "pageNo", required = false,defaultValue = "0") Integer pageNo, 
+            @RequestParam(value = "pageSize", required = false,defaultValue = "50") Integer pageSize);
+    
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_MULTIPLE_PENS)
     List<GradStudent> getGradStudentByPens(@RequestParam(value = "penList", required = true) List<String> penList);
     

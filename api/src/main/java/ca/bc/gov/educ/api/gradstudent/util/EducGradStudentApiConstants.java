@@ -7,7 +7,9 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_API_ROOT_MAPPING = "/api/" + API_VERSION ;
     public static final String GRAD_STUDENT_BY_PEN = "/{pen}";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
+    public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_PENS = "/multipen";
+    public static final String GRAD_STUDENT_BY_ANY_NAME = "/studentsearch";
     
     //Application Properties Constants
     public static final String ENDPOINT_SCHOOL_BY_MIN_CODE_URL = "${endpoint.school-api.school-by-min-code.url}";
