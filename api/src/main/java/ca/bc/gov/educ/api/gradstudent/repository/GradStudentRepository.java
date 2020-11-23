@@ -15,6 +15,23 @@ public interface GradStudentRepository extends JpaRepository<GradStudentEntity, 
 
 	Page<GradStudentEntity> findByStudSurname(String lastName, Pageable paging);
 
+	Page<GradStudentEntity> findByStudGiven(String lastName, Pageable paging);
+	
 	@Query("SELECT si FROM GradStudentEntity si where si.pen in :penList")	
 	List<GradStudentEntity> findByPenList(List<String> penList);
+
+	Page<GradStudentEntity> findByStudSurnameContaining(String rootUpperCase, Pageable paging);
+	
+	Page<GradStudentEntity> findByStudGivenContaining(String rootUpperCase, Pageable paging);
+
+	Page<GradStudentEntity> findByStudSurnameContainingAndStudGivenContaining(String rootUpperCase,
+			String rootUpperCase2, Pageable paging);
+
+	Page<GradStudentEntity> findByStudSurnameAndStudGivenContaining(String rootUpperCase, String rootUpperCase2,
+			Pageable paging);
+
+	Page<GradStudentEntity> findByStudSurnameContainingAndStudGiven(String rootUpperCase, String rootUpperCase2,
+			Pageable paging);
+
+	Page<GradStudentEntity> findByStudSurnameAndStudGiven(String rootUpperCase, String rootUpperCase2, Pageable paging);
 }

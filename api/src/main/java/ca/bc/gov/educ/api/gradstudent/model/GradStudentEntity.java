@@ -127,7 +127,7 @@ public class GradStudentEntity {
     private String sccDate;
 
     @Column(name = "GRAD_REQT_YEAR")
-    private int gradRequirementYear;
+    private String gradRequirementYear;
 
     @Column(name = "SLP_DATE")
     private String slpDate;

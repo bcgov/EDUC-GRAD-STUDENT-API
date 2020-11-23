@@ -48,7 +48,7 @@ public class GradStudent {
     private String programCode4;
     private String programCode5;
     private String sccDate;
-    private int gradRequirementYear;
+    private String gradRequirementYear;
     private String slpDate;
     private String mergedFromPen;
     private String gradReqtYearAtGrad;
