@@ -63,7 +63,7 @@ public interface GradStudentEndpoint {
     		@RequestParam(value = "lastName", required = false,defaultValue = "*") String lastName,
     		@RequestParam(value = "firstName", required = false,defaultValue = "*") String firstName,
     		@RequestParam(value = "pageNo", required = false,defaultValue = "0") Integer pageNo, 
-            @RequestParam(value = "pageSize", required = false,defaultValue = "50") Integer pageSize);
+            @RequestParam(value = "pageSize", required = false,defaultValue = "20") Integer pageSize);
     
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_MULTIPLE_PENS)
     List<GradStudent> getGradStudentByPens(@RequestParam(value = "penList", required = true) List<String> penList);
