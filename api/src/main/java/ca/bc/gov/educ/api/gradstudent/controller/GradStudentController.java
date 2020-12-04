@@ -5,9 +5,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.web.bind.annotation.RequestParam;
 //import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +15,7 @@ import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@EnableResourceServer
+//@EnableResourceServer
 @Slf4j
 public class GradStudentController implements GradStudentEndpoint {
 
@@ -29,36 +26,26 @@ public class GradStudentController implements GradStudentEndpoint {
 
     @Override
     public GradStudent getGradStudentByPen(String pen) {
-    	OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentByPen(pen,accessToken);
+        return gradStudentService.getStudentByPen(pen);
     }
 
 	@Override
 	public List<GradStudent> getGradStudentByLastName(String lastName,Integer pageNo, Integer pageSize) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-		return gradStudentService.getStudentByLastName(lastName,pageNo,pageSize,accessToken);
+		return gradStudentService.getStudentByLastName(lastName,pageNo,pageSize);
 	}
 	
 	@Override
 	public List<GradStudent> getGradStudentByFirstName(String firstName, Integer pageNo, Integer pageSize) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-		return gradStudentService.getStudentByFirstName(firstName,pageNo,pageSize,accessToken);
+		return gradStudentService.getStudentByFirstName(firstName,pageNo,pageSize);
 	}
 	
 	@Override
 	public List<GradStudent> getGradStudentByLastNameAndFirstName(String lastName,String firstName, Integer pageNo, Integer pageSize) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-		return gradStudentService.getStudentByLastNameAndFirstName(lastName,firstName,pageNo,pageSize,accessToken);
+		return gradStudentService.getStudentByLastNameAndFirstName(lastName,firstName,pageNo,pageSize);
 	}
 	
 	@Override
     public List<GradStudent> getGradStudentByPens(@RequestParam(value = "penList", required = true) List<String> penList) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentByPens(penList,accessToken);
+        return gradStudentService.getStudentByPens(penList);
     }
 }
