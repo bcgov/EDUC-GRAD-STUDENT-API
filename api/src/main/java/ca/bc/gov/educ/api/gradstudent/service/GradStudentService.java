@@ -12,9 +12,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,7 +29,6 @@ import ca.bc.gov.educ.api.gradstudent.transformer.GradProvinceTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.SchoolTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.StudentTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 
 @Service
 public class GradStudentService {
@@ -85,23 +81,21 @@ public class GradStudentService {
     
     
     @Transactional
-    public GradStudent getStudentByPen(String pen, String accessToken) {
+    public GradStudent getStudentByPen(String pen) {
     	GradStudent gradStudent = new GradStudent();
     	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
-    	HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
     	if(gradStudent != null) {
-    		School schoolData = restTemplate.exchange(String.format(getSchoolByMinCodeURL, gradStudent.getMincode()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), School.class).getBody();
-    		if(schoolData != null) {
+    		School schoolData = restTemplate.getForObject(String.format(getSchoolByMinCodeURL, gradStudent.getMincode()), School.class);
+            if(schoolData != null) {
     			gradStudent.setSchoolName(schoolData.getSchoolName());
     		}
-            GradCountry country = restTemplate.exchange(String.format(getCountryByCountryCodeURL, gradStudent.getCountryCode()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), GradCountry.class).getBody();
+            
+            GradCountry country = restTemplate.getForObject(String.format(getCountryByCountryCodeURL, gradStudent.getCountryCode()), GradCountry.class);
             if(country != null) {
     			gradStudent.setCountryName(country.getCountryName());
     		}
-            GradProvince province = restTemplate.exchange(String.format(getProvinceByProvCodeURL, gradStudent.getProvinceCode()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), GradProvince.class).getBody();
+            
+            GradProvince province = restTemplate.getForObject(String.format(getProvinceByProvCodeURL, gradStudent.getProvinceCode()), GradProvince.class);
             if(province != null) {
     			gradStudent.setProvinceName(province.getProvName());
     		}
@@ -110,7 +104,7 @@ public class GradStudentService {
     }
 
     @Transactional
-	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize, String accessToken) {
+	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize) {
 		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
 		Pageable paging = PageRequest.of(pageNo, pageSize);
 		Page<GradStudentEntity> pagedResult = null;
@@ -124,7 +118,7 @@ public class GradStudentService {
 	} 
     
     @Transactional
-	public List<GradStudent> getStudentByFirstName(String firstName, Integer pageNo, Integer pageSize, String accessToken) {
+	public List<GradStudent> getStudentByFirstName(String firstName, Integer pageNo, Integer pageSize) {
 		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
 		Pageable paging = PageRequest.of(pageNo, pageSize);
 		Page<GradStudentEntity> pagedResult = null;
@@ -138,7 +132,7 @@ public class GradStudentService {
 	}
     
     @Transactional
-	public List<GradStudent> getStudentByLastNameAndFirstName(String lastName, String firstName,Integer pageNo, Integer pageSize, String accessToken) {
+	public List<GradStudent> getStudentByLastNameAndFirstName(String lastName, String firstName,Integer pageNo, Integer pageSize) {
 		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
 		Pageable paging = PageRequest.of(pageNo, pageSize);
 		Page<GradStudentEntity> pagedResult = null;
@@ -158,7 +152,7 @@ public class GradStudentService {
 	}
     
     @Transactional
-	public List<GradStudent> getStudentByPens(List<String> penList, String accessToken) {
+	public List<GradStudent> getStudentByPens(List<String> penList) {
 		return studentTransformer.transformToDTO(gradStudentRepository.findByPenList(penList));
 	} 
     
