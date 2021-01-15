@@ -73,6 +73,8 @@ springdoc:
     path: /api/v1/api-docs-ui.html
     operationsSorter: method
 
+keycloak:
+  cors: true
 #Endpoint properties
 endpoint:
   grad-student-api:
