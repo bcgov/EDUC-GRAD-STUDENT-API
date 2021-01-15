@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @EnableResourceServer
 @Slf4j
-@CrossOrigin(origins =  "http://educ-grad-admin-master-wbmfsf-dev.pathfinder.gov.bc.ca/")
+@CrossOrigin(origins =  "https://educ-grad-admin-master-wbmfsf-dev.pathfinder.gov.bc.ca/")
 public class GradStudentController implements GradStudentEndpoint {
 
     private static Logger logger = LoggerFactory.getLogger(GradStudentController.class);
