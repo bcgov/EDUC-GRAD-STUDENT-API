@@ -42,7 +42,7 @@ public class EducGradStudentApiApplication {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/").allowedOrigins("https://educ-grad-admin-master-wbmfsf-dev.pathfinder.gov.bc.ca");
+				registry.addMapping("/**").allowedOrigins("https://educ-grad-admin-master-wbmfsf-dev.pathfinder.gov.bc.ca");
 			}
 		};
 	}
