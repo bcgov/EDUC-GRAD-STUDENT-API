@@ -69,4 +69,27 @@ public class GradStudent {
     private String schoolName;
     private String countryName;
     private String provinceName;
+    
+	public String getStudSurname() {
+		return studSurname != null ? studSurname.trim(): null;
+	}
+	public String getStudGiven() {
+		return studGiven != null ? studGiven.trim(): null;
+	}
+	public String getStudMiddle() {
+		return studMiddle != null ? studMiddle.trim(): null;
+	}
+	public String getAddress1() {
+		return address1 != null ? address1.trim(): null;
+	}
+	public String getAddress2() {
+		return address2 != null ? address2.trim(): null;
+	}
+	public String getPostalCode() {
+		return postalCode != null ? postalCode.trim(): null;
+	}
+	public String getSchoolName() {
+		return schoolName != null ? schoolName.trim(): null;
+	}  
+    
 }
