@@ -24,8 +24,8 @@ public class GradStudentEntity {
     @Column(name = "STUD_NO")
     private String pen;
 
-    @Column(name = "ARCHIVE_FLAG")
-    private String archiveFlag;
+    /*@Column(name = "ARCHIVE_FLAG")
+    private String archiveFlag;*/
 
     @Column(name = "STUD_SURNAME")
     private String studSurname;
@@ -60,14 +60,14 @@ public class GradStudentEntity {
     @Column(name = "STUD_SEX")
     private String studSex;
 
-    @Column(name = "STUD_CITIZ")
+    @Column(name = "MINCODE")
+    private String mincode;
+
+/*    @Column(name = "STUD_CITIZ")
     private String studentCitizenship;
 
     @Column(name = "STUD_GRADE")
     private String studentGrade;
-
-    @Column(name = "MINCODE")
-    private String mincode;
 
     @Column(name = "STUD_LOCAL_ID")
     private String studentLocalId;
@@ -175,6 +175,6 @@ public class GradStudentEntity {
     private String englishCertDate;
 
     @Column(name = "FRENCH_CERT_DATE")
-    private String frenchCertDate;
+    private String frenchCertDate;*/
 
 }
