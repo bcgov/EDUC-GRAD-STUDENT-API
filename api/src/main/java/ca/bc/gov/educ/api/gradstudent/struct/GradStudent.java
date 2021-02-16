@@ -90,6 +90,10 @@ public class GradStudent {
 	}
 	public String getSchoolName() {
 		return schoolName != null ? schoolName.trim(): null;
-	}  
+	}
+	
+	public String getCity() {
+		return city != null ? city.trim(): null;
+	}
     
 }
