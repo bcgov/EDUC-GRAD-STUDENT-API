@@ -73,6 +73,12 @@ public class GradStudent {
 	public String getStudSurname() {
 		return studSurname != null ? studSurname.trim(): null;
 	}
+	public String getCountryName() {
+		return countryName != null ? countryName.trim(): null;
+	}
+	public String getProvinceName() {
+		return provinceName != null ? provinceName.trim(): null;
+	}
 	public String getStudGiven() {
 		return studGiven != null ? studGiven.trim(): null;
 	}
