@@ -14,7 +14,7 @@ spring:
       pool-name: gradstudent-api-cp
       maximum-pool-size: ${MAXIMUM_POOL_SIZE}
       connection-timeout: ${CONNECTION_TIMEOUT}
-      max-lifetime: ${MAXIMUM_LIFETIME}
+      max-lifetime: ${MAX_LIFETIME}
     url: ${JDBC_URL}
     username: ${ORACLE_USERNAME}
     password: ${ORACLE_PASSWORD}
@@ -94,11 +94,11 @@ endpoint:
   code-api:
     country:
       country-by-country-code:
-        url: https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/country/%s
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/country/%s
       all-countries:
-        url: https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/country
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/country
     province:
       province-by-prov-code:
-        url: https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/province/%s
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/province/%s
       all-provinces:
-        url: https://educ-grad-code-api-wbmfsf-dev.pathfinder.gov.bc.ca/api/v1/code/province
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/province
