@@ -1,32 +1,53 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.bc.gov.educ.api.gradstudent.model.GradStudentEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradCountryRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GradProvinceRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.SchoolRepository;
+import ca.bc.gov.educ.api.gradstudent.struct.Condition;
+import ca.bc.gov.educ.api.gradstudent.struct.FilterOperation;
 import ca.bc.gov.educ.api.gradstudent.struct.GradCountry;
 import ca.bc.gov.educ.api.gradstudent.struct.GradProvince;
+import ca.bc.gov.educ.api.gradstudent.struct.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
+import ca.bc.gov.educ.api.gradstudent.struct.GraduationStatus;
+import ca.bc.gov.educ.api.gradstudent.struct.RestResponsePage;
 import ca.bc.gov.educ.api.gradstudent.struct.School;
+import ca.bc.gov.educ.api.gradstudent.struct.Search;
+import ca.bc.gov.educ.api.gradstudent.struct.SearchCriteria;
+import ca.bc.gov.educ.api.gradstudent.struct.Student;
+import ca.bc.gov.educ.api.gradstudent.struct.ValueType;
 import ca.bc.gov.educ.api.gradstudent.transformer.GradCountryTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.GradProvinceTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.SchoolTransformer;
@@ -83,6 +104,11 @@ public class GradStudentService {
     @Value(EducGradStudentApiConstants.ENDPOINT_ALL_PROVINCE_URL)
     private String getAllProvincesURL;
     
+    @Value(EducGradStudentApiConstants.ENDPOINT_PEN_STUDENT_API_URL)
+    private String getPenStudentAPIURL;
+    
+    @Value(EducGradStudentApiConstants.ENDPOINT_GRAD_STUDENT_API_URL)
+    private String getGradStatusForStudent;    
     
     @Transactional
     public GradStudent getStudentByPen(String pen, String accessToken) {
@@ -160,6 +186,94 @@ public class GradStudentService {
     @Transactional
 	public List<GradStudent> getStudentByPens(List<String> penList, String accessToken) {
 		return studentTransformer.transformToDTO(gradStudentRepository.findByPenList(penList));
-	} 
-    
+	}
+
+	public List<GradSearchStudent> getStudentFromStudentAPI(String firstName, String lastName, String middleName,
+			String gender, String grade, String mincode, String localID, String birthdate, String accessToken) {
+		HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
+		List<GradSearchStudent> gradStudentList = new ArrayList<GradSearchStudent>();
+		SearchCriteria criteriaFirstName = null;
+		SearchCriteria criteriaLastName = null;
+		SearchCriteria criteriaMiddleName = null;
+		SearchCriteria criteriaGender=null;
+		SearchCriteria criteriaDob = null;
+		SearchCriteria criteriaGrade=null;
+		SearchCriteria criteriaMincode=null;
+		if(StringUtils.isNotBlank(firstName)) {
+			if(StringUtils.contains(firstName,"*")) {
+				criteriaFirstName = SearchCriteria.builder().key("legalFirstName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(firstName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}else {
+				criteriaFirstName = SearchCriteria.builder().key("legalFirstName").operation(FilterOperation.EQUAL).value(firstName).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}
+		}
+		if(StringUtils.isNotBlank(lastName)) {
+			if(StringUtils.contains(lastName,"*")) {
+				criteriaLastName = SearchCriteria.builder().key("legalLastName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(lastName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}else {
+				criteriaLastName = SearchCriteria.builder().key("legalLastName").operation(FilterOperation.EQUAL).value(lastName).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}
+		}
+		if(StringUtils.isNotBlank(middleName)) {
+			if(StringUtils.contains(middleName,"*")) {
+				criteriaMiddleName = SearchCriteria.builder().key("legalMiddleName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(middleName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}else {
+				criteriaMiddleName = SearchCriteria.builder().key("legalMiddleName").operation(FilterOperation.EQUAL).value(middleName).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}
+		}
+		if(StringUtils.isNotBlank(gender)) {
+			criteriaGender = SearchCriteria.builder().condition(Condition.AND).key("genderCode").operation(FilterOperation.EQUAL).value(gender).valueType(ValueType.STRING).build();
+		}
+		if(StringUtils.isNotBlank(grade)) {
+			criteriaGrade = SearchCriteria.builder().condition(Condition.AND).key("gradeCode").operation(FilterOperation.EQUAL).value(grade).valueType(ValueType.STRING).build();
+		}
+		if(StringUtils.isNotBlank(mincode)) {
+			criteriaMincode = SearchCriteria.builder().condition(Condition.AND).key("mincode").operation(FilterOperation.CONTAINS).value(mincode).valueType(ValueType.STRING).build();
+		}
+		if(StringUtils.isNotBlank(birthdate)) {
+			criteriaDob = SearchCriteria.builder().condition(Condition.AND).key("dob").operation(FilterOperation.EQUAL).value(birthdate).valueType(ValueType.DATE).build();
+		}  
+		List<SearchCriteria> criteriaList = new ArrayList<>();
+		if(criteriaFirstName!= null)criteriaList.add(criteriaFirstName);
+		if(criteriaLastName!= null)criteriaList.add(criteriaLastName);
+		if(criteriaMiddleName!= null)criteriaList.add(criteriaMiddleName);
+		if(criteriaGender!= null)criteriaList.add(criteriaGender);
+		if(criteriaGrade!= null)criteriaList.add(criteriaGrade);
+		if(criteriaMincode!= null)criteriaList.add(criteriaMincode);
+		if(criteriaDob!= null)criteriaList.add(criteriaDob);
+		List<Search> searches = new LinkedList<>();
+	    searches.add(Search.builder().condition(Condition.AND).searchCriteriaList(criteriaList).build());
+	    ObjectMapper objectMapper = new ObjectMapper();
+	    try {
+			String criteriaJSON = objectMapper.writeValueAsString(searches);
+			String encodedURL = URLEncoder.encode(criteriaJSON,StandardCharsets.UTF_8.toString());
+			DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
+		    defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+		    restTemplate.setUriTemplateHandler(defaultUriBuilderFactory);
+			restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+			RestResponsePage<Student> response = restTemplate.exchange(String.format(getPenStudentAPIURL, encodedURL), HttpMethod.GET,
+    				new HttpEntity<>(httpHeaders), new ParameterizedTypeReference<RestResponsePage<Student>>() {}).getBody();
+			List<Student> studentList = response.getContent();
+			studentList.forEach(st-> {
+				GradSearchStudent gradStu = new GradSearchStudent();
+				BeanUtils.copyProperties(st, gradStu);
+				ResponseEntity<School> responseSchoolEntity = restTemplate.exchange(String.format(getSchoolByMinCodeURL, st.getMincode()), HttpMethod.GET,
+	    				new HttpEntity<>(httpHeaders), School.class);
+				if(responseSchoolEntity.getStatusCode().equals(HttpStatus.OK)) {
+	    			gradStu.setSchoolName(responseSchoolEntity.getBody().getSchoolName());
+	    		}
+	    		ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(getGradStatusForStudent,st.getPen()), HttpMethod.GET,
+						new HttpEntity<>(httpHeaders), GraduationStatus.class);
+	    		if(responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+	    			gradStu.setProgram(responseEntity.getBody().getProgram());
+	    		}
+	    		gradStudentList.add(gradStu);
+	    		
+			});
+			return gradStudentList;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}    
 }

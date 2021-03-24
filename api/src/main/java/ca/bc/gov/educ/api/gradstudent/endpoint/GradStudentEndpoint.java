@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import ca.bc.gov.educ.api.gradstudent.struct.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -77,6 +78,25 @@ public interface GradStudentEndpoint {
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_MULTIPLE_PENS)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
     List<GradStudent> getGradStudentByPens(@RequestParam(value = "penList", required = true) List<String> penList);
+    
+    /**
+     * Gets Student details by lastname.
+     *
+     * @param lastName the lastname of a student
+     * @param pageNo the page number to return
+     * @param pageSize the number of result items in a page
+     * @return the student details by pen
+     */
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAMES)
+    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
+    List<GradSearchStudent> getGradStudentFromStudentAPI(@RequestParam(value = "firstName", required = false) String firstName,
+			@RequestParam(value = "lastName", required = false) String lastName,
+			@RequestParam(value = "middleName", required = false) String middleName,
+			@RequestParam(value = "gender", required = false) String gender,
+			@RequestParam(value = "grade", required = false) String grade,
+			@RequestParam(value = "mincode", required = false) String mincode,
+			@RequestParam(value = "localID", required = false) String localID,
+			@RequestParam(value = "birthdate", required = false) String birthdate);
     
 
 }
