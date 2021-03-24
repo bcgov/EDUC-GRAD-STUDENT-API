@@ -5,16 +5,17 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestParam;
 //import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.web.bind.annotation.RestController;
 
 import ca.bc.gov.educ.api.gradstudent.endpoint.GradStudentEndpoint;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
+import ca.bc.gov.educ.api.gradstudent.struct.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,4 +64,11 @@ public class GradStudentController implements GradStudentEndpoint {
     	String accessToken = auth.getTokenValue();
         return gradStudentService.getStudentByPens(penList,accessToken);
     }
+	
+	public List<GradSearchStudent> getGradStudentFromStudentAPI(String firstName,String lastName,String middleName,String gender,String grade,String mincode,String localID,String birthdate) {
+		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
+        return gradStudentService.getStudentFromStudentAPI(firstName,lastName,middleName,gender,grade,mincode,localID,birthdate,accessToken);
+		
+	}
 }
