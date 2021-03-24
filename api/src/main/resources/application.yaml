@@ -77,6 +77,11 @@ keycloak:
   cors: true
 #Endpoint properties
 endpoint:
+  graduation-status-api:
+    read-grad-status:
+      url: https://educ-grad-graduation-status-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/gradstatus/pen/%s
+  pen-student-api:
+    url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/paginated?searchCriteriaList=%s
   grad-student-api:
     get-student-by-pen:
       url: https://gradstudent-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1
