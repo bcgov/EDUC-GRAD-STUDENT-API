@@ -219,9 +219,9 @@ public class GradStudentService {
 		}
 		if(StringUtils.isNotBlank(legalMiddleNames)) {
 			if(StringUtils.contains(legalMiddleNames,"*")) {
-				criteriaLegalMiddleName = SearchCriteria.builder().key("legalMiddleName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(legalMiddleNames,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+				criteriaLegalMiddleName = SearchCriteria.builder().key("legalMiddleNames").operation(FilterOperation.CONTAINS).value(StringUtils.strip(legalMiddleNames,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
 			}else {
-				criteriaLegalMiddleName = SearchCriteria.builder().key("legalMiddleName").operation(FilterOperation.EQUAL).value(legalMiddleNames).valueType(ValueType.STRING).condition(Condition.AND).build();
+				criteriaLegalMiddleName = SearchCriteria.builder().key("legalMiddleNames").operation(FilterOperation.EQUAL).value(legalMiddleNames).valueType(ValueType.STRING).condition(Condition.AND).build();
 			}
 		}
 		if(StringUtils.isNotBlank(usualFistName)) {
