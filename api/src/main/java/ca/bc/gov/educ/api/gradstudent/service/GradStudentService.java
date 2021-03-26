@@ -188,38 +188,67 @@ public class GradStudentService {
 		return studentTransformer.transformToDTO(gradStudentRepository.findByPenList(penList));
 	}
 
-	public List<GradSearchStudent> getStudentFromStudentAPI(String firstName, String lastName, String middleName,
-			String gender, String grade, String mincode, String localID, String birthdate, String accessToken) {
+	public List<GradSearchStudent> getStudentFromStudentAPI(String legalFistName, String legalLastName, String legalMiddleNames,String usualFistName, String usualLastName, String usualMiddleNames,
+			String postalCode,String gender, String grade, String mincode, String localID, String birthdate, String accessToken) {
 		HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
 		List<GradSearchStudent> gradStudentList = new ArrayList<GradSearchStudent>();
-		SearchCriteria criteriaFirstName = null;
-		SearchCriteria criteriaLastName = null;
-		SearchCriteria criteriaMiddleName = null;
+		SearchCriteria criteriaLegalFirstName = null;
+		SearchCriteria criteriaLegalLastName = null;
+		SearchCriteria criteriaLegalMiddleName = null;
+		SearchCriteria criteriaUsualFirstName = null;
+		SearchCriteria criteriaUsualLastName = null;
+		SearchCriteria criteriaUsualMiddleName = null;
+		SearchCriteria criteriaPostalCode=null;
 		SearchCriteria criteriaGender=null;
 		SearchCriteria criteriaDob = null;
 		SearchCriteria criteriaGrade=null;
 		SearchCriteria criteriaMincode=null;
-		if(StringUtils.isNotBlank(firstName)) {
-			if(StringUtils.contains(firstName,"*")) {
-				criteriaFirstName = SearchCriteria.builder().key("legalFirstName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(firstName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+		if(StringUtils.isNotBlank(legalFistName)) {
+			if(StringUtils.contains(legalFistName,"*")) {
+				criteriaLegalFirstName = SearchCriteria.builder().key("legalFirstName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(legalFistName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
 			}else {
-				criteriaFirstName = SearchCriteria.builder().key("legalFirstName").operation(FilterOperation.EQUAL).value(firstName).valueType(ValueType.STRING).condition(Condition.AND).build();
+				criteriaLegalFirstName = SearchCriteria.builder().key("legalFirstName").operation(FilterOperation.EQUAL).value(legalFistName).valueType(ValueType.STRING).condition(Condition.AND).build();
 			}
 		}
-		if(StringUtils.isNotBlank(lastName)) {
-			if(StringUtils.contains(lastName,"*")) {
-				criteriaLastName = SearchCriteria.builder().key("legalLastName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(lastName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+		if(StringUtils.isNotBlank(legalLastName)) {
+			if(StringUtils.contains(legalLastName,"*")) {
+				criteriaLegalLastName = SearchCriteria.builder().key("legalLastName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(legalLastName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
 			}else {
-				criteriaLastName = SearchCriteria.builder().key("legalLastName").operation(FilterOperation.EQUAL).value(lastName).valueType(ValueType.STRING).condition(Condition.AND).build();
+				criteriaLegalLastName = SearchCriteria.builder().key("legalLastName").operation(FilterOperation.EQUAL).value(legalLastName).valueType(ValueType.STRING).condition(Condition.AND).build();
 			}
 		}
-		if(StringUtils.isNotBlank(middleName)) {
-			if(StringUtils.contains(middleName,"*")) {
-				criteriaMiddleName = SearchCriteria.builder().key("legalMiddleName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(middleName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+		if(StringUtils.isNotBlank(legalMiddleNames)) {
+			if(StringUtils.contains(legalMiddleNames,"*")) {
+				criteriaLegalMiddleName = SearchCriteria.builder().key("legalMiddleName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(legalMiddleNames,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
 			}else {
-				criteriaMiddleName = SearchCriteria.builder().key("legalMiddleName").operation(FilterOperation.EQUAL).value(middleName).valueType(ValueType.STRING).condition(Condition.AND).build();
+				criteriaLegalMiddleName = SearchCriteria.builder().key("legalMiddleName").operation(FilterOperation.EQUAL).value(legalMiddleNames).valueType(ValueType.STRING).condition(Condition.AND).build();
 			}
 		}
+		if(StringUtils.isNotBlank(usualFistName)) {
+			if(StringUtils.contains(usualFistName,"*")) {
+				criteriaUsualFirstName = SearchCriteria.builder().key("usualFirstName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(usualFistName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}else {
+				criteriaUsualFirstName = SearchCriteria.builder().key("usualFirstName").operation(FilterOperation.EQUAL).value(usualFistName).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}
+		}
+		if(StringUtils.isNotBlank(usualLastName)) {
+			if(StringUtils.contains(usualLastName,"*")) {
+				criteriaUsualLastName = SearchCriteria.builder().key("usualLastName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(usualLastName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}else {
+				criteriaUsualLastName = SearchCriteria.builder().key("usualLastName").operation(FilterOperation.EQUAL).value(usualLastName).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}
+		}
+		if(StringUtils.isNotBlank(usualMiddleNames)) {
+			if(StringUtils.contains(usualMiddleNames,"*")) {
+				criteriaUsualMiddleName = SearchCriteria.builder().key("usualMiddleNames").operation(FilterOperation.CONTAINS).value(StringUtils.strip(usualMiddleNames,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}else {
+				criteriaUsualMiddleName = SearchCriteria.builder().key("usualMiddleNames").operation(FilterOperation.EQUAL).value(usualMiddleNames).valueType(ValueType.STRING).condition(Condition.AND).build();
+			}
+		}
+		if(StringUtils.isNotBlank(postalCode)) {
+			criteriaPostalCode = SearchCriteria.builder().condition(Condition.AND).key("postalCode").operation(FilterOperation.EQUAL).value(postalCode).valueType(ValueType.STRING).build();
+		}
+		
 		if(StringUtils.isNotBlank(gender)) {
 			criteriaGender = SearchCriteria.builder().condition(Condition.AND).key("genderCode").operation(FilterOperation.EQUAL).value(gender).valueType(ValueType.STRING).build();
 		}
@@ -233,9 +262,13 @@ public class GradStudentService {
 			criteriaDob = SearchCriteria.builder().condition(Condition.AND).key("dob").operation(FilterOperation.EQUAL).value(birthdate).valueType(ValueType.DATE).build();
 		}  
 		List<SearchCriteria> criteriaList = new ArrayList<>();
-		if(criteriaFirstName!= null)criteriaList.add(criteriaFirstName);
-		if(criteriaLastName!= null)criteriaList.add(criteriaLastName);
-		if(criteriaMiddleName!= null)criteriaList.add(criteriaMiddleName);
+		if(criteriaLegalFirstName!= null)criteriaList.add(criteriaLegalFirstName);
+		if(criteriaLegalLastName!= null)criteriaList.add(criteriaLegalLastName);
+		if(criteriaLegalMiddleName!= null)criteriaList.add(criteriaLegalMiddleName);
+		if(criteriaUsualFirstName!= null)criteriaList.add(criteriaUsualFirstName);
+		if(criteriaUsualLastName!= null)criteriaList.add(criteriaUsualLastName);
+		if(criteriaUsualMiddleName!= null)criteriaList.add(criteriaUsualMiddleName);
+		if(criteriaPostalCode!= null)criteriaList.add(criteriaPostalCode);
 		if(criteriaGender!= null)criteriaList.add(criteriaGender);
 		if(criteriaGrade!= null)criteriaList.add(criteriaGrade);
 		if(criteriaMincode!= null)criteriaList.add(criteriaMincode);
