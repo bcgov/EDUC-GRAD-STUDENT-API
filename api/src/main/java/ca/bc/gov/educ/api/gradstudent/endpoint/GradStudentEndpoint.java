@@ -89,9 +89,13 @@ public interface GradStudentEndpoint {
      */
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAMES)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
-    List<GradSearchStudent> getGradStudentFromStudentAPI(@RequestParam(value = "firstName", required = false) String firstName,
-			@RequestParam(value = "lastName", required = false) String lastName,
-			@RequestParam(value = "middleName", required = false) String middleName,
+    List<GradSearchStudent> getGradStudentFromStudentAPI(@RequestParam(value = "legalFirstName", required = false) String legalFirstName,
+			@RequestParam(value = "legalLastName", required = false) String legalLastName,
+			@RequestParam(value = "legalMiddleNames", required = false) String legalMiddleNames,
+			@RequestParam(value = "usualFirstName", required = false) String usualFirstName,
+			@RequestParam(value = "usualLastName", required = false) String usualLastName,
+			@RequestParam(value = "usualMiddleNames", required = false) String usualMiddleNames,
+			@RequestParam(value = "postalCode", required = false) String postalCode,
 			@RequestParam(value = "gender", required = false) String gender,
 			@RequestParam(value = "grade", required = false) String grade,
 			@RequestParam(value = "mincode", required = false) String mincode,
