@@ -77,10 +77,19 @@ public class GradStudentController implements GradStudentEndpoint {
 			String grade,
 			String mincode,
 			String localID,
-			String birthdate) {
+			String birthdate,
+			Integer pageNumber,
+			Integer pageSize) {
 		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentFromStudentAPI(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,postalCode,gender,grade,mincode,localID,birthdate,accessToken);
+        return gradStudentService.getStudentFromStudentAPI(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,postalCode,gender,grade,mincode,localID,birthdate,pageNumber,pageSize,accessToken);
 		
 	}
+	
+	@Override
+    public List<GradSearchStudent> getGradStudentByPenFromStudentAPI(String pen) {
+    	OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
+        return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken);
+    }
 }

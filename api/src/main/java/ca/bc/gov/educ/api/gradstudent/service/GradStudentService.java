@@ -107,6 +107,9 @@ public class GradStudentService {
     @Value(EducGradStudentApiConstants.ENDPOINT_PEN_STUDENT_API_URL)
     private String getPenStudentAPIURL;
     
+    @Value(EducGradStudentApiConstants.ENDPOINT_PEN_STUDENT_API_BY_PEN_URL)
+    private String getPenStudentAPIByPenURL;
+    
     @Value(EducGradStudentApiConstants.ENDPOINT_GRAD_STUDENT_API_URL)
     private String getGradStatusForStudent;    
     
@@ -188,91 +191,23 @@ public class GradStudentService {
 		return studentTransformer.transformToDTO(gradStudentRepository.findByPenList(penList));
 	}
 
-	public List<GradSearchStudent> getStudentFromStudentAPI(String legalFistName, String legalLastName, String legalMiddleNames,String usualFistName, String usualLastName, String usualMiddleNames,
-			String postalCode,String gender, String grade, String mincode, String localID, String birthdate, String accessToken) {
+	public List<GradSearchStudent> getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
+			String postalCode,String gender, String grade, String mincode, String localID, String birthdate, Integer pageNumber, Integer pageSize, String accessToken) {
 		HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
 		List<GradSearchStudent> gradStudentList = new ArrayList<GradSearchStudent>();
-		SearchCriteria criteriaLegalFirstName = null;
-		SearchCriteria criteriaLegalLastName = null;
-		SearchCriteria criteriaLegalMiddleName = null;
-		SearchCriteria criteriaUsualFirstName = null;
-		SearchCriteria criteriaUsualLastName = null;
-		SearchCriteria criteriaUsualMiddleName = null;
-		SearchCriteria criteriaPostalCode=null;
-		SearchCriteria criteriaGender=null;
-		SearchCriteria criteriaDob = null;
-		SearchCriteria criteriaGrade=null;
-		SearchCriteria criteriaMincode=null;
-		if(StringUtils.isNotBlank(legalFistName)) {
-			if(StringUtils.contains(legalFistName,"*")) {
-				criteriaLegalFirstName = SearchCriteria.builder().key("legalFirstName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(legalFistName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}else {
-				criteriaLegalFirstName = SearchCriteria.builder().key("legalFirstName").operation(FilterOperation.EQUAL).value(legalFistName).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}
-		}
-		if(StringUtils.isNotBlank(legalLastName)) {
-			if(StringUtils.contains(legalLastName,"*")) {
-				criteriaLegalLastName = SearchCriteria.builder().key("legalLastName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(legalLastName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}else {
-				criteriaLegalLastName = SearchCriteria.builder().key("legalLastName").operation(FilterOperation.EQUAL).value(legalLastName).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}
-		}
-		if(StringUtils.isNotBlank(legalMiddleNames)) {
-			if(StringUtils.contains(legalMiddleNames,"*")) {
-				criteriaLegalMiddleName = SearchCriteria.builder().key("legalMiddleNames").operation(FilterOperation.CONTAINS).value(StringUtils.strip(legalMiddleNames,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}else {
-				criteriaLegalMiddleName = SearchCriteria.builder().key("legalMiddleNames").operation(FilterOperation.EQUAL).value(legalMiddleNames).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}
-		}
-		if(StringUtils.isNotBlank(usualFistName)) {
-			if(StringUtils.contains(usualFistName,"*")) {
-				criteriaUsualFirstName = SearchCriteria.builder().key("usualFirstName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(usualFistName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}else {
-				criteriaUsualFirstName = SearchCriteria.builder().key("usualFirstName").operation(FilterOperation.EQUAL).value(usualFistName).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}
-		}
-		if(StringUtils.isNotBlank(usualLastName)) {
-			if(StringUtils.contains(usualLastName,"*")) {
-				criteriaUsualLastName = SearchCriteria.builder().key("usualLastName").operation(FilterOperation.CONTAINS).value(StringUtils.strip(usualLastName,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}else {
-				criteriaUsualLastName = SearchCriteria.builder().key("usualLastName").operation(FilterOperation.EQUAL).value(usualLastName).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}
-		}
-		if(StringUtils.isNotBlank(usualMiddleNames)) {
-			if(StringUtils.contains(usualMiddleNames,"*")) {
-				criteriaUsualMiddleName = SearchCriteria.builder().key("usualMiddleNames").operation(FilterOperation.CONTAINS).value(StringUtils.strip(usualMiddleNames,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}else {
-				criteriaUsualMiddleName = SearchCriteria.builder().key("usualMiddleNames").operation(FilterOperation.EQUAL).value(usualMiddleNames).valueType(ValueType.STRING).condition(Condition.AND).build();
-			}
-		}
-		if(StringUtils.isNotBlank(postalCode)) {
-			criteriaPostalCode = SearchCriteria.builder().condition(Condition.AND).key("postalCode").operation(FilterOperation.EQUAL).value(postalCode).valueType(ValueType.STRING).build();
-		}
-		
-		if(StringUtils.isNotBlank(gender)) {
-			criteriaGender = SearchCriteria.builder().condition(Condition.AND).key("genderCode").operation(FilterOperation.EQUAL).value(gender).valueType(ValueType.STRING).build();
-		}
-		if(StringUtils.isNotBlank(grade)) {
-			criteriaGrade = SearchCriteria.builder().condition(Condition.AND).key("gradeCode").operation(FilterOperation.EQUAL).value(grade).valueType(ValueType.STRING).build();
-		}
-		if(StringUtils.isNotBlank(mincode)) {
-			criteriaMincode = SearchCriteria.builder().condition(Condition.AND).key("mincode").operation(FilterOperation.CONTAINS).value(mincode).valueType(ValueType.STRING).build();
-		}
-		if(StringUtils.isNotBlank(birthdate)) {
-			criteriaDob = SearchCriteria.builder().condition(Condition.AND).key("dob").operation(FilterOperation.EQUAL).value(birthdate).valueType(ValueType.DATE).build();
-		}  
 		List<SearchCriteria> criteriaList = new ArrayList<>();
-		if(criteriaLegalFirstName!= null)criteriaList.add(criteriaLegalFirstName);
-		if(criteriaLegalLastName!= null)criteriaList.add(criteriaLegalLastName);
-		if(criteriaLegalMiddleName!= null)criteriaList.add(criteriaLegalMiddleName);
-		if(criteriaUsualFirstName!= null)criteriaList.add(criteriaUsualFirstName);
-		if(criteriaUsualLastName!= null)criteriaList.add(criteriaUsualLastName);
-		if(criteriaUsualMiddleName!= null)criteriaList.add(criteriaUsualMiddleName);
-		if(criteriaPostalCode!= null)criteriaList.add(criteriaPostalCode);
-		if(criteriaGender!= null)criteriaList.add(criteriaGender);
-		if(criteriaGrade!= null)criteriaList.add(criteriaGrade);
-		if(criteriaMincode!= null)criteriaList.add(criteriaMincode);
-		if(criteriaDob!= null)criteriaList.add(criteriaDob);
+		criteriaList = getSearchCriteria(legalFirstName,"legalFirstName",criteriaList);
+		criteriaList = getSearchCriteria(legalLastName,"legalLastName",criteriaList);
+		criteriaList = getSearchCriteria(legalMiddleNames,"legalMiddleNames",criteriaList);
+		criteriaList = getSearchCriteria(usualFirstName,"usualFirstName",criteriaList);
+		criteriaList = getSearchCriteria(usualLastName,"usualLastName",criteriaList);
+		criteriaList = getSearchCriteria(usualMiddleNames,"usualMiddleNames",criteriaList);
+		criteriaList=getSearchCriteria(postalCode,"postalCode",criteriaList);
+		criteriaList=getSearchCriteria(gender,"genderCode",criteriaList);
+		criteriaList= getSearchCriteria(birthdate,"dob",criteriaList);
+		criteriaList=getSearchCriteria(grade,"gradeCode",criteriaList);
+		criteriaList=getSearchCriteria(mincode,"mincode",criteriaList);
+		
 		List<Search> searches = new LinkedList<>();
 	    searches.add(Search.builder().condition(Condition.AND).searchCriteriaList(criteriaList).build());
 	    ObjectMapper objectMapper = new ObjectMapper();
@@ -283,7 +218,7 @@ public class GradStudentService {
 		    defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
 		    restTemplate.setUriTemplateHandler(defaultUriBuilderFactory);
 			restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
-			RestResponsePage<Student> response = restTemplate.exchange(String.format(getPenStudentAPIURL, encodedURL), HttpMethod.GET,
+			RestResponsePage<Student> response = restTemplate.exchange(String.format(getPenStudentAPIURL,pageNumber,pageSize,encodedURL), HttpMethod.GET,
     				new HttpEntity<>(httpHeaders), new ParameterizedTypeReference<RestResponsePage<Student>>() {}).getBody();
 			List<Student> studentList = response.getContent();
 			studentList.forEach(st-> {
@@ -309,4 +244,50 @@ public class GradStudentService {
 		}
 		return null;
 	}    
+	
+	private List<SearchCriteria> getSearchCriteria(String value,String paramterType, List<SearchCriteria> criteriaList) {
+		SearchCriteria criteria = null;
+		if(paramterType.equalsIgnoreCase("dob")) {
+			if(StringUtils.isNotBlank(value)) {
+				//LocalDate dateVal = LocalDate.parse(value);
+				criteria = SearchCriteria.builder().condition(Condition.AND).key("dob").operation(FilterOperation.EQUAL).value(value).valueType(ValueType.DATE).build();
+			}
+		}else {
+			if(StringUtils.isNotBlank(value)) {
+				if(StringUtils.contains(value,"*")) {
+					criteria = SearchCriteria.builder().key(paramterType).operation(FilterOperation.CONTAINS).value(StringUtils.strip(value,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+				}else {
+					criteria = SearchCriteria.builder().key(paramterType).operation(FilterOperation.EQUAL).value(value).valueType(ValueType.STRING).condition(Condition.AND).build();
+				}
+			}
+		}
+		if(criteria != null) criteriaList.add(criteria);
+		return criteriaList;
+	}
+	
+	 @Transactional
+    public List<GradSearchStudent> getStudentByPenFromStudentAPI(String pen, String accessToken) {
+    	List<GradSearchStudent> gradStudentList = new ArrayList<GradSearchStudent>();
+    	HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
+    	List<Student> stuDataList = restTemplate.exchange(String.format(getPenStudentAPIByPenURL, pen), HttpMethod.GET,
+				new HttpEntity<>(httpHeaders), new ParameterizedTypeReference<List<Student>>() {}).getBody();
+    	stuDataList.forEach(st-> {
+			GradSearchStudent gradStu = new GradSearchStudent();
+			BeanUtils.copyProperties(st, gradStu);
+			ResponseEntity<School> responseSchoolEntity = restTemplate.exchange(String.format(getSchoolByMinCodeURL, st.getMincode()), HttpMethod.GET,
+    				new HttpEntity<>(httpHeaders), School.class);
+			if(responseSchoolEntity.getStatusCode().equals(HttpStatus.OK)) {
+    			gradStu.setSchoolName(responseSchoolEntity.getBody().getSchoolName());
+    		}
+    		ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(getGradStatusForStudent,st.getPen()), HttpMethod.GET,
+					new HttpEntity<>(httpHeaders), GraduationStatus.class);
+    		if(responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+    			gradStu.setProgram(responseEntity.getBody().getProgram());
+    		}
+    		gradStudentList.add(gradStu);
+    		
+		});
+    	
+    	return gradStudentList;
+    }
 }
