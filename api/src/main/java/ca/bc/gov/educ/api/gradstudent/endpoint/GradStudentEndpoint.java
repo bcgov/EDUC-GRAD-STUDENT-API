@@ -25,7 +25,7 @@ public interface GradStudentEndpoint {
      * @param pen the pen
      * @return the student details by pen
      */
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_PEN)
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_GRAD_STUDENT_API)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
     GradStudent getGradStudentByPen(@PathVariable String pen);
     
@@ -67,7 +67,7 @@ public interface GradStudentEndpoint {
      * @param pageSize the number of result items in a page
      * @return the student details by pen
      */
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAMES)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
     List<GradStudent> getGradStudentByLastNameAndFirstName(
     		@RequestParam(value = "lastName", required = false,defaultValue = "*") String lastName,
@@ -87,7 +87,7 @@ public interface GradStudentEndpoint {
      * @param pageSize the number of result items in a page
      * @return the student details by pen
      */
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAMES)
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
     List<GradSearchStudent> getGradStudentFromStudentAPI(@RequestParam(value = "legalFirstName", required = false) String legalFirstName,
 			@RequestParam(value = "legalLastName", required = false) String legalLastName,
@@ -100,7 +100,12 @@ public interface GradStudentEndpoint {
 			@RequestParam(value = "grade", required = false) String grade,
 			@RequestParam(value = "mincode", required = false) String mincode,
 			@RequestParam(value = "localID", required = false) String localID,
-			@RequestParam(value = "birthdate", required = false) String birthdate);
+			@RequestParam(value = "birthdate", required = false) String birthdate,
+			@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
+			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize
+			);
     
-
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_PEN)
+    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
+    List<GradSearchStudent> getGradStudentByPenFromStudentAPI(@PathVariable String pen);
 }
