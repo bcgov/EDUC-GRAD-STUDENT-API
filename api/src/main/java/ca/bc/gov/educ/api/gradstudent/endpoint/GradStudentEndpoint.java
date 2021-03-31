@@ -25,7 +25,7 @@ public interface GradStudentEndpoint {
      * @param pen the pen
      * @return the student details by pen
      */
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_GRAD_STUDENT_API)
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_PEN)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
     GradStudent getGradStudentByPen(@PathVariable String pen);
     

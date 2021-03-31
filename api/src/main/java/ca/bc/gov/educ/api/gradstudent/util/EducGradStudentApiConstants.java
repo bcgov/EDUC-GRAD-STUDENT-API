@@ -6,7 +6,7 @@ public class EducGradStudentApiConstants {
     public static final String API_VERSION = "v1";
     public static final String GRAD_STUDENT_API_ROOT_MAPPING = "/api/" + API_VERSION ;
     public static final String GRAD_STUDENT_BY_PEN = "/{pen}";
-    public static final String GRAD_STUDENT_BY_GRAD_STUDENT_API = "pen/{pen}";
+    public static final String GRAD_STUDENT_BY_PEN_STUDENT_API = "pen/{pen}";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_PENS = "/multipen";
