@@ -105,7 +105,7 @@ public interface GradStudentEndpoint {
 			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize
 			);
     
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_PEN)
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_PEN_STUDENT_API)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
     List<GradSearchStudent> getGradStudentByPenFromStudentAPI(@PathVariable String pen);
 }
