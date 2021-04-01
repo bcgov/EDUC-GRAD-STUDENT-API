@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import ca.bc.gov.educ.api.gradstudent.struct.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
+import ca.bc.gov.educ.api.gradstudent.struct.StudentSearch;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -89,7 +90,7 @@ public interface GradStudentEndpoint {
      */
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
-    List<GradSearchStudent> getGradStudentFromStudentAPI(@RequestParam(value = "legalFirstName", required = false) String legalFirstName,
+    StudentSearch getGradStudentFromStudentAPI(@RequestParam(value = "legalFirstName", required = false) String legalFirstName,
 			@RequestParam(value = "legalLastName", required = false) String legalLastName,
 			@RequestParam(value = "legalMiddleNames", required = false) String legalMiddleNames,
 			@RequestParam(value = "usualFirstName", required = false) String usualFirstName,
