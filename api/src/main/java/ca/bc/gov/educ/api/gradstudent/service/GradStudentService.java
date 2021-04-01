@@ -233,6 +233,7 @@ public class GradStudentService {
 						new HttpEntity<>(httpHeaders), GraduationStatus.class);
 	    		if(responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 	    			gradStu.setProgram(responseEntity.getBody().getProgram());
+	    			gradStu.setSchoolOfRecord(responseEntity.getBody().getSchoolOfRecord());
 	    		}
 	    		gradStudentList.add(gradStu);
 	    		
