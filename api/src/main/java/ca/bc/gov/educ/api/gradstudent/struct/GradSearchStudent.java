@@ -41,6 +41,7 @@ public class GradSearchStudent {
 	private String memo;
 	private String trueStudentID;
 	private String program;
+	private String schoolOfRecord;
 	private String schoolName;
 	  
 	  
