@@ -17,6 +17,7 @@ import ca.bc.gov.educ.api.gradstudent.endpoint.GradStudentEndpoint;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.struct.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
+import ca.bc.gov.educ.api.gradstudent.struct.StudentSearch;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -65,7 +66,7 @@ public class GradStudentController implements GradStudentEndpoint {
         return gradStudentService.getStudentByPens(penList,accessToken);
     }
 	
-	public List<GradSearchStudent> getGradStudentFromStudentAPI(
+	public StudentSearch getGradStudentFromStudentAPI(
 			String legalFirstName,
 			String legalLastName,
 			String legalMiddleNames,

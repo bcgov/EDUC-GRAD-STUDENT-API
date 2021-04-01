@@ -47,6 +47,7 @@ import ca.bc.gov.educ.api.gradstudent.struct.School;
 import ca.bc.gov.educ.api.gradstudent.struct.Search;
 import ca.bc.gov.educ.api.gradstudent.struct.SearchCriteria;
 import ca.bc.gov.educ.api.gradstudent.struct.Student;
+import ca.bc.gov.educ.api.gradstudent.struct.StudentSearch;
 import ca.bc.gov.educ.api.gradstudent.struct.ValueType;
 import ca.bc.gov.educ.api.gradstudent.transformer.GradCountryTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.GradProvinceTransformer;
@@ -191,7 +192,7 @@ public class GradStudentService {
 		return studentTransformer.transformToDTO(gradStudentRepository.findByPenList(penList));
 	}
 
-	public List<GradSearchStudent> getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
+	public StudentSearch getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
 			String postalCode,String gender, String grade, String mincode, String localID, String birthdate, Integer pageNumber, Integer pageSize, String accessToken) {
 		HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
 		List<GradSearchStudent> gradStudentList = new ArrayList<GradSearchStudent>();
@@ -209,6 +210,7 @@ public class GradStudentService {
 		criteriaList=getSearchCriteria(mincode,"mincode",criteriaList);
 		
 		List<Search> searches = new LinkedList<>();
+		StudentSearch searchObj = new StudentSearch();
 	    searches.add(Search.builder().condition(Condition.AND).searchCriteriaList(criteriaList).build());
 	    ObjectMapper objectMapper = new ObjectMapper();
 	    try {
@@ -238,7 +240,16 @@ public class GradStudentService {
 	    		gradStudentList.add(gradStu);
 	    		
 			});
-			return gradStudentList;
+			searchObj.setGradSearchStudents(gradStudentList);
+			searchObj.setPageable(response.getPageable());
+			searchObj.setTotalElements(response.getTotalElements());
+			searchObj.setTotalPages(response.getTotalPages());
+			searchObj.setSize(response.getSize());
+			searchObj.setNumberOfElements(response.getNumberOfElements());
+			searchObj.setSort(response.getSort());
+			searchObj.setNumber(response.getNumber());
+			
+			return searchObj;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
