@@ -65,16 +65,6 @@ server:
   tomcat:
     connection-timeout: 200s
 
-#API Documentation
-springdoc:
-  api-docs:
-    path: /api/v1/api-docs
-  swagger-ui:
-    path: /api/v1/api-docs-ui.html
-    operationsSorter: method
-
-keycloak:
-  cors: true
 #Endpoint properties
 endpoint:
   graduation-status-api:

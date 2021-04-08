@@ -268,7 +268,7 @@ public class GradStudentService {
 		}else {
 			if(StringUtils.isNotBlank(value)) {
 				if(StringUtils.contains(value,"*")) {
-					criteria = SearchCriteria.builder().key(paramterType).operation(FilterOperation.CONTAINS).value(StringUtils.strip(value,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
+					criteria = SearchCriteria.builder().key(paramterType).operation(FilterOperation.STARTS_WITH_IGNORE_CASE).value(StringUtils.strip(value,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
 				}else {
 					criteria = SearchCriteria.builder().key(paramterType).operation(FilterOperation.EQUAL).value(value).valueType(ValueType.STRING).condition(Condition.AND).build();
 				}
