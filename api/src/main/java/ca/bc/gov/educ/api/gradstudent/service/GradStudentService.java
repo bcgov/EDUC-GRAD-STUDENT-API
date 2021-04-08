@@ -287,12 +287,6 @@ public class GradStudentService {
     	stuDataList.forEach(st-> {
 			GradSearchStudent gradStu = new GradSearchStudent();
 			BeanUtils.copyProperties(st, gradStu);
-			ResponseEntity<School> responseSchoolEntity = restTemplate.exchange(String.format(getSchoolByMinCodeURL, st.getMincode()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), School.class);
-			if(responseSchoolEntity.getStatusCode().equals(HttpStatus.OK)) {
-    			gradStu.setSchoolName(responseSchoolEntity.getBody().getSchoolName());
-    			gradStu.setIndependentAffiliation(responseSchoolEntity.getBody().getIndependentAffiliation());
-    		}
     		ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(getGradStatusForStudent,st.getPen()), HttpMethod.GET,
 					new HttpEntity<>(httpHeaders), GraduationStatus.class);
     		if(responseEntity.getStatusCode().equals(HttpStatus.OK)) {
