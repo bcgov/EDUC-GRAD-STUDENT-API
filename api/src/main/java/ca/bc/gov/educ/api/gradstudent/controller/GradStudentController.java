@@ -18,6 +18,9 @@ import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.struct.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
 import ca.bc.gov.educ.api.gradstudent.struct.StudentSearch;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -32,6 +35,8 @@ public class GradStudentController implements GradStudentEndpoint {
     GradStudentService gradStudentService;
 
     @Override
+    @Operation(summary = "Find Student by Pen", description = "Get a Student by Pen", tags = { "Student Demographics" }, deprecated = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public GradStudent getGradStudentByPen(String pen) {
     	OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
@@ -39,6 +44,8 @@ public class GradStudentController implements GradStudentEndpoint {
     }
 
 	@Override
+	@Operation(summary = "Find Student by LastName", description = "Get a Student by LastName", tags = { "Student Demographics" }, deprecated = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
 	public List<GradStudent> getGradStudentByLastName(String lastName,Integer pageNo, Integer pageSize) {
 		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
@@ -46,6 +53,8 @@ public class GradStudentController implements GradStudentEndpoint {
 	}
 	
 	@Override
+	@Operation(summary = "Find Student by LastName", description = "Get a Student by LastName", tags = { "Student Demographics" }, deprecated = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
 	public List<GradStudent> getGradStudentByFirstName(String firstName, Integer pageNo, Integer pageSize) {
 		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
@@ -73,17 +82,16 @@ public class GradStudentController implements GradStudentEndpoint {
 			String usualFirstName,
 			String usualLastName,
 			String usualMiddleNames,
-			String postalCode,
 			String gender,
-			String grade,
 			String mincode,
 			String localID,
-			String birthdate,
+			String birthdateFrom,
+			String birthdateTo,
 			Integer pageNumber,
 			Integer pageSize) {
 		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentFromStudentAPI(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,postalCode,gender,grade,mincode,localID,birthdate,pageNumber,pageSize,accessToken);
+        return gradStudentService.getStudentFromStudentAPI(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,gender,mincode,localID,birthdateFrom,birthdateTo,pageNumber,pageSize,accessToken);
 		
 	}
 	
