@@ -1,7 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.struct;
 
-import java.util.Date;
-
 import org.springframework.stereotype.Component;
 
 import lombok.Data;
@@ -19,9 +17,6 @@ public class GraduationStatus {
     private String recalculateGradStatus;   
     private String schoolOfRecord;
     private String studentGrade;	
-    private String createdBy;	
-	private Date createdTimestamp;	
-	private String updatedBy;	
-	private Date updatedTimestamp;
+    private String studentStatus;
 				
 }

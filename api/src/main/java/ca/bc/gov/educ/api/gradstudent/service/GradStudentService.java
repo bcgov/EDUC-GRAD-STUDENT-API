@@ -193,21 +193,20 @@ public class GradStudentService {
 	}
 
 	public StudentSearch getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
-			String postalCode,String gender, String grade, String mincode, String localID, String birthdate, Integer pageNumber, Integer pageSize, String accessToken) {
+			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo, Integer pageNumber, Integer pageSize, String accessToken) {
 		HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
 		List<GradSearchStudent> gradStudentList = new ArrayList<GradSearchStudent>();
 		List<SearchCriteria> criteriaList = new ArrayList<>();
-		criteriaList = getSearchCriteria(legalFirstName,"legalFirstName",criteriaList);
-		criteriaList = getSearchCriteria(legalLastName,"legalLastName",criteriaList);
-		criteriaList = getSearchCriteria(legalMiddleNames,"legalMiddleNames",criteriaList);
-		criteriaList = getSearchCriteria(usualFirstName,"usualFirstName",criteriaList);
-		criteriaList = getSearchCriteria(usualLastName,"usualLastName",criteriaList);
-		criteriaList = getSearchCriteria(usualMiddleNames,"usualMiddleNames",criteriaList);
-		criteriaList=getSearchCriteria(postalCode,"postalCode",criteriaList);
-		criteriaList=getSearchCriteria(gender,"genderCode",criteriaList);
-		criteriaList= getSearchCriteria(birthdate,"dob",criteriaList);
-		criteriaList=getSearchCriteria(grade,"gradeCode",criteriaList);
-		criteriaList=getSearchCriteria(mincode,"mincode",criteriaList);
+		criteriaList = getSearchCriteria(legalFirstName,null,"legalFirstName",criteriaList);
+		criteriaList = getSearchCriteria(legalLastName,null,"legalLastName",criteriaList);
+		criteriaList = getSearchCriteria(legalMiddleNames,null,"legalMiddleNames",criteriaList);
+		criteriaList = getSearchCriteria(usualFirstName,null,"usualFirstName",criteriaList);
+		criteriaList = getSearchCriteria(usualLastName,null,"usualLastName",criteriaList);
+		criteriaList = getSearchCriteria(usualMiddleNames,null,"usualMiddleNames",criteriaList);
+		criteriaList = getSearchCriteria(localID,null,"localID",criteriaList);
+		criteriaList = getSearchCriteria(gender,null,"genderCode",criteriaList);
+		criteriaList = getSearchCriteria(birthdateFrom,birthdateTo,"dob",criteriaList);
+		criteriaList = getSearchCriteria(mincode,null,"mincode",criteriaList);
 		
 		List<Search> searches = new LinkedList<>();
 		StudentSearch searchObj = new StudentSearch();
@@ -226,16 +225,19 @@ public class GradStudentService {
 			studentList.forEach(st-> {
 				GradSearchStudent gradStu = new GradSearchStudent();
 				BeanUtils.copyProperties(st, gradStu);
-				ResponseEntity<School> responseSchoolEntity = restTemplate.exchange(String.format(getSchoolByMinCodeURL, st.getMincode()), HttpMethod.GET,
-	    				new HttpEntity<>(httpHeaders), School.class);
-				if(responseSchoolEntity.getStatusCode().equals(HttpStatus.OK)) {
-	    			gradStu.setSchoolName(responseSchoolEntity.getBody().getSchoolName());
-	    		}
-	    		ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(getGradStatusForStudent,st.getPen()), HttpMethod.GET,
+				ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(getGradStatusForStudent,st.getPen()), HttpMethod.GET,
 						new HttpEntity<>(httpHeaders), GraduationStatus.class);
 	    		if(responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 	    			gradStu.setProgram(responseEntity.getBody().getProgram());
 	    			gradStu.setSchoolOfRecord(responseEntity.getBody().getSchoolOfRecord());
+	    			gradStu.setStudentGrade(responseEntity.getBody().getStudentGrade());
+	    			gradStu.setStudentStatus(responseEntity.getBody().getStudentStatus());
+	    		}
+	    		ResponseEntity<School> responseSchoolOfRecordEntity = restTemplate.exchange(String.format(getSchoolByMinCodeURL, gradStu.getSchoolOfRecord()), HttpMethod.GET,
+	    				new HttpEntity<>(httpHeaders), School.class);
+				if(responseSchoolOfRecordEntity.getStatusCode().equals(HttpStatus.OK)) {
+	    			gradStu.setSchoolOfRecordName(responseSchoolOfRecordEntity.getBody().getSchoolName());
+	    			gradStu.setSchoolOfRecordindependentAffiliation(responseSchoolOfRecordEntity.getBody().getIndependentAffiliation());
 	    		}
 	    		gradStudentList.add(gradStu);
 	    		
@@ -257,12 +259,11 @@ public class GradStudentService {
 		return null;
 	}    
 	
-	private List<SearchCriteria> getSearchCriteria(String value,String paramterType, List<SearchCriteria> criteriaList) {
+	private List<SearchCriteria> getSearchCriteria(String value,String value2,String paramterType,List<SearchCriteria> criteriaList) {
 		SearchCriteria criteria = null;
 		if(paramterType.equalsIgnoreCase("dob")) {
-			if(StringUtils.isNotBlank(value)) {
-				//LocalDate dateVal = LocalDate.parse(value);
-				criteria = SearchCriteria.builder().condition(Condition.AND).key("dob").operation(FilterOperation.EQUAL).value(value).valueType(ValueType.DATE).build();
+			if(StringUtils.isNotBlank(value) && StringUtils.isNotBlank(value2)) {
+				criteria = SearchCriteria.builder().condition(Condition.AND).key("dob").operation(FilterOperation.BETWEEN).value(value + "," + value2).valueType(ValueType.DATE).build();
 			}
 		}else {
 			if(StringUtils.isNotBlank(value)) {
@@ -290,11 +291,21 @@ public class GradStudentService {
     				new HttpEntity<>(httpHeaders), School.class);
 			if(responseSchoolEntity.getStatusCode().equals(HttpStatus.OK)) {
     			gradStu.setSchoolName(responseSchoolEntity.getBody().getSchoolName());
+    			gradStu.setIndependentAffiliation(responseSchoolEntity.getBody().getIndependentAffiliation());
     		}
     		ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(getGradStatusForStudent,st.getPen()), HttpMethod.GET,
 					new HttpEntity<>(httpHeaders), GraduationStatus.class);
     		if(responseEntity.getStatusCode().equals(HttpStatus.OK)) {
     			gradStu.setProgram(responseEntity.getBody().getProgram());
+    			gradStu.setStudentGrade(responseEntity.getBody().getStudentGrade());
+    			gradStu.setStudentStatus(responseEntity.getBody().getStudentStatus());
+    			gradStu.setSchoolOfRecord(responseEntity.getBody().getSchoolOfRecord());
+    		}
+    		ResponseEntity<School> responseSchoolOfRecordEntity = restTemplate.exchange(String.format(getSchoolByMinCodeURL, gradStu.getSchoolOfRecord()), HttpMethod.GET,
+    				new HttpEntity<>(httpHeaders), School.class);
+			if(responseSchoolOfRecordEntity.getStatusCode().equals(HttpStatus.OK)) {
+    			gradStu.setSchoolOfRecordName(responseSchoolOfRecordEntity.getBody().getSchoolName());
+    			gradStu.setSchoolOfRecordindependentAffiliation(responseSchoolOfRecordEntity.getBody().getIndependentAffiliation());
     		}
     		gradStudentList.add(gradStu);
     		

@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
-@OpenAPIDefinition(info = @Info(title = "API for Student Demographics.", description = "This Read API is for Reading demographics data of a student.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_DATA"})})
+@OpenAPIDefinition(info = @Info(title = "API for Student Demographics.", description = "This API is for Reading demographics data of a student.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_DATA"})})
 public interface GradStudentEndpoint {
 
     /**
@@ -96,12 +96,11 @@ public interface GradStudentEndpoint {
 			@RequestParam(value = "usualFirstName", required = false) String usualFirstName,
 			@RequestParam(value = "usualLastName", required = false) String usualLastName,
 			@RequestParam(value = "usualMiddleNames", required = false) String usualMiddleNames,
-			@RequestParam(value = "postalCode", required = false) String postalCode,
 			@RequestParam(value = "gender", required = false) String gender,
-			@RequestParam(value = "grade", required = false) String grade,
 			@RequestParam(value = "mincode", required = false) String mincode,
 			@RequestParam(value = "localID", required = false) String localID,
-			@RequestParam(value = "birthdate", required = false) String birthdate,
+			@RequestParam(value = "birthdateFrom", required = false) String birthdateFrom,
+			@RequestParam(value = "birthdateTo", required = false) String birthdateTo,
 			@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
 			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize
 			);
