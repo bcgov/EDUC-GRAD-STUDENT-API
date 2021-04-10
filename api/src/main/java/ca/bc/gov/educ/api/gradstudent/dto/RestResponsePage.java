@@ -1,4 +1,4 @@
-package ca.bc.gov.educ.api.gradstudent.struct;
+package ca.bc.gov.educ.api.gradstudent.dto;
 
 import java.util.ArrayList;
 import java.util.List;

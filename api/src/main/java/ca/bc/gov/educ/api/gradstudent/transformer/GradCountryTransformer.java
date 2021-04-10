@@ -8,8 +8,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import ca.bc.gov.educ.api.gradstudent.model.GradCountryEntity;
-import ca.bc.gov.educ.api.gradstudent.struct.GradCountry;
+import ca.bc.gov.educ.api.gradstudent.dto.GradCountry;
+import ca.bc.gov.educ.api.gradstudent.entity.GradCountryEntity;
 
 
 @Component
