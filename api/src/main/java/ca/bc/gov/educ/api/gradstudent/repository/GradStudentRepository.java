@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import ca.bc.gov.educ.api.gradstudent.model.GradStudentEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.GradStudentEntity;
 
 @Repository
 public interface GradStudentRepository extends JpaRepository<GradStudentEntity, String> {

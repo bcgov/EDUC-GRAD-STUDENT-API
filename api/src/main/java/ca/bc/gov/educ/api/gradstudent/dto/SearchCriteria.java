@@ -1,4 +1,4 @@
-package ca.bc.gov.educ.api.gradstudent.struct;
+package ca.bc.gov.educ.api.gradstudent.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

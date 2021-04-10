@@ -1,4 +1,4 @@
-package ca.bc.gov.educ.api.gradstudent.model;
+package ca.bc.gov.educ.api.gradstudent.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

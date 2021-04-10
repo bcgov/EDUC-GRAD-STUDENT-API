@@ -1,4 +1,4 @@
-package ca.bc.gov.educ.api.gradstudent.struct;
+package ca.bc.gov.educ.api.gradstudent.dto;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;

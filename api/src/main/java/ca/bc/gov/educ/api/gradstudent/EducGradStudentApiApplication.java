@@ -13,8 +13,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.RestTemplate;
 
-import ca.bc.gov.educ.api.gradstudent.model.GradStudentEntity;
-import ca.bc.gov.educ.api.gradstudent.struct.GradStudent;
+import ca.bc.gov.educ.api.gradstudent.dto.GradStudent;
+import ca.bc.gov.educ.api.gradstudent.entity.GradStudentEntity;
+
 
 @SpringBootApplication
 @EnableGlobalMethodSecurity(prePostEnabled = true)

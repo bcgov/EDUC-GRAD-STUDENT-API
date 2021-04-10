@@ -8,8 +8,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import ca.bc.gov.educ.api.gradstudent.model.SchoolEntity;
-import ca.bc.gov.educ.api.gradstudent.struct.School;
+import ca.bc.gov.educ.api.gradstudent.dto.School;
+import ca.bc.gov.educ.api.gradstudent.entity.SchoolEntity;
 
 @Component
 public class SchoolTransformer {
