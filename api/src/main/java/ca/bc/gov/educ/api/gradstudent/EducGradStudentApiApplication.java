@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudent;
 import ca.bc.gov.educ.api.gradstudent.entity.GradStudentEntity;
@@ -33,6 +34,11 @@ public class EducGradStudentApiApplication {
 		modelMapper.typeMap(GradStudentEntity.class, GradStudent.class);
 		modelMapper.typeMap(GradStudent.class, GradStudentEntity.class);
 		return modelMapper;
+	}
+	
+	@Bean
+	public WebClient webClient() {
+		return WebClient.create();
 	}
 	
 	@Bean

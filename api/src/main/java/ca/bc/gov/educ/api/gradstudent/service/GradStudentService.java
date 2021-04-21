@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +28,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -86,12 +86,11 @@ public class GradStudentService {
     @Autowired
     GradProvinceTransformer gradProvinceTransformer;
     
+    @Autowired
+    WebClient webClient;
     
     @Autowired
     RestTemplate restTemplate;
-    
-    @Autowired
-    RestTemplateBuilder restTemplateBuilder;
     
     @Value(EducGradStudentApiConstants.ENDPOINT_SCHOOL_BY_MIN_CODE_URL)
     private String getSchoolByMinCodeURL;
@@ -121,20 +120,16 @@ public class GradStudentService {
     public GradStudent getStudentByPen(String pen, String accessToken) {
     	GradStudent gradStudent = new GradStudent();
     	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
-    	HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
     	if(gradStudent != null) {
-    		School schoolData = restTemplate.exchange(String.format(getSchoolByMinCodeURL, gradStudent.getMincode()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), School.class).getBody();
+    		School schoolData = webClient.get().uri(String.format(getSchoolByMinCodeURL, gradStudent.getMincode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
     		if(schoolData != null) {
     			gradStudent.setSchoolName(schoolData.getSchoolName());
     		}
-            GradCountry country = restTemplate.exchange(String.format(getCountryByCountryCodeURL, gradStudent.getCountryCode()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), GradCountry.class).getBody();
+    		GradCountry country = webClient.get().uri(String.format(getCountryByCountryCodeURL, gradStudent.getCountryCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradCountry.class).block();
             if(country != null) {
     			gradStudent.setCountryName(country.getCountryName());
     		}
-            GradProvince province = restTemplate.exchange(String.format(getProvinceByProvCodeURL, gradStudent.getProvinceCode()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), GradProvince.class).getBody();
+            GradProvince province = webClient.get().uri(String.format(getProvinceByProvCodeURL, gradStudent.getProvinceCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradProvince.class).block();
             if(province != null) {
     			gradStudent.setProvinceName(province.getProvName());
     		}
@@ -287,25 +282,21 @@ public class GradStudentService {
 	 @Transactional
     public List<GradSearchStudent> getStudentByPenFromStudentAPI(String pen, String accessToken) {
     	List<GradSearchStudent> gradStudentList = new ArrayList<GradSearchStudent>();
-    	HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
-    	List<Student> stuDataList = restTemplate.exchange(String.format(getPenStudentAPIByPenURL, pen), HttpMethod.GET,
-				new HttpEntity<>(httpHeaders), new ParameterizedTypeReference<List<Student>>() {}).getBody();
+    	List<Student> stuDataList = webClient.get().uri(String.format(getPenStudentAPIByPenURL, pen)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
     	stuDataList.forEach(st-> {
 			GradSearchStudent gradStu = new GradSearchStudent();
 			BeanUtils.copyProperties(st, gradStu);
-    		ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(getGradStatusForStudent,st.getPen()), HttpMethod.GET,
-					new HttpEntity<>(httpHeaders), GraduationStatus.class);
-    		if(responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-    			gradStu.setProgram(responseEntity.getBody().getProgram());
-    			gradStu.setStudentGrade(responseEntity.getBody().getStudentGrade());
-    			gradStu.setStudentStatus(responseEntity.getBody().getStudentStatus());
-    			gradStu.setSchoolOfRecord(responseEntity.getBody().getSchoolOfRecord());
+			GraduationStatus gradObj  = webClient.get().uri(String.format(getGradStatusForStudent,st.getPen())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GraduationStatus.class).block();
+    		if(gradObj != null) {
+    			gradStu.setProgram(gradObj.getProgram());
+    			gradStu.setStudentGrade(gradObj.getStudentGrade());
+    			gradStu.setStudentStatus(gradObj.getStudentStatus());
+    			gradStu.setSchoolOfRecord(gradObj.getSchoolOfRecord());
     		}
-    		ResponseEntity<School> responseSchoolOfRecordEntity = restTemplate.exchange(String.format(getSchoolByMinCodeURL, gradStu.getSchoolOfRecord()), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), School.class);
-			if(responseSchoolOfRecordEntity.getStatusCode().equals(HttpStatus.OK)) {
-    			gradStu.setSchoolOfRecordName(responseSchoolOfRecordEntity.getBody().getSchoolName());
-    			gradStu.setSchoolOfRecordindependentAffiliation(responseSchoolOfRecordEntity.getBody().getIndependentAffiliation());
+    		School school = webClient.get().uri(String.format(getSchoolByMinCodeURL, gradStu.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+			if(school != null) {
+    			gradStu.setSchoolOfRecordName(school.getSchoolName());
+    			gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
     		}
     		gradStudentList.add(gradStu);
     		
