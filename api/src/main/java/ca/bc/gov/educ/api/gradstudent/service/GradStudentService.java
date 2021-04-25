@@ -226,7 +226,7 @@ public class GradStudentService {
 			studentList.forEach(st-> {
 				GradSearchStudent gradStu = new GradSearchStudent();
 				BeanUtils.copyProperties(st, gradStu);
-				ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(getGradStatusForStudent,st.getPen()), HttpMethod.GET,
+				ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(getGradStatusForStudent,st.getStudentID()), HttpMethod.GET,
 						new HttpEntity<>(httpHeaders), GraduationStatus.class);
 	    		if(responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 	    			gradStu.setProgram(responseEntity.getBody().getProgram());
@@ -286,7 +286,7 @@ public class GradStudentService {
     	stuDataList.forEach(st-> {
 			GradSearchStudent gradStu = new GradSearchStudent();
 			BeanUtils.copyProperties(st, gradStu);
-			GraduationStatus gradObj  = webClient.get().uri(String.format(getGradStatusForStudent,st.getPen())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GraduationStatus.class).block();
+			GraduationStatus gradObj  = webClient.get().uri(String.format(getGradStatusForStudent,st.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GraduationStatus.class).block();
     		if(gradObj != null) {
     			gradStu.setProgram(gradObj.getProgram());
     			gradStu.setStudentGrade(gradObj.getStudentGrade());
