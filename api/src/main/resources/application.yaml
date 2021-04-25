@@ -69,7 +69,7 @@ server:
 endpoint:
   graduation-status-api:
     read-grad-status:
-      url: https://educ-grad-graduation-status-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/gradstatus/pen/%s
+      url: https://educ-grad-graduation-status-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/gradstatus/studentid/%s
   pen-student-api:
     search:
       url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/paginated?pageNumber=%s&pageSize=%s&searchCriteriaList=%s
