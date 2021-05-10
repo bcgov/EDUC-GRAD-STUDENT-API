@@ -65,6 +65,14 @@ server:
   tomcat:
     connection-timeout: 200s
 
+#API Documentation
+springdoc:
+  api-docs:
+    path: /api/v1/api-docs
+  swagger-ui:
+    path: /api/v1/api-docs-ui.html
+    operationsSorter: alpha
+
 #Endpoint properties
 endpoint:
   graduation-status-api:
