@@ -118,8 +118,7 @@ public class GradStudentService {
     
     @Transactional
     public GradStudent getStudentByPen(String pen, String accessToken) {
-    	GradStudent gradStudent = new GradStudent();
-    	gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
+    	GradStudent gradStudent = studentTransformer.transformToDTO(gradStudentRepository.findById(pen));
     	if(gradStudent != null) {
     		School schoolData = webClient.get().uri(String.format(getSchoolByMinCodeURL, gradStudent.getMincode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
     		if(schoolData != null) {
@@ -138,8 +137,7 @@ public class GradStudentService {
     }
 
     @Transactional
-	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize, String accessToken) {
-		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
+	public List<GradStudent> getStudentByLastName(String lastName, Integer pageNo, Integer pageSize, String accessToken) {	
 		Pageable paging = PageRequest.of(pageNo, pageSize);
 		Page<GradStudentEntity> pagedResult = null;
 		if(StringUtils.contains("*", lastName)) {
@@ -147,27 +145,24 @@ public class GradStudentService {
 		}else {
 			pagedResult = gradStudentRepository.findByStudSurname(StringUtils.toRootUpperCase(lastName),paging);
 		}
-		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());				
-    	return gradStudentList;
+				
+    	return studentTransformer.transformToDTO(pagedResult.getContent());
 	} 
     
     @Transactional
 	public List<GradStudent> getStudentByFirstName(String firstName, Integer pageNo, Integer pageSize, String accessToken) {
-		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
 		Pageable paging = PageRequest.of(pageNo, pageSize);
 		Page<GradStudentEntity> pagedResult = null;
 		if(StringUtils.contains("*", firstName)) {
 			pagedResult = gradStudentRepository.findByStudGivenContaining(StringUtils.toRootUpperCase(StringUtils.strip(firstName, "*")),paging);
 		}else {
 			pagedResult = gradStudentRepository.findByStudGiven(StringUtils.toRootUpperCase(firstName),paging);
-		}
-		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());				
-    	return gradStudentList;
+		}			
+    	return studentTransformer.transformToDTO(pagedResult.getContent());
 	}
     
     @Transactional
 	public List<GradStudent> getStudentByLastNameAndFirstName(String lastName, String firstName,Integer pageNo, Integer pageSize, String accessToken) {
-		List<GradStudent> gradStudentList = new ArrayList<GradStudent>();		
 		Pageable paging = PageRequest.of(pageNo, pageSize);
 		Page<GradStudentEntity> pagedResult = null;
 		if(StringUtils.contains(lastName,"*") && StringUtils.contains(firstName,"*")) {
@@ -180,9 +175,8 @@ public class GradStudentService {
 			}else {
 				pagedResult = gradStudentRepository.findByStudSurnameAndStudGiven(StringUtils.toRootUpperCase(lastName),StringUtils.toRootUpperCase(firstName),paging);
 			}
-		}
-		gradStudentList = studentTransformer.transformToDTO(pagedResult.getContent());				
-    	return gradStudentList;
+		}		
+    	return studentTransformer.transformToDTO(pagedResult.getContent());		
 	}
     
     @Transactional
@@ -193,7 +187,7 @@ public class GradStudentService {
 	public StudentSearch getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
 			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo, Integer pageNumber, Integer pageSize, String accessToken) {
 		HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
-		List<GradSearchStudent> gradStudentList = new ArrayList<GradSearchStudent>();
+		List<GradSearchStudent> gradStudentList = new ArrayList<>();
 		List<SearchCriteria> criteriaList = new ArrayList<>();
 		criteriaList = getSearchCriteria(legalFirstName,null,"legalFirstName",criteriaList);
 		criteriaList = getSearchCriteria(legalLastName,null,"legalLastName",criteriaList);
@@ -216,7 +210,7 @@ public class GradStudentService {
 			DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
 		    defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
 		    restTemplate.setUriTemplateHandler(defaultUriBuilderFactory);
-			restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+			restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
 			MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
 			mappingJackson2HttpMessageConverter.setSupportedMediaTypes(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM));
 			restTemplate.getMessageConverters().add(1, mappingJackson2HttpMessageConverter);
@@ -255,7 +249,7 @@ public class GradStudentService {
 			return searchObj;
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.getMessage();
 		}
 		return null;
 	}    
@@ -281,7 +275,7 @@ public class GradStudentService {
 	
 	 @Transactional
     public List<GradSearchStudent> getStudentByPenFromStudentAPI(String pen, String accessToken) {
-    	List<GradSearchStudent> gradStudentList = new ArrayList<GradSearchStudent>();
+    	List<GradSearchStudent> gradStudentList = new ArrayList<>();
     	List<Student> stuDataList = webClient.get().uri(String.format(getPenStudentAPIByPenURL, pen)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
     	stuDataList.forEach(st-> {
 			GradSearchStudent gradStu = new GradSearchStudent();
