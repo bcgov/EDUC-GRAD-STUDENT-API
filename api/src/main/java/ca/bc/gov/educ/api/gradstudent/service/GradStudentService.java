@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
