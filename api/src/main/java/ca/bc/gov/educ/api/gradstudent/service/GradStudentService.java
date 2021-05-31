@@ -47,13 +47,7 @@ import ca.bc.gov.educ.api.gradstudent.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentSearch;
 import ca.bc.gov.educ.api.gradstudent.dto.ValueType;
 import ca.bc.gov.educ.api.gradstudent.entity.GradStudentEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradCountryRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GradProvinceRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.SchoolRepository;
-import ca.bc.gov.educ.api.gradstudent.transformer.GradCountryTransformer;
-import ca.bc.gov.educ.api.gradstudent.transformer.GradProvinceTransformer;
-import ca.bc.gov.educ.api.gradstudent.transformer.SchoolTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.StudentTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
@@ -66,24 +60,6 @@ public class GradStudentService {
     
     @Autowired
     StudentTransformer studentTransformer;
-    
-    @Autowired
-    SchoolRepository schoolRepository;
-    
-    @Autowired
-    SchoolTransformer schoolTransformer;
-    
-    @Autowired
-    GradCountryRepository gradCountryRepository;
-    
-    @Autowired
-    GradCountryTransformer gradCountryTransformer;
-    
-    @Autowired
-    GradProvinceRepository gradProvinceRepository;
-    
-    @Autowired
-    GradProvinceTransformer gradProvinceTransformer;
     
     @Autowired
     WebClient webClient;
@@ -99,12 +75,6 @@ public class GradStudentService {
     
     @Value(EducGradStudentApiConstants.ENDPOINT_PROVINCE_BY_PROV_CODE_URL)
     private String getProvinceByProvCodeURL;
-    
-    @Value(EducGradStudentApiConstants.ENDPOINT_ALL_COUNTRY_URL)
-    private String getAllCountriesURL;
-    
-    @Value(EducGradStudentApiConstants.ENDPOINT_ALL_PROVINCE_URL)
-    private String getAllProvincesURL;
     
     @Value(EducGradStudentApiConstants.ENDPOINT_PEN_STUDENT_API_URL)
     private String getPenStudentAPIURL;
