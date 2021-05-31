@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-//import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.web.bind.annotation.RestController;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GradSearchStudent;
@@ -36,7 +35,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @OpenAPIDefinition(info = @Info(title = "API for Student Demographics.", description = "This API is for Reading demographics data of a student.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_DATA"})})
 public class GradStudentController {
 
-    private static Logger logger = LoggerFactory.getLogger(GradStudentController.class);
+    @SuppressWarnings("unused")
+	private static Logger logger = LoggerFactory.getLogger(GradStudentController.class);
 
     @Autowired
     GradStudentService gradStudentService;
