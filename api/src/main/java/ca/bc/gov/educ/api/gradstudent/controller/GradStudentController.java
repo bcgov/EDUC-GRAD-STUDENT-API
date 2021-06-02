@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudent;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentSearch;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -40,93 +39,6 @@ public class GradStudentController {
 
     @Autowired
     GradStudentService gradStudentService;
-
-    /**
-     * Gets Student details by pen.
-     *
-     * @param pen the pen
-     * @return the student details by pen
-     */
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_PEN)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
-    @Operation(summary = "Find Student by Pen", description = "Get a Student by Pen", tags = { "Student Demographics" }, deprecated = true)
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public GradStudent getGradStudentByPen(@PathVariable String pen) {
-    	OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentByPen(pen,accessToken);
-    }
-
-    /**
-     * Gets Student details by lastname.
-     *
-     * @param lastName the lastname of a student
-     * @param pageNo the page number to return
-     * @param pageSize the number of result items in a page
-     * @return the student details by pen
-     */
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_LAST_NAME)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
-	@Operation(summary = "Find Student by Last Name", description = "Get a Student by LastName", tags = { "Student Demographics" }, deprecated = true)
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-	public List<GradStudent> getGradStudentByLastName(@RequestParam(value = "lastName", required = true) String lastName,
-    		@RequestParam(value = "pageNo", required = false,defaultValue = "0") Integer pageNo, 
-            @RequestParam(value = "pageSize", required = false,defaultValue = "50") Integer pageSize) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-		return gradStudentService.getStudentByLastName(lastName,pageNo,pageSize,accessToken);
-	}
-	
-    /**
-     * Gets Student details by first name.
-     *
-     * @param lastName the first name of a student
-     * @param pageNo the page number to return
-     * @param pageSize the number of result items in a page
-     * @return the student details by pen
-     */
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_FIRST_NAME)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
-	@Operation(summary = "Find Student by First Name", description = "Get a Student by First Name", tags = { "Student Demographics" }, deprecated = true)
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-	public List<GradStudent> getGradStudentByFirstName(@RequestParam(value = "firstName", required = true) String firstName,
-    		@RequestParam(value = "pageNo", required = false,defaultValue = "0") Integer pageNo, 
-            @RequestParam(value = "pageSize", required = false,defaultValue = "50") Integer pageSize) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-		return gradStudentService.getStudentByFirstName(firstName,pageNo,pageSize,accessToken);
-	}
-	
-    /**
-     * Gets Student details by lastname.
-     *
-     * @param lastName the lastname of a student
-     * @param pageNo the page number to return
-     * @param pageSize the number of result items in a page
-     * @return the student details by pen
-     */
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAMES)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
-	@Operation(summary = "Find Student by First Name and Last Name", description = "Get a Student by First Name and Last Name", tags = { "Student Demographics" }, deprecated = true)
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-	public List<GradStudent> getGradStudentByLastNameAndFirstName(@RequestParam(value = "lastName", required = false,defaultValue = "*") String lastName,
-    		@RequestParam(value = "firstName", required = false,defaultValue = "*") String firstName,
-    		@RequestParam(value = "pageNo", required = false,defaultValue = "0") Integer pageNo, 
-            @RequestParam(value = "pageSize", required = false,defaultValue = "20") Integer pageSize) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-		return gradStudentService.getStudentByLastNameAndFirstName(lastName,firstName,pageNo,pageSize,accessToken);
-	}
-	
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_MULTIPLE_PENS)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
-	@Operation(summary = "Find Student Demographics for Multiple Pens", description = "Get Multiple Student Demographics by PENS", tags = { "Student Demographics" }, deprecated = true)
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public List<GradStudent> getGradStudentByPens(@RequestParam(value = "penList", required = true) List<String> penList) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentByPens(penList,accessToken);
-    }
 	
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")

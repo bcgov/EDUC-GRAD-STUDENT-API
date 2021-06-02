@@ -1,7 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudent;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStudentEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,8 +28,6 @@ public class EducGradStudentApiApplication {
     public ModelMapper modelMapper() {
 
         ModelMapper modelMapper = new ModelMapper();
-        modelMapper.typeMap(GradStudentEntity.class, GradStudent.class);
-        modelMapper.typeMap(GradStudent.class, GradStudentEntity.class);
         return modelMapper;
     }
 
