@@ -1,11 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.dto;
 
-import org.springframework.stereotype.Component;
-
-import lombok.Data;
-
-@Data
-@Component
+@Deprecated
+//@Data
+//@Component
 public class GradProvince {
 
 	private String provCode;	
