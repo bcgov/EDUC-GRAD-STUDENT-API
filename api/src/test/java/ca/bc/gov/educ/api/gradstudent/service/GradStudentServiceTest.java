@@ -20,9 +20,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -63,7 +65,77 @@ public class GradStudentServiceTest {
 
     @Test
     public void testGetStudentFromStudentAPI() {
-        // TODO (jsung)
+        // ID
+        final UUID studentID = UUID.randomUUID();
+        final String legalFirstName = "Legal";
+        final String legalLastName = "Test";
+        final String pen = "123456789";
+        final String program = "2018-EN";
+        final String gradStatus = "A";
+        final String stdGrade = "12";
+        final String mincode = "12345678";
+        final String schoolName = "Test School";
+
+        final Student student = new Student();
+        student.setStudentID(studentID.toString());
+        student.setPen(pen);
+        student.setMincode(mincode);
+        student.setLegalFirstName(legalFirstName);
+        student.setLegalLastName(legalLastName);
+
+        RestResponsePage<Student> response = new RestResponsePage<Student>(Arrays.asList(student));
+
+        final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<RestResponsePage<Student>>() {
+        };
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(eq(this.constants.getPenStudentApiUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(response));
+
+        // Graduation Status
+        final GraduationStatus graduationStatus = new GraduationStatus();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setPen(pen);
+        graduationStatus.setStudentStatus(gradStatus);
+        graduationStatus.setStudentGrade(stdGrade);
+        graduationStatus.setProgram(program);
+        graduationStatus.setSchoolOfRecord(mincode);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradStatusForStudentUrl(),studentID.toString()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(GraduationStatus.class)).thenReturn(Mono.just(graduationStatus));
+
+        // School
+        final School school = new School();
+        school.setMinCode(mincode);
+        school.setSchoolName(schoolName);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
+
+        var result = gradStudentService.getStudentFromStudentAPI(legalFirstName, legalLastName, null, null, null, null, null,
+                mincode, null, null, null, 1, 10, "accessToken");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getGradSearchStudents().isEmpty()).isFalse();
+        assertThat(result.getGradSearchStudents().size()).isEqualTo(1);
+        assertThat(result.getNumber()).isEqualTo(0);
+        assertThat(result.getNumberOfElements()).isEqualTo(1);
+
+        GradSearchStudent responseStudent = result.getGradSearchStudents().get(0);
+        assertThat(responseStudent.getStudentID()).isEqualTo(studentID.toString());
+        assertThat(responseStudent.getLegalLastName()).isEqualTo(legalLastName);
+        assertThat(responseStudent.getProgram()).isEqualTo(program);
+        assertThat(responseStudent.getStudentStatus()).isEqualTo(gradStatus);
+        assertThat(responseStudent.getStudentGrade()).isEqualTo(stdGrade);
+        assertThat(responseStudent.getSchoolOfRecordName()).isEqualTo(schoolName);
     }
 
     @Test
