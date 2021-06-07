@@ -13,18 +13,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -50,13 +41,9 @@ public class GradStudentService {
     
     @Autowired
     WebClient webClient;
-    
-    @Autowired
-    RestTemplate restTemplate;
 
 	public StudentSearch getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
 			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo, Integer pageNumber, Integer pageSize, String accessToken) {
-		HttpHeaders httpHeaders = EducGradStudentApiUtils.getHeaders(accessToken);
 		List<GradSearchStudent> gradStudentList = new ArrayList<>();
 		List<SearchCriteria> criteriaList = new ArrayList<>();
 		criteriaList = getSearchCriteria(legalFirstName,null,"legalFirstName",criteriaList);
@@ -77,36 +64,21 @@ public class GradStudentService {
 	    try {
 			String criteriaJSON = objectMapper.writeValueAsString(searches);
 			String encodedURL = URLEncoder.encode(criteriaJSON,StandardCharsets.UTF_8.toString());
-			DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
-		    defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-		    restTemplate.setUriTemplateHandler(defaultUriBuilderFactory);
-			restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-			MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
-			mappingJackson2HttpMessageConverter.setSupportedMediaTypes(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM));
-			restTemplate.getMessageConverters().add(1, mappingJackson2HttpMessageConverter);
-			RestResponsePage<Student> response = restTemplate.exchange(String.format(constants.getPenStudentApiUrl(),pageNumber,pageSize,encodedURL), HttpMethod.GET,
-    				new HttpEntity<>(httpHeaders), new ParameterizedTypeReference<RestResponsePage<Student>>() {}).getBody();
+			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiUrl(),
+				uri -> uri
+					.queryParam("pageNumber", pageNumber)
+					.queryParam("pageSize", pageSize)
+					.queryParam("searchCriteriaList", encodedURL)
+				.build())
+				.headers(h -> h.setBearerAuth(accessToken))
+				.retrieve().bodyToMono(new ParameterizedTypeReference<RestResponsePage<Student>>() {}).block();
 			List<Student> studentList = response.getContent();
-			studentList.forEach(st-> {
-				GradSearchStudent gradStu = new GradSearchStudent();
-				BeanUtils.copyProperties(st, gradStu);
-				ResponseEntity<GraduationStatus> responseEntity = restTemplate.exchange(String.format(constants.getGradStatusForStudentUrl(),st.getPen()), HttpMethod.GET,
-						new HttpEntity<>(httpHeaders), GraduationStatus.class);
-	    		if(responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-	    			gradStu.setProgram(responseEntity.getBody().getProgram());
-	    			gradStu.setSchoolOfRecord(responseEntity.getBody().getSchoolOfRecord());
-	    			gradStu.setStudentGrade(responseEntity.getBody().getStudentGrade());
-	    			gradStu.setStudentStatus(responseEntity.getBody().getStudentStatus());
-	    		}
-	    		ResponseEntity<School> responseSchoolOfRecordEntity = restTemplate.exchange(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord()), HttpMethod.GET,
-	    				new HttpEntity<>(httpHeaders), School.class);
-				if(responseSchoolOfRecordEntity.getStatusCode().equals(HttpStatus.OK)) {
-	    			gradStu.setSchoolOfRecordName(responseSchoolOfRecordEntity.getBody().getSchoolName());
-	    			gradStu.setSchoolOfRecordindependentAffiliation(responseSchoolOfRecordEntity.getBody().getIndependentAffiliation());
-	    		}
-	    		gradStudentList.add(gradStu);
-	    		
-			});
+			if (!studentList.isEmpty()) {
+				studentList.forEach(st -> {
+					GradSearchStudent gradStu = populateGradSearchStudent(st, accessToken);
+					gradStudentList.add(gradStu);
+				});
+			}
 			searchObj.setGradSearchStudents(gradStudentList);
 			searchObj.setPageable(response.getPageable());
 			searchObj.setTotalElements(response.getTotalElements());
@@ -120,10 +92,25 @@ public class GradStudentService {
 			
 		} catch (Exception e) {
 			e.getMessage();
+			e.printStackTrace();
 		}
 		return null;
-	}    
+	}
 	
+	@Transactional
+    public List<GradSearchStudent> getStudentByPenFromStudentAPI(String pen, String accessToken) {
+    	List<GradSearchStudent> gradStudentList = new ArrayList<>();
+    	List<Student> stuDataList = webClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
+    	if (stuDataList != null && !stuDataList.isEmpty()) {
+			stuDataList.forEach(st -> {
+				GradSearchStudent gradStu = populateGradSearchStudent(st, accessToken);
+				gradStudentList.add(gradStu);
+			});
+		}
+    	
+    	return gradStudentList;
+    }
+
 	private List<SearchCriteria> getSearchCriteria(String value,String value2,String paramterType,List<SearchCriteria> criteriaList) {
 		SearchCriteria criteria = null;
 		if(paramterType.equalsIgnoreCase("dob")) {
@@ -142,30 +129,22 @@ public class GradStudentService {
 		if(criteria != null) criteriaList.add(criteria);
 		return criteriaList;
 	}
-	
-	 @Transactional
-    public List<GradSearchStudent> getStudentByPenFromStudentAPI(String pen, String accessToken) {
-    	List<GradSearchStudent> gradStudentList = new ArrayList<>();
-    	List<Student> stuDataList = webClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
-    	stuDataList.forEach(st-> {
-			GradSearchStudent gradStu = new GradSearchStudent();
-			BeanUtils.copyProperties(st, gradStu);
-			GraduationStatus gradObj  = webClient.get().uri(String.format(constants.getGradStatusForStudentUrl(),st.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GraduationStatus.class).block();
-    		if(gradObj != null) {
-    			gradStu.setProgram(gradObj.getProgram());
-    			gradStu.setStudentGrade(gradObj.getStudentGrade());
-    			gradStu.setStudentStatus(gradObj.getStudentStatus());
-    			gradStu.setSchoolOfRecord(gradObj.getSchoolOfRecord());
-    		}
-    		School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-			if(school != null) {
-    			gradStu.setSchoolOfRecordName(school.getSchoolName());
-    			gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
-    		}
-    		gradStudentList.add(gradStu);
-    		
-		});
-    	
-    	return gradStudentList;
-    }
+
+    private GradSearchStudent populateGradSearchStudent(Student student, String accessToken) {
+		GradSearchStudent gradStu = new GradSearchStudent();
+		BeanUtils.copyProperties(student, gradStu);
+		GraduationStatus gradObj = webClient.get().uri(String.format(constants.getGradStatusForStudentUrl(), student.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GraduationStatus.class).block();
+		if (gradObj != null) {
+			gradStu.setProgram(gradObj.getProgram());
+			gradStu.setStudentGrade(gradObj.getStudentGrade());
+			gradStu.setStudentStatus(gradObj.getStudentStatus());
+			gradStu.setSchoolOfRecord(gradObj.getSchoolOfRecord());
+		}
+		School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+		if (school != null) {
+			gradStu.setSchoolOfRecordName(school.getSchoolName());
+			gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
+		}
+		return gradStu;
+	}
 }
