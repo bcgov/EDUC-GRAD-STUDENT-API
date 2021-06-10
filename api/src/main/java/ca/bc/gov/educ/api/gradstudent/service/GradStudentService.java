@@ -3,7 +3,6 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,9 +10,7 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -31,16 +28,17 @@ import ca.bc.gov.educ.api.gradstudent.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentSearch;
 import ca.bc.gov.educ.api.gradstudent.dto.ValueType;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 
 @Service
 public class GradStudentService {
 
-	@Autowired
-	EducGradStudentApiConstants constants;
-    
-    @Autowired
-    WebClient webClient;
+	private final EducGradStudentApiConstants constants;
+    private final WebClient webClient;
+
+    public GradStudentService(EducGradStudentApiConstants constants, WebClient webClient) {
+    	this.constants = constants;
+    	this.webClient = webClient;
+	}
 
 	public StudentSearch getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
 			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo, Integer pageNumber, Integer pageSize, String accessToken) {

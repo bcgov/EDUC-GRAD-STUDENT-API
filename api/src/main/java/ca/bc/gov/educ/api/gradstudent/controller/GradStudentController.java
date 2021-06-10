@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -35,10 +34,13 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 public class GradStudentController {
 
     @SuppressWarnings("unused")
-	private static Logger logger = LoggerFactory.getLogger(GradStudentController.class);
+	private static final Logger logger = LoggerFactory.getLogger(GradStudentController.class);
 
-    @Autowired
-    GradStudentService gradStudentService;
+    private final GradStudentService gradStudentService;
+
+    public GradStudentController(GradStudentService gradStudentService) {
+    	this.gradStudentService = gradStudentService;
+	}
 	
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")

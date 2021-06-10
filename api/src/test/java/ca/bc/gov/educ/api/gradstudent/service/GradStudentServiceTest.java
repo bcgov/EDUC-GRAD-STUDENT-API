@@ -82,6 +82,12 @@ public class GradStudentServiceTest {
         student.setMincode(mincode);
         student.setLegalFirstName(legalFirstName);
         student.setLegalLastName(legalLastName);
+        student.setGradeCode(stdGrade);
+        student.setGradeYear("2020");
+        student.setDemogCode("A");
+        student.setPostalCode("V6S 1Z5");
+        student.setLocalID("01234567");
+        student.setMemo("test memo text");
 
         RestResponsePage<Student> response = new RestResponsePage<Student>(Arrays.asList(student));
 
@@ -131,11 +137,19 @@ public class GradStudentServiceTest {
 
         GradSearchStudent responseStudent = result.getGradSearchStudents().get(0);
         assertThat(responseStudent.getStudentID()).isEqualTo(studentID.toString());
+        assertThat(responseStudent.getLegalFirstName()).isEqualTo(legalFirstName);
         assertThat(responseStudent.getLegalLastName()).isEqualTo(legalLastName);
         assertThat(responseStudent.getProgram()).isEqualTo(program);
         assertThat(responseStudent.getStudentStatus()).isEqualTo(gradStatus);
         assertThat(responseStudent.getStudentGrade()).isEqualTo(stdGrade);
         assertThat(responseStudent.getSchoolOfRecordName()).isEqualTo(schoolName);
+        // extra
+        assertThat(responseStudent.getGradeCode()).isEqualTo(student.getGradeCode());
+        assertThat(responseStudent.getGradeYear()).isEqualTo(student.getGradeYear());
+        assertThat(responseStudent.getDemogCode()).isEqualTo(student.getDemogCode());
+        assertThat(responseStudent.getPostalCode()).isEqualTo(student.getPostalCode());
+        assertThat(responseStudent.getLocalID()).isEqualTo(student.getLocalID());
+        assertThat(responseStudent.getMemo()).isEqualTo(student.getMemo());
     }
 
     @Test
@@ -143,6 +157,7 @@ public class GradStudentServiceTest {
         // ID
         final UUID studentID = UUID.randomUUID();
         final String pen = "123456789";
+        final String firstName = "FirstName";
         final String lastName = "LastName";
         final String program = "2018-EN";
         final String gradStatus = "A";
@@ -155,7 +170,16 @@ public class GradStudentServiceTest {
         student.setStudentID(studentID.toString());
         student.setPen(pen);
         student.setLegalLastName(lastName);
+        student.setLegalFirstName(firstName);
         student.setMincode(mincode);
+        student.setSexCode("M");
+        student.setGenderCode("M");
+        student.setUsualFirstName("Usual First");
+        student.setUsualLastName("Usual Last");
+        student.setEmail("junit@test.com");
+        student.setEmailVerified("Y");
+        student.setStatusCode("A");
+        student.setDob("1990-01-01");
 
         final ParameterizedTypeReference<List<Student>> studentResponseType = new ParameterizedTypeReference<List<Student>>() {
         };
@@ -204,5 +228,16 @@ public class GradStudentServiceTest {
         assertThat(responseStd.getStudentStatus()).isEqualTo(gradStatus);
         assertThat(responseStd.getSchoolOfRecord()).isEqualTo(mincode);
         assertThat(responseStd.getSchoolOfRecordName()).isEqualTo(schoolName);
+        // extra
+        assertThat(responseStd.getUsualFirstName()).isEqualTo(student.getUsualFirstName());
+        assertThat(responseStd.getUsualLastName()).isEqualTo(student.getUsualLastName());
+        assertThat(responseStd.getPen()).isEqualTo(student.getPen());
+        assertThat(responseStd.getMincode()).isEqualTo(student.getMincode());
+        assertThat(responseStd.getDob()).isEqualTo(student.getDob());
+        assertThat(responseStd.getSexCode()).isEqualTo(student.getSexCode());
+        assertThat(responseStd.getGenderCode()).isEqualTo(student.getGenderCode());
+        assertThat(responseStd.getStatusCode()).isEqualTo(student.getStatusCode());
+        assertThat(responseStd.getEmail()).isEqualTo(student.getEmail());
+        assertThat(responseStd.getEmailVerified()).isEqualTo(student.getEmailVerified());
     }
 }
