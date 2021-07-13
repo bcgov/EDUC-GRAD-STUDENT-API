@@ -1,10 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.dto;
 
-import java.util.UUID;
-
+import lombok.Data;
 import org.springframework.stereotype.Component;
 
-import lombok.Data;
+import java.util.UUID;
 
 @Data
 @Component
@@ -18,8 +17,12 @@ public class GraduationStatus {
     private String honoursStanding;
     private String recalculateGradStatus;   
     private String schoolOfRecord;
+    private String schoolName;
+    private String schoolAtGrad;
+    private String schoolAtGradName;
     private String studentGrade;	
     private String studentStatus;
+    private String studentStatusName;
     private UUID studentID;
 				
 }

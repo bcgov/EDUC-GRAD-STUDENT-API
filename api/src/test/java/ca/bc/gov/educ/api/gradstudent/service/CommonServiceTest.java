@@ -87,7 +87,6 @@ public class CommonServiceTest {
         final List<GradStudentCareerProgramEntity> gradStudentCareerProgramList = new ArrayList<>();
         final GradStudentCareerProgramEntity studentCareerProgram = new GradStudentCareerProgramEntity();
         studentCareerProgram.setId(UUID.randomUUID());
-        studentCareerProgram.setPen(pen);
         studentCareerProgram.setStudentID(studentID);
         studentCareerProgram.setCareerProgramCode(gradCareerProgram.getCode());
         gradStudentCareerProgramList.add(studentCareerProgram);
@@ -111,14 +110,12 @@ public class CommonServiceTest {
         final List<GradStudentCareerProgramEntity> gradStudentCareerProgramList = new ArrayList<>();
         final GradStudentCareerProgramEntity studentCareerProgram1 = new GradStudentCareerProgramEntity();
         studentCareerProgram1.setId(UUID.randomUUID());
-        studentCareerProgram1.setPen(pen);
         studentCareerProgram1.setStudentID(studentID);
         studentCareerProgram1.setCareerProgramCode(gradCareerProgram.getCode());
         gradStudentCareerProgramList.add(studentCareerProgram1);
 
         final GradStudentCareerProgramEntity studentCareerProgram2 = new GradStudentCareerProgramEntity();
         studentCareerProgram2.setId(UUID.randomUUID());
-        studentCareerProgram2.setPen(pen);
         studentCareerProgram2.setStudentID(studentID);
         studentCareerProgram2.setCareerProgramCode(gradCareerProgram.getCode());
         gradStudentCareerProgramList.add(studentCareerProgram2);
@@ -154,7 +151,6 @@ public class CommonServiceTest {
         final StudentNoteEntity note1 = new StudentNoteEntity();
         note1.setId(UUID.randomUUID());
         note1.setStudentID(studentID);
-        note1.setPen(pen);
         note1.setNote("Test1 Comments");
         note1.setUpdatedTimestamp(new Date(System.currentTimeMillis()));
         allNotesList.add(note1);
@@ -162,7 +158,6 @@ public class CommonServiceTest {
         final StudentNoteEntity note2 = new StudentNoteEntity();
         note2.setId(UUID.randomUUID());
         note2.setStudentID(studentID);
-        note2.setPen(pen);
         note2.setNote("Test2 Comments");
         note2.setUpdatedTimestamp(new Date(System.currentTimeMillis() + 100000L));
         allNotesList.add(note2);
@@ -192,7 +187,6 @@ public class CommonServiceTest {
 
         final StudentNoteEntity studentNoteEntity = new StudentNoteEntity();
         studentNoteEntity.setStudentID(studentID);
-        studentNoteEntity.setPen(pen);
         studentNoteEntity.setNote("Test Note Body");
 
         final Optional<StudentNoteEntity> optional = Optional.of(studentNoteEntity);
@@ -222,7 +216,6 @@ public class CommonServiceTest {
         final StudentNoteEntity studentNoteEntity = new StudentNoteEntity();
         studentNoteEntity.setId(noteID);
         studentNoteEntity.setStudentID(studentID);
-        studentNoteEntity.setPen(pen);
         studentNoteEntity.setNote("Test Note Body");
 
         final Optional<StudentNoteEntity> optional = Optional.of(studentNoteEntity);
@@ -248,7 +241,6 @@ public class CommonServiceTest {
         final StudentNoteEntity studentNoteEntity = new StudentNoteEntity();
         studentNoteEntity.setId(noteID);
         studentNoteEntity.setStudentID(studentID);
-        studentNoteEntity.setPen(pen);
         studentNoteEntity.setNote("Test Note Body");
 
         final Optional<StudentNoteEntity> optional = Optional.of(studentNoteEntity);

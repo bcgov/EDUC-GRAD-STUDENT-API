@@ -12,20 +12,17 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(name = "GRAD_STUDENT_CAREER_PROGRAM")
+@Table(name = "STUDENT_CAREER_PROGRAM")
 public class GradStudentCareerProgramEntity extends BaseEntity {
    
 	@Id
-	@Column(name = "ID", nullable = false)
-    private UUID id; 
+	@Column(name = "STUDENT_CAREER_PROGRAM_ID", nullable = false)
+    private UUID id;
 	
-	@Column(name = "FK_GRAD_STUDENT_PEN", nullable = false)
-    private String pen;
-	
-	@Column(name = "FK_GRAD_CAREER_PROGRAM_CODE", nullable = false)
+	@Column(name = "CAREER_PROGRAM_CODE", nullable = false)
     private String careerProgramCode;
 	
-	@Column(name = "FK_GRAD_STUDENT_STUDENT_ID", nullable = false)
+	@Column(name = "GRADUTION_STUDENT_RECORD_ID", nullable = false)
     private UUID studentID;
 	
 }

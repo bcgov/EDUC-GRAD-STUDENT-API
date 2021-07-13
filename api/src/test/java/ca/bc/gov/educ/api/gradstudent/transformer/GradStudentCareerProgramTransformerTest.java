@@ -38,7 +38,6 @@ public class GradStudentCareerProgramTransformerTest {
         GradStudentCareerProgramEntity gradStudentCareerProgramEntity = new GradStudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgram.getId());
         gradStudentCareerProgramEntity.setStudentID(gradStudentCareerProgram.getStudentID());
-        gradStudentCareerProgramEntity.setPen(gradStudentCareerProgram.getPen());
         gradStudentCareerProgramEntity.setCareerProgramCode(gradStudentCareerProgram.getCareerProgramCode());
 
         Mockito.when(modelMapper.map(gradStudentCareerProgramEntity, GradStudentCareerProgram.class)).thenReturn(gradStudentCareerProgram);
@@ -46,7 +45,6 @@ public class GradStudentCareerProgramTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentCareerProgramEntity.getId());
         assertThat(result.getStudentID()).isEqualTo(gradStudentCareerProgramEntity.getStudentID());
-        assertThat(result.getPen()).isEqualTo(gradStudentCareerProgramEntity.getPen());
         assertThat(result.getCareerProgramCode()).isEqualTo(gradStudentCareerProgramEntity.getCareerProgramCode());
 
     }
@@ -63,7 +61,6 @@ public class GradStudentCareerProgramTransformerTest {
         GradStudentCareerProgramEntity gradStudentCareerProgramEntity = new GradStudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgram.getId());
         gradStudentCareerProgramEntity.setStudentID(gradStudentCareerProgram.getStudentID());
-        gradStudentCareerProgramEntity.setPen(gradStudentCareerProgram.getPen());
         gradStudentCareerProgramEntity.setCareerProgramCode(gradStudentCareerProgram.getCareerProgramCode());
 
         Mockito.when(modelMapper.map(gradStudentCareerProgramEntity, GradStudentCareerProgram.class)).thenReturn(gradStudentCareerProgram);
@@ -71,7 +68,6 @@ public class GradStudentCareerProgramTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentCareerProgramEntity.getId());
         assertThat(result.getStudentID()).isEqualTo(gradStudentCareerProgramEntity.getStudentID());
-        assertThat(result.getPen()).isEqualTo(gradStudentCareerProgramEntity.getPen());
         assertThat(result.getCareerProgramCode()).isEqualTo(gradStudentCareerProgramEntity.getCareerProgramCode());
     }
 
@@ -87,7 +83,6 @@ public class GradStudentCareerProgramTransformerTest {
         GradStudentCareerProgramEntity gradStudentCareerProgramEntity = new GradStudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgram.getId());
         gradStudentCareerProgramEntity.setStudentID(gradStudentCareerProgram.getStudentID());
-        gradStudentCareerProgramEntity.setPen(gradStudentCareerProgram.getPen());
         gradStudentCareerProgramEntity.setCareerProgramCode(gradStudentCareerProgram.getCareerProgramCode());
 
         Mockito.when(modelMapper.map(gradStudentCareerProgram, GradStudentCareerProgramEntity.class)).thenReturn(gradStudentCareerProgramEntity);
@@ -95,7 +90,6 @@ public class GradStudentCareerProgramTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentCareerProgram.getId());
         assertThat(result.getStudentID()).isEqualTo(gradStudentCareerProgram.getStudentID());
-        assertThat(result.getPen()).isEqualTo(gradStudentCareerProgram.getPen());
         assertThat(result.getCareerProgramCode()).isEqualTo(gradStudentCareerProgram.getCareerProgramCode());
     }
 }
