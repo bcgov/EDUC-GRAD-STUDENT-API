@@ -733,7 +733,7 @@ public class GraduationStatusServiceTest {
         assertThat(responseStudentSpecialProgram.getSpecialProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getSpecialProgramID());
         assertThat(responseStudentSpecialProgram.getSpecialProgramName()).isEqualTo(specialProgram.getSpecialProgramName());
         assertThat(responseStudentSpecialProgram.getSpecialProgramCode()).isEqualTo(specialProgram.getSpecialProgramCode());
-        assertThat(responseStudentSpecialProgram.getMainProgramCode()).isEqualTo(specialProgram.getProgramCode());
+        assertThat(responseStudentSpecialProgram.getProgramCode()).isEqualTo(specialProgram.getProgramCode());
     }
 
     @Test
@@ -874,7 +874,7 @@ public class GraduationStatusServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(gradStudentSpecialProgramEntity.getStudentID());
         assertThat(result.getSpecialProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getSpecialProgramID());
-        assertThat(result.getMainProgramCode()).isEqualTo(specialProgram.getProgramCode());
+        assertThat(result.getProgramCode()).isEqualTo(specialProgram.getProgramCode());
         assertThat(result.getSpecialProgramCode()).isEqualTo(specialProgram.getSpecialProgramCode());
         assertThat(result.getSpecialProgramName()).isEqualTo(specialProgram.getSpecialProgramName());
     }

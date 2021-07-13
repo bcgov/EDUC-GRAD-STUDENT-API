@@ -299,7 +299,7 @@ public class GraduationStatusService {
 					.block();
             sP.setSpecialProgramName(gradSpecialProgram.getSpecialProgramName());
             sP.setSpecialProgramCode(gradSpecialProgram.getSpecialProgramCode());
-            sP.setMainProgramCode(gradSpecialProgram.getProgramCode());
+            sP.setProgramCode(gradSpecialProgram.getProgramCode());
         });
         return specialProgramList;
     }
@@ -368,7 +368,7 @@ public class GraduationStatusService {
 					.block();
             responseObj.setSpecialProgramName(gradSpecialProgram.getSpecialProgramName());
             responseObj.setSpecialProgramCode(gradSpecialProgram.getSpecialProgramCode());
-            responseObj.setMainProgramCode(gradSpecialProgram.getProgramCode());
+            responseObj.setProgramCode(gradSpecialProgram.getProgramCode());
             return responseObj;
         }
         return null;
