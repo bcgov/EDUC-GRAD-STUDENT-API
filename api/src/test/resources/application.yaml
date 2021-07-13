@@ -71,6 +71,15 @@ endpoint:
     school-by-min-code:
       url: https://educ-grad-school-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
   code-api:
+    ungrad_reason:
+      ungrad_reasons-by-ungrad-code:
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/ungradreason/%s
+    career_program:
+      career_program-by-career-code:
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/careerprogram/%s
+    certificate_type:
+      certificate-by-code:
+        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/certificatetype/%s
     country:
       country-by-country-code:
         url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/country/%s
