@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(name = "STUDENT_OPTIONAL_PROGRAM")
+@Table(name = "GRAD_STUDENT_SPECIAL_PROGRAMS")
 public class GradStudentSpecialProgramEntity extends BaseEntity {
 
 	@Id
@@ -20,23 +20,23 @@ public class GradStudentSpecialProgramEntity extends BaseEntity {
 		name = "UUID",
 		strategy = "org.hibernate.id.UUIDGenerator"
 	)
-	@Column(name = "STUDENT_OPTIONAL_PROGRAM_ID", nullable = false)
-    private UUID id;
-
-    @Column(name = "STUDENT_OPTIONAL_PROGRAM_ID", nullable = false)
+	@Column(name = "ID", nullable = false)
+    private UUID id; 
+	
+    @Column(name = "FK_GRAD_STUDENT_PEN", nullable = false)
+    private String pen;
+    
+    @Column(name = "FK_GRAD_SPECIAL_PROGRAM_ID", nullable = false)
     private UUID specialProgramID;
 
     @Lob
-    @Column(name = "PROGRAM_NOTE", columnDefinition="CLOB")
+    @Column(name = "STUDENT_SPECIAL_PROGRAM_DATA", columnDefinition="CLOB")
     private String studentSpecialProgramData;
 
-    @Column(name = "COMPLETION_DATE", nullable = true)
+    @Column(name = "SPECIAL_PROGRAM_COMP_DT", nullable = true)
     private Date specialProgramCompletionDate;  
     
-    @Column(name = "GRADUTION_STUDENT_RECORD_ID", nullable = false)
+    @Column(name = "FK_GRAD_STUDENT_STUDENT_ID", nullable = false)
     private UUID studentID;
-
-    @Column(name = "OPTIONAL_PROGRAM_CODE")
-    private String optionalProgramCode;
 
 }

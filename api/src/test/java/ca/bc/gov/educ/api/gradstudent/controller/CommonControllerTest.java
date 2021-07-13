@@ -92,14 +92,12 @@ public class CommonControllerTest {
     public void testGetAllStudentNotes() {
         // UUID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
 
         final List<StudentNote> allNotesList = new ArrayList<>();
 
         final StudentNote note1 = new StudentNote();
         note1.setId(UUID.randomUUID());
         note1.setStudentID(studentID.toString());
-        note1.setPen(pen);
         note1.setNote("Test1 Comments");
         note1.setUpdatedTimestamp(new Date(System.currentTimeMillis()));
         allNotesList.add(note1);
@@ -107,14 +105,13 @@ public class CommonControllerTest {
         final StudentNote note2 = new StudentNote();
         note2.setId(UUID.randomUUID());
         note2.setStudentID(studentID.toString());
-        note2.setPen(pen);
         note2.setNote("Test2 Comments");
         note2.setUpdatedTimestamp(new Date(System.currentTimeMillis() + 100000L));
         allNotesList.add(note2);
 
-        Mockito.when(commonService.getAllStudentNotes(pen)).thenReturn(allNotesList);
-        commonController.getAllStudentNotes(pen);
-        Mockito.verify(commonService).getAllStudentNotes(pen);
+        Mockito.when(commonService.getAllStudentNotes(studentID)).thenReturn(allNotesList);
+        commonController.getAllStudentNotes(studentID.toString());
+        Mockito.verify(commonService).getAllStudentNotes(studentID);
     }
 
     @Test
@@ -127,7 +124,6 @@ public class CommonControllerTest {
         final StudentNote studentNote = new StudentNote();
         studentNote.setId(noteID);
         studentNote.setStudentID(studentID.toString());
-        studentNote.setPen(pen);
         studentNote.setNote("Test Note Body");
 
         Mockito.when(commonService.saveStudentNote(studentNote)).thenReturn(studentNote);

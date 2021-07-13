@@ -100,7 +100,6 @@ public class CommonServiceTest {
     public void testGetAllStudentCareerProgramsList() {
         // UUID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
         // Career Program
         final GradCareerProgram gradCareerProgram = new GradCareerProgram();
         gradCareerProgram.setCode("TEST");
@@ -120,7 +119,7 @@ public class CommonServiceTest {
         studentCareerProgram2.setCareerProgramCode(gradCareerProgram.getCode());
         gradStudentCareerProgramList.add(studentCareerProgram2);
 
-        when(gradStudentCareerProgramRepository.findByPen(pen)).thenReturn(gradStudentCareerProgramList);
+        when(gradStudentCareerProgramRepository.findByStudentID((studentID))).thenReturn(gradStudentCareerProgramList);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getCareerProgramByCodeUrl(), gradCareerProgram.getCode()))).thenReturn(this.requestHeadersMock);
@@ -128,7 +127,7 @@ public class CommonServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradCareerProgram.class)).thenReturn(Mono.just(gradCareerProgram));
 
-        var result = commonService.getAllGradStudentCareerProgramList(pen, "accessToken");
+        var result = commonService.getAllGradStudentCareerProgramList(studentID.toString(), "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(2);
@@ -162,9 +161,9 @@ public class CommonServiceTest {
         note2.setUpdatedTimestamp(new Date(System.currentTimeMillis() + 100000L));
         allNotesList.add(note2);
 
-        when(studentNoteRepository.findByPen(pen)).thenReturn(allNotesList);
+        when(studentNoteRepository.findByStudentID(studentID)).thenReturn(allNotesList);
 
-        var result = commonService.getAllStudentNotes(pen);
+        var result = commonService.getAllStudentNotes(studentID);
 
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(2);
@@ -182,7 +181,6 @@ public class CommonServiceTest {
 
         final StudentNote studentNote = new StudentNote();
         studentNote.setStudentID(studentID.toString());
-        studentNote.setPen(pen);
         studentNote.setNote("Test Note Body");
 
         final StudentNoteEntity studentNoteEntity = new StudentNoteEntity();
@@ -210,7 +208,6 @@ public class CommonServiceTest {
         final StudentNote studentNote = new StudentNote();
         studentNote.setId(noteID);
         studentNote.setStudentID(studentID.toString());
-        studentNote.setPen(pen);
         studentNote.setNote("Test Note Body");
 
         final StudentNoteEntity studentNoteEntity = new StudentNoteEntity();

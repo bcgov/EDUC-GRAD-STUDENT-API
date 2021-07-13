@@ -48,11 +48,7 @@ public class EducGradCommonApiConstants {
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
 
     // Endpoints
-	@Value("${endpoint.code-api.ungrad_reason.ungrad_reasons-by-ungrad-code.url}")
-	private String ungradReasonByCodeUrl;
     @Value("${endpoint.code-api.career_program.career_program-by-career-code.url}")
 	private String careerProgramByCodeUrl;
-    @Value("${endpoint.code-api.certificate_type.certificate-by-code.url}")
-	private String certificateByCodeUrl;
 	
 }

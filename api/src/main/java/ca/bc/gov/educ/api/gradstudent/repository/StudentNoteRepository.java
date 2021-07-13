@@ -10,5 +10,5 @@ import java.util.UUID;
 @Repository
 public interface StudentNoteRepository extends JpaRepository<StudentNoteEntity, UUID> {
 
-	List<StudentNoteEntity> findByPen(String pen);
+	List<StudentNoteEntity> findByStudentID(UUID studentId);
 }

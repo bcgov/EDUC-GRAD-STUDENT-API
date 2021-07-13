@@ -18,7 +18,7 @@ public class EducGradStatusApiUtils {
         if (date == null)
             return null;
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
         return simpleDateFormat.format(date);
     }
 
@@ -31,7 +31,7 @@ public class EducGradStatusApiUtils {
         if (dateString == null || "".compareTo(dateString) == 0)
             return null;
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
         Date date = new Date();
 
         try {
@@ -61,7 +61,7 @@ public class EducGradStatusApiUtils {
             return null;
 
         
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
         Date date = new Date();
 
         try {
@@ -79,7 +79,7 @@ public class EducGradStatusApiUtils {
         if (sessionDate == null)
             return null;
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
         Date date = new Date();
 
         try {

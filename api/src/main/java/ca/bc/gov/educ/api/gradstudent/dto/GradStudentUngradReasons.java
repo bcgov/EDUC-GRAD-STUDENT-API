@@ -12,6 +12,7 @@ import java.util.UUID;
 public class GradStudentUngradReasons extends BaseModel {
 
 	private UUID id;
+	private String pen;
 	private String ungradReasonCode;
 	private String ungradReasonName;
 	private UUID studentID;

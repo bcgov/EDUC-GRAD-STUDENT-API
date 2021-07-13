@@ -10,17 +10,20 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(name = "GRADUATION_STUDENT_RECORD")
+@Table(name = "GRAD_STUDENT")
 public class GraduationStatusEntity extends BaseEntity {
+
+    @Column(name = "pen", nullable = false)
+    private String pen;
 
     @Lob
     @Column(name = "STUDENT_GRAD_DATA", columnDefinition="CLOB")
     private String studentGradData;
 
-    @Column(name = "GRADUATION_PROGRAM_CODE", nullable = true)
+    @Column(name = "FK_GRAD_PROGRAM_CODE", nullable = true)
     private String program;
     
-    @Column(name = "PROGRAM_COMPLETION_DATE", nullable = true)
+    @Column(name = "PROGRAM_COMPLETION_DT", nullable = true)
     private Date programCompletionDate; 
     
     @Column(name = "GPA", nullable = true)
@@ -35,17 +38,17 @@ public class GraduationStatusEntity extends BaseEntity {
     @Column(name = "SCHOOL_OF_RECORD", nullable = true)
     private String schoolOfRecord;
     
-    @Column(name = "STUDENT_GRADE", nullable = true)
+    @Column(name = "STUD_GRADE", nullable = true)
     private String studentGrade;
     
-    @Column(name = "GRAD_STUDENT_STATUS_CODE", nullable = false)
+    @Column(name = "GRAD_STUDENT_STUDENT_STATUS_FK", nullable = false)
     private String studentStatus;
     
     @Id
-    @Column(name = "GRADUTION_STUDENT_RECORD_ID", nullable = false)
+    @Column(name = "STUDENT_ID", nullable = false)
     private UUID studentID;
     
-    @Column(name = "SCHOOL_AT_GRADUATION", nullable = true)
+    @Column(name = "SCHOOL_AT_GRAD", nullable = true)
     private String schoolAtGrad;
     
     

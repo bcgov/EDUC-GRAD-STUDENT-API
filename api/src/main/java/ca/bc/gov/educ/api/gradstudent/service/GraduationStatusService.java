@@ -75,10 +75,10 @@ public class GraduationStatusService {
         if (responseOptional.isPresent()) {
             GraduationStatus gradStatus = graduationStatusTransformer.transformToDTO(responseOptional.get());
             if (gradStatus.getProgram() != null) {
-                gradStatus.setProgram(getProgramName(gradStatus.getProgram(), accessToken));
+                gradStatus.setProgramName(getProgramName(gradStatus.getProgram(), accessToken));
             }
             if (gradStatus.getSchoolOfRecord() != null)
-                gradStatus.setSchoolOfRecord(getSchoolName(gradStatus.getSchoolOfRecord(), accessToken));
+                gradStatus.setSchoolName(getSchoolName(gradStatus.getSchoolOfRecord(), accessToken));
 
             if (gradStatus.getStudentStatus() != null) {
                 StudentStatus statusObj = webClient.get()
@@ -88,7 +88,7 @@ public class GraduationStatusService {
                         .bodyToMono(StudentStatus.class)
                         .block();
                 if (statusObj != null)
-                    gradStatus.setStudentStatus(statusObj.getDescription());
+                    gradStatus.setStudentStatusName(statusObj.getDescription());
             }
 
             if (gradStatus.getSchoolAtGrad() != null)
@@ -335,6 +335,7 @@ public class GraduationStatusService {
 				.retrieve()
 				.bodyToMono(GradSpecialProgram.class)
 				.block();
+        sourceObject.setPen(gradStudentSpecialProgramReq.getPen());
         sourceObject.setStudentID(gradStudentSpecialProgramReq.getStudentID());
         sourceObject.setSpecialProgramCompletionDate(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate() != null ?Date.valueOf(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate()) : null);
         sourceObject.setSpecialProgramID(gradSpecialProgram.getId());
@@ -385,7 +386,7 @@ public class GraduationStatusService {
 		    	Optional<GraduationStatusEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 		        if (gradStatusOptional.isPresent()) {
 		            GraduationStatusEntity gradEnity = gradStatusOptional.get();
-		            saveUngradReason(studentID,ungradReasonCode,ungradDesc,accessToken);
+		            saveUngradReason(gradEnity.getPen(),studentID,ungradReasonCode,ungradDesc,accessToken);
 		            gradEnity.setRecalculateGradStatus("Y");
 		            gradEnity.setProgramCompletionDate(null);
 		            gradEnity.setHonoursStanding(null);
@@ -406,9 +407,10 @@ public class GraduationStatusService {
         }
     }
     
-    public void saveUngradReason(UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
+    public void saveUngradReason(String pen, UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
     	GradStudentUngradReasons toBeSaved = new GradStudentUngradReasons();
         toBeSaved.setStudentID(studentID);
+        toBeSaved.setPen(pen);
         toBeSaved.setUngradReasonCode(ungradReasonCode);
         toBeSaved.setUngradReasonDescription(unGradDesc);
         webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID)).headers(h -> h.setBearerAuth(accessToken)).body(BodyInserters.fromValue(toBeSaved)).retrieve().bodyToMono(GradStudentUngradReasons.class).block();

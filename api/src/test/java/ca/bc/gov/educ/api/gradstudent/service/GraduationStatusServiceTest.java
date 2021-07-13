@@ -86,6 +86,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-en");
@@ -96,6 +97,7 @@ public class GraduationStatusServiceTest {
         var result = graduationStatusService.getGraduationStatusForAlgorithm(studentID);
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(result.getRecalculateGradStatus()).isEqualTo(graduationStatusEntity.getRecalculateGradStatus());
         assertThat(result.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
@@ -111,6 +113,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-en");
@@ -154,6 +157,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(result.getRecalculateGradStatus()).isEqualTo(graduationStatusEntity.getRecalculateGradStatus());
         assertThat(result.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
@@ -161,7 +165,7 @@ public class GraduationStatusServiceTest {
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getStudentStatusName()).isEqualTo(studentStatus.getDescription());
-        assertThat(result.getProgram()).isEqualTo(program.getProgramName());
+        assertThat(result.getProgramName()).isEqualTo(program.getProgramName());
         assertThat(result.getSchoolName()).isEqualTo(school.getSchoolName());
         assertThat(result.getSchoolAtGradName()).isEqualTo(school.getSchoolName());
     }
@@ -194,6 +198,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
         assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
@@ -211,6 +216,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-en");
@@ -235,6 +241,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
         assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
@@ -253,6 +260,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
         graduationStatusEntity.setProgram("2018-en");
@@ -276,6 +284,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
+        assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(savedGraduationStatus.getStudentStatus());
         assertThat(result.getStudentGrade()).isEqualTo(savedGraduationStatus.getStudentGrade());
         assertThat(result.getProgram()).isEqualTo(savedGraduationStatus.getProgram());
@@ -295,6 +304,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("11");
         graduationStatusEntity.setProgram("2018-en");
@@ -335,6 +345,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
+        assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(savedGraduationStatus.getStudentStatus());
         assertThat(result.getStudentGrade()).isEqualTo(savedGraduationStatus.getStudentGrade());
         assertThat(result.getProgram()).isEqualTo(savedGraduationStatus.getProgram());
@@ -354,6 +365,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
         graduationStatusEntity.setProgram("2018-pf");
@@ -391,6 +403,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
+        assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(savedGraduationStatus.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(savedGraduationStatus.getProgram());
         assertThat(result.getSchoolOfRecord()).isEqualTo(savedGraduationStatus.getSchoolOfRecord());
@@ -409,6 +422,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
         graduationStatusEntity.setProgram("2018-en");
@@ -466,6 +480,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("AD");
         graduationStatusEntity.setProgram("2018-pf");
@@ -524,6 +539,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
         graduationStatusEntity.setProgram("2018-en");
@@ -562,6 +578,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
+        assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(savedGraduationStatus.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(savedGraduationStatus.getProgram());
         assertThat(result.getSchoolOfRecord()).isEqualTo(savedGraduationStatus.getSchoolOfRecord());
@@ -581,6 +598,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
         graduationStatusEntity.setProgram("2018-en");
@@ -619,6 +637,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
+        assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(savedGraduationStatus.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(savedGraduationStatus.getProgram());
         assertThat(result.getSchoolAtGrad()).isEqualTo(savedGraduationStatus.getSchoolAtGrad());
@@ -638,6 +657,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
         graduationStatusEntity.setProgram("2018-en");
@@ -665,6 +685,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
+        assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(savedGraduationStatus.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(savedGraduationStatus.getProgram());
         assertThat(result.getSchoolAtGrad()).isEqualTo(savedGraduationStatus.getSchoolAtGrad());
@@ -686,6 +707,7 @@ public class GraduationStatusServiceTest {
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramEntity.setStudentID(studentID);
         gradStudentSpecialProgramEntity.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgramEntity.setPen(pen);
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
 
         GradSpecialProgram specialProgram = new GradSpecialProgram();
@@ -726,6 +748,7 @@ public class GraduationStatusServiceTest {
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramEntity.setStudentID(studentID);
         gradStudentSpecialProgramEntity.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgramEntity.setPen(pen);
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
 
         GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
@@ -755,6 +778,7 @@ public class GraduationStatusServiceTest {
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramEntity.setStudentID(studentID);
         gradStudentSpecialProgramEntity.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgramEntity.setPen(pen);
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
 
         GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
@@ -796,6 +820,7 @@ public class GraduationStatusServiceTest {
     public void testGetStudentsForGraduation() {
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(UUID.randomUUID());
+        graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setSchoolOfRecord("12345678");
         graduationStatusEntity.setRecalculateGradStatus("Y");
@@ -806,6 +831,7 @@ public class GraduationStatusServiceTest {
         assertThat(result.size()).isEqualTo(1);
         GraduationStatus responseGraduationStatus = result.get(0);
         assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(responseGraduationStatus.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(responseGraduationStatus.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(responseGraduationStatus.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
     }
@@ -822,6 +848,7 @@ public class GraduationStatusServiceTest {
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramEntity.setStudentID(studentID);
         gradStudentSpecialProgramEntity.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgramEntity.setPen(pen);
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
 
         GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
@@ -858,6 +885,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(UUID.randomUUID());
+        graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setSchoolOfRecord("12345678");
         graduationStatusEntity.setRecalculateGradStatus("Y");
@@ -881,6 +909,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setSchoolOfRecord("12345678");
 
@@ -894,6 +923,7 @@ public class GraduationStatusServiceTest {
 
         GradStudentUngradReasons responseStudentUngradReasons = new GradStudentUngradReasons();
         responseStudentUngradReasons.setStudentID(studentID);
+        responseStudentUngradReasons.setPen(pen);
         responseStudentUngradReasons.setUngradReasonCode(ungradReasonCode);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
@@ -933,6 +963,7 @@ public class GraduationStatusServiceTest {
 
         GradStudentUngradReasons responseStudentUngradReasons = new GradStudentUngradReasons();
         responseStudentUngradReasons.setStudentID(studentID);
+        responseStudentUngradReasons.setPen(pen);
         responseStudentUngradReasons.setUngradReasonCode(ungradReasonCode);
 
         when(this.webClient.post()).thenReturn(this.requestBodyUriMock);
@@ -942,7 +973,7 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradStudentUngradReasons.class)).thenReturn(Mono.just(responseStudentUngradReasons));
 
-        graduationStatusService.saveUngradReason(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
+        graduationStatusService.saveUngradReason(pen, studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
 
     }
 }

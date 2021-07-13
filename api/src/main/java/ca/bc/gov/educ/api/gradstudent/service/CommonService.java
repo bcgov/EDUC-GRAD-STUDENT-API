@@ -54,9 +54,9 @@ public class CommonService {
 	private static Logger logger = LoggerFactory.getLogger(CommonService.class);
 
     @Transactional
-  	public List<GradStudentCareerProgram> getAllGradStudentCareerProgramList(String pen, String accessToken) {
+  	public List<GradStudentCareerProgram> getAllGradStudentCareerProgramList(String studentId, String accessToken) {
   		 
-		List<GradStudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByPen(pen)); 
+		List<GradStudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
       	gradStudentCareerProgramList.forEach(sC -> {
       		GradCareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradCareerProgram.class).block();
     		if(gradCareerProgram != null) {
@@ -71,8 +71,8 @@ public class CommonService {
 		return !gradList.isEmpty();
 	}
 
-	public List<StudentNote> getAllStudentNotes(String pen) {
-		List<StudentNote> responseList = studentNoteTransformer.transformToDTO(studentNoteRepository.findByPen(pen));
+	public List<StudentNote> getAllStudentNotes(UUID studentId) {
+		List<StudentNote> responseList = studentNoteTransformer.transformToDTO(studentNoteRepository.findByStudentID(studentId));
 		Collections.sort(responseList, Comparator.comparing(StudentNote::getUpdatedTimestamp).reversed());
 		return responseList;
 	}

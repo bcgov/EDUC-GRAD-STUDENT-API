@@ -15,4 +15,6 @@ public class StudentStatus {
 	private Date createdTimestamp;	
 	private String updatedBy;	
 	private Date updatedTimestamp;
+
+
 }

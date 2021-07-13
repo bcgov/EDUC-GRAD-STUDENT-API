@@ -12,7 +12,6 @@ import java.util.UUID;
 public class StudentNote extends BaseModel {
 
 	private UUID id;
-	private String pen;
 	private String note;
 	private String studentID;
 }

@@ -69,7 +69,7 @@ public class CommonController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<StudentNote>> getAllStudentNotes(@PathVariable String pen) { 
     	logger.debug("getAllStudentNotes : ");
-        return response.GET(commonService.getAllStudentNotes(pen));
+        return response.GET(commonService.getAllStudentNotes(UUID.fromString(pen)));
     }
     
     @PostMapping (EducGradCommonApiConstants.STUDENT_NOTES_MAPPING)
@@ -77,8 +77,8 @@ public class CommonController {
     @Operation(summary = "Create Student Notes", description = "Create Student Notes", tags = { "Student Notes" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<ApiResponseModel<StudentNote>> saveStudentNotes(@RequestBody StudentNote studentNote) {
-        logger.debug("Create student Grad Note for PEN: " + studentNote.getPen());
-        validation.requiredField(studentNote.getPen(), "Pen");
+        logger.debug("Create student Grad Note for PEN: " + studentNote.getStudentID());
+        validation.requiredField(studentNote.getStudentID(), "Pen");
         return response.UPDATED(commonService.saveStudentNote(studentNote));
     }
     

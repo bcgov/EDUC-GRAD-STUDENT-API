@@ -13,7 +13,7 @@ public interface GradStudentCareerProgramRepository extends JpaRepository<GradSt
 
     List<GradStudentCareerProgramEntity> findAll();
 
-	List<GradStudentCareerProgramEntity> findByPen(String pen);
+	List<GradStudentCareerProgramEntity> findByStudentID(UUID studentId);
 
 	@Query("select c from GradStudentCareerProgramEntity c where c.careerProgramCode=:cpCode")
 	List<GradStudentCareerProgramEntity> existsByCareerProgramCode(String cpCode);
