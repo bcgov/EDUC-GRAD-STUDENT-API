@@ -408,9 +408,8 @@ public class GraduationStatusService {
     }
     
     public void saveUngradReason(String pen, UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
-    	GradStudentUngradReasons toBeSaved = new GradStudentUngradReasons();
-        toBeSaved.setStudentID(studentID);
-        toBeSaved.setPen(pen);
+        StudentUngradReason toBeSaved = new StudentUngradReason();
+        toBeSaved.setGraduationStudentRecordID(studentID);
         toBeSaved.setUngradReasonCode(ungradReasonCode);
         toBeSaved.setUngradReasonDescription(unGradDesc);
         webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID)).headers(h -> h.setBearerAuth(accessToken)).body(BodyInserters.fromValue(toBeSaved)).retrieve().bodyToMono(GradStudentUngradReasons.class).block();
