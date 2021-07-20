@@ -1,44 +1,35 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.dto.*;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import javax.transaction.Transactional;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.transaction.Transactional;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.bc.gov.educ.api.gradstudent.dto.Condition;
-import ca.bc.gov.educ.api.gradstudent.dto.FilterOperation;
-import ca.bc.gov.educ.api.gradstudent.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.dto.GraduationStatus;
-import ca.bc.gov.educ.api.gradstudent.dto.RestResponsePage;
-import ca.bc.gov.educ.api.gradstudent.dto.School;
-import ca.bc.gov.educ.api.gradstudent.dto.Search;
-import ca.bc.gov.educ.api.gradstudent.dto.SearchCriteria;
-import ca.bc.gov.educ.api.gradstudent.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentSearch;
-import ca.bc.gov.educ.api.gradstudent.dto.ValueType;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-
 @Service
 public class GradStudentService {
 
-	private final EducGradStudentApiConstants constants;
-    private final WebClient webClient;
+	@Autowired EducGradStudentApiConstants constants;
 
-    public GradStudentService(EducGradStudentApiConstants constants, WebClient webClient) {
-    	this.constants = constants;
-    	this.webClient = webClient;
-	}
+    @Autowired WebClient webClient;
+
+    @Autowired GraduationStatusRepository graduationStatusRepository;
+
+    @Autowired
+	GraduationStatusTransformer graduationStatusTransformer;
 
 	public StudentSearch getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
 			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo, Integer pageNumber, Integer pageSize, String accessToken) {
@@ -131,7 +122,7 @@ public class GradStudentService {
     private GradSearchStudent populateGradSearchStudent(Student student, String accessToken) {
 		GradSearchStudent gradStu = new GradSearchStudent();
 		BeanUtils.copyProperties(student, gradStu);
-		GraduationStatus gradObj = webClient.get().uri(String.format(constants.getGradStatusForStudentUrl(), student.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GraduationStatus.class).block();
+		GraduationStatus gradObj = graduationStatusTransformer.transformToDTO(graduationStatusRepository.getByStudentID(student.getStudentID()));
 		if (gradObj != null) {
 			gradStu.setProgram(gradObj.getProgram());
 			gradStu.setStudentGrade(gradObj.getStudentGrade());

@@ -2,10 +2,13 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 
 import ca.bc.gov.educ.api.gradstudent.dto.*;
+import ca.bc.gov.educ.api.gradstudent.entity.GradSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.entity.GradStudentSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.entity.GraduationStatusEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GradSpecialProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSpecialProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradSpecialProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentSpecialProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiConstants;
@@ -47,6 +50,12 @@ public class GraduationStatusService {
 
     @Autowired
     private GradStudentSpecialProgramTransformer gradStudentSpecialProgramTransformer;
+
+    @Autowired
+    private GradSpecialProgramTransformer gradSpecialProgramTransformer;
+
+    @Autowired
+    private GradSpecialProgramRepository gradSpecialProgramRepository;
 
     @Autowired
     GradValidation validation;
@@ -291,12 +300,8 @@ public class GraduationStatusService {
         List<GradStudentSpecialProgram> specialProgramList =
 				gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByStudentID(studentID));
         specialProgramList.forEach(sP -> {
-            GradSpecialProgram gradSpecialProgram = webClient.get()
-					.uri(String.format(constants.getGradSpecialProgramNameUrl(), sP.getSpecialProgramID()))
-					.headers(h -> h.setBearerAuth(accessToken))
-					.retrieve()
-					.bodyToMono(GradSpecialProgram.class)
-					.block();
+            GradSpecialProgramEntity gradSpecialProgramEntity = gradSpecialProgramRepository.existsBySpecialProgramCode(sP.getSpecialProgramCode());
+            GradSpecialProgram gradSpecialProgram = gradSpecialProgramTransformer.transformToDTO(gradSpecialProgramEntity);
             sP.setSpecialProgramName(gradSpecialProgram.getSpecialProgramName());
             sP.setSpecialProgramCode(gradSpecialProgram.getSpecialProgramCode());
             sP.setProgramCode(gradSpecialProgram.getProgramCode());
@@ -329,12 +334,8 @@ public class GraduationStatusService {
         Optional<GradStudentSpecialProgramEntity> gradStudentSpecialOptional =
 				gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramReq.getId());
         GradStudentSpecialProgramEntity sourceObject = new GradStudentSpecialProgramEntity();
-        GradSpecialProgram gradSpecialProgram = webClient.get()
-				.uri(String.format(constants.getGradSpecialProgramDetailsUrl(), gradStudentSpecialProgramReq.getMainProgramCode(),gradStudentSpecialProgramReq.getSpecialProgramCode()))
-				.headers(h -> h.setBearerAuth(accessToken))
-				.retrieve()
-				.bodyToMono(GradSpecialProgram.class)
-				.block();
+        GradSpecialProgramEntity gradSpecialProgramEntity = gradSpecialProgramRepository.existsBySpecialProgramCode(gradStudentSpecialProgramReq.getSpecialProgramCode());
+        GradSpecialProgram gradSpecialProgram = gradSpecialProgramTransformer.transformToDTO(gradSpecialProgramEntity);
         sourceObject.setPen(gradStudentSpecialProgramReq.getPen());
         sourceObject.setStudentID(gradStudentSpecialProgramReq.getStudentID());
         sourceObject.setSpecialProgramCompletionDate(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate() != null ?Date.valueOf(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate()) : null);
@@ -360,15 +361,13 @@ public class GraduationStatusService {
 				gradStudentSpecialProgramRepository.findByStudentIDAndSpecialProgramID(studentID, specialProgramIDUUID);
         if (gradStudentSpecialOptional.isPresent()) {
             GradStudentSpecialProgram responseObj = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialOptional);
-            GradSpecialProgram gradSpecialProgram = webClient.get()
-					.uri(String.format(constants.getGradSpecialProgramNameUrl(), responseObj.getSpecialProgramID()))
-					.headers(h -> h.setBearerAuth(accessToken))
-					.retrieve()
-					.bodyToMono(GradSpecialProgram.class)
-					.block();
-            responseObj.setSpecialProgramName(gradSpecialProgram.getSpecialProgramName());
-            responseObj.setSpecialProgramCode(gradSpecialProgram.getSpecialProgramCode());
-            responseObj.setProgramCode(gradSpecialProgram.getProgramCode());
+            GradSpecialProgramEntity gradSpecialProgramEntity = gradSpecialProgramRepository.existsBySpecialProgramCode(responseObj.getSpecialProgramCode());
+            if(gradSpecialProgramEntity != null) {
+                GradSpecialProgram gradSpecialProgram = gradSpecialProgramTransformer.transformToDTO(gradSpecialProgramEntity);
+                responseObj.setSpecialProgramName(gradSpecialProgram.getSpecialProgramName());
+                responseObj.setSpecialProgramCode(gradSpecialProgram.getSpecialProgramCode());
+                responseObj.setProgramCode(gradSpecialProgram.getProgramCode());
+            }
             return responseObj;
         }
         return null;

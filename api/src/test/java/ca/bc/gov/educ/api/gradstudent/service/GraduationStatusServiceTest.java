@@ -1,10 +1,15 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.dto.*;
+import ca.bc.gov.educ.api.gradstudent.entity.GradSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.entity.GradStudentSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.entity.GraduationStatusEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GradCareerProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GradSpecialProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSpecialProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradCareerProgramTransformer;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradSpecialProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -50,6 +55,18 @@ public class GraduationStatusServiceTest {
 
     @MockBean
     private GradStudentSpecialProgramRepository gradStudentSpecialProgramRepository;
+
+    @MockBean
+    private GradCareerProgramRepository gradCareerProgramRepository;
+
+    @MockBean
+    private GradCareerProgramTransformer gradCareerProgramTransformer;
+
+    @MockBean
+    private GradSpecialProgramRepository gradSpecialProgramRepository;
+
+    @MockBean
+    private GradSpecialProgramTransformer gradSpecialProgramTransformer;
 
     @MockBean
     GradValidation validation;
@@ -698,9 +715,9 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentGradSpecialProgram() {
         // ID
-        UUID gradStudentSpecialProgramID = UUID.randomUUID();
-        UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        final UUID gradStudentSpecialProgramID = UUID.randomUUID();
+        final UUID studentID = UUID.randomUUID();
+        final UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
 
         GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity = new GradStudentSpecialProgramEntity();
@@ -717,12 +734,7 @@ public class GraduationStatusServiceTest {
         specialProgram.setSpecialProgramName("French Immersion");
 
         when(gradStudentSpecialProgramRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(gradStudentSpecialProgramEntity));
-
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),specialProgramID))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradSpecialProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(gradSpecialProgramTransformer.transformToDTO(gradSpecialProgramRepository.existsBySpecialProgramCode(specialProgram.getProgramCode()))).thenReturn(specialProgram);
 
         var result = graduationStatusService.getStudentGradSpecialProgram(studentID, "accessToken");
 
@@ -801,12 +813,7 @@ public class GraduationStatusServiceTest {
 
         when(gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
         when(gradStudentSpecialProgramRepository.save(gradStudentSpecialProgramEntity)).thenReturn(gradStudentSpecialProgramEntity);
-
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramDetailsUrl(),specialProgram.getProgramCode(), specialProgram.getSpecialProgramCode()))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradSpecialProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(gradSpecialProgramTransformer.transformToDTO(gradSpecialProgramRepository.existsBySpecialProgramCode(specialProgram.getProgramCode()))).thenReturn(specialProgram);
 
         var result = graduationStatusService.updateStudentGradSpecialProgram(gradStudentSpecialProgramReq, "accessToken");
 
@@ -843,6 +850,7 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
+        String programCode = "2018-en";
 
         GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity = new GradStudentSpecialProgramEntity();
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
@@ -850,24 +858,29 @@ public class GraduationStatusServiceTest {
         gradStudentSpecialProgramEntity.setSpecialProgramID(specialProgramID);
         gradStudentSpecialProgramEntity.setPen(pen);
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
+        gradStudentSpecialProgramEntity.setProgramCode(programCode);
 
         GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
         BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
         studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
 
+        GradSpecialProgramEntity specialProgramEntity = new GradSpecialProgramEntity();
+        specialProgramEntity.setSpecialProgramCode("FI");
+        specialProgramEntity.setSpecialProgramDescription("French Immersion");
+
         GradSpecialProgram specialProgram = new GradSpecialProgram();
         specialProgram.setId(specialProgramID);
-        specialProgram.setProgramCode("2018-en");
+        specialProgram.setProgramCode(programCode);
         specialProgram.setSpecialProgramCode("FI");
         specialProgram.setSpecialProgramName("French Immersion");
 
-        when(gradStudentSpecialProgramRepository.findByStudentIDAndSpecialProgramID(studentID, specialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
+        studentSpecialProgram.setProgramCode(specialProgram.getProgramCode());
+        studentSpecialProgram.setSpecialProgramCode(specialProgram.getSpecialProgramCode());
+        studentSpecialProgram.setSpecialProgramName(specialProgram.getSpecialProgramName());
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),specialProgramID))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradSpecialProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(gradStudentSpecialProgramRepository.findByStudentIDAndSpecialProgramID(studentID, specialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
+        when((gradSpecialProgramRepository.existsBySpecialProgramCode(specialProgram.getProgramCode()))).thenReturn(specialProgramEntity);
+        when(gradSpecialProgramTransformer.transformToDTO(specialProgramEntity)).thenReturn(specialProgram);
 
         var result = graduationStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(studentID, specialProgramID.toString(), "accessToken");
 

@@ -1,6 +1,12 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.dto.*;
+import ca.bc.gov.educ.api.gradstudent.repository.GradCareerProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GradSpecialProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradCareerProgramTransformer;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradSpecialProgramTransformer;
+import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +44,24 @@ public class GradStudentServiceTest {
 
     @Autowired
     private GradStudentService gradStudentService;
+
+    @MockBean
+    private GradCareerProgramRepository gradCareerProgramRepository;
+
+    @MockBean
+    private GradCareerProgramTransformer gradCareerProgramTransformer;
+
+    @MockBean
+    private GradSpecialProgramRepository gradSpecialProgramRepository;
+
+    @MockBean
+    private GradSpecialProgramTransformer gradSpecialProgramTransformer;
+
+    @MockBean
+    private GraduationStatusRepository graduationStatusRepository;
+
+    @MockBean
+    private GraduationStatusTransformer graduationStatusTransformer;
 
     @MockBean
     private WebClient webClient;
@@ -109,11 +133,7 @@ public class GradStudentServiceTest {
         graduationStatus.setProgram(program);
         graduationStatus.setSchoolOfRecord(mincode);
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradStatusForStudentUrl(),studentID.toString()))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GraduationStatus.class)).thenReturn(Mono.just(graduationStatus));
+        when(graduationStatusTransformer.transformToDTO(graduationStatusRepository.getByStudentID(studentID.toString()))).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
@@ -199,11 +219,7 @@ public class GradStudentServiceTest {
         graduationStatus.setProgram(program);
         graduationStatus.setSchoolOfRecord(mincode);
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradStatusForStudentUrl(),studentID.toString()))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GraduationStatus.class)).thenReturn(Mono.just(graduationStatus));
+        when(graduationStatusTransformer.transformToDTO(graduationStatusRepository.getByStudentID(studentID.toString()))).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
