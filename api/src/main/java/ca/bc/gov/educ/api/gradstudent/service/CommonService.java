@@ -10,7 +10,7 @@ import ca.bc.gov.educ.api.gradstudent.repository.GradStudentCareerProgramReposit
 import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
 import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.StudentNoteTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradCommonApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class CommonService {
     private StudentNoteRepository studentNoteRepository;
 
     @Autowired
-	private EducGradCommonApiConstants constants;
+	private EducGradStudentApiConstants constants;
     
     @Autowired
     WebClient webClient;

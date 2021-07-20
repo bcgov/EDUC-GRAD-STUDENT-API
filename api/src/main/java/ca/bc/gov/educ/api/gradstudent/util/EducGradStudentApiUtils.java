@@ -10,15 +10,15 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
-public class EducGradStatusApiUtils {
+public class EducGradStudentApiUtils {
 
-	private static final Logger logger = LoggerFactory.getLogger(EducGradStatusApiUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(EducGradStudentApiUtils.class);
 	
     public static String formatDate (Date date) {
         if (date == null)
             return null;
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
         return simpleDateFormat.format(date);
     }
 
@@ -31,7 +31,7 @@ public class EducGradStatusApiUtils {
         if (dateString == null || "".compareTo(dateString) == 0)
             return null;
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
         Date date = new Date();
 
         try {
@@ -61,7 +61,7 @@ public class EducGradStatusApiUtils {
             return null;
 
         
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
         Date date = new Date();
 
         try {
@@ -79,7 +79,7 @@ public class EducGradStatusApiUtils {
         if (sessionDate == null)
             return null;
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStatusApiConstants.DEFAULT_DATE_FORMAT);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
         Date date = new Date();
 
         try {
@@ -106,8 +106,8 @@ public class EducGradStatusApiUtils {
     	 Date temp = new Date();
 		 String sDates = null;
          try {
-            temp = EducGradStatusApiUtils.parseDate(actualSessionDate, "yyyy/MM/dd");
-            sDates = EducGradStatusApiUtils.formatDate(temp, "yyyy-MM-dd");
+            temp = EducGradStudentApiUtils.parseDate(actualSessionDate, "yyyy/MM/dd");
+            sDates = EducGradStudentApiUtils.formatDate(temp, "yyyy-MM-dd");
          } catch (ParseException pe) {
             logger.error("ERROR: " + pe.getMessage());
          }

@@ -4,7 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.dto.GradStudentSpecialProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentSpecialProgramReq;
 import ca.bc.gov.educ.api.gradstudent.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsContants;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
@@ -30,7 +30,7 @@ import java.util.UUID;
 
 @CrossOrigin
 @RestController
-@RequestMapping(EducGradStatusApiConstants.GRADUATION_STATUS_API_ROOT_MAPPING)
+@RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
 @EnableResourceServer
 @OpenAPIDefinition(info = @Info(title = "API for Grad Student Status.", description = "This API is for Grad Student Status.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"UPDATE_GRAD_GRADUATION_STATUS"})})
 public class GraduationStatusController {
@@ -46,7 +46,7 @@ public class GraduationStatusController {
     @Autowired
 	ResponseHelper response;
 
-    @GetMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_STUDENT_ID)
+    @GetMapping (EducGradStudentApiConstants.GRADUATION_STATUS_BY_STUDENT_ID)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Student Grad Status by PEN", description = "Get Student Grad Status by PEN", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
@@ -62,7 +62,7 @@ public class GraduationStatusController {
     	}
     }
     
-    @GetMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_STUDENT_ID_FOR_ALGORITHM)
+    @GetMapping (EducGradStudentApiConstants.GRADUATION_STATUS_BY_STUDENT_ID_FOR_ALGORITHM)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Student Grad Status by Student ID for algorithm", description = "Get Student Grad Status by Student ID for algorithm", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
@@ -76,7 +76,7 @@ public class GraduationStatusController {
     	}
     }
     
-    @PostMapping (EducGradStatusApiConstants.GRADUATION_STATUS_BY_STUDENT_ID)
+    @PostMapping (EducGradStudentApiConstants.GRADUATION_STATUS_BY_STUDENT_ID)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID", description = "Save Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
@@ -85,7 +85,7 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus));
     } 
     
-    @PostMapping (EducGradStatusApiConstants.GRAD_STUDENT_UPDATE_BY_STUDENT_ID)
+    @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_UPDATE_BY_STUDENT_ID)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Update Student Grad Status by Student ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
@@ -101,7 +101,7 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken));
     }
     
-    @GetMapping (EducGradStatusApiConstants.GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN)
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_SPECIAL_PROGRAM)
     @Operation(summary = "Find all Student Special Grad Status by Student ID", description = "Get All Student Special Grad Status by Student ID", tags = { "Special Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
@@ -117,7 +117,7 @@ public class GraduationStatusController {
     	}
     }
     
-    @GetMapping (EducGradStatusApiConstants.GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM)
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_SPECIAL_PROGRAM)
     @Operation(summary = "Find all Student Special Grad Status by Student ID,SPECIAL PROGRAM ID", description = "Get All Student Special Grad Status by Student ID,SPECIAL PROGRAM ID", tags = { "Special Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
@@ -133,7 +133,7 @@ public class GraduationStatusController {
     	}
     }
     
-    @PostMapping (EducGradStatusApiConstants.SAVE_GRAD_STUDENT_SPECIAL_PROGRAM)
+    @PostMapping (EducGradStudentApiConstants.SAVE_GRAD_STUDENT_SPECIAL_PROGRAM)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT_SPECIAL_PROGRAM)
     @Operation(summary = "Save Student Special Grad Status by Student ID", description = "Save Student Special Grad Status by Student ID", tags = { "Special Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
@@ -142,7 +142,7 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.saveStudentGradSpecialProgram(gradStudentSpecialProgram));
     }
     
-    @PostMapping (EducGradStatusApiConstants.UPDATE_GRAD_STUDENT_SPECIAL_PROGRAM)
+    @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_SPECIAL_PROGRAM)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT_SPECIAL_PROGRAM)
     @Operation(summary = "Update/Create Student Special Grad Status by Student ID", description = "Update/Create Student Special Grad Status by Student ID", tags = { "Special Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
@@ -153,7 +153,7 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.updateStudentGradSpecialProgram(gradStudentSpecialProgramReq,accessToken));
     }
     
-    @GetMapping (EducGradStatusApiConstants.GRAD_STUDENT_RECALCULATE)
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_RECALCULATE)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Students For Batch Algorithm", description = "Get Students For Batch Algorithm", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
@@ -162,7 +162,7 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.getStudentsForGraduation());
     }
     
-    @GetMapping(EducGradStatusApiConstants.GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING)
+    @GetMapping(EducGradStudentApiConstants.GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Check if Student Status is valid", description = "Check if Student Status is valid", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
@@ -171,7 +171,7 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.getStudentStatus(statusCode));
     }
     
-    @PostMapping (EducGradStatusApiConstants.UNGRAD_STUDENT)
+    @PostMapping (EducGradStudentApiConstants.UNGRAD_STUDENT)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Ungrad Student Grad Status by STudent ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})

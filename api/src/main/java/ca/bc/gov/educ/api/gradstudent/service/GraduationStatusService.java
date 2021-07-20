@@ -8,7 +8,7 @@ import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSpecialProgramReposi
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStatusRepository;
 import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentSpecialProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -52,7 +52,7 @@ public class GraduationStatusService {
     GradValidation validation;
 
     @Autowired
-    private EducGradStatusApiConstants constants;
+    private EducGradStudentApiConstants constants;
 
     private static final String CREATED_BY = "createdBy";
     private static final String CREATED_TIMESTAMP = "createdTimestamp";

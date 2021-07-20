@@ -5,7 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.dto.GradStudentSpecialProgramReq;
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentUngradReasons;
 import ca.bc.gov.educ.api.gradstudent.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiUtils;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import org.junit.Test;
@@ -131,7 +131,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
-        graduationStatus.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
+        graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
         Mockito.when(graduationStatusService.saveGraduationStatus(studentID, graduationStatus)).thenReturn(graduationStatus);
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
@@ -156,7 +156,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
-        graduationStatus.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
+        graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
@@ -210,7 +210,7 @@ public class GraduationStatusControllerTest {
         gradStudentSpecialProgram.setStudentID(studentID);
         gradStudentSpecialProgram.setSpecialProgramID(specialProgramID);
         gradStudentSpecialProgram.setPen(pen);
-        gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
+        gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
@@ -259,7 +259,7 @@ public class GraduationStatusControllerTest {
         gradStudentSpecialProgram.setStudentID(studentID);
         gradStudentSpecialProgram.setSpecialProgramID(specialProgramID);
         gradStudentSpecialProgram.setPen(pen);
-        gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
+        gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
@@ -309,7 +309,7 @@ public class GraduationStatusControllerTest {
         studentSpecialProgram.setStudentID(studentID);
         studentSpecialProgram.setSpecialProgramID(specialProgramID);
         studentSpecialProgram.setPen(pen);
-        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
+        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
 
         Mockito.when(graduationStatusService.saveStudentGradSpecialProgram(studentSpecialProgram)).thenReturn(studentSpecialProgram);
         Mockito.when(responseHelper.GET(studentSpecialProgram)).thenReturn(ResponseEntity.ok().body(studentSpecialProgram));
@@ -333,7 +333,7 @@ public class GraduationStatusControllerTest {
         gradStudentSpecialProgramReq.setPen(pen);
         gradStudentSpecialProgramReq.setMainProgramCode("2018-en");
         gradStudentSpecialProgramReq.setSpecialProgramCode("FI");
-        gradStudentSpecialProgramReq.setSpecialProgramCompletionDate(EducGradStatusApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
+        gradStudentSpecialProgramReq.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
 
         GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
         studentSpecialProgram.setId(gradStudentSpecialProgramID);

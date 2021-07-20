@@ -6,7 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.entity.GradStudentCareerProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.entity.StudentNoteEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentCareerProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradCommonApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 public class CommonServiceTest {
 
     @Autowired
-    EducGradCommonApiConstants constants;
+    EducGradStudentApiConstants constants;
 
     @Autowired
     private CommonService commonService;

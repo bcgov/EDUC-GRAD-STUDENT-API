@@ -2,7 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.transformer;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GraduationStatus;
 import ca.bc.gov.educ.api.gradstudent.entity.GraduationStatusEntity;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiUtils;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class GraduationStatusTransformer {
 
     public GraduationStatus transformToDTO (GraduationStatusEntity gradStatusEntity) {
     	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);
-    	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
+    	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
     	return gradStatus;
     }
 
@@ -35,7 +35,7 @@ public class GraduationStatusTransformer {
             cae = gradStatusEntity.get();
         	
         GraduationStatus gradStatus = modelMapper.map(cae, GraduationStatus.class);
-        gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
+        gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
         return gradStatus;
     }
 
@@ -43,7 +43,7 @@ public class GraduationStatusTransformer {
 		List<GraduationStatus> gradStatusList = new ArrayList<>();
         for (GraduationStatusEntity gradStatusEntity : gradStatusEntities) {
         	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);            
-        	gradStatus.setProgramCompletionDate(EducGradStatusApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
+        	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
         	gradStatusList.add(gradStatus);
         }
         return gradStatusList;
@@ -56,7 +56,7 @@ public class GraduationStatusTransformer {
         	if(gradStatus.getProgramCompletionDate() != null) {
         		String pDate = gradStatus.getProgramCompletionDate();
         		if(gradStatus.getProgramCompletionDate().length() <= 7) {
-        			pDate = EducGradStatusApiUtils.parsingTraxDate(gradStatus.getProgramCompletionDate());
+        			pDate = EducGradStudentApiUtils.parsingTraxDate(gradStatus.getProgramCompletionDate());
         		}
         		programCompletionDate= Date.valueOf(pDate);
         	}

@@ -5,8 +5,8 @@ import ca.bc.gov.educ.api.gradstudent.entity.GradStudentSpecialProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.entity.GraduationStatusEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSpecialProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStatusRepository;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStatusApiUtils;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.junit.After;
 import org.junit.Before;
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 public class GraduationStatusServiceTest {
 
     @Autowired
-    EducGradStatusApiConstants constants;
+    EducGradStudentApiConstants constants;
 
     @Autowired
     private GraduationStatusService graduationStatusService;
@@ -185,7 +185,7 @@ public class GraduationStatusServiceTest {
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
-        graduationStatus.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
+        graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
         GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatus, graduationStatusEntity);
@@ -227,7 +227,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatus input = new GraduationStatus();
         BeanUtils.copyProperties(graduationStatusEntity, input);
-        input.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -271,7 +271,7 @@ public class GraduationStatusServiceTest {
 
         GraduationStatus input = new GraduationStatus();
         BeanUtils.copyProperties(graduationStatusEntity, input);
-        input.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -317,7 +317,7 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setStudentGrade("12");
-        input.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -378,7 +378,7 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setProgram("2018-en");
-        input.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -435,7 +435,7 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setProgram("1950-en");
-        input.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -493,7 +493,7 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setProgram("2018-en");
-        input.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -552,7 +552,7 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setSchoolOfRecord(newMincode);
-        input.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -611,7 +611,7 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setSchoolAtGrad(newMincode);
-        input.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -670,7 +670,7 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setGpa("4");
-        input.setProgramCompletionDate(EducGradStatusApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -753,7 +753,7 @@ public class GraduationStatusServiceTest {
 
         GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
         BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
-        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
+        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
 
         when(gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
         when(gradStudentSpecialProgramRepository.save(gradStudentSpecialProgramEntity)).thenReturn(gradStudentSpecialProgramEntity);
@@ -763,7 +763,7 @@ public class GraduationStatusServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentSpecialProgramEntity.getId());
         assertThat(result.getSpecialProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getSpecialProgramID());
-        assertThat(result.getSpecialProgramCompletionDate()).isEqualTo(EducGradStatusApiUtils.parseDateFromString(studentSpecialProgram.getSpecialProgramCompletionDate()));
+        assertThat(result.getSpecialProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentSpecialProgram.getSpecialProgramCompletionDate()));
     }
 
     @Test
@@ -783,7 +783,7 @@ public class GraduationStatusServiceTest {
 
         GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
         BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
-        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
+        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
 
         GradStudentSpecialProgramReq gradStudentSpecialProgramReq = new GradStudentSpecialProgramReq();
         gradStudentSpecialProgramReq.setId(gradStudentSpecialProgramID);
@@ -813,7 +813,7 @@ public class GraduationStatusServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentSpecialProgramEntity.getId());
         assertThat(result.getSpecialProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getSpecialProgramID());
-        assertThat(result.getSpecialProgramCompletionDate()).isEqualTo(EducGradStatusApiUtils.parseDateFromString(studentSpecialProgram.getSpecialProgramCompletionDate()));
+        assertThat(result.getSpecialProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentSpecialProgram.getSpecialProgramCompletionDate()));
     }
 
     @Test
@@ -853,7 +853,7 @@ public class GraduationStatusServiceTest {
 
         GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
         BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
-        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStatusApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
+        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
 
         GradSpecialProgram specialProgram = new GradSpecialProgram();
         specialProgram.setId(specialProgramID);
