@@ -21,11 +21,10 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_PENS = "/multipen";
     public static final String GRAD_STUDENT_BY_ANY_NAME = "/studentsearch";
-    public static final String GRAD_STUDENT_BY_ANY_NAMES = "/studentssearch";
     public static final String GRADUATION_STATUS_BY_STUDENT_ID = "/studentid/{studentID}";
     public static final String GRADUATION_STATUS_BY_STUDENT_ID_FOR_ALGORITHM = "/studentid/{studentID}/algorithm";
     public static final String GRAD_STUDENT_UPDATE_BY_STUDENT_ID = "/gradstudent/studentid/{studentID}";
-    public static final String GRADUATE_STUDENT_BY_PEN = "/pen/{pen}";
+
     public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN = "/specialprogram/studentid/{studentID}";
     public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM = "/specialprogram/{studentID}/{specialProgramID}";
     public static final String SAVE_GRAD_STUDENT_SPECIAL_PROGRAM = "/specialprogram";
@@ -42,7 +41,6 @@ public class EducGradStudentApiConstants {
 
     public static final String GET_ALGORITHM_RULES_MAIN_PROGRAM = "/algorithm-rules/main/{programCode}";
     public static final String GET_ALGORITHM_RULES_SPECIAL_PROGRAM = "/algorithm-rules/special/{programCode}/{specialProgramCode}";
-
 
     public static final String GET_ALL_STUDENT_UNGRAD_MAPPING = "/studentungradreason/studentid/{studentID}";
     public static final String GET_STUDENT_UNGRAD_BY_REASON_CODE_MAPPING = "/ungrad/{reasonCode}";
