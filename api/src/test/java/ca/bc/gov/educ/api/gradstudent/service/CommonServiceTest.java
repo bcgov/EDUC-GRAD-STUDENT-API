@@ -4,12 +4,8 @@ import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.entity.GradStudentCareerProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.entity.StudentNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradCareerProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GradSpecialProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentCareerProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
-import ca.bc.gov.educ.api.gradstudent.transformer.GradCareerProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.transformer.GradSpecialProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradCommonApiConstants;
 import org.junit.After;
 import org.junit.Before;
@@ -22,14 +18,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -46,18 +45,6 @@ public class CommonServiceTest {
 
     @MockBean
     private GradStudentCareerProgramRepository gradStudentCareerProgramRepository;
-
-    @MockBean
-    private GradCareerProgramRepository gradCareerProgramRepository;
-
-    @MockBean
-    private GradCareerProgramTransformer gradCareerProgramTransformer;
-
-    @MockBean
-    private GradSpecialProgramRepository gradSpecialProgramRepository;
-
-    @MockBean
-    private GradSpecialProgramTransformer gradSpecialProgramTransformer;
 
     @MockBean
     private StudentNoteRepository studentNoteRepository;
@@ -133,7 +120,12 @@ public class CommonServiceTest {
         gradStudentCareerProgramList.add(studentCareerProgram2);
 
         when(gradStudentCareerProgramRepository.findByStudentID((studentID))).thenReturn(gradStudentCareerProgramList);
-        when(gradCareerProgramTransformer.transformToDTO(gradCareerProgramRepository.existsByCareerProgramCode(gradCareerProgram.getCode()))).thenReturn(gradCareerProgram);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getCareerProgramByCodeUrl(), gradCareerProgram.getCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(GradCareerProgram.class)).thenReturn(Mono.just(gradCareerProgram));
 
         var result = commonService.getAllGradStudentCareerProgramList(studentID.toString(), "accessToken");
 

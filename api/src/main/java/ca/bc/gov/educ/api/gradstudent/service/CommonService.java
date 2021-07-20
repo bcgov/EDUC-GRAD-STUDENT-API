@@ -1,10 +1,15 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
-import ca.bc.gov.educ.api.gradstudent.dto.*;
-import ca.bc.gov.educ.api.gradstudent.entity.*;
-import ca.bc.gov.educ.api.gradstudent.repository.*;
-import ca.bc.gov.educ.api.gradstudent.transformer.*;
+import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
+import ca.bc.gov.educ.api.gradstudent.entity.GradStudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GradStudentCareerProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentCareerProgramTransformer;
+import ca.bc.gov.educ.api.gradstudent.transformer.StudentNoteTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradCommonApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.slf4j.Logger;
@@ -24,32 +29,14 @@ public class CommonService {
     @Autowired
     private GradStudentCareerProgramRepository gradStudentCareerProgramRepository;
 
-	@Autowired
-	private GradStudentSpecialProgramRepository gradStudentSpecialProgramRepository;
-
     @Autowired
     private GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
-
-	@Autowired
-	private GradStudentSpecialProgramTransformer gradStudentSpecialProgramTransformer;
     
     @Autowired
     private StudentNoteTransformer  studentNoteTransformer;
 
-	@Autowired
-	private GradCareerProgramTransformer gradCareerProgramTransformer;
-
-	@Autowired
-	private GradSpecialProgramTransformer gradSpecialProgramTransformer;
-    
     @Autowired
     private StudentNoteRepository studentNoteRepository;
-
-	@Autowired
-	private GradCareerProgramRepository gradCareerProgramRepository;
-
-	@Autowired
-	private GradSpecialProgramRepository gradSpecialProgramRepository;
 
     @Autowired
 	private EducGradCommonApiConstants constants;
@@ -68,10 +55,10 @@ public class CommonService {
 
     @Transactional
   	public List<GradStudentCareerProgram> getAllGradStudentCareerProgramList(String studentId, String accessToken) {
+
 		List<GradStudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
       	gradStudentCareerProgramList.forEach(sC -> {
-			GradCareerProgramEntity gradCareerProgramEntity = gradCareerProgramRepository.existsByCareerProgramCode(sC.getCareerProgramCode());
-      		GradCareerProgram gradCareerProgram = gradCareerProgramTransformer.transformToDTO(gradCareerProgramEntity);
+      		GradCareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradCareerProgram.class).block();
     		if(gradCareerProgram != null) {
     			sC.setCareerProgramCode(gradCareerProgram.getCode());
     			sC.setCareerProgramName(gradCareerProgram.getDescription());
@@ -80,27 +67,8 @@ public class CommonService {
       	return gradStudentCareerProgramList;
   	}
 
-	@Transactional
-	public List<GradStudentSpecialProgram> getAllGradStudentSpecialProgramList(String studentId, String accessToken) {
-		List<GradStudentSpecialProgram> gradStudentSpecialProgramList  = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByStudentID(UUID.fromString(studentId)));
-		gradStudentSpecialProgramList.forEach(sC -> {
-			GradSpecialProgramEntity gradSpecialProgramEntity = gradSpecialProgramRepository.existsBySpecialProgramCode(sC.getSpecialProgramCode());
-			GradSpecialProgram gradSpecialProgram = gradSpecialProgramTransformer.transformToDTO(gradSpecialProgramEntity);
-			if(gradSpecialProgram != null) {
-				sC.setSpecialProgramCode(gradSpecialProgram.getProgramCode());
-				sC.setSpecialProgramName(gradSpecialProgram.getSpecialProgramName());
-			}
-		});
-		return gradStudentSpecialProgramList;
-	}
-
 	public boolean getStudentCareerProgram(String cpCode) {
 		List<GradStudentCareerProgramEntity> gradList = gradStudentCareerProgramRepository.existsByCareerProgramCode(cpCode);
-		return !gradList.isEmpty();
-	}
-
-	public boolean getStudentSpecialProgram(String cpCode) {
-		List<GradStudentSpecialProgramEntity> gradList = gradStudentSpecialProgramRepository.existsBySpecialProgramCode(cpCode);
 		return !gradList.isEmpty();
 	}
 

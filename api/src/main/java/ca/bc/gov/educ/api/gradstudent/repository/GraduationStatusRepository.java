@@ -17,7 +17,4 @@ public interface GraduationStatusRepository extends JpaRepository<GraduationStat
 
 	@Query("select c from GraduationStatusEntity c where c.studentStatus=:statusCode")
 	List<GraduationStatusEntity> existsByStatusCode(String statusCode);
-
-	@Query("select c from GraduationStatusEntity c where c.studentID=:studentID")
-	GraduationStatusEntity getByStudentID(String studentID);
 }
