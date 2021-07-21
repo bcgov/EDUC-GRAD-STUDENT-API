@@ -14,6 +14,7 @@ public interface GraduationStatusRepository extends JpaRepository<GraduationStat
     List<GraduationStatusEntity> findAll();
 
 	List<GraduationStatusEntity> findByRecalculateGradStatus(String recalulateFlag);
+	GraduationStatusEntity findByStudentID(UUID studentID);
 
 	@Query("select c from GraduationStatusEntity c where c.studentStatus=:statusCode")
 	List<GraduationStatusEntity> existsByStatusCode(String statusCode);
