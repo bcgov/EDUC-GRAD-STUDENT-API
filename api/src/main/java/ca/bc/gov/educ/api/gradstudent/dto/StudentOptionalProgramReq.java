@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component
-public class GradStudentSpecialProgramReq extends BaseModel{
+public class StudentOptionalProgramReq extends BaseModel{
 
 	private UUID id;
     private String pen;

@@ -17,6 +17,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_API_ROOT_MAPPING = "/api/" + API_VERSION + "/student" ;
     public static final String GRAD_STUDENT_BY_PEN = "/{pen}";
     public static final String GRAD_STUDENT_BY_PEN_STUDENT_API = "/pen/{pen}";
+    public static final String GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API = "/stdid/{studentID}";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_PENS = "/multipen";
@@ -68,10 +69,10 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.code-api.career_program.career_program-by-career-code.url}")
     private String careerProgramByCodeUrl;
 
-	@Value("${endpoint.grad-program-management-api.special_program_name_by_special_program_id.url}")
+	@Value("${endpoint.grad-program-api.optional_program_name_by_optional_program_id.url}")
 	private String gradSpecialProgramNameUrl;
 
-    @Value("${endpoint.grad-program-management-api.special_program_id_by_program_code_special_program_code.url}")
+    @Value("${endpoint.grad-program-api.special_program_id_by_program_code_special_program_code.url}")
     private String gradSpecialProgramDetailsUrl;
 
     @Value("${endpoint.grad-program-management-api.program_name_by_program_code.url}")
@@ -86,10 +87,10 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.pen-student-api.by-studentid.url}")
     private String penStudentApiByStudentIdUrl;
 
-    @Value("${endpoint.grad-common-api.save-student-ungrad-reason.url}")
+    @Value("${endpoint.grad-student-graduation-api.save-student-ungrad-reason.url}")
     private String saveStudentUngradReasonByStudentIdUrl;
 
-    @Value("${endpoint.code-api.ungrad-reason.ungrad-reason-by-reason-code.url}")
+    @Value("${endpoint.grad-student-graduation-api.ungrad-reason.ungrad-reason-by-reason-code.url}")
     private String ungradReasonDetailsUrl;
 
     @Value("${endpoint.code-api.country.country-by-country-code.url}")
@@ -109,6 +110,9 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.pen-student-api.by-pen.url}")
     private String penStudentApiByPenUrl;
+    
+    @Value("${endpoint.pen-student-api.by-studentid.url}")
+    private String penStudentApiByStudentIDUrl;
 
     @Value("${endpoint.graduation-status-api.read-grad-status.url}")
     private String gradStatusForStudentUrl;

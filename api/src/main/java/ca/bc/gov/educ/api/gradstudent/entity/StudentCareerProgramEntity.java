@@ -13,7 +13,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "STUDENT_CAREER_PROGRAM")
-public class GradStudentCareerProgramEntity extends BaseEntity {
+public class StudentCareerProgramEntity extends BaseEntity {
    
 	@Id
 	@Column(name = "STUDENT_CAREER_PROGRAM_ID", nullable = false)

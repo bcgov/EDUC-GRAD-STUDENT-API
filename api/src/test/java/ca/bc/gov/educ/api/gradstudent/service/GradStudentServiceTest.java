@@ -1,8 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.dto.*;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStatusEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import org.junit.After;
@@ -46,7 +46,7 @@ public class GradStudentServiceTest {
     WebClient webClient;
 
     @MockBean
-    GraduationStatusRepository graduationStatusRepository;
+    GraduationStudentRecordRepository graduationStatusRepository;
 
     @MockBean
     private GraduationStatusTransformer graduationStatusTransformer;
@@ -110,7 +110,7 @@ public class GradStudentServiceTest {
         when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(response));
 
         // Graduation Status
-        final GraduationStatus graduationStatus = new GraduationStatus();
+        final GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen(pen);
         graduationStatus.setStudentStatus(gradStatus);
@@ -119,7 +119,7 @@ public class GradStudentServiceTest {
         graduationStatus.setSchoolOfRecord(mincode);
 
         // Graduation Status Entity
-        final GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus(gradStatus);
@@ -206,7 +206,7 @@ public class GradStudentServiceTest {
         when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(Arrays.asList(student)));
 
         // Graduation Status
-        final GraduationStatus graduationStatus = new GraduationStatus();
+        final GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen(pen);
         graduationStatus.setStudentStatus(gradStatus);
@@ -215,7 +215,7 @@ public class GradStudentServiceTest {
         graduationStatus.setSchoolOfRecord(mincode);
 
         // Graduation Status Entity
-        final GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus(gradStatus);

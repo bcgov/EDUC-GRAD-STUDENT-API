@@ -1,10 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.dto.*;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStudentSpecialProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStatusEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSpecialProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -46,10 +46,10 @@ public class GraduationStatusServiceTest {
     private GraduationStatusService graduationStatusService;
 
     @MockBean
-    private GraduationStatusRepository graduationStatusRepository;
+    private GraduationStudentRecordRepository graduationStatusRepository;
 
     @MockBean
-    private GradStudentSpecialProgramRepository gradStudentSpecialProgramRepository;
+    private StudentOptionalProgramRepository gradStudentSpecialProgramRepository;
 
     @MockBean
     GradValidation validation;
@@ -84,7 +84,7 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
@@ -111,7 +111,7 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
@@ -176,7 +176,7 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
 
-        GraduationStatus graduationStatus = new GraduationStatus();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
@@ -187,12 +187,12 @@ public class GraduationStatusServiceTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatus, graduationStatusEntity);
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
-        when(graduationStatusRepository.save(any(GraduationStatusEntity.class))).thenReturn(graduationStatusEntity);
+        when(graduationStatusRepository.save(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
         var result = graduationStatusService.saveGraduationStatus(studentID, graduationStatus);
 
@@ -214,7 +214,7 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
@@ -225,11 +225,11 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStatus input = new GraduationStatus();
+        GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
-        GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus(null);
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
@@ -258,7 +258,7 @@ public class GraduationStatusServiceTest {
         String pen = "123456789";
         String mincode = "12345678";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
@@ -269,11 +269,11 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStatus input = new GraduationStatus();
+        GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
-        GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
@@ -302,7 +302,7 @@ public class GraduationStatusServiceTest {
         String pen = "123456789";
         String mincode = "12345678";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
@@ -313,13 +313,13 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStatus input = new GraduationStatus();
+        GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setStudentGrade("12");
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
-        GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setStudentGrade("12");
@@ -363,7 +363,7 @@ public class GraduationStatusServiceTest {
         String pen = "123456789";
         String mincode = "12345678";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
@@ -374,13 +374,13 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStatus input = new GraduationStatus();
+        GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setProgram("2018-en");
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
-        GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setProgram("2018-en");
@@ -420,7 +420,7 @@ public class GraduationStatusServiceTest {
         String pen = "123456789";
         String mincode = "12345678";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
@@ -431,13 +431,13 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStatus input = new GraduationStatus();
+        GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setProgram("1950-en");
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
-        GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setProgram("2018-en");
@@ -478,7 +478,7 @@ public class GraduationStatusServiceTest {
         String pen = "123456789";
         String mincode = "12345678";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
@@ -489,13 +489,13 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStatus input = new GraduationStatus();
+        GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setProgram("2018-en");
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
-        GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setProgram("2018-en");
@@ -537,7 +537,7 @@ public class GraduationStatusServiceTest {
         String mincode = "12345678";
         String newMincode = "87654321";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
@@ -548,13 +548,13 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStatus input = new GraduationStatus();
+        GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setSchoolOfRecord(newMincode);
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
-        GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setSchoolOfRecord(newMincode);
@@ -596,7 +596,7 @@ public class GraduationStatusServiceTest {
         String mincode = "12345678";
         String newMincode = "87654321";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
@@ -607,13 +607,13 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStatus input = new GraduationStatus();
+        GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setSchoolAtGrad(newMincode);
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
-        GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setSchoolAtGrad(newMincode);
@@ -655,7 +655,7 @@ public class GraduationStatusServiceTest {
         String mincode = "12345678";
         String newMincode = "87654321";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
@@ -666,13 +666,13 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setGpa("3");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStatus input = new GraduationStatus();
+        GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
         input.setGpa("4");
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
-        GraduationStatusEntity savedGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setGpa("4");
@@ -703,18 +703,18 @@ public class GraduationStatusServiceTest {
         UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity = new GradStudentSpecialProgramEntity();
+        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgramEntity.setOptionalProgramID(specialProgramID);
         gradStudentSpecialProgramEntity.setPen(pen);
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GradSpecialProgram specialProgram = new GradSpecialProgram();
-        specialProgram.setId(specialProgramID);
-        specialProgram.setProgramCode("2018-en");
-        specialProgram.setSpecialProgramCode("FI");
-        specialProgram.setSpecialProgramName("French Immersion");
+        OptionalProgram specialProgram = new OptionalProgram();
+        specialProgram.setOptionalProgramID(specialProgramID);
+        specialProgram.setGraduationProgramCode("2018-en");
+        specialProgram.setOptProgramCode("FI");
+        specialProgram.setOptionalProgramName("French Immersion");
 
         when(gradStudentSpecialProgramRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(gradStudentSpecialProgramEntity));
 
@@ -722,18 +722,18 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),specialProgramID))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradSpecialProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
 
         var result = graduationStatusService.getStudentGradSpecialProgram(studentID, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        GradStudentSpecialProgram responseStudentSpecialProgram = result.get(0);
+        StudentOptionalProgram responseStudentSpecialProgram = result.get(0);
         assertThat(responseStudentSpecialProgram.getStudentID()).isEqualTo(gradStudentSpecialProgramEntity.getStudentID());
-        assertThat(responseStudentSpecialProgram.getSpecialProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getSpecialProgramID());
-        assertThat(responseStudentSpecialProgram.getSpecialProgramName()).isEqualTo(specialProgram.getSpecialProgramName());
-        assertThat(responseStudentSpecialProgram.getSpecialProgramCode()).isEqualTo(specialProgram.getSpecialProgramCode());
-        assertThat(responseStudentSpecialProgram.getProgramCode()).isEqualTo(specialProgram.getProgramCode());
+        assertThat(responseStudentSpecialProgram.getOptionalProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getOptionalProgramID());
+        assertThat(responseStudentSpecialProgram.getSpecialProgramName()).isEqualTo(specialProgram.getOptionalProgramName());
+        assertThat(responseStudentSpecialProgram.getSpecialProgramCode()).isEqualTo(specialProgram.getOptProgramCode());
+        assertThat(responseStudentSpecialProgram.getProgramCode()).isEqualTo(specialProgram.getGraduationProgramCode());
     }
 
     @Test
@@ -744,14 +744,14 @@ public class GraduationStatusServiceTest {
         UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity = new GradStudentSpecialProgramEntity();
+        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgramEntity.setOptionalProgramID(specialProgramID);
         gradStudentSpecialProgramEntity.setPen(pen);
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
         BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
         studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
 
@@ -762,7 +762,7 @@ public class GraduationStatusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentSpecialProgramEntity.getId());
-        assertThat(result.getSpecialProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getSpecialProgramID());
+        assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getOptionalProgramID());
         assertThat(result.getSpecialProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentSpecialProgram.getSpecialProgramCompletionDate()));
     }
 
@@ -774,18 +774,18 @@ public class GraduationStatusServiceTest {
         UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity = new GradStudentSpecialProgramEntity();
+        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgramEntity.setOptionalProgramID(specialProgramID);
         gradStudentSpecialProgramEntity.setPen(pen);
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
         BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
         studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        GradStudentSpecialProgramReq gradStudentSpecialProgramReq = new GradStudentSpecialProgramReq();
+        StudentOptionalProgramReq gradStudentSpecialProgramReq = new StudentOptionalProgramReq();
         gradStudentSpecialProgramReq.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramReq.setStudentID(studentID);
         gradStudentSpecialProgramReq.setPen(pen);
@@ -793,32 +793,32 @@ public class GraduationStatusServiceTest {
         gradStudentSpecialProgramReq.setSpecialProgramCode("FI");
         gradStudentSpecialProgramReq.setSpecialProgramCompletionDate(studentSpecialProgram.getSpecialProgramCompletionDate());
 
-        GradSpecialProgram specialProgram = new GradSpecialProgram();
-        specialProgram.setId(specialProgramID);
-        specialProgram.setProgramCode("2018-en");
-        specialProgram.setSpecialProgramCode("FI");
-        specialProgram.setSpecialProgramName("French Immersion");
+        OptionalProgram specialProgram = new OptionalProgram();
+        specialProgram.setOptionalProgramID(specialProgramID);
+        specialProgram.setGraduationProgramCode("2018-en");
+        specialProgram.setOptProgramCode("FI");
+        specialProgram.setOptionalProgramName("French Immersion");
 
         when(gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
         when(gradStudentSpecialProgramRepository.save(gradStudentSpecialProgramEntity)).thenReturn(gradStudentSpecialProgramEntity);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramDetailsUrl(),specialProgram.getProgramCode(), specialProgram.getSpecialProgramCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramDetailsUrl(),specialProgram.getGraduationProgramCode(), specialProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradSpecialProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
 
         var result = graduationStatusService.updateStudentGradSpecialProgram(gradStudentSpecialProgramReq, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentSpecialProgramEntity.getId());
-        assertThat(result.getSpecialProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getSpecialProgramID());
+        assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getOptionalProgramID());
         assertThat(result.getSpecialProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentSpecialProgram.getSpecialProgramCompletionDate()));
     }
 
     @Test
     public void testGetStudentsForGraduation() {
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(UUID.randomUUID());
         graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
@@ -829,7 +829,7 @@ public class GraduationStatusServiceTest {
         var result = graduationStatusService.getStudentsForGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        GraduationStatus responseGraduationStatus = result.get(0);
+        GraduationStudentRecord responseGraduationStatus = result.get(0);
         assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(responseGraduationStatus.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(responseGraduationStatus.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
@@ -844,46 +844,46 @@ public class GraduationStatusServiceTest {
         UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity = new GradStudentSpecialProgramEntity();
+        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgramEntity.setOptionalProgramID(specialProgramID);
         gradStudentSpecialProgramEntity.setPen(pen);
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
         BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
         studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        GradSpecialProgram specialProgram = new GradSpecialProgram();
-        specialProgram.setId(specialProgramID);
-        specialProgram.setProgramCode("2018-en");
-        specialProgram.setSpecialProgramCode("FI");
-        specialProgram.setSpecialProgramName("French Immersion");
+        OptionalProgram specialProgram = new OptionalProgram();
+        specialProgram.setOptionalProgramID(specialProgramID);
+        specialProgram.setGraduationProgramCode("2018-en");
+        specialProgram.setOptProgramCode("FI");
+        specialProgram.setOptionalProgramName("French Immersion");
 
-        when(gradStudentSpecialProgramRepository.findByStudentIDAndSpecialProgramID(studentID, specialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
+        when(gradStudentSpecialProgramRepository.findByStudentIDAndOptionalProgramID(studentID, specialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),specialProgramID))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradSpecialProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
 
         var result = graduationStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(studentID, specialProgramID.toString(), "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(gradStudentSpecialProgramEntity.getStudentID());
-        assertThat(result.getSpecialProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getSpecialProgramID());
-        assertThat(result.getProgramCode()).isEqualTo(specialProgram.getProgramCode());
-        assertThat(result.getSpecialProgramCode()).isEqualTo(specialProgram.getSpecialProgramCode());
-        assertThat(result.getSpecialProgramName()).isEqualTo(specialProgram.getSpecialProgramName());
+        assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getOptionalProgramID());
+        assertThat(result.getProgramCode()).isEqualTo(specialProgram.getGraduationProgramCode());
+        assertThat(result.getSpecialProgramCode()).isEqualTo(specialProgram.getOptProgramCode());
+        assertThat(result.getSpecialProgramName()).isEqualTo(specialProgram.getOptionalProgramName());
     }
 
     @Test
     public void testGetStudentStatus() {
         String statusCode = "A";
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(UUID.randomUUID());
         graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
@@ -903,17 +903,17 @@ public class GraduationStatusServiceTest {
         String ungradReasonCode = "NM";
         String ungradReasonDesc = "FDFS";
 
-        GradUngradReasons ungradReasons = new GradUngradReasons();
+        UngradReason ungradReasons = new UngradReason();
         ungradReasons.setCode(ungradReasonCode);
         ungradReasons.setDescription("Not Met");
 
-        GraduationStatusEntity graduationStatusEntity = new GraduationStatusEntity();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setSchoolOfRecord("12345678");
 
-        GraduationStatusEntity responseGraduationStatus = new GraduationStatusEntity();
+        GraduationStudentRecordEntity responseGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, responseGraduationStatus);
         responseGraduationStatus.setRecalculateGradStatus("Y");
         responseGraduationStatus.setProgramCompletionDate(null);
@@ -930,7 +930,7 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersUriMock.uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradUngradReasons.class)).thenReturn(Mono.just(ungradReasons));
+        when(this.responseMock.bodyToMono(UngradReason.class)).thenReturn(Mono.just(ungradReasons));
 
         when(this.webClient.post()).thenReturn(this.requestBodyUriMock);
         when(this.requestBodyUriMock.uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID))).thenReturn(this.requestBodyUriMock);
@@ -957,13 +957,11 @@ public class GraduationStatusServiceTest {
     public void saveUngradReason() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String pen = "123456789";
         String ungradReasonCode = "NM";
         String ungradReasonDesc= "FDFS";
 
         GradStudentUngradReasons responseStudentUngradReasons = new GradStudentUngradReasons();
         responseStudentUngradReasons.setStudentID(studentID);
-        responseStudentUngradReasons.setPen(pen);
         responseStudentUngradReasons.setUngradReasonCode(ungradReasonCode);
 
         when(this.webClient.post()).thenReturn(this.requestBodyUriMock);
@@ -973,7 +971,7 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradStudentUngradReasons.class)).thenReturn(Mono.just(responseStudentUngradReasons));
 
-        graduationStatusService.saveUngradReason(pen, studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
+        graduationStatusService.saveUngradReason(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
 
     }
 }

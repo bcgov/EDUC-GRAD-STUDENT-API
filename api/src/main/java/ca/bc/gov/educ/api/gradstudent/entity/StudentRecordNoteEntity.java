@@ -11,7 +11,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "STUDENT_RECORD_NOTE")
-public class StudentNoteEntity extends BaseEntity {
+public class StudentRecordNoteEntity extends BaseEntity {
    	
 	@Id
 	@GeneratedValue(generator = "UUID")

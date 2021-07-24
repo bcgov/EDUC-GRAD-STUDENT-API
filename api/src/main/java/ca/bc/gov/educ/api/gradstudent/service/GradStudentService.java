@@ -1,8 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.dto.*;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStatusEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +26,7 @@ public class GradStudentService {
 
 	@Autowired EducGradStudentApiConstants constants;
     @Autowired WebClient webClient;
-    @Autowired GraduationStatusRepository graduationStatusRepository;
+    @Autowired GraduationStudentRecordRepository graduationStatusRepository;
     @Autowired GraduationStatusTransformer graduationStatusTransformer;
 
 	public StudentSearch getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
@@ -120,9 +120,9 @@ public class GradStudentService {
     private GradSearchStudent populateGradSearchStudent(Student student, String accessToken) {
 		GradSearchStudent gradStu = new GradSearchStudent();
 		BeanUtils.copyProperties(student, gradStu);
-		GraduationStatusEntity graduationStatusEntity = graduationStatusRepository.findByStudentID(UUID.fromString(student.getStudentID()));
+		GraduationStudentRecordEntity graduationStatusEntity = graduationStatusRepository.findByStudentID(UUID.fromString(student.getStudentID()));
 		if(graduationStatusEntity != null) {
-			GraduationStatus gradObj = graduationStatusTransformer.transformToDTO(graduationStatusEntity);
+			GraduationStudentRecord gradObj = graduationStatusTransformer.transformToDTO(graduationStatusEntity);
 			gradStu.setProgram(gradObj.getProgram());
 			gradStu.setStudentGrade(gradObj.getStudentGrade());
 			gradStu.setStudentStatus(gradObj.getStudentStatus());
@@ -135,4 +135,14 @@ public class GradStudentService {
 		}
 		return gradStu;
 	}
+
+    @Transactional
+    public GradSearchStudent getStudentByStudentIDFromStudentAPI(String studentID, String accessToken) {
+    	Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), studentID)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+    	GradSearchStudent gradStu = new GradSearchStudent();
+    	if (stuData != null) {
+			gradStu = populateGradSearchStudent(stuData, accessToken);			
+		}    	
+    	return gradStu;
+    }
 }

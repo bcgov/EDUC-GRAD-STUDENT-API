@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.transformer;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentSpecialProgram;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStudentSpecialProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentOptionalProgramEntity;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -28,68 +28,63 @@ public class GradStudentSpecialProgramTransformerTest {
 
     @Test
     public void testTransformToDTO() {
-        GradStudentSpecialProgram gradStudentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram gradStudentSpecialProgram = new StudentOptionalProgram();
         gradStudentSpecialProgram.setId(UUID.randomUUID());
         gradStudentSpecialProgram.setStudentID(UUID.randomUUID());
         gradStudentSpecialProgram.setProgramCode("Special");
         gradStudentSpecialProgram.setSpecialProgramName("Special program");
         gradStudentSpecialProgram.setPen("123456789");
 
-        GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity = new GradStudentSpecialProgramEntity();
+        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgram.getId());
         gradStudentSpecialProgramEntity.setStudentID(gradStudentSpecialProgram.getStudentID());
-        gradStudentSpecialProgramEntity.setProgramCode(gradStudentSpecialProgram.getSpecialProgramCode());
+        gradStudentSpecialProgramEntity.setOptionalProgramID(new UUID(1, 1));
 
-        Mockito.when(modelMapper.map(gradStudentSpecialProgramEntity, GradStudentSpecialProgram.class)).thenReturn(gradStudentSpecialProgram);
+        Mockito.when(modelMapper.map(gradStudentSpecialProgramEntity, StudentOptionalProgram.class)).thenReturn(gradStudentSpecialProgram);
         var result = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramEntity);
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentSpecialProgramEntity.getId());
         assertThat(result.getStudentID()).isEqualTo(gradStudentSpecialProgramEntity.getStudentID());
-        assertThat(result.getSpecialProgramCode()).isEqualTo(gradStudentSpecialProgramEntity.getProgramCode());
 
     }
 
     @Test
     public void testTransformOptionalToDTO() {
-        GradStudentSpecialProgram gradStudentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram gradStudentSpecialProgram = new StudentOptionalProgram();
         gradStudentSpecialProgram.setId(UUID.randomUUID());
         gradStudentSpecialProgram.setStudentID(UUID.randomUUID());
         gradStudentSpecialProgram.setProgramCode("Special");
         gradStudentSpecialProgram.setSpecialProgramName("Special program");
         gradStudentSpecialProgram.setPen("123456789");
 
-        GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity = new GradStudentSpecialProgramEntity();
+        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgram.getId());
         gradStudentSpecialProgramEntity.setStudentID(gradStudentSpecialProgram.getStudentID());
-        gradStudentSpecialProgramEntity.setProgramCode(gradStudentSpecialProgram.getSpecialProgramCode());
 
-        Mockito.when(modelMapper.map(gradStudentSpecialProgramEntity, GradStudentSpecialProgram.class)).thenReturn(gradStudentSpecialProgram);
+        Mockito.when(modelMapper.map(gradStudentSpecialProgramEntity, StudentOptionalProgram.class)).thenReturn(gradStudentSpecialProgram);
         var result = gradStudentSpecialProgramTransformer.transformToDTO(Optional.of(gradStudentSpecialProgramEntity));
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentSpecialProgramEntity.getId());
         assertThat(result.getStudentID()).isEqualTo(gradStudentSpecialProgramEntity.getStudentID());
-        assertThat(result.getSpecialProgramCode()).isEqualTo(gradStudentSpecialProgramEntity.getProgramCode());
     }
 
     @Test
     public void testTransformToEntity() {
-        GradStudentSpecialProgram gradStudentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram gradStudentSpecialProgram = new StudentOptionalProgram();
         gradStudentSpecialProgram.setId(UUID.randomUUID());
         gradStudentSpecialProgram.setStudentID(UUID.randomUUID());
         gradStudentSpecialProgram.setProgramCode("Special");
         gradStudentSpecialProgram.setSpecialProgramName("Special program");
         gradStudentSpecialProgram.setPen("123456789");
 
-        GradStudentSpecialProgramEntity gradStudentSpecialProgramEntity = new GradStudentSpecialProgramEntity();
+        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
         gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgram.getId());
         gradStudentSpecialProgramEntity.setStudentID(gradStudentSpecialProgram.getStudentID());
-        gradStudentSpecialProgramEntity.setProgramCode(gradStudentSpecialProgram.getSpecialProgramCode());
 
-        Mockito.when(modelMapper.map(gradStudentSpecialProgram, GradStudentSpecialProgramEntity.class)).thenReturn(gradStudentSpecialProgramEntity);
+        Mockito.when(modelMapper.map(gradStudentSpecialProgram, StudentOptionalProgramEntity.class)).thenReturn(gradStudentSpecialProgramEntity);
         var result = gradStudentSpecialProgramTransformer.transformToEntity(gradStudentSpecialProgram);
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentSpecialProgram.getId());
         assertThat(result.getStudentID()).isEqualTo(gradStudentSpecialProgram.getStudentID());
-        assertThat(result.getProgramCode()).isEqualTo(gradStudentSpecialProgram.getSpecialProgramCode());
     }
 }

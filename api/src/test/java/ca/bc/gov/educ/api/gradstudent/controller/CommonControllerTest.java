@@ -99,14 +99,14 @@ public class CommonControllerTest {
         note1.setId(UUID.randomUUID());
         note1.setStudentID(studentID.toString());
         note1.setNote("Test1 Comments");
-        note1.setUpdatedTimestamp(new Date(System.currentTimeMillis()));
+        note1.setUpdateDate(new Date(System.currentTimeMillis()));
         allNotesList.add(note1);
 
         final StudentNote note2 = new StudentNote();
         note2.setId(UUID.randomUUID());
         note2.setStudentID(studentID.toString());
         note2.setNote("Test2 Comments");
-        note2.setUpdatedTimestamp(new Date(System.currentTimeMillis() + 100000L));
+        note2.setUpdateDate(new Date(System.currentTimeMillis() + 100000L));
         allNotesList.add(note2);
 
         Mockito.when(commonService.getAllStudentNotes(studentID)).thenReturn(allNotesList);

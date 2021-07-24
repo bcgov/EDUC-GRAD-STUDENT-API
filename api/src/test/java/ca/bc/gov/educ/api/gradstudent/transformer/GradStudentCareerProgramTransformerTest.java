@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.transformer;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -35,7 +35,7 @@ public class GradStudentCareerProgramTransformerTest {
         gradStudentCareerProgram.setCareerProgramName("career program");
         gradStudentCareerProgram.setPen("123456789");
 
-        GradStudentCareerProgramEntity gradStudentCareerProgramEntity = new GradStudentCareerProgramEntity();
+        StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgram.getId());
         gradStudentCareerProgramEntity.setStudentID(gradStudentCareerProgram.getStudentID());
         gradStudentCareerProgramEntity.setCareerProgramCode(gradStudentCareerProgram.getCareerProgramCode());
@@ -58,7 +58,7 @@ public class GradStudentCareerProgramTransformerTest {
         gradStudentCareerProgram.setCareerProgramName("career program");
         gradStudentCareerProgram.setPen("123456789");
 
-        GradStudentCareerProgramEntity gradStudentCareerProgramEntity = new GradStudentCareerProgramEntity();
+        StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgram.getId());
         gradStudentCareerProgramEntity.setStudentID(gradStudentCareerProgram.getStudentID());
         gradStudentCareerProgramEntity.setCareerProgramCode(gradStudentCareerProgram.getCareerProgramCode());
@@ -80,12 +80,12 @@ public class GradStudentCareerProgramTransformerTest {
         gradStudentCareerProgram.setCareerProgramName("career program");
         gradStudentCareerProgram.setPen("123456789");
 
-        GradStudentCareerProgramEntity gradStudentCareerProgramEntity = new GradStudentCareerProgramEntity();
+        StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgram.getId());
         gradStudentCareerProgramEntity.setStudentID(gradStudentCareerProgram.getStudentID());
         gradStudentCareerProgramEntity.setCareerProgramCode(gradStudentCareerProgram.getCareerProgramCode());
 
-        Mockito.when(modelMapper.map(gradStudentCareerProgram, GradStudentCareerProgramEntity.class)).thenReturn(gradStudentCareerProgramEntity);
+        Mockito.when(modelMapper.map(gradStudentCareerProgram, StudentCareerProgramEntity.class)).thenReturn(gradStudentCareerProgramEntity);
         var result = gradStudentCareerProgramTransformer.transformToEntity(gradStudentCareerProgram);
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentCareerProgram.getId());

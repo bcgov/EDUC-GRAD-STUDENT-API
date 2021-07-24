@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GraduationStatus;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStatusEntity;
+import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,8 +31,8 @@ public class EducGradStudentApiApplication {
     public ModelMapper modelMapper() {
 
         ModelMapper modelMapper = new ModelMapper();
-        modelMapper.typeMap(GraduationStatusEntity.class, GraduationStatus.class).addMappings(mapper -> mapper.skip(GraduationStatus::setProgramCompletionDate));
-        modelMapper.typeMap(GraduationStatus.class, GraduationStatusEntity.class).addMappings(mapper -> mapper.skip(GraduationStatusEntity::setProgramCompletionDate));
+        modelMapper.typeMap(GraduationStudentRecordEntity.class, GraduationStudentRecord.class).addMappings(mapper -> mapper.skip(GraduationStudentRecord::setProgramCompletionDate));
+        modelMapper.typeMap(GraduationStudentRecord.class, GraduationStudentRecordEntity.class).addMappings(mapper -> mapper.skip(GraduationStudentRecordEntity::setProgramCompletionDate));
         return modelMapper;
     }
 

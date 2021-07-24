@@ -48,6 +48,20 @@ logging:
 
 #Endpoint properties
 endpoint:
+  grad-trax-api:
+    school-by-min-code:
+      url: http://localhost:9991/api/v1/school/%s
+  grad-program-api:
+    optional_program_name_by_optional_program_id:
+      url: http://localhost:9992/api/v1/program/optionalprograms/id/%s
+    special_program_id_by_program_code_special_program_code:
+      url:  http://localhost:9992/api/v1/programmanagement/optionalprograms/%s/%s
+  grad-student-graduation-api:
+    ungrad-reason: 
+      ungrad-reason-by-reason-code: 
+        url: http://localhost:9995/api/v1/ungrad/ungradreason/%s
+    save-student-ungrad-reason:
+      url: http://localhost:9995/api/v1/ungrad/studentungradreason/studentid/%s
   grad-program-management-api:
     special_program_name_by_special_program_id:
       url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/id/%s

@@ -4,9 +4,9 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStudentCareerProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentRecordNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
 import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.transformer.StudentNoteTransformer;
@@ -27,7 +27,7 @@ import java.util.*;
 public class CommonService {
     
     @Autowired
-    private GradStudentCareerProgramRepository gradStudentCareerProgramRepository;
+    private StudentCareerProgramRepository gradStudentCareerProgramRepository;
 
     @Autowired
     private GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
@@ -68,22 +68,22 @@ public class CommonService {
   	}
 
 	public boolean getStudentCareerProgram(String cpCode) {
-		List<GradStudentCareerProgramEntity> gradList = gradStudentCareerProgramRepository.existsByCareerProgramCode(cpCode);
+		List<StudentCareerProgramEntity> gradList = gradStudentCareerProgramRepository.existsByCareerProgramCode(cpCode);
 		return !gradList.isEmpty();
 	}
 
 	public List<StudentNote> getAllStudentNotes(UUID studentId) {
 		List<StudentNote> responseList = studentNoteTransformer.transformToDTO(studentNoteRepository.findByStudentID(studentId));
-		Collections.sort(responseList, Comparator.comparing(StudentNote::getUpdatedTimestamp).reversed());
+		Collections.sort(responseList, Comparator.comparing(StudentNote::getUpdateDate).reversed());
 		return responseList;
 	}
 
 	public StudentNote saveStudentNote(StudentNote studentNote) {
-		StudentNoteEntity toBeSaved = studentNoteTransformer.transformToEntity(studentNote);
+		StudentRecordNoteEntity toBeSaved = studentNoteTransformer.transformToEntity(studentNote);
 		if(studentNote.getId() != null) {
-			Optional<StudentNoteEntity> existingEnity = studentNoteRepository.findById(studentNote.getId());
+			Optional<StudentRecordNoteEntity> existingEnity = studentNoteRepository.findById(studentNote.getId());
 			if(existingEnity.isPresent()) {
-				StudentNoteEntity gradEntity = existingEnity.get();
+				StudentRecordNoteEntity gradEntity = existingEnity.get();
 				if(studentNote.getNote() != null) {
 					gradEntity.setNote(studentNote.getNote());
 				}
@@ -106,7 +106,7 @@ public class CommonService {
 	}
 
 	public int deleteNote(UUID noteID) {
-		Optional<StudentNoteEntity> existingEnity = studentNoteRepository.findById(noteID);
+		Optional<StudentRecordNoteEntity> existingEnity = studentNoteRepository.findById(noteID);
 		if(existingEnity.isPresent()) {
 			studentNoteRepository.deleteById(noteID);
 			return 1;

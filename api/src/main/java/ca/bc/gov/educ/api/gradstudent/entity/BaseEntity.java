@@ -1,53 +1,53 @@
 package ca.bc.gov.educ.api.gradstudent.entity;
 
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
-import java.util.Date;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import org.apache.commons.lang3.StringUtils;
+
+import lombok.Data;
 
 @Data
 @MappedSuperclass
 public class BaseEntity {
-	@Column(name = "CREATED_BY", nullable = true)
-    private String createdBy;
+	@Column(name = "CREATE_USER", nullable = true)
+    private String createUser;
 	
-	@Column(name = "CREATED_TIMESTAMP", nullable = true)
-    private Date createdTimestamp;
+	@Column(name = "CREATE_DATE", nullable = true)
+	@Temporal(TemporalType.TIMESTAMP)
+    private Date createDate;
 	
-	@Column(name = "UPDATED_BY", nullable = true)
-    private String updatedBy;
+	@Column(name = "UPDATE_USER", nullable = true)
+    private String updateUser;
 	
-	@Column(name = "UPDATED_TIMESTAMP", nullable = true)
-    private Date updatedTimestamp;
+	@Column(name = "UPDATE_DATE", nullable = true)
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date updateDate;
 	
 	@PrePersist
 	protected void onCreate() {
-		if (StringUtils.isBlank(createdBy)) {
-			this.createdBy = "GRADUATION";
-		}		
-		if (StringUtils.isBlank(updatedBy)) {
-			this.updatedBy = "GRADUATION";
-		}		
-		this.createdTimestamp = new Date(System.currentTimeMillis());
-		this.updatedTimestamp = new Date(System.currentTimeMillis());
+		this.updateUser = "API_STUDENT_GRADUATION";
+		this.createUser = "API_STUDENT_GRADUATION";
+		this.createDate = new Date(System.currentTimeMillis());
+		this.createDate = new Date(System.currentTimeMillis());
 
 	}
 
 	@PreUpdate
 	protected void onPersist() {
-		this.updatedTimestamp = new Date(System.currentTimeMillis());
-		if (StringUtils.isBlank(updatedBy)) {
-			this.updatedBy = "GRADUATION";
+		this.updateDate = new Date(System.currentTimeMillis());
+		this.updateUser = "API_STUDENT_GRADUATION";
+		if (StringUtils.isBlank(createUser)) {
+			createUser = "API_STUDENT_GRADUATION";
 		}
-		if (StringUtils.isBlank(createdBy)) {
-			this.createdBy = "GRADUATION";
-		}
-		if (this.createdTimestamp == null) {
-			this.createdTimestamp = new Date(System.currentTimeMillis());
+		if (this.createDate == null) {
+			this.createDate = new Date(System.currentTimeMillis());
 		}
 	}
 }

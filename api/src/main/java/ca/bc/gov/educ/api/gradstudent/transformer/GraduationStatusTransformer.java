@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.transformer;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GraduationStatus;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStatusEntity;
+import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.modelmapper.ModelMapper;
@@ -23,34 +23,34 @@ public class GraduationStatusTransformer {
     @Autowired
     GradValidation validation;
 
-    public GraduationStatus transformToDTO (GraduationStatusEntity gradStatusEntity) {
-    	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);
+    public GraduationStudentRecord transformToDTO (GraduationStudentRecordEntity gradStatusEntity) {
+    	GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
     	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
     	return gradStatus;
     }
 
-    public GraduationStatus transformToDTO ( Optional<GraduationStatusEntity> gradStatusEntity ) {
-    	GraduationStatusEntity cae = new GraduationStatusEntity();
+    public GraduationStudentRecord transformToDTO ( Optional<GraduationStudentRecordEntity> gradStatusEntity ) {
+    	GraduationStudentRecordEntity cae = new GraduationStudentRecordEntity();
         if (gradStatusEntity.isPresent())
             cae = gradStatusEntity.get();
         	
-        GraduationStatus gradStatus = modelMapper.map(cae, GraduationStatus.class);
+        GraduationStudentRecord gradStatus = modelMapper.map(cae, GraduationStudentRecord.class);
         gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
         return gradStatus;
     }
 
-	public List<GraduationStatus> transformToDTO (Iterable<GraduationStatusEntity> gradStatusEntities ) {
-		List<GraduationStatus> gradStatusList = new ArrayList<>();
-        for (GraduationStatusEntity gradStatusEntity : gradStatusEntities) {
-        	GraduationStatus gradStatus = modelMapper.map(gradStatusEntity, GraduationStatus.class);            
+	public List<GraduationStudentRecord> transformToDTO (Iterable<GraduationStudentRecordEntity> gradStatusEntities ) {
+		List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
+        for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
+        	GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);            
         	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
         	gradStatusList.add(gradStatus);
         }
         return gradStatusList;
     }
 
-    public GraduationStatusEntity transformToEntity(GraduationStatus gradStatus) {
-        GraduationStatusEntity gradStatusEntity = modelMapper.map(gradStatus, GraduationStatusEntity.class);
+    public GraduationStudentRecordEntity transformToEntity(GraduationStudentRecord gradStatus) {
+        GraduationStudentRecordEntity gradStatusEntity = modelMapper.map(gradStatus, GraduationStudentRecordEntity.class);
         Date programCompletionDate = null;
         try {
         	if(gradStatus.getProgramCompletionDate() != null) {

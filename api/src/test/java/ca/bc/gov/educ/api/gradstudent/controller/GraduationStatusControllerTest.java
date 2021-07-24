@@ -1,9 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentSpecialProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentSpecialProgramReq;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgramReq;
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentUngradReasons;
-import ca.bc.gov.educ.api.gradstudent.dto.GraduationStatus;
+import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -51,7 +51,7 @@ public class GraduationStatusControllerTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
 
-        GraduationStatus graduationStatus = new GraduationStatus();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
@@ -101,7 +101,7 @@ public class GraduationStatusControllerTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
 
-        GraduationStatus graduationStatus = new GraduationStatus();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
@@ -122,7 +122,7 @@ public class GraduationStatusControllerTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
 
-        GraduationStatus graduationStatus = new GraduationStatus();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
@@ -147,7 +147,7 @@ public class GraduationStatusControllerTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
 
-        GraduationStatus graduationStatus = new GraduationStatus();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
@@ -180,7 +180,7 @@ public class GraduationStatusControllerTest {
         // ID
         UUID studentID = UUID.randomUUID();
 
-        GraduationStatus graduationStatus = new GraduationStatus();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
 
         Authentication authentication = Mockito.mock(Authentication.class);
@@ -205,10 +205,10 @@ public class GraduationStatusControllerTest {
         UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        GradStudentSpecialProgram gradStudentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram gradStudentSpecialProgram = new StudentOptionalProgram();
         gradStudentSpecialProgram.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgram.setStudentID(studentID);
-        gradStudentSpecialProgram.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgram.setOptionalProgramID(specialProgramID);
         gradStudentSpecialProgram.setPen(pen);
         gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
 
@@ -254,10 +254,10 @@ public class GraduationStatusControllerTest {
         UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        GradStudentSpecialProgram gradStudentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram gradStudentSpecialProgram = new StudentOptionalProgram();
         gradStudentSpecialProgram.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgram.setStudentID(studentID);
-        gradStudentSpecialProgram.setSpecialProgramID(specialProgramID);
+        gradStudentSpecialProgram.setOptionalProgramID(specialProgramID);
         gradStudentSpecialProgram.setPen(pen);
         gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
 
@@ -304,10 +304,10 @@ public class GraduationStatusControllerTest {
         UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
         studentSpecialProgram.setId(gradStudentSpecialProgramID);
         studentSpecialProgram.setStudentID(studentID);
-        studentSpecialProgram.setSpecialProgramID(specialProgramID);
+        studentSpecialProgram.setOptionalProgramID(specialProgramID);
         studentSpecialProgram.setPen(pen);
         studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
 
@@ -327,7 +327,7 @@ public class GraduationStatusControllerTest {
         UUID specialProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        GradStudentSpecialProgramReq gradStudentSpecialProgramReq = new GradStudentSpecialProgramReq();
+        StudentOptionalProgramReq gradStudentSpecialProgramReq = new StudentOptionalProgramReq();
         gradStudentSpecialProgramReq.setId(gradStudentSpecialProgramID);
         gradStudentSpecialProgramReq.setStudentID(studentID);
         gradStudentSpecialProgramReq.setPen(pen);
@@ -335,10 +335,10 @@ public class GraduationStatusControllerTest {
         gradStudentSpecialProgramReq.setSpecialProgramCode("FI");
         gradStudentSpecialProgramReq.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
 
-        GradStudentSpecialProgram studentSpecialProgram = new GradStudentSpecialProgram();
+        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
         studentSpecialProgram.setId(gradStudentSpecialProgramID);
         studentSpecialProgram.setStudentID(studentID);
-        studentSpecialProgram.setSpecialProgramID(specialProgramID);
+        studentSpecialProgram.setOptionalProgramID(specialProgramID);
         studentSpecialProgram.setPen(pen);
         studentSpecialProgram.setSpecialProgramCompletionDate(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate());
 
@@ -364,7 +364,7 @@ public class GraduationStatusControllerTest {
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
 
-        GraduationStatus graduationStatus = new GraduationStatus();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen(pen);
         graduationStatus.setStudentStatus("A");
@@ -391,7 +391,7 @@ public class GraduationStatusControllerTest {
         String ungradReasonCode = "NM";
         String ungradReasonDesc = "FDSS";
 
-        GraduationStatus graduationStatus = new GraduationStatus();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen(pen);
         graduationStatus.setStudentStatus("A");

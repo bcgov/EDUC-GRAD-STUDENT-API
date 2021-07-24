@@ -11,7 +11,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "GRADUATION_STUDENT_RECORD")
-public class GraduationStatusEntity extends BaseEntity {
+public class GraduationStudentRecordEntity extends BaseEntity {
 
     @Transient
     private String pen;
@@ -45,7 +45,7 @@ public class GraduationStatusEntity extends BaseEntity {
     private String studentStatus;
     
     @Id
-    @Column(name = "GRADUTION_STUDENT_RECORD_ID", nullable = false)
+    @Column(name = "GRADUATION_STUDENT_RECORD_ID", nullable = false)
     private UUID studentID;
     
     @Column(name = "SCHOOL_AT_GRADUATION", nullable = true)

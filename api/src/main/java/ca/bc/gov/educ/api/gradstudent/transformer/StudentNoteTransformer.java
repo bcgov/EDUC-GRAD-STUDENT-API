@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.transformer;
 
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentRecordNoteEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,13 +17,13 @@ public class StudentNoteTransformer {
     @Autowired
     ModelMapper modelMapper;
 
-    public StudentNote transformToDTO (StudentNoteEntity studentNoteEntity) {
+    public StudentNote transformToDTO (StudentRecordNoteEntity studentNoteEntity) {
     	StudentNote studentNote = modelMapper.map(studentNoteEntity, StudentNote.class);
         return studentNote;
     }
 
-    public StudentNote transformToDTO ( Optional<StudentNoteEntity> studentNoteEntity ) {
-    	StudentNoteEntity cae = new StudentNoteEntity();
+    public StudentNote transformToDTO ( Optional<StudentRecordNoteEntity> studentNoteEntity ) {
+    	StudentRecordNoteEntity cae = new StudentRecordNoteEntity();
         if (studentNoteEntity.isPresent())
             cae = studentNoteEntity.get();
 
@@ -31,9 +31,9 @@ public class StudentNoteTransformer {
         return studentNote;
     }
 
-	public List<StudentNote> transformToDTO (List<StudentNoteEntity> studentNoteEntities ) {
+	public List<StudentNote> transformToDTO (List<StudentRecordNoteEntity> studentNoteEntities ) {
 		List<StudentNote> studentNoteList = new ArrayList<StudentNote>();
-        for (StudentNoteEntity studentNoteEntity : studentNoteEntities) {
+        for (StudentRecordNoteEntity studentNoteEntity : studentNoteEntities) {
         	StudentNote studentNote = new StudentNote();
         	studentNote = modelMapper.map(studentNoteEntity, StudentNote.class);            
         	studentNoteList.add(studentNote);
@@ -41,8 +41,8 @@ public class StudentNoteTransformer {
         return studentNoteList;
     }
 
-    public StudentNoteEntity transformToEntity(StudentNote studentNote) {
-        StudentNoteEntity studentNoteEntity = modelMapper.map(studentNote, StudentNoteEntity.class);
+    public StudentRecordNoteEntity transformToEntity(StudentNote studentNote) {
+        StudentRecordNoteEntity studentNoteEntity = modelMapper.map(studentNote, StudentRecordNoteEntity.class);
         return studentNoteEntity;
     }
 }

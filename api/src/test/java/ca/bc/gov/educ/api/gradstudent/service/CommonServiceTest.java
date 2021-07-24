@@ -2,9 +2,9 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStudentCareerProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentRecordNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import org.junit.After;
@@ -44,7 +44,7 @@ public class CommonServiceTest {
     private CommonService commonService;
 
     @MockBean
-    private GradStudentCareerProgramRepository gradStudentCareerProgramRepository;
+    private StudentCareerProgramRepository gradStudentCareerProgramRepository;
 
     @MockBean
     private StudentNoteRepository studentNoteRepository;
@@ -84,8 +84,8 @@ public class CommonServiceTest {
         gradCareerProgram.setDescription("Test Code Name");
 
         // Student Career Program Data
-        final List<GradStudentCareerProgramEntity> gradStudentCareerProgramList = new ArrayList<>();
-        final GradStudentCareerProgramEntity studentCareerProgram = new GradStudentCareerProgramEntity();
+        final List<StudentCareerProgramEntity> gradStudentCareerProgramList = new ArrayList<>();
+        final StudentCareerProgramEntity studentCareerProgram = new StudentCareerProgramEntity();
         studentCareerProgram.setId(UUID.randomUUID());
         studentCareerProgram.setStudentID(studentID);
         studentCareerProgram.setCareerProgramCode(gradCareerProgram.getCode());
@@ -106,14 +106,14 @@ public class CommonServiceTest {
         gradCareerProgram.setDescription("Test Code Name");
 
         // Student Career Program Data
-        final List<GradStudentCareerProgramEntity> gradStudentCareerProgramList = new ArrayList<>();
-        final GradStudentCareerProgramEntity studentCareerProgram1 = new GradStudentCareerProgramEntity();
+        final List<StudentCareerProgramEntity> gradStudentCareerProgramList = new ArrayList<>();
+        final StudentCareerProgramEntity studentCareerProgram1 = new StudentCareerProgramEntity();
         studentCareerProgram1.setId(UUID.randomUUID());
         studentCareerProgram1.setStudentID(studentID);
         studentCareerProgram1.setCareerProgramCode(gradCareerProgram.getCode());
         gradStudentCareerProgramList.add(studentCareerProgram1);
 
-        final GradStudentCareerProgramEntity studentCareerProgram2 = new GradStudentCareerProgramEntity();
+        final StudentCareerProgramEntity studentCareerProgram2 = new StudentCareerProgramEntity();
         studentCareerProgram2.setId(UUID.randomUUID());
         studentCareerProgram2.setStudentID(studentID);
         studentCareerProgram2.setCareerProgramCode(gradCareerProgram.getCode());
@@ -145,20 +145,20 @@ public class CommonServiceTest {
         final UUID studentID = UUID.randomUUID();
         final String pen = "123456789";
 
-        final List<StudentNoteEntity> allNotesList = new ArrayList<>();
+        final List<StudentRecordNoteEntity> allNotesList = new ArrayList<>();
 
-        final StudentNoteEntity note1 = new StudentNoteEntity();
+        final StudentRecordNoteEntity note1 = new StudentRecordNoteEntity();
         note1.setId(UUID.randomUUID());
         note1.setStudentID(studentID);
         note1.setNote("Test1 Comments");
-        note1.setUpdatedTimestamp(new Date(System.currentTimeMillis()));
+        note1.setUpdateDate(new Date(System.currentTimeMillis()));
         allNotesList.add(note1);
 
-        final StudentNoteEntity note2 = new StudentNoteEntity();
+        final StudentRecordNoteEntity note2 = new StudentRecordNoteEntity();
         note2.setId(UUID.randomUUID());
         note2.setStudentID(studentID);
         note2.setNote("Test2 Comments");
-        note2.setUpdatedTimestamp(new Date(System.currentTimeMillis() + 100000L));
+        note2.setUpdateDate(new Date(System.currentTimeMillis() + 100000L));
         allNotesList.add(note2);
 
         when(studentNoteRepository.findByStudentID(studentID)).thenReturn(allNotesList);
@@ -183,11 +183,11 @@ public class CommonServiceTest {
         studentNote.setStudentID(studentID.toString());
         studentNote.setNote("Test Note Body");
 
-        final StudentNoteEntity studentNoteEntity = new StudentNoteEntity();
+        final StudentRecordNoteEntity studentNoteEntity = new StudentRecordNoteEntity();
         studentNoteEntity.setStudentID(studentID);
         studentNoteEntity.setNote("Test Note Body");
 
-        final Optional<StudentNoteEntity> optional = Optional.of(studentNoteEntity);
+        final Optional<StudentRecordNoteEntity> optional = Optional.of(studentNoteEntity);
 
         when(this.studentNoteRepository.save(studentNoteEntity)).thenReturn(studentNoteEntity);
 
@@ -210,12 +210,12 @@ public class CommonServiceTest {
         studentNote.setStudentID(studentID.toString());
         studentNote.setNote("Test Note Body");
 
-        final StudentNoteEntity studentNoteEntity = new StudentNoteEntity();
+        final StudentRecordNoteEntity studentNoteEntity = new StudentRecordNoteEntity();
         studentNoteEntity.setId(noteID);
         studentNoteEntity.setStudentID(studentID);
         studentNoteEntity.setNote("Test Note Body");
 
-        final Optional<StudentNoteEntity> optional = Optional.of(studentNoteEntity);
+        final Optional<StudentRecordNoteEntity> optional = Optional.of(studentNoteEntity);
 
         when(this.studentNoteRepository.findById(noteID)).thenReturn(optional);
         when(this.studentNoteRepository.save(studentNoteEntity)).thenReturn(studentNoteEntity);
@@ -235,12 +235,12 @@ public class CommonServiceTest {
         final UUID studentID = UUID.randomUUID();
         final String pen = "123456789";
 
-        final StudentNoteEntity studentNoteEntity = new StudentNoteEntity();
+        final StudentRecordNoteEntity studentNoteEntity = new StudentRecordNoteEntity();
         studentNoteEntity.setId(noteID);
         studentNoteEntity.setStudentID(studentID);
         studentNoteEntity.setNote("Test Note Body");
 
-        final Optional<StudentNoteEntity> optional = Optional.of(studentNoteEntity);
+        final Optional<StudentRecordNoteEntity> optional = Optional.of(studentNoteEntity);
 
         when(this.studentNoteRepository.findById(noteID)).thenReturn(optional);
 
@@ -253,7 +253,7 @@ public class CommonServiceTest {
     @Test
     public void testDeleteNoteWhenGivenNoteIdDoesNotExist() {
         final UUID noteID = UUID.randomUUID();
-        final Optional<StudentNoteEntity> optional = Optional.empty();
+        final Optional<StudentRecordNoteEntity> optional = Optional.empty();
 
         when(this.studentNoteRepository.findById(noteID)).thenReturn(optional);
 
