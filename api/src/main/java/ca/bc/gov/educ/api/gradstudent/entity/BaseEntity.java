@@ -11,6 +11,7 @@ import javax.persistence.TemporalType;
 
 import org.apache.commons.lang3.StringUtils;
 
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import lombok.Data;
 
 @Data
@@ -32,19 +33,25 @@ public class BaseEntity {
 	
 	@PrePersist
 	protected void onCreate() {
-		this.updateUser = "API_STUDENT_GRADUATION";
-		this.createUser = "API_STUDENT_GRADUATION";
+		if (StringUtils.isBlank(createUser)) {
+			this.createUser = EducGradStudentApiConstants.DEFAULT_CREATED_BY;
+		}		
+		if (StringUtils.isBlank(updateUser)) {
+			this.updateUser = EducGradStudentApiConstants.DEFAULT_UPDATED_BY;
+		}		
 		this.createDate = new Date(System.currentTimeMillis());
-		this.createDate = new Date(System.currentTimeMillis());
+		this.updateDate = new Date(System.currentTimeMillis());
 
 	}
 
 	@PreUpdate
 	protected void onPersist() {
 		this.updateDate = new Date(System.currentTimeMillis());
-		this.updateUser = "API_STUDENT_GRADUATION";
+		if (StringUtils.isBlank(updateUser)) {
+			this.updateUser = EducGradStudentApiConstants.DEFAULT_UPDATED_BY;
+		}
 		if (StringUtils.isBlank(createUser)) {
-			createUser = "API_STUDENT_GRADUATION";
+			this.createUser = EducGradStudentApiConstants.DEFAULT_CREATED_BY;
 		}
 		if (this.createDate == null) {
 			this.createDate = new Date(System.currentTimeMillis());

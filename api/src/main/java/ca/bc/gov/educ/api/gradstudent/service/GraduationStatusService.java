@@ -47,6 +47,9 @@ public class GraduationStatusService {
 
     @Autowired
     private GradStudentSpecialProgramTransformer gradStudentSpecialProgramTransformer;
+    
+    @Autowired
+    private CommonService commonService;
 
     @Autowired
     GradValidation validation;
@@ -54,8 +57,8 @@ public class GraduationStatusService {
     @Autowired
     private EducGradStudentApiConstants constants;
 
-    private static final String CREATED_BY = "createdBy";
-    private static final String CREATED_TIMESTAMP = "createdTimestamp";
+    private static final String CREATE_USER = "createUser";
+    private static final String CREATE_DATE = "createDate";
 
 
     public GraduationStudentRecord getGraduationStatusForAlgorithm(UUID studentID) {
@@ -81,12 +84,7 @@ public class GraduationStatusService {
                 gradStatus.setSchoolName(getSchoolName(gradStatus.getSchoolOfRecord(), accessToken));
 
             if (gradStatus.getStudentStatus() != null) {
-                StudentStatus statusObj = webClient.get()
-                        .uri(String.format(constants.getStudentStatusUrl(), gradStatus.getStudentStatus()))
-                        .headers(h -> h.setBearerAuth(accessToken))
-                        .retrieve()
-                        .bodyToMono(StudentStatus.class)
-                        .block();
+                StudentStatus statusObj = commonService.getSpecificStudentStatusCode(gradStatus.getStudentStatus());
                 if (statusObj != null)
                     gradStatus.setStudentStatusName(statusObj.getDescription());
             }
@@ -106,7 +104,7 @@ public class GraduationStatusService {
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEnity = gradStatusOptional.get();
-            BeanUtils.copyProperties(sourceObject, gradEnity, CREATED_BY, CREATED_TIMESTAMP);
+            BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
             gradEnity.setRecalculateGradStatus(null);
             gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
@@ -120,7 +118,6 @@ public class GraduationStatusService {
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEnity = gradStatusOptional.get();
-            //if(gradEnity.getProgramCompletionDate() != null) {
 	            boolean hasDataChanged = validateData(sourceObject, gradEnity, accessToken);
 	            if (validation.hasErrors()) {
 	                validation.stopOnErrors();
@@ -131,13 +128,9 @@ public class GraduationStatusService {
 	            } else {
 	                gradEnity.setRecalculateGradStatus(null);
 	            }
-	            BeanUtils.copyProperties(sourceObject, gradEnity, CREATED_BY, CREATED_TIMESTAMP, "studentGradData", "recalculateGradStatus");
+	            BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus");
 	            gradEnity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
 	            return graduationStatusTransformer.transformToDTO(graduationStatusRepository.save(gradEnity));
-//            }else {
-//            	validation.addErrorAndStop("This Student Record cannot be edited");
-//                return graduationStatus;
-//            }
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
             return graduationStatus;
@@ -146,7 +139,7 @@ public class GraduationStatusService {
 
     private String getSchoolName(String minCode, String accessToken) {
         School schObj = webClient.get()
-                .uri(String.format(constants.getGradSchoolNameUrl(), minCode))
+                .uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(School.class)
@@ -208,7 +201,7 @@ public class GraduationStatusService {
 
     private void validateSchool(String minCode, String accessToken) {
         School schObj = webClient.get()
-				.uri(String.format(constants.getGradSchoolNameUrl(), minCode))
+				.uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve()
 				.bodyToMono(School.class)
@@ -317,7 +310,7 @@ public class GraduationStatusService {
         StudentOptionalProgramEntity sourceObject = gradStudentSpecialProgramTransformer.transformToEntity(gradStudentSpecialProgram);
         if (gradStudentSpecialOptional.isPresent()) {
             StudentOptionalProgramEntity gradEnity = gradStudentSpecialOptional.get();
-            BeanUtils.copyProperties(sourceObject, gradEnity, CREATED_BY, CREATED_TIMESTAMP);
+            BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
             gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
             return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(gradEnity));
         } else {
@@ -341,7 +334,7 @@ public class GraduationStatusService {
         sourceObject.setOptionalProgramID(gradSpecialProgram.getOptionalProgramID());
         if (gradStudentSpecialOptional.isPresent()) {
             StudentOptionalProgramEntity gradEnity = gradStudentSpecialOptional.get();
-            BeanUtils.copyProperties(sourceObject, gradEnity, CREATED_BY, CREATED_TIMESTAMP);
+            BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
             gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
             return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(gradEnity));
         } else {

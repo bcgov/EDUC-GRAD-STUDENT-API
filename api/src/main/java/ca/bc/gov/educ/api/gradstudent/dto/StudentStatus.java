@@ -1,20 +1,21 @@
 package ca.bc.gov.educ.api.gradstudent.dto;
 
-import lombok.Data;
-import org.springframework.stereotype.Component;
-
 import java.util.Date;
 
+import org.springframework.stereotype.Component;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Component
-public class StudentStatus {
+public class StudentStatus extends BaseModel{
 
 	private String code; 
-	private String description;	
-	private String createdBy;
-	private Date createdTimestamp;	
-	private String updatedBy;	
-	private Date updatedTimestamp;
-
-
+	private String label; 
+	private int displayOrder; 
+	private String description;
+	private Date effectiveDate; 
+	private Date expiryDate;
 }

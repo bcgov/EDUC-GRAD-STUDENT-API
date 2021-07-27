@@ -1,26 +1,39 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentRecordNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
-import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentCareerProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.transformer.StudentNoteTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import javax.transaction.Transactional;
-import java.util.*;
+import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentRecordNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentStatusEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentCareerProgramTransformer;
+import ca.bc.gov.educ.api.gradstudent.transformer.StudentNoteTransformer;
+import ca.bc.gov.educ.api.gradstudent.transformer.StudentStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 
 
 @Service
@@ -42,16 +55,25 @@ public class CommonService {
 	private EducGradStudentApiConstants constants;
     
     @Autowired
-    WebClient webClient;
+	private StudentStatusRepository studentStatusRepository;
+
+	@Autowired
+	private StudentStatusTransformer studentStatusTransformer;
+	
+	@Autowired
+	private GraduationStatusService graduationStatusService;
     
     @Autowired
-    RestTemplate restTemplate;
+    WebClient webClient;
     
     @Autowired
 	GradValidation validation;
 
     @SuppressWarnings("unused")
 	private static Logger logger = LoggerFactory.getLogger(CommonService.class);
+    
+    private static final String CREATE_USER="createUser";
+	private static final String CREATE_DATE="createDate";
 
     @Transactional
   	public List<GradStudentCareerProgram> getAllGradStudentCareerProgramList(String studentId, String accessToken) {
@@ -113,5 +135,57 @@ public class CommonService {
 		}else {
 			return 0;
 		}
+	}
+	
+	@Transactional
+	public List<StudentStatus> getAllStudentStatusCodeList() {
+		return studentStatusTransformer.transformToDTO(studentStatusRepository.findAll());
+	}
+
+	@Transactional
+	public StudentStatus getSpecificStudentStatusCode(String statusCode) {
+		Optional<StudentStatusEntity> entity = studentStatusRepository.findById(StringUtils.toRootUpperCase(statusCode));
+		if (entity.isPresent()) {
+			return studentStatusTransformer.transformToDTO(entity);
+		} else {
+			return null;
+		}
+	}
+
+	public StudentStatus createStudentStatus(@Valid StudentStatus studentStatus) {
+		StudentStatusEntity toBeSavedObject = studentStatusTransformer.transformToEntity(studentStatus);
+		Optional<StudentStatusEntity> existingObjectCheck = studentStatusRepository.findById(studentStatus.getCode());
+		if(existingObjectCheck.isPresent()) {
+			validation.addErrorAndStop(String.format("Student Status Code [%s] already exists",studentStatus.getCode()));
+			return studentStatus;			
+		}else {
+			return studentStatusTransformer.transformToDTO(studentStatusRepository.save(toBeSavedObject));
+		}	
+	}
+
+	public StudentStatus updateStudentStatus(@Valid StudentStatus studentStatus) {
+		Optional<StudentStatusEntity> studentStatusOptional = studentStatusRepository.findById(studentStatus.getCode());
+		StudentStatusEntity sourceObject = studentStatusTransformer.transformToEntity(studentStatus);
+		if(studentStatusOptional.isPresent()) {
+			StudentStatusEntity gradEnity = studentStatusOptional.get();			
+			BeanUtils.copyProperties(sourceObject,gradEnity,CREATE_USER,CREATE_DATE);
+    		return studentStatusTransformer.transformToDTO(studentStatusRepository.save(gradEnity));
+		}else {
+			validation.addErrorAndStop(String.format("Student Status Code [%s] does not exists",studentStatus.getCode()));
+			return studentStatus;
+		}
+	}
+
+	public int deleteStudentStatus(@Valid String statusCode) {
+		boolean isPresent = graduationStatusService.getStudentStatus(statusCode);
+		if(isPresent) {
+			validation.addErrorAndStop(
+					String.format("This Student Status [%s] cannot be deleted as some students have this status associated with them.",statusCode));
+			return 0;
+		}else {
+			studentStatusRepository.deleteById(statusCode);
+			return 1;
+		}
+		
 	}
 }

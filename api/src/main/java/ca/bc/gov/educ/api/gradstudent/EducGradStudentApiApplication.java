@@ -1,11 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,9 +10,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
+
+import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
 
 
 @SpringBootApplication
@@ -36,17 +33,6 @@ public class EducGradStudentApiApplication {
         return modelMapper;
     }
 
-    @Bean
-    public WebClient webClient() {
-        HttpClient client = HttpClient.create();
-        client.warmup().block();
-        return WebClient.builder().build();
-    }
-
-    @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return builder.build();
-    }
 
     @Configuration
     static

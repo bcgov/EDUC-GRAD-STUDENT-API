@@ -41,7 +41,7 @@ public class GraduationStudentRecordEntity extends BaseEntity {
     @Column(name = "STUDENT_GRADE", nullable = true)
     private String studentGrade;
     
-    @Column(name = "GRAD_STUDENT_STATUS_CODE", nullable = false)
+    @Column(name = "STUDENT_STATUS_CODE", nullable = false)
     private String studentStatus;
     
     @Id

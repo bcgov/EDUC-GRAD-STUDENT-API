@@ -51,11 +51,14 @@ public class EducGradStudentApiConstants {
     public static final String GET_ALL_STUDENT_NOTES_MAPPING = "/studentnotes/pen/{pen}";
     public static final String STUDENT_NOTES_MAPPING = "/studentnotes";
     public static final String STUDENT_NOTES_DELETE_MAPPING = "/studentnotes/{noteID}";
+    
+    public static final String GET_ALL_STUDENT_STATUS_MAPPING = "/studentstatus";
+    public static final String GET_ALL_STUDENT_STATUS_BY_CODE_MAPPING = "/studentstatus/{statusCode}";
 
     //Default Date format constants
-    public static final String DEFAULT_CREATED_BY = "GradStudentAPI";
+    public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final Date DEFAULT_CREATED_TIMESTAMP = new Date();
-    public static final String DEFAULT_UPDATED_BY = "GradStudentAPI";
+    public static final String DEFAULT_UPDATED_BY = "API_GRAD_STUDENT";
     public static final Date DEFAULT_UPDATED_TIMESTAMP = new Date();
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
@@ -63,10 +66,10 @@ public class EducGradStudentApiConstants {
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
 
     //Endpoints
-    @Value("${endpoint.school-api.school-by-min-code.url}")
+    @Value("${endpoint.grad-trax-api.school-by-min-code.url}")
     private String schoolByMincodeUrl;
 
-    @Value("${endpoint.code-api.career_program.career_program-by-career-code.url}")
+    @Value("${endpoint.grad-program-api.career_program-by-career-code.url}")
     private String careerProgramByCodeUrl;
 
 	@Value("${endpoint.grad-program-api.optional_program_name_by_optional_program_id.url}")
@@ -75,14 +78,8 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-program-api.special_program_id_by_program_code_special_program_code.url}")
     private String gradSpecialProgramDetailsUrl;
 
-    @Value("${endpoint.grad-program-management-api.program_name_by_program_code.url}")
+    @Value("${endpoint.grad-program-api.program_name_by_program_code.url}")
     private String gradProgramNameUrl;
-
-    @Value("${endpoint.school-api.school-name-by-mincode.url}")
-    private String gradSchoolNameUrl;
-
-    @Value("${endpoint.code-api.student-status.student-status-by-status-code.url}")
-    private String studentStatusUrl;
 
     @Value("${endpoint.pen-student-api.by-studentid.url}")
     private String penStudentApiByStudentIdUrl;
@@ -93,28 +90,10 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-student-graduation-api.ungrad-reason.ungrad-reason-by-reason-code.url}")
     private String ungradReasonDetailsUrl;
 
-    @Value("${endpoint.code-api.country.country-by-country-code.url}")
-    private String countryByCountryCodeUrl;
-
-    @Value("${endpoint.code-api.province.province-by-prov-code.url}")
-    private String provinceByProvinceCodeUrl;
-
-    @Value("${endpoint.code-api.country.all-countries.url}")
-    private String allCountriesUrl;
-
-    @Value("${endpoint.code-api.province.all-provinces.url}")
-    private String allProvincesUrl;
-
     @Value("${endpoint.pen-student-api.search.url}")
     private String penStudentApiUrl;
 
     @Value("${endpoint.pen-student-api.by-pen.url}")
     private String penStudentApiByPenUrl;
-    
-    @Value("${endpoint.pen-student-api.by-studentid.url}")
-    private String penStudentApiByStudentIDUrl;
-
-    @Value("${endpoint.graduation-status-api.read-grad-status.url}")
-    private String gradStatusForStudentUrl;
     
 }

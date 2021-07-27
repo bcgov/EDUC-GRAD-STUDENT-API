@@ -1,15 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.service.CommonService;
-import ca.bc.gov.educ.api.gradstudent.util.*;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import java.util.List;
+import java.util.UUID;
+
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +14,31 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-import java.util.List;
-import java.util.UUID;
+import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstudent.service.CommonService;
+import ca.bc.gov.educ.api.gradstudent.util.ApiResponseModel;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import ca.bc.gov.educ.api.gradstudent.util.PermissionsContants;
+import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @CrossOrigin
 @RestController
@@ -33,6 +48,8 @@ import java.util.UUID;
 public class CommonController {
 
     private static Logger logger = LoggerFactory.getLogger(CommonController.class);
+    
+    private static final String STATUS_CODE="Status Code";
 
     @Autowired
     CommonService commonService;
@@ -94,6 +111,80 @@ public class CommonController {
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
         return response.DELETE(commonService.deleteNote(UUID.fromString(noteID)));
+    }
+    
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_MAPPING)
+    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find all Student Status", description = "Get all Student Status", tags = {"Student Status"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<StudentStatus>> getAllStudentStatusCodeList() {
+        logger.debug("getAllUngradReasonCodeList : ");
+        return response.GET(commonService.getAllStudentStatusCodeList());
+    }
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_BY_CODE_MAPPING)
+    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find a Student Status by Student Status Code",
+            description = "Get a Student Status by Student Status Code", tags = {"Student Status"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<StudentStatus> getSpecificStudentStatusCode(@PathVariable String statusCode) {
+        logger.debug("getSpecificUngradReasonCode : ");
+        StudentStatus gradResponse = commonService.getSpecificStudentStatusCode(statusCode);
+        if (gradResponse != null) {
+            return response.GET(gradResponse);
+        } else {
+            return response.NO_CONTENT();
+        }
+
+    }
+
+    @PostMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_MAPPING)
+    @PreAuthorize(PermissionsContants.CREATE_STUDENT_STATUS)
+    @Operation(summary = "Create a Student Status", description = "Create a Student Status", tags = {"Student Status"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    public ResponseEntity<ApiResponseModel<StudentStatus>> createStudentStatus(@Valid @RequestBody StudentStatus studentStatus) {
+        logger.debug("createStudentStatus : ");
+        validation.requiredField(studentStatus.getCode(), STATUS_CODE);
+        validation.requiredField(studentStatus.getDescription(), "Status Description");
+        if (validation.hasErrors()) {
+            validation.stopOnErrors();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return response.CREATED(commonService.createStudentStatus(studentStatus));
+    }
+
+    @PutMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_MAPPING)
+    @PreAuthorize(PermissionsContants.UPDATE_STUDENT_STATUS)
+    @Operation(summary = "Update an Student Status", description = "Update an Student Status", tags = {"Student Status"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    public ResponseEntity<ApiResponseModel<StudentStatus>> updateStudentStatusCode(@Valid @RequestBody StudentStatus studentStatus) {
+        logger.info("updateStudentStatusCode : ");
+        validation.requiredField(studentStatus.getCode(), STATUS_CODE);
+        validation.requiredField(studentStatus.getDescription(), "Status Description");
+        if (validation.hasErrors()) {
+            validation.stopOnErrors();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return response.UPDATED(commonService.updateStudentStatus(studentStatus));
+    }
+
+    @DeleteMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_BY_CODE_MAPPING)
+    @PreAuthorize(PermissionsContants.DELETE_STUDENT_STATUS)
+    @Operation(summary = "Delete an Student Status", description = "Delete an Student Status", tags = {"Student Status"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    public ResponseEntity<Void> deleteStudentStatusCodes(@Valid @PathVariable String statusCode) {
+        logger.debug("deleteStudentStatusCodes : ");
+        validation.requiredField(statusCode, STATUS_CODE);
+        if (validation.hasErrors()) {
+            validation.stopOnErrors();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return response.DELETE(commonService.deleteStudentStatus(statusCode));
     }
    
 }

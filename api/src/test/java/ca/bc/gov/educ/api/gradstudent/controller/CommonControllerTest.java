@@ -1,11 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.service.CommonService;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -19,10 +18,13 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstudent.service.CommonService;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 
 @RunWith(MockitoJUnitRunner.class)
 @ExtendWith(MockitoExtension.class)
@@ -38,14 +40,14 @@ public class CommonControllerTest {
     GradValidation validation;
 
     @InjectMocks
-    private CommonController commonController;
+    private CommonController codeController;
 
     @Test
     public void testGetStudentCareerProgram() {
         final String programCode = "2018-EN";
 
        Mockito.when(commonService.getStudentCareerProgram(programCode)).thenReturn(true);
-       commonController.getStudentCareerProgram(programCode);
+       codeController.getStudentCareerProgram(programCode);
        Mockito.verify(commonService).getStudentCareerProgram(programCode);
     }
 
@@ -84,7 +86,7 @@ public class CommonControllerTest {
         SecurityContextHolder.setContext(securityContext);
 
         Mockito.when(commonService.getAllGradStudentCareerProgramList(pen, null)).thenReturn(gradStudentCareerProgramList);
-        commonController.getAllStudentCareerProgramsList(pen);
+        codeController.getAllStudentCareerProgramsList(pen);
         Mockito.verify(commonService).getAllGradStudentCareerProgramList(pen, null);
     }
 
@@ -110,7 +112,7 @@ public class CommonControllerTest {
         allNotesList.add(note2);
 
         Mockito.when(commonService.getAllStudentNotes(studentID)).thenReturn(allNotesList);
-        commonController.getAllStudentNotes(studentID.toString());
+        codeController.getAllStudentNotes(studentID.toString());
         Mockito.verify(commonService).getAllStudentNotes(studentID);
     }
 
@@ -127,7 +129,7 @@ public class CommonControllerTest {
         studentNote.setNote("Test Note Body");
 
         Mockito.when(commonService.saveStudentNote(studentNote)).thenReturn(studentNote);
-        commonController.saveStudentNotes(studentNote);
+        codeController.saveStudentNotes(studentNote);
         Mockito.verify(commonService).saveStudentNote(studentNote);
     }
 
@@ -137,9 +139,92 @@ public class CommonControllerTest {
         final UUID noteID = UUID.randomUUID();
 
         Mockito.when(commonService.deleteNote(noteID)).thenReturn(1);
-        commonController.deleteNotes(noteID.toString());
+        codeController.deleteNotes(noteID.toString());
         Mockito.verify(commonService).deleteNote(noteID);
     }
+    
+    @Test
+	public void testGetAllStudentStatusCodeList() {
+		List<StudentStatus> studentStatusList = new ArrayList<>();
+		StudentStatus obj = new StudentStatus();
+		obj.setCode("DC");
+		obj.setDescription("Data Correction by School");
+		obj.setCreateUser("GRADUATION");
+		obj.setUpdateUser("GRADUATION");
+		obj.setCreateDate(new Date(System.currentTimeMillis()));
+		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		studentStatusList.add(obj);
+		obj = new StudentStatus();
+		obj.setCode("CC");
+		obj.setDescription("Courses not complete");
+		obj.setCreateUser("GRADUATION");
+		obj.setUpdateUser("GRADUATION");
+		obj.setCreateDate(new Date(System.currentTimeMillis()));
+		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		studentStatusList.add(obj);
+		Mockito.when(commonService.getAllStudentStatusCodeList()).thenReturn(studentStatusList);
+		codeController.getAllStudentStatusCodeList();
+		Mockito.verify(commonService).getAllStudentStatusCodeList();
+	}
+	
+	@Test
+	public void testGetSpecificStudentStatusCode() {
+		String requirementType = "DC";
+		StudentStatus obj = new StudentStatus();
+		obj.setCode("DC");
+		obj.setDescription("Data Correction by School");
+		obj.setCreateUser("GRADUATION");
+		obj.setUpdateUser("GRADUATION");
+		obj.setCreateDate(new Date(System.currentTimeMillis()));
+		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		Mockito.when(commonService.getSpecificStudentStatusCode(requirementType)).thenReturn(obj);
+		codeController.getSpecificStudentStatusCode(requirementType);
+		Mockito.verify(commonService).getSpecificStudentStatusCode(requirementType);
+	}
+	
+	@Test
+	public void testGetSpecificStudentStatusCode_noContent() {
+		String requirementType = "AB";	
+		Mockito.when(commonService.getSpecificStudentStatusCode(requirementType)).thenReturn(null);
+		codeController.getSpecificStudentStatusCode(requirementType);
+		Mockito.verify(commonService).getSpecificStudentStatusCode(requirementType);
+	}
+	
+	@Test
+	public void testCreateStudentStatus() {
+		StudentStatus obj = new StudentStatus();
+		obj.setCode("DC");
+		obj.setDescription("Data Correction by School");
+		obj.setCreateUser("GRADUATION");
+		obj.setUpdateUser("GRADUATION");
+		obj.setCreateDate(new Date(System.currentTimeMillis()));
+		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		Mockito.when(commonService.createStudentStatus(obj)).thenReturn(obj);
+		codeController.createStudentStatus(obj);
+		Mockito.verify(commonService).createStudentStatus(obj);
+	}
+	
+	@Test
+	public void testUpdateStudentStatus() {
+		StudentStatus obj = new StudentStatus();
+		obj.setCode("DC");
+		obj.setDescription("Data Correction by School");
+		obj.setCreateUser("GRADUATION");
+		obj.setUpdateUser("GRADUATION");
+		obj.setCreateDate(new Date(System.currentTimeMillis()));
+		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		Mockito.when(commonService.updateStudentStatus(obj)).thenReturn(obj);
+		codeController.updateStudentStatusCode(obj);
+		Mockito.verify(commonService).updateStudentStatus(obj);
+	}
+	
+	@Test
+	public void testDeleteStudentStatus() {
+		String statusCode = "DC";
+		Mockito.when(commonService.deleteStudentStatus(statusCode)).thenReturn(1);
+		codeController.deleteStudentStatusCodes(statusCode);
+		Mockito.verify(commonService).deleteStudentStatus(statusCode);
+	}
 
 
 }

@@ -91,7 +91,7 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<GraduationStudentRecord> updateStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStudentRecord graduationStatus) {
         logger.debug("update student Grad Status for Student ID");
-        validation.requiredField(graduationStatus.getPen(), "Student ID");
+        validation.requiredField(graduationStatus.getStudentID(), "Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
         if(validation.hasErrors()) {
