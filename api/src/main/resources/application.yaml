@@ -15,9 +15,9 @@ spring:
       maximum-pool-size: ${MAXIMUM_POOL_SIZE}
       connection-timeout: ${CONNECTION_TIMEOUT}
       max-lifetime: ${MAX_LIFETIME}
-    url: ${JDBC_URL}
-    username: ${ORACLE_USERNAME}
-    password: ${ORACLE_PASSWORD}
+    url: ${CONNECTION_STRING}
+    username: ${USERNAME}
+    password: ${PASSWORD}
     driver-class: oracle.jdbc.driver.OracleDriver
   jpa:
     show-sql: true
@@ -75,19 +75,24 @@ springdoc:
 
 #Endpoint properties
 endpoint:
-  grad-program-management-api:
-    special_program_name_by_special_program_id:
-      url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/id/%s
+  grad-trax-api:
+    school-by-min-code:
+      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
+  grad-program-api:
+    optional_program_name_by_optional_program_id:
+      url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/optionalprograms/id/%s
     special_program_id_by_program_code_special_program_code:
-      url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/specialprograms/%s/%s
+      url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/optionalprograms/%s/%s
     program_name_by_program_code:
-      url: https://educ-grad-program-management-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/programs/%s
-  grad-common-api:
+      url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/programs/%s
+    career_program-by-career-code: 
+      url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/careerprogram/%s
+  grad-student-graduation-api:
+    ungrad-reason: 
+      ungrad-reason-by-reason-code: 
+        url: https://educ-grad-student-graduation-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/ungrad/ungradreason/%s
     save-student-ungrad-reason:
-      url: https://educ-grad-common-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/common/studentungradreason/studentid/%s
-  graduation-status-api:
-    read-grad-status:
-      url: https://educ-grad-graduation-status-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/gradstatus/studentid/%s
+      url: https://educ-grad-student-graduation-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/ungrad/studentungradreason/studentid/%s
   pen-student-api:
     by-studentid:
       url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/%s
@@ -95,44 +100,3 @@ endpoint:
       url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/paginated
     by-pen:
       url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student?pen=%s
-  grad-student-api:
-    get-student-by-pen:
-      url: https://gradstudent-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1
-    get-all-students:
-      url: https://gradstudent-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/gradstudent
-  student-course-api:
-    get-student-course-by-pen:
-      url: https://student-course-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/studentcourse/pen
-  student-assessment-api:
-    get-student-assessment-by-pen:
-      url: https://student-assessment-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1
-  school-api:
-    school-name-by-mincode:
-      url: https://educ-grad-school-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
-    school-by-min-code:
-      url: https://educ-grad-school-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
-  code-api:
-    student-status:
-      student-status-by-status-code:
-        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/studentstatus/%s
-    ungrad-reason:
-      ungrad-reason-by-reason-code:
-        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/ungradreason/%s
-      ungrad_reasons-by-ungrad-code:
-        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/ungradreason/%s
-    career_program:
-      career_program-by-career-code:
-        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/careerprogram/%s
-    certificate_type:
-      certificate-by-code:
-        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/certificatetype/%s
-    country:
-      country-by-country-code:
-        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/country/%s
-      all-countries:
-        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/country
-    province:
-      province-by-prov-code:
-        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/province/%s
-      all-provinces:
-        url: https://educ-grad-code-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/code/province
