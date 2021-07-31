@@ -75,4 +75,14 @@ public class GradStudentController {
     	String accessToken = auth.getTokenValue();
         return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken);
     }
+    
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API)
+    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
+	@Operation(summary = "GET Student by STUDENT ID", description = "Get Student Demographics by Student ID", tags = { "Student Demographics" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public GradSearchStudent getGradStudentByStudentIDFromStudentAPI(@PathVariable String studentID) {
+    	OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
+        return gradStudentService.getStudentByStudentIDFromStudentAPI(studentID,accessToken);
+    }
 }
