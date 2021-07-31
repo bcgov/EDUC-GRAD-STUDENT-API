@@ -1,8 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.dto;
 
-import org.springframework.stereotype.Component;
-
 import lombok.Data;
+import org.springframework.stereotype.Component;
 
 @Data
 @Component
@@ -23,7 +22,9 @@ public class School {
     private String countryCode; 
     private String countryName;
     private String postal;
-    private String independentAffiliation;
+	private String independentAffiliation;
+	private String openFlag;
+	private String signatureDistrict;
     
 	public String getSchoolName() {
 		return  schoolName != null ? schoolName.trim(): null;
