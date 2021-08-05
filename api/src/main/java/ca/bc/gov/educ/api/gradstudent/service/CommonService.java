@@ -16,11 +16,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.dto.GradStudentAlgorithmData;
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
@@ -62,6 +64,9 @@ public class CommonService {
 	
 	@Autowired
 	private GraduationStatusService graduationStatusService;
+	
+	@Autowired
+	private GradStudentService gradStudentService;
     
     @Autowired
     WebClient webClient;
@@ -187,5 +192,14 @@ public class CommonService {
 			return 1;
 		}
 		
+	}
+
+	public GradStudentAlgorithmData getGradStudentAlgorithmData(String studentID,String accessToken) {
+		GradStudentAlgorithmData data = new GradStudentAlgorithmData();
+		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID, accessToken);
+		GraduationStudentRecord gradStudentRecord = graduationStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID));
+		data.setGradStudent(gradStudent);
+		data.setGraduationStudentRecord(gradStudentRecord);		
+		return data;
 	}
 }
