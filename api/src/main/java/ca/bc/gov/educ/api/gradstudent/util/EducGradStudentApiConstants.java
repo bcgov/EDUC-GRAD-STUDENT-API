@@ -54,7 +54,7 @@ public class EducGradStudentApiConstants {
     
     public static final String GET_ALL_STUDENT_STATUS_MAPPING = "/studentstatus";
     public static final String GET_ALL_STUDENT_STATUS_BY_CODE_MAPPING = "/studentstatus/{statusCode}";
-
+    public static final String STUDENT_ALGORITHM_DATA = "/algorithmdata/{studentID}";
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final Date DEFAULT_CREATED_TIMESTAMP = new Date();

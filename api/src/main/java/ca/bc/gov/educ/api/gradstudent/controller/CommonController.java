@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ca.bc.gov.educ.api.gradstudent.dto.GradStudentAlgorithmData;
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
@@ -185,6 +186,22 @@ public class CommonController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return response.DELETE(commonService.deleteStudentStatus(statusCode));
+    }
+    
+    @GetMapping (EducGradStudentApiConstants.STUDENT_ALGORITHM_DATA)
+    @PreAuthorize(PermissionsContants.STUDENT_ALGORITHM_DATA)
+    @Operation(summary = "Find Student Grad Status by Student ID for algorithm", description = "Get Student Grad Status by Student ID for algorithm", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
+    public ResponseEntity<GradStudentAlgorithmData> getStudentGradStatusForAlgorithm(@PathVariable String studentID) {
+        logger.debug("Get Student Grad Status for studentID");
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
+        GradStudentAlgorithmData gradResponse = commonService.getGradStudentAlgorithmData(studentID,accessToken);
+        if(gradResponse != null) {
+    		return response.GET(gradResponse);
+    	}else {
+    		return response.NO_CONTENT();
+    	}
     }
    
 }
