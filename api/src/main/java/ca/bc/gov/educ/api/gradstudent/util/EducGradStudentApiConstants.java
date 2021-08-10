@@ -48,7 +48,7 @@ public class EducGradStudentApiConstants {
     public static final String GET_STUDENT_CAREER_PROGRAM_BY_CAREER_PROGRAM_CODE_MAPPING = "/career/{cpCode}";
     public static final String GET_STUDENT_CERTIFICATE_BY_CERTIFICATE_CODE_MAPPING = "/certificate/{certificateTypeCode}";
     public static final String GET_STUDENT_REPORT_BY_REPORT_CODE_MAPPING = "/report/{reportTypeCode}";
-    public static final String GET_ALL_STUDENT_NOTES_MAPPING = "/studentnotes/pen/{pen}";
+    public static final String GET_ALL_STUDENT_NOTES_MAPPING = "/studentnotes/studentid/{studentID}";
     public static final String STUDENT_NOTES_MAPPING = "/studentnotes";
     public static final String STUDENT_NOTES_DELETE_MAPPING = "/studentnotes/{noteID}";
     
