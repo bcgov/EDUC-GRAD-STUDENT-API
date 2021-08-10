@@ -85,9 +85,9 @@ public class CommonController {
     @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_NOTES_DATA)
     @Operation(summary = "Find Student Notes by Pen", description = "Get Student Notes By Pen", tags = { "Student Notes" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<StudentNote>> getAllStudentNotes(@PathVariable String pen) { 
+    public ResponseEntity<List<StudentNote>> getAllStudentNotes(@PathVariable String studentID) { 
     	logger.debug("getAllStudentNotes : ");
-        return response.GET(commonService.getAllStudentNotes(UUID.fromString(pen)));
+        return response.GET(commonService.getAllStudentNotes(UUID.fromString(studentID)));
     }
     
     @PostMapping (EducGradStudentApiConstants.STUDENT_NOTES_MAPPING)
