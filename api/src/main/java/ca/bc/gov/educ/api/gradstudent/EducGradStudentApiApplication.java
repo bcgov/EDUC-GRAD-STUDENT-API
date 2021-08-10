@@ -1,11 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudent;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStudentEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,8 +10,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
+
+import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
 
 
 @SpringBootApplication
@@ -30,20 +28,11 @@ public class EducGradStudentApiApplication {
     public ModelMapper modelMapper() {
 
         ModelMapper modelMapper = new ModelMapper();
-        modelMapper.typeMap(GradStudentEntity.class, GradStudent.class);
-        modelMapper.typeMap(GradStudent.class, GradStudentEntity.class);
+        modelMapper.typeMap(GraduationStudentRecordEntity.class, GraduationStudentRecord.class).addMappings(mapper -> mapper.skip(GraduationStudentRecord::setProgramCompletionDate));
+        modelMapper.typeMap(GraduationStudentRecord.class, GraduationStudentRecordEntity.class).addMappings(mapper -> mapper.skip(GraduationStudentRecordEntity::setProgramCompletionDate));
         return modelMapper;
     }
 
-    @Bean
-    public WebClient webClient() {
-        return WebClient.create();
-    }
-
-    @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return builder.build();
-    }
 
     @Configuration
     static
