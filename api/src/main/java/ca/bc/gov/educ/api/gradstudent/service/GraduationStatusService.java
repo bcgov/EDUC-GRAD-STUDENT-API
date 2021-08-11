@@ -1,24 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
-import ca.bc.gov.educ.api.gradstudent.dto.*;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentSpecialProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.Period;
@@ -26,6 +8,40 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
+import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
+import org.springframework.web.reactive.function.client.WebClient.RequestHeadersUriSpec;
+import org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
+
+import ca.bc.gov.educ.api.gradstudent.dto.GradProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.GradStudentUngradReasons;
+import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.dto.OptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.School;
+import ca.bc.gov.educ.api.gradstudent.dto.Student;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgramReq;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentUngradReason;
+import ca.bc.gov.educ.api.gradstudent.dto.UngradReason;
+import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentSpecialProgramTransformer;
+import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 
 
 @Service
@@ -380,6 +396,7 @@ public class GraduationStatusService {
 		        if (gradStatusOptional.isPresent()) {
 		            GraduationStudentRecordEntity gradEnity = gradStatusOptional.get();
 		            saveUngradReason(studentID,ungradReasonCode,ungradDesc,accessToken);
+		            deleteStudentAchievements(studentID,accessToken);
 		            gradEnity.setRecalculateGradStatus("Y");
 		            gradEnity.setProgramCompletionDate(null);
 		            gradEnity.setHonoursStanding(null);
@@ -400,7 +417,11 @@ public class GraduationStatusService {
         }
     }
     
-    public void saveUngradReason(UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
+    private void deleteStudentAchievements(UUID studentID,String accessToken) {
+    	webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Integer.class).block();
+	}
+
+	public void saveUngradReason(UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
         StudentUngradReason toBeSaved = new StudentUngradReason();
         toBeSaved.setGraduationStudentRecordID(studentID);
         toBeSaved.setUngradReasonCode(ungradReasonCode);
