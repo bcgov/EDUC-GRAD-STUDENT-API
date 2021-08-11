@@ -96,4 +96,7 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.pen-student-api.by-pen.url}")
     private String penStudentApiByPenUrl;
     
+    @Value("${endpoint.grad-graduation-report-api.delete-student-achievement.url}")
+    private String deleteStudentAchievements;
+    
 }

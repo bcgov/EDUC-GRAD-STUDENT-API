@@ -100,3 +100,6 @@ endpoint:
       url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/paginated
     by-pen:
       url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student?pen=%s
+  grad-graduation-report-api:
+    delete-student-achievement:
+      url: https://educ-grad-graduation-report-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/graduationreports/studentachievement/%s
