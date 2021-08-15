@@ -4,15 +4,16 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
-import java.sql.Date;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component
-public class GradCareerProgram extends BaseModel {
+public class StudentCareerProgram extends BaseModel {
+
+	private UUID id;	
+	private String careerProgramCode;	
+	private String careerProgramName;
+	private UUID studentID;
 	
-	private String code; 
-	private String description; 
-	private Date startDate; 
-	private Date endDate;	
 }
