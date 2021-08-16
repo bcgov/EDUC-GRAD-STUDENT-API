@@ -18,10 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.CareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentAlgorithmData;
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
@@ -81,11 +81,11 @@ public class CommonService {
 	private static final String CREATE_DATE="createDate";
 
     @Transactional
-  	public List<GradStudentCareerProgram> getAllGradStudentCareerProgramList(String studentId, String accessToken) {
+  	public List<StudentCareerProgram> getAllGradStudentCareerProgramList(String studentId, String accessToken) {
 
-		List<GradStudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
+		List<StudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
       	gradStudentCareerProgramList.forEach(sC -> {
-      		GradCareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(GradCareerProgram.class).block();
+      		CareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CareerProgram.class).block();
     		if(gradCareerProgram != null) {
     			sC.setCareerProgramCode(gradCareerProgram.getCode());
     			sC.setCareerProgramName(gradCareerProgram.getDescription());

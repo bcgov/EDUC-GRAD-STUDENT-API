@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.transformer;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,31 +17,31 @@ public class GradStudentCareerProgramTransformer {
     @Autowired
     ModelMapper modelMapper;
 
-    public GradStudentCareerProgram transformToDTO (StudentCareerProgramEntity gradProgramEntity) {
-    	GradStudentCareerProgram gradCertificateTypes = modelMapper.map(gradProgramEntity, GradStudentCareerProgram.class);
+    public StudentCareerProgram transformToDTO (StudentCareerProgramEntity gradProgramEntity) {
+    	StudentCareerProgram gradCertificateTypes = modelMapper.map(gradProgramEntity, StudentCareerProgram.class);
         return gradCertificateTypes;
     }
 
-    public GradStudentCareerProgram transformToDTO ( Optional<StudentCareerProgramEntity> gradProgramEntity ) {
+    public StudentCareerProgram transformToDTO ( Optional<StudentCareerProgramEntity> gradProgramEntity ) {
     	StudentCareerProgramEntity cae = new StudentCareerProgramEntity();
         if (gradProgramEntity.isPresent())
             cae = gradProgramEntity.get();
 
-        GradStudentCareerProgram gradCertificateTypes = modelMapper.map(cae, GradStudentCareerProgram.class);
+        StudentCareerProgram gradCertificateTypes = modelMapper.map(cae, StudentCareerProgram.class);
         return gradCertificateTypes;
     }
 
-	public List<GradStudentCareerProgram> transformToDTO (Iterable<StudentCareerProgramEntity> gradCertificateTypesEntities ) {
-		List<GradStudentCareerProgram> gradCertificateTypesList = new ArrayList<GradStudentCareerProgram>();
+	public List<StudentCareerProgram> transformToDTO (Iterable<StudentCareerProgramEntity> gradCertificateTypesEntities ) {
+		List<StudentCareerProgram> gradCertificateTypesList = new ArrayList<StudentCareerProgram>();
         for (StudentCareerProgramEntity gradCertificateTypesEntity : gradCertificateTypesEntities) {
-        	GradStudentCareerProgram gradCertificateTypes = new GradStudentCareerProgram();
-        	gradCertificateTypes = modelMapper.map(gradCertificateTypesEntity, GradStudentCareerProgram.class);            
+        	StudentCareerProgram gradCertificateTypes = new StudentCareerProgram();
+        	gradCertificateTypes = modelMapper.map(gradCertificateTypesEntity, StudentCareerProgram.class);            
         	gradCertificateTypesList.add(gradCertificateTypes);
         }
         return gradCertificateTypesList;
     }
 
-    public StudentCareerProgramEntity transformToEntity(GradStudentCareerProgram gradCertificateTypes) {
+    public StudentCareerProgramEntity transformToEntity(StudentCareerProgram gradCertificateTypes) {
         StudentCareerProgramEntity gradCertificateTypesEntity = modelMapper.map(gradCertificateTypes, StudentCareerProgramEntity.class);
         return gradCertificateTypesEntity;
     }

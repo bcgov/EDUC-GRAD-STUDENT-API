@@ -34,7 +34,7 @@ public class EducGradStudentApiConstants {
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
     public static final String UNGRAD_STUDENT = "/ungradstudent/studentid/{studentID}";
 
-    public static final String GET_ALL_STUDENT_CAREER_MAPPING = "/studentcareerprogram/pen/{pen}";
+    public static final String GET_ALL_STUDENT_CAREER_MAPPING = "/studentcareerprogram/studentid/{studentID}";
     public static final String STUDENT_REPORT = "/studentreport";
     public static final String STUDENT_CERTIFICATE = "/studentcertificate";
     public static final String STUDENT_CERTIFICATE_BY_STUDENTID = "/studentcertificate/{studentID}";
