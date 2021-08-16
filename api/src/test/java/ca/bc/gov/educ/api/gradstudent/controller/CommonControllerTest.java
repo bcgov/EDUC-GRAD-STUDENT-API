@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import java.util.Date;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,8 +18,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.CareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
@@ -57,22 +57,20 @@ public class CommonControllerTest {
         final UUID studentID = UUID.randomUUID();
         final String pen = "123456789";
         // Career Program
-        final GradCareerProgram gradCareerProgram = new GradCareerProgram();
+        final CareerProgram gradCareerProgram = new CareerProgram();
         gradCareerProgram.setCode("TEST");
         gradCareerProgram.setDescription("Test Code Name");
 
         // Student Career Program Data
-        final List<GradStudentCareerProgram> gradStudentCareerProgramList = new ArrayList<>();
-        final GradStudentCareerProgram studentCareerProgram1 = new GradStudentCareerProgram();
+        final List<StudentCareerProgram> gradStudentCareerProgramList = new ArrayList<>();
+        final StudentCareerProgram studentCareerProgram1 = new StudentCareerProgram();
         studentCareerProgram1.setId(UUID.randomUUID());
-        studentCareerProgram1.setPen(pen);
         studentCareerProgram1.setStudentID(studentID);
         studentCareerProgram1.setCareerProgramCode(gradCareerProgram.getCode());
         gradStudentCareerProgramList.add(studentCareerProgram1);
 
-        final GradStudentCareerProgram studentCareerProgram2 = new GradStudentCareerProgram();
+        final StudentCareerProgram studentCareerProgram2 = new StudentCareerProgram();
         studentCareerProgram2.setId(UUID.randomUUID());
-        studentCareerProgram2.setPen(pen);
         studentCareerProgram2.setStudentID(studentID);
         studentCareerProgram2.setCareerProgramCode(gradCareerProgram.getCode());
         gradStudentCareerProgramList.add(studentCareerProgram2);
@@ -121,8 +119,6 @@ public class CommonControllerTest {
         // ID
         final UUID noteID = UUID.randomUUID();
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
-
         final StudentNote studentNote = new StudentNote();
         studentNote.setId(noteID);
         studentNote.setStudentID(studentID.toString());

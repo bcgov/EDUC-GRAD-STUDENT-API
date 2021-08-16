@@ -25,7 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.CareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
@@ -89,7 +89,7 @@ public class CommonServiceTest {
         final UUID studentID = UUID.randomUUID();
         final String pen = "123456789";
         // Career Program
-        final GradCareerProgram gradCareerProgram = new GradCareerProgram();
+        final CareerProgram gradCareerProgram = new CareerProgram();
         gradCareerProgram.setCode("TEST");
         gradCareerProgram.setDescription("Test Code Name");
 
@@ -111,7 +111,7 @@ public class CommonServiceTest {
         // UUID
         final UUID studentID = UUID.randomUUID();
         // Career Program
-        final GradCareerProgram gradCareerProgram = new GradCareerProgram();
+        final CareerProgram gradCareerProgram = new CareerProgram();
         gradCareerProgram.setCode("TEST");
         gradCareerProgram.setDescription("Test Code Name");
 
@@ -135,7 +135,7 @@ public class CommonServiceTest {
         when(this.requestHeadersUriMock.uri(String.format(constants.getCareerProgramByCodeUrl(), gradCareerProgram.getCode()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradCareerProgram.class)).thenReturn(Mono.just(gradCareerProgram));
+        when(this.responseMock.bodyToMono(CareerProgram.class)).thenReturn(Mono.just(gradCareerProgram));
 
         var result = commonService.getAllGradStudentCareerProgramList(studentID.toString(), "accessToken");
 
