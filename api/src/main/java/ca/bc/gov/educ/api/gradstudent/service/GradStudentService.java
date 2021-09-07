@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -28,6 +29,9 @@ public class GradStudentService {
     @Autowired WebClient webClient;
     @Autowired GraduationStudentRecordRepository graduationStatusRepository;
     @Autowired GraduationStatusTransformer graduationStatusTransformer;
+    
+    @Value("${more.search.match.found}")
+	String messageStringMoreMatchesFound;
 
 	public StudentSearch getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
 			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo, Integer pageNumber, Integer pageSize, String accessToken) {
@@ -84,6 +88,57 @@ public class GradStudentService {
 		return null;
 	}
 	
+	public GradOnlyStudentSearch getStudentFromStudentAPIGradOnly(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
+			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo,String accessToken) {
+		List<GradSearchStudent> gradStudentList = new ArrayList<>();
+		List<SearchCriteria> criteriaList = new ArrayList<>();
+		criteriaList = getSearchCriteria(legalFirstName,null,"legalFirstName",criteriaList);
+		criteriaList = getSearchCriteria(legalLastName,null,"legalLastName",criteriaList);
+		criteriaList = getSearchCriteria(legalMiddleNames,null,"legalMiddleNames",criteriaList);
+		criteriaList = getSearchCriteria(usualFirstName,null,"usualFirstName",criteriaList);
+		criteriaList = getSearchCriteria(usualLastName,null,"usualLastName",criteriaList);
+		criteriaList = getSearchCriteria(usualMiddleNames,null,"usualMiddleNames",criteriaList);
+		criteriaList = getSearchCriteria(localID,null,"localID",criteriaList);
+		criteriaList = getSearchCriteria(gender,null,"genderCode",criteriaList);
+		criteriaList = getSearchCriteria(birthdateFrom,birthdateTo,"dob",criteriaList);
+		criteriaList = getSearchCriteria(mincode,null,"mincode",criteriaList);
+		
+		List<Search> searches = new LinkedList<>();
+		GradOnlyStudentSearch searchObj = new GradOnlyStudentSearch();
+	    searches.add(Search.builder().condition(Condition.AND).searchCriteriaList(criteriaList).build());
+	    ObjectMapper objectMapper = new ObjectMapper();
+	    try {
+			String criteriaJSON = objectMapper.writeValueAsString(searches);
+			String encodedURL = URLEncoder.encode(criteriaJSON,StandardCharsets.UTF_8.toString());
+			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiUrl(),
+				uri -> uri
+					.queryParam("pageNumber", "0")
+					.queryParam("pageSize", "100000")
+					.queryParam("searchCriteriaList", encodedURL)
+				.build())
+				.headers(h -> h.setBearerAuth(accessToken))
+				.retrieve().bodyToMono(new ParameterizedTypeReference<RestResponsePage<Student>>() {}).block();
+			List<Student> studentList = response.getContent();
+			if (!studentList.isEmpty()) {
+				studentList.forEach(st -> {
+					GradSearchStudent gradStu = populateGradSearchStudent(st, accessToken);
+					if(gradStu.getProgram() != null) {
+						gradStudentList.add(gradStu);
+					}
+				});
+			}
+			searchObj.setGradSearchStudents(gradStudentList);
+			searchObj.setSearchMessage(String.format(messageStringMoreMatchesFound, response.getTotalElements()));
+			
+			return searchObj;
+			
+		} catch (Exception e) {
+			e.getMessage();
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	@Transactional
     public List<GradSearchStudent> getStudentByPenFromStudentAPI(String pen, String accessToken) {
     	List<GradSearchStudent> gradStudentList = new ArrayList<>();
@@ -127,11 +182,12 @@ public class GradStudentService {
 			gradStu.setStudentGrade(gradObj.getStudentGrade());
 			gradStu.setStudentStatus(gradObj.getStudentStatus());
 			gradStu.setSchoolOfRecord(gradObj.getSchoolOfRecord());
-		}
-		School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
-		if (school != null) {
-			gradStu.setSchoolOfRecordName(school.getSchoolName());
-			gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
+		
+			School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+			if (school != null) {
+				gradStu.setSchoolOfRecordName(school.getSchoolName());
+				gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
+			}
 		}
 		return gradStu;
 	}
