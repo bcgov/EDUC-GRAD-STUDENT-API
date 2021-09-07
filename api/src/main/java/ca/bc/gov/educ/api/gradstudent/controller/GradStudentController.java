@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ca.bc.gov.educ.api.gradstudent.dto.GradOnlyStudentSearch;
 import ca.bc.gov.educ.api.gradstudent.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentSearch;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
@@ -42,8 +43,30 @@ public class GradStudentController {
     	this.gradStudentService = gradStudentService;
 	}
 	
-    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME_ONLY)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
+	@Operation(summary = "Search For Students", description = "Advanced Search for Student Demographics", tags = { "Student Demographics" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+	public GradOnlyStudentSearch getGradNPenGradStudentFromStudentAPI(
+			@RequestParam(value = "legalFirstName", required = false) String legalFirstName,
+			@RequestParam(value = "legalLastName", required = false) String legalLastName,
+			@RequestParam(value = "legalMiddleNames", required = false) String legalMiddleNames,
+			@RequestParam(value = "usualFirstName", required = false) String usualFirstName,
+			@RequestParam(value = "usualLastName", required = false) String usualLastName,
+			@RequestParam(value = "usualMiddleNames", required = false) String usualMiddleNames,
+			@RequestParam(value = "gender", required = false) String gender,
+			@RequestParam(value = "mincode", required = false) String mincode,
+			@RequestParam(value = "localID", required = false) String localID,
+			@RequestParam(value = "birthdateFrom", required = false) String birthdateFrom,
+			@RequestParam(value = "birthdateTo", required = false) String birthdateTo) {
+		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
+    	String accessToken = auth.getTokenValue();
+        return gradStudentService.getStudentFromStudentAPIGradOnly(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,gender,mincode,localID,birthdateFrom,birthdateTo,accessToken);
+		
+	}
+	
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
+    @PreAuthorize("#oauth2.hasScope('READ_GRAD_AND_PEN_STUDENT_DATA')")
 	@Operation(summary = "Search For Students", description = "Advanced Search for Student Demographics", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
 	public StudentSearch getGradStudentFromStudentAPI(
@@ -65,7 +88,7 @@ public class GradStudentController {
         return gradStudentService.getStudentFromStudentAPI(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,gender,mincode,localID,birthdateFrom,birthdateTo,pageNumber,pageSize,accessToken);
 		
 	}
-	
+    
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_PEN_STUDENT_API)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
 	@Operation(summary = "Search For Students by PEN", description = "Search for Student Demographics by PEN", tags = { "Student Demographics" })
