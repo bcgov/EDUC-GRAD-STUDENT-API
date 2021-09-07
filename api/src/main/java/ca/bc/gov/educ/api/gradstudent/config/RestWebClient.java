@@ -18,7 +18,7 @@ public class RestWebClient {
     private final HttpClient httpClient;
 
     public RestWebClient() {
-        this.httpClient = HttpClient.create(ConnectionProvider.newConnection()).compress(true)
+        this.httpClient = HttpClient.create(ConnectionProvider.create("student-api")).compress(true)
                 .resolver(spec -> spec.queryTimeout(Duration.ofMillis(200)).trace("DNS", LogLevel.TRACE));
         this.httpClient.warmup().block();
     }
