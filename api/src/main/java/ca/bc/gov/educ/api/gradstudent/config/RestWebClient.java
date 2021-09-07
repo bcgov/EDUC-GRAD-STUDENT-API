@@ -4,9 +4,11 @@ import io.netty.handler.logging.LogLevel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 
 import java.time.Duration;
 
@@ -16,7 +18,7 @@ public class RestWebClient {
     private final HttpClient httpClient;
 
     public RestWebClient() {
-        this.httpClient = HttpClient.create().compress(true)
+        this.httpClient = HttpClient.create(ConnectionProvider.newConnection()).compress(true)
                 .resolver(spec -> spec.queryTimeout(Duration.ofMillis(200)).trace("DNS", LogLevel.TRACE));
         this.httpClient.warmup().block();
     }
@@ -25,6 +27,10 @@ public class RestWebClient {
     public WebClient webClient() {
         DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
         defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-        return WebClient.builder().uriBuilderFactory(defaultUriBuilderFactory).build();
+        return WebClient.builder().uriBuilderFactory(defaultUriBuilderFactory).exchangeStrategies(ExchangeStrategies.builder()
+                .codecs(configurer -> configurer
+                        .defaultCodecs()
+                        .maxInMemorySize(20 * 1024 * 1024))
+                      .build()).build();
     }
 }
