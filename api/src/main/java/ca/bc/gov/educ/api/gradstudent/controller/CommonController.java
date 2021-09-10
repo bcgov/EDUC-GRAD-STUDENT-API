@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentAlgorithmData;
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
@@ -72,22 +72,22 @@ public class CommonController {
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_CAREER_MAPPING)
     @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_CAREER_DATA)
-    @Operation(summary = "Find Student Career Program by Pen", description = "Find Student Career Program by Pen", tags = { "Career Programs" })
+    @Operation(summary = "Find Student Career Program by Student ID", description = "Find Student Career Program by Student ID", tags = { "Career Programs" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GradStudentCareerProgram>> getAllStudentCareerProgramsList(@PathVariable String pen) { 
+    public ResponseEntity<List<StudentCareerProgram>> getAllStudentCareerProgramsList(@PathVariable String studentID) { 
     	logger.debug("getAllStudentCareerProgramsList : ");
     	OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
-        return response.GET(commonService.getAllGradStudentCareerProgramList(pen,accessToken));
+        return response.GET(commonService.getAllGradStudentCareerProgramList(studentID,accessToken));
     }
     
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NOTES_MAPPING)
     @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_NOTES_DATA)
     @Operation(summary = "Find Student Notes by Pen", description = "Get Student Notes By Pen", tags = { "Student Notes" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<StudentNote>> getAllStudentNotes(@PathVariable String pen) { 
+    public ResponseEntity<List<StudentNote>> getAllStudentNotes(@PathVariable String studentID) { 
     	logger.debug("getAllStudentNotes : ");
-        return response.GET(commonService.getAllStudentNotes(UUID.fromString(pen)));
+        return response.GET(commonService.getAllStudentNotes(UUID.fromString(studentID)));
     }
     
     @PostMapping (EducGradStudentApiConstants.STUDENT_NOTES_MAPPING)

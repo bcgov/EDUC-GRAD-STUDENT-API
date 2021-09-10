@@ -22,6 +22,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_PENS = "/multipen";
     public static final String GRAD_STUDENT_BY_ANY_NAME = "/studentsearch";
+    public static final String GRAD_STUDENT_BY_ANY_NAME_ONLY = "/gradstudentsearch";
     public static final String GRADUATION_STATUS_BY_STUDENT_ID = "/studentid/{studentID}";
     public static final String GRADUATION_STATUS_BY_STUDENT_ID_FOR_ALGORITHM = "/studentid/{studentID}/algorithm";
     public static final String GRAD_STUDENT_UPDATE_BY_STUDENT_ID = "/gradstudent/studentid/{studentID}";
@@ -34,7 +35,7 @@ public class EducGradStudentApiConstants {
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
     public static final String UNGRAD_STUDENT = "/ungradstudent/studentid/{studentID}";
 
-    public static final String GET_ALL_STUDENT_CAREER_MAPPING = "/studentcareerprogram/pen/{pen}";
+    public static final String GET_ALL_STUDENT_CAREER_MAPPING = "/studentcareerprogram/studentid/{studentID}";
     public static final String STUDENT_REPORT = "/studentreport";
     public static final String STUDENT_CERTIFICATE = "/studentcertificate";
     public static final String STUDENT_CERTIFICATE_BY_STUDENTID = "/studentcertificate/{studentID}";
@@ -48,7 +49,7 @@ public class EducGradStudentApiConstants {
     public static final String GET_STUDENT_CAREER_PROGRAM_BY_CAREER_PROGRAM_CODE_MAPPING = "/career/{cpCode}";
     public static final String GET_STUDENT_CERTIFICATE_BY_CERTIFICATE_CODE_MAPPING = "/certificate/{certificateTypeCode}";
     public static final String GET_STUDENT_REPORT_BY_REPORT_CODE_MAPPING = "/report/{reportTypeCode}";
-    public static final String GET_ALL_STUDENT_NOTES_MAPPING = "/studentnotes/pen/{pen}";
+    public static final String GET_ALL_STUDENT_NOTES_MAPPING = "/studentnotes/studentid/{studentID}";
     public static final String STUDENT_NOTES_MAPPING = "/studentnotes";
     public static final String STUDENT_NOTES_DELETE_MAPPING = "/studentnotes/{noteID}";
     
@@ -95,5 +96,8 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.pen-student-api.by-pen.url}")
     private String penStudentApiByPenUrl;
+    
+    @Value("${endpoint.grad-graduation-report-api.delete-student-achievement.url}")
+    private String deleteStudentAchievements;
     
 }

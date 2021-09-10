@@ -1,7 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.transformer;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Optional;
+import java.util.UUID;
+
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -12,10 +15,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
 
 @RunWith(MockitoJUnitRunner.class)
 @ExtendWith(MockitoExtension.class)
@@ -28,19 +29,18 @@ public class GradStudentCareerProgramTransformerTest {
 
     @Test
     public void testTransformToDTO() {
-        GradStudentCareerProgram gradStudentCareerProgram = new GradStudentCareerProgram();
+        StudentCareerProgram gradStudentCareerProgram = new StudentCareerProgram();
         gradStudentCareerProgram.setId(UUID.randomUUID());
         gradStudentCareerProgram.setStudentID(UUID.randomUUID());
         gradStudentCareerProgram.setCareerProgramCode("career");
         gradStudentCareerProgram.setCareerProgramName("career program");
-        gradStudentCareerProgram.setPen("123456789");
 
         StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgram.getId());
         gradStudentCareerProgramEntity.setStudentID(gradStudentCareerProgram.getStudentID());
         gradStudentCareerProgramEntity.setCareerProgramCode(gradStudentCareerProgram.getCareerProgramCode());
 
-        Mockito.when(modelMapper.map(gradStudentCareerProgramEntity, GradStudentCareerProgram.class)).thenReturn(gradStudentCareerProgram);
+        Mockito.when(modelMapper.map(gradStudentCareerProgramEntity, StudentCareerProgram.class)).thenReturn(gradStudentCareerProgram);
         var result = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramEntity);
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentCareerProgramEntity.getId());
@@ -51,19 +51,17 @@ public class GradStudentCareerProgramTransformerTest {
 
     @Test
     public void testTransformOptionalToDTO() {
-        GradStudentCareerProgram gradStudentCareerProgram = new GradStudentCareerProgram();
+        StudentCareerProgram gradStudentCareerProgram = new StudentCareerProgram();
         gradStudentCareerProgram.setId(UUID.randomUUID());
         gradStudentCareerProgram.setStudentID(UUID.randomUUID());
         gradStudentCareerProgram.setCareerProgramCode("career");
         gradStudentCareerProgram.setCareerProgramName("career program");
-        gradStudentCareerProgram.setPen("123456789");
-
         StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgram.getId());
         gradStudentCareerProgramEntity.setStudentID(gradStudentCareerProgram.getStudentID());
         gradStudentCareerProgramEntity.setCareerProgramCode(gradStudentCareerProgram.getCareerProgramCode());
 
-        Mockito.when(modelMapper.map(gradStudentCareerProgramEntity, GradStudentCareerProgram.class)).thenReturn(gradStudentCareerProgram);
+        Mockito.when(modelMapper.map(gradStudentCareerProgramEntity, StudentCareerProgram.class)).thenReturn(gradStudentCareerProgram);
         var result = gradStudentCareerProgramTransformer.transformToDTO(Optional.of(gradStudentCareerProgramEntity));
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentCareerProgramEntity.getId());
@@ -73,12 +71,11 @@ public class GradStudentCareerProgramTransformerTest {
 
     @Test
     public void testTransformToEntity() {
-        GradStudentCareerProgram gradStudentCareerProgram = new GradStudentCareerProgram();
+        StudentCareerProgram gradStudentCareerProgram = new StudentCareerProgram();
         gradStudentCareerProgram.setId(UUID.randomUUID());
         gradStudentCareerProgram.setStudentID(UUID.randomUUID());
         gradStudentCareerProgram.setCareerProgramCode("career");
         gradStudentCareerProgram.setCareerProgramName("career program");
-        gradStudentCareerProgram.setPen("123456789");
 
         StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgram.getId());
