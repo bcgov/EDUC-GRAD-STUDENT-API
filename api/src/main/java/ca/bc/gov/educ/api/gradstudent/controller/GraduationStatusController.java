@@ -48,7 +48,7 @@ public class GraduationStatusController {
 
     @GetMapping (EducGradStudentApiConstants.GRADUATION_STATUS_BY_STUDENT_ID)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
-    @Operation(summary = "Find Student Grad Status by PEN", description = "Get Student Grad Status by PEN", tags = { "Student Graduation Status" })
+    @Operation(summary = "Find Student Grad Status by Student ID", description = "Get Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GraduationStudentRecord> getStudentGradStatus(@PathVariable String studentID) {
         logger.debug("Get Student Grad Status for studentID");
