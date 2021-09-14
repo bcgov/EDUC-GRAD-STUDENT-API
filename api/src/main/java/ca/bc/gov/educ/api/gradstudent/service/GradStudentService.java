@@ -128,7 +128,7 @@ public class GradStudentService {
 				});
 			}
 			searchObj.setGradSearchStudents(gradStudentList);
-			searchObj.setSearchMessage(String.format(messageStringMoreMatchesFound, response.getTotalElements()));
+			searchObj.setSearchMessage(String.format(messageStringMoreMatchesFound, response.getTotalElements()-gradStudentList.size()));
 			
 			return searchObj;
 			
