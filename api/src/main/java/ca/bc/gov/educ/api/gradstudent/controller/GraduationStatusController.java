@@ -188,4 +188,13 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken));
     }
     
+    @GetMapping(EducGradStudentApiConstants.RETURN_TO_ORIGINAL_STATE)
+    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
+    @Operation(summary = "Incase algorithm errors out, bring the original record back", description = "Check if Student Status is valid", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<Boolean> returnToOriginalState(@PathVariable String studentID, @RequestParam(value = "isGraduated", required = false, defaultValue = "false") boolean isGraduated) { 
+    	logger.debug("getStudentStatus : ");
+        return response.GET(gradStatusService.restoreGradStudentRecord(UUID.fromString(studentID),isGraduated));
+    }
+    
 }

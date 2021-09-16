@@ -413,4 +413,22 @@ public class GraduationStatusControllerTest {
 
     }
 
+    @Test
+    public void testreturnToOriginalState() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        Mockito.when(graduationStatusService.restoreGradStudentRecord(studentID,true)).thenReturn(true);
+        graduationStatusController.returnToOriginalState(studentID.toString(),true);
+        Mockito.verify(graduationStatusService).restoreGradStudentRecord(studentID,true);
+    }
+    
+    @Test
+    public void testreturnToOriginalState_returnsfalse() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        Mockito.when(graduationStatusService.restoreGradStudentRecord(studentID,false)).thenReturn(false);
+        graduationStatusController.returnToOriginalState(studentID.toString(),false);
+        Mockito.verify(graduationStatusService).restoreGradStudentRecord(studentID,false);
+    }
+    
 }
