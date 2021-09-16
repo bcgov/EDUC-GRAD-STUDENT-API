@@ -29,6 +29,14 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: false
+  flyway:
+    enabled: ${ENABLE_FLYWAY}
+    baseline-on-migrate: false
+    table: FLYWAY_SCHEMA_HISTORY
+    url: ${CONNECTION_STRING}
+    user: ${USERNAME}
+    password: ${PASSWORD}
+    locations: classpath:db/migration
 
 #Logging properties
 logging:
