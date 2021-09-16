@@ -20,6 +20,15 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    table: FLYWAY_SCHEMA_HISTORY
+    url: jdbc:oracle:thin:@//localhost:1522/XEPDB1
+    schemas: API_GRAD_STUDENT
+    user: API_GRAD_STUDENT
+    password: API_GRAD_STUDENT
+    locations: classpath:db/migration
 
 #Logging properties
 logging:
