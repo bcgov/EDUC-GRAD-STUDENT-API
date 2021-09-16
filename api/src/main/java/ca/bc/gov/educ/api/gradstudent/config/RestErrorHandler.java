@@ -30,11 +30,11 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(value = { IllegalArgumentException.class, IllegalStateException.class })
 	protected ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
 		LOGGER.error("Illegal argument ERROR IS: " + ex.getClass().getName(), ex);
-		ApiResponseModel<?> reponse = ApiResponseModel.ERROR(null, ex.getLocalizedMessage());
-		validation.ifErrors(errorList -> reponse.addErrorMessages(errorList));
-		validation.ifWarnings(warningList -> reponse.addWarningMessages(warningList));
+		ApiResponseModel<?> response = ApiResponseModel.ERROR(null, ex.getLocalizedMessage());
+		validation.ifErrors(errorList -> response.addErrorMessages(errorList));
+		validation.ifWarnings(warningList -> response.addWarningMessages(warningList));
 		validation.clear();
-		return new ResponseEntity<>(reponse, HttpStatus.UNPROCESSABLE_ENTITY);
+		return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
 
 	@ExceptionHandler(value = { JpaObjectRetrievalFailureException.class, DataRetrievalFailureException.class })
@@ -95,11 +95,11 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
 			}
 		}
 
-		ApiResponseModel<?> reponse = ApiResponseModel.ERROR(null, msg);
-		validation.ifErrors(errorList -> reponse.addErrorMessages(errorList));
-		validation.ifWarnings(warningList -> reponse.addWarningMessages(warningList));
+		ApiResponseModel<?> response = ApiResponseModel.ERROR(null, msg);
+		validation.ifErrors(errorList -> response.addErrorMessages(errorList));
+		validation.ifWarnings(warningList -> response.addWarningMessages(warningList));
 		validation.clear();
-		return new ResponseEntity<>(reponse, HttpStatus.UNPROCESSABLE_ENTITY);
+		return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
 
 	@ExceptionHandler(value = { Exception.class })
