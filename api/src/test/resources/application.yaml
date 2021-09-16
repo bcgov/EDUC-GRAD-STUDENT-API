@@ -46,6 +46,12 @@ logging:
           autoconfigure:
             logging: INFO
 
+#NATS
+nats:
+  url: test
+  maxReconnect: 60
+  connectionName: GRAD-STUDENT-API
+
 #Endpoint properties
 endpoint:
   grad-trax-api:

@@ -3,11 +3,14 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgramReq;
 import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsContants;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -39,6 +42,9 @@ public class GraduationStatusController {
 
     @Autowired
     GraduationStatusService gradStatusService;
+
+    @Autowired
+    Publisher publisher;
     
     @Autowired
 	GradValidation validation;
@@ -80,16 +86,20 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID", description = "Save Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<GraduationStudentRecord> saveStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStudentRecord graduationStatus) {
-        logger.debug("Save student Grad Status for Student ID");        
-        return response.GET(gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus));
+    public ResponseEntity<GraduationStudentRecord> saveStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStudentRecord graduationStatus) throws JsonProcessingException {
+        logger.debug("Save student Grad Status for Student ID");
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        String accessToken = auth.getTokenValue();
+        var result = gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken);
+        publishToJetStream(result.getRight());
+        return response.GET(result.getLeft());
     } 
     
     @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_UPDATE_BY_STUDENT_ID)
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Update Student Grad Status by Student ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    public ResponseEntity<GraduationStudentRecord> updateStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStudentRecord graduationStatus) {
+    public ResponseEntity<GraduationStudentRecord> updateStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStudentRecord graduationStatus) throws JsonProcessingException {
         logger.debug("update student Grad Status for Student ID");
         validation.requiredField(graduationStatus.getStudentID(), "Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
@@ -98,7 +108,9 @@ public class GraduationStatusController {
     		validation.stopOnErrors();
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-        return response.GET(gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken));
+        var result = gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken);
+        publishToJetStream(result.getRight());
+        return response.GET(result.getLeft());
     }
     
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN)
@@ -176,7 +188,7 @@ public class GraduationStatusController {
     @Operation(summary = "Ungrad Student Grad Status by STudent ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<GraduationStudentRecord> ungradStudent(@PathVariable String studentID,  @RequestParam(value = "ungradReasonCode", required = false) String ungradReasonCode,
-    		 @RequestParam(value = "ungradReasonDesc", required = false) String ungradReasonDesc) {
+    		 @RequestParam(value = "ungradReasonDesc", required = false) String ungradReasonDesc) throws JsonProcessingException {
         logger.debug("update student Grad Status for Student ID");
         validation.requiredField(studentID, "Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
@@ -185,7 +197,15 @@ public class GraduationStatusController {
     		validation.stopOnErrors();
     		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     	}
-        return response.GET(gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken));
+        var result = gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken);
+        publishToJetStream(result.getRight());
+        return response.GET(result.getLeft());
+    }
+
+    private void publishToJetStream(final GradStatusEvent event) {
+        if (event != null) {
+            publisher.dispatchChoreographyEvent(event);
+        }
     }
     
 }
