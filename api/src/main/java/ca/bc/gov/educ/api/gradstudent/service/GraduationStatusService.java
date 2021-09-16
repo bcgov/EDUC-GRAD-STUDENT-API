@@ -14,14 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
-import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
-import org.springframework.web.reactive.function.client.WebClient.RequestHeadersUriSpec;
-import org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GradProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentUngradReasons;
@@ -428,4 +423,21 @@ public class GraduationStatusService {
         toBeSaved.setUngradReasonDescription(unGradDesc);
         webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID)).headers(h -> h.setBearerAuth(accessToken)).body(BodyInserters.fromValue(toBeSaved)).retrieve().bodyToMono(GradStudentUngradReasons.class).block();
     }
+
+	public boolean restoreGradStudentRecord(UUID studentID,boolean isGraduated) {
+		Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        if (gradStatusOptional.isPresent()) {
+            GraduationStudentRecordEntity gradEnity = gradStatusOptional.get();
+            gradEnity.setRecalculateGradStatus("Y");
+            if(!isGraduated) {
+	            gradEnity.setProgramCompletionDate(null);
+	            gradEnity.setHonoursStanding(null);
+	            gradEnity.setGpa(null);
+	            gradEnity.setSchoolAtGrad(null);
+            }
+            graduationStatusRepository.save(gradEnity);
+            return true;
+        }
+        return false;
+	}
 }
