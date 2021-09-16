@@ -42,8 +42,10 @@ public class GraduationStatusTransformer {
 	public List<GraduationStudentRecord> transformToDTO (Iterable<GraduationStudentRecordEntity> gradStatusEntities ) {
 		List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
         for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
-        	GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);            
-        	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatus.getProgramCompletionDate() != null ? gradStatus.getProgramCompletionDate():null));
+        	GraduationStudentRecord gradStatus = new GraduationStudentRecord();
+        	gradStatus.setStudentID(gradStatusEntity.getStudentID());
+        	gradStatus.setProgram(gradStatusEntity.getProgram());
+        	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
         	gradStatusList.add(gradStatus);
         }
         return gradStatusList;
