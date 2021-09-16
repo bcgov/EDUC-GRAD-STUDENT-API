@@ -851,9 +851,7 @@ public class GraduationStatusServiceTest {
     public void testGetStudentsForGraduation() {
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(UUID.randomUUID());
-        graduationStatusEntity.setPen("123456789");
-        graduationStatusEntity.setStudentStatus("A");
-        graduationStatusEntity.setSchoolOfRecord("12345678");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setRecalculateGradStatus("Y");
 
         when(graduationStatusRepository.findByRecalculateGradStatus(graduationStatusEntity.getRecalculateGradStatus())).thenReturn(Arrays.asList(graduationStatusEntity));
@@ -862,9 +860,7 @@ public class GraduationStatusServiceTest {
         assertThat(result.size()).isEqualTo(1);
         GraduationStudentRecord responseGraduationStatus = result.get(0);
         assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
-        assertThat(responseGraduationStatus.getPen()).isEqualTo(graduationStatusEntity.getPen());
-        assertThat(responseGraduationStatus.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
-        assertThat(responseGraduationStatus.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(responseGraduationStatus.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
     }
 
     @Test
