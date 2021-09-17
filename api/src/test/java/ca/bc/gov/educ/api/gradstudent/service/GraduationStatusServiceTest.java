@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -171,6 +172,34 @@ public class GraduationStatusServiceTest {
         assertThat(result.getSchoolName()).isEqualTo(school.getSchoolName());
         assertThat(result.getSchoolAtGradName()).isEqualTo(school.getSchoolName());
     }
+    
+    @Test
+    public void testGetGraduationStatus_withoutprogram() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String mincode = "12345678";
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("123456789");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram(null);
+        graduationStatusEntity.setSchoolOfRecord(null);
+        graduationStatusEntity.setSchoolAtGrad(null);
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setStudentStatus(null);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));        
+        var result = graduationStatusService.getGraduationStatus(studentID, "accessToken");
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
+        assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
+        assertThat(result.getRecalculateGradStatus()).isEqualTo(graduationStatusEntity.getRecalculateGradStatus());
+        assertThat(result.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
+        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
+    }
 
     @Test
     public void testSaveGraduationStatusAsNew() {
@@ -184,8 +213,8 @@ public class GraduationStatusServiceTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
         graduationStatus.setProgram("2018-en");
-        graduationStatus.setSchoolOfRecord(mincode);
-        graduationStatus.setSchoolAtGrad(mincode);
+        graduationStatus.setSchoolOfRecord(null);
+        graduationStatus.setSchoolAtGrad(null);
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
@@ -822,9 +851,7 @@ public class GraduationStatusServiceTest {
     public void testGetStudentsForGraduation() {
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(UUID.randomUUID());
-        graduationStatusEntity.setPen("123456789");
-        graduationStatusEntity.setStudentStatus("A");
-        graduationStatusEntity.setSchoolOfRecord("12345678");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setRecalculateGradStatus("Y");
 
         when(graduationStatusRepository.findByRecalculateGradStatus(graduationStatusEntity.getRecalculateGradStatus())).thenReturn(Arrays.asList(graduationStatusEntity));
@@ -833,9 +860,7 @@ public class GraduationStatusServiceTest {
         assertThat(result.size()).isEqualTo(1);
         GraduationStudentRecord responseGraduationStatus = result.get(0);
         assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
-        assertThat(responseGraduationStatus.getPen()).isEqualTo(graduationStatusEntity.getPen());
-        assertThat(responseGraduationStatus.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
-        assertThat(responseGraduationStatus.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(responseGraduationStatus.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
     }
 
     @Test
@@ -981,5 +1006,60 @@ public class GraduationStatusServiceTest {
 
         graduationStatusService.saveUngradReason(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
 
+    }
+    
+    @Test
+    public void testRestoreGradStudentRecord() {
+    	 boolean isGraduated = false;
+    	 UUID studentID = new UUID(1, 1);
+		 GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+	     graduationStatusEntity.setStudentID(studentID);
+	     graduationStatusEntity.setPen("12321321");
+	     graduationStatusEntity.setStudentStatus("A");
+	     graduationStatusEntity.setSchoolOfRecord("12345678");
+	     
+	     GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
+	     graduationStatusEntity2.setStudentID(studentID);
+	     graduationStatusEntity2.setPen("12321321");
+	     graduationStatusEntity2.setStudentStatus("A");
+	     graduationStatusEntity2.setSchoolOfRecord("12345678");
+	     graduationStatusEntity2.setRecalculateGradStatus("Y");
+	     graduationStatusEntity2.setProgramCompletionDate(null);
+	     graduationStatusEntity2.setHonoursStanding(null);
+	     graduationStatusEntity2.setGpa(null);
+	     graduationStatusEntity2.setSchoolAtGrad(null);
+	     
+	     
+	     
+    	when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+    	when(graduationStatusRepository.save(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
+    	
+    	graduationStatusService.restoreGradStudentRecord(studentID, isGraduated);
+    	
+    }
+    
+    @Test
+    public void testRestoreGradStudentRecord_graduated() {
+    	 boolean isGraduated = true;
+    	 UUID studentID = new UUID(1, 1);
+		 GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+	     graduationStatusEntity.setStudentID(studentID);
+	     graduationStatusEntity.setPen("12321321");
+	     graduationStatusEntity.setStudentStatus("A");
+	     graduationStatusEntity.setSchoolOfRecord("12345678");
+	     
+	     GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
+	     graduationStatusEntity2.setStudentID(studentID);
+	     graduationStatusEntity2.setPen("12321321");
+	     graduationStatusEntity2.setStudentStatus("A");
+	     graduationStatusEntity2.setSchoolOfRecord("12345678");
+	     graduationStatusEntity2.setRecalculateGradStatus("Y");	     
+	     
+	     
+    	when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+    	when(graduationStatusRepository.save(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
+    	
+    	graduationStatusService.restoreGradStudentRecord(studentID, isGraduated);
+    	
     }
 }
