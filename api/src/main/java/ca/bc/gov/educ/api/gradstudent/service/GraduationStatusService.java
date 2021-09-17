@@ -28,6 +28,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import ca.bc.gov.educ.api.gradstudent.dto.GradProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.GradStudentUngradReasons;
+import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.dto.OptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.School;
+import ca.bc.gov.educ.api.gradstudent.dto.Student;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgramReq;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstudent.dto.StudentUngradReason;
+import ca.bc.gov.educ.api.gradstudent.dto.UngradReason;
 import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
@@ -475,4 +486,22 @@ public class GraduationStatusService {
                 .eventOutcome(eventOutcome.toString())
                 .build();
     }
+
+	public boolean restoreGradStudentRecord(UUID studentID,boolean isGraduated) {
+		Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        if (gradStatusOptional.isPresent()) {
+            GraduationStudentRecordEntity gradEnity = gradStatusOptional.get();
+            gradEnity.setRecalculateGradStatus("Y");
+            if(!isGraduated) {
+	            gradEnity.setProgramCompletionDate(null);
+	            gradEnity.setHonoursStanding(null);
+	            gradEnity.setGpa(null);
+	            gradEnity.setSchoolAtGrad(null);
+            }
+            graduationStatusRepository.save(gradEnity);
+            return true;
+        }
+        return false;
+	}
+  
 }
