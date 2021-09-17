@@ -4,10 +4,13 @@ import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgram;
 import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgramReq;
 import ca.bc.gov.educ.api.gradstudent.dto.GradStudentUngradReasons;
 import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -41,6 +44,9 @@ public class GraduationStatusControllerTest {
 
     @Mock
     GradValidation validation;
+
+    @Mock
+    Publisher publisher;
 
     @InjectMocks
     private GraduationStatusController graduationStatusController;
@@ -117,7 +123,7 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
-    public void testSaveStudentGradStatus() {
+    public void testSaveStudentGradStatus() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
@@ -133,16 +139,16 @@ public class GraduationStatusControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Mockito.when(graduationStatusService.saveGraduationStatus(studentID, graduationStatus)).thenReturn(graduationStatus);
+        Mockito.when(graduationStatusService.saveGraduationStatus(studentID, graduationStatus, null)).thenReturn(Pair.of(graduationStatus, null));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
         var result = graduationStatusController.saveStudentGradStatus(studentID.toString(), graduationStatus);
-        Mockito.verify(graduationStatusService).saveGraduationStatus(studentID, graduationStatus);
+        Mockito.verify(graduationStatusService).saveGraduationStatus(studentID, graduationStatus, null);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
-    public void testUpdateStudentGradStatus() {
+    public void testUpdateStudentGradStatus() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
@@ -167,7 +173,7 @@ public class GraduationStatusControllerTest {
         SecurityContextHolder.setContext(securityContext);
 
         Mockito.when(validation.hasErrors()).thenReturn(false);
-        Mockito.when(graduationStatusService.updateGraduationStatus(studentID, graduationStatus, null)).thenReturn(graduationStatus);
+        Mockito.when(graduationStatusService.updateGraduationStatus(studentID, graduationStatus, null)).thenReturn(Pair.of(graduationStatus, null));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
         var result = graduationStatusController.updateStudentGradStatus(studentID.toString(), graduationStatus);
         Mockito.verify(graduationStatusService).updateGraduationStatus(studentID, graduationStatus, null);
@@ -176,7 +182,7 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
-    public void testUpdateStudentGradStatus_whenValidationHasErrors_thenReturnBadRequestHttpStatus() {
+    public void testUpdateStudentGradStatus_whenValidationHasErrors_thenReturnBadRequestHttpStatus() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
 
@@ -384,7 +390,7 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
-    public void testUgradStudent() {
+    public void testUgradStudent() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
@@ -404,7 +410,7 @@ public class GraduationStatusControllerTest {
         responseStudentUngradReasons.setUngradReasonCode(ungradReasonCode);
 
         Mockito.when(validation.hasErrors()).thenReturn(false);
-        Mockito.when(graduationStatusService.ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, null)).thenReturn(graduationStatus);
+        Mockito.when(graduationStatusService.ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, null)).thenReturn(Pair.of(graduationStatus, null));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
         var result = graduationStatusController.ungradStudent(studentID.toString(), ungradReasonCode,ungradReasonDesc);
         Mockito.verify(graduationStatusService).ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, null);
