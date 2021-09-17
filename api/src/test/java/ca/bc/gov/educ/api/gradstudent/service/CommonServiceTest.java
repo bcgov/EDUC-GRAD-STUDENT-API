@@ -12,6 +12,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,6 +74,16 @@ public class CommonServiceTest {
     private WebClient.RequestBodyUriSpec requestBodyUriMock;
     @Mock
     private WebClient.ResponseSpec responseMock;
+
+    // NATS
+    @MockBean
+    private NatsConnection natsConnection;
+
+    @MockBean
+    private Publisher publisher;
+
+    @MockBean
+    private Subscriber subscriber;
 
     @Before
     public void setUp() {
