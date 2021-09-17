@@ -47,17 +47,17 @@ public class Subscriber {
 
 
   /**
-   * This subscription will makes sure the messages are required to acknowledge manually to Jet Stream.
+   * This subscription will make sure the messages are required to acknowledge manually to Jet Stream.
    * Subscribe.
    *
    * @throws IOException the io exception
    */
   @PostConstruct
   public void subscribe() throws IOException, JetStreamApiException {
-    val qName = "GRAD-STATUS-EVENTS-TOPIC-GRAD-STATUS-API-QUEUE";
+    val qName = "GRAD-STATUS-EVENTS-TOPIC-GRAD-STUDENT-API-QUEUE";
     val autoAck = false;
     PushSubscribeOptions options = PushSubscribeOptions.builder().stream(EducGradStudentApiConstants.STREAM_NAME)
-        .durable("GRAD-STATUS-API-GRAD-STATUS-EVENTS-TOPIC-DURABLE")
+        .durable("GRAD-STATUS-EVENTS-TOPIC-GRAD-STUDENT-API-DURABLE")
         .configuration(ConsumerConfiguration.builder().deliverPolicy(DeliverPolicy.New).build()).build();
     this.natsConnection.jetStream().subscribe(GRAD_STATUS_EVENTS_TOPIC.toString(), qName, this.natsConnection.createDispatcher(), this::onGradStatusEventsTopicMessage,
         autoAck, options);
