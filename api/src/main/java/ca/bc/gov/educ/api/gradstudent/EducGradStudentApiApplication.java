@@ -1,11 +1,18 @@
 package ca.bc.gov.educ.api.gradstudent;
 
+import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -13,11 +20,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
+import org.springframework.transaction.PlatformTransactionManager;
 
 
 @SpringBootApplication
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableCaching
+@EnableScheduling
+@EnableSchedulerLock(defaultLockAtMostFor = "1s")
+@EnableRetry
 public class EducGradStudentApiApplication {
 
     public static void main(String[] args) {
@@ -52,5 +63,17 @@ public class EducGradStudentApiApplication {
                     "/api/v1/swagger-ui/**", "/api/v1/api-docs/**",
                     "/actuator/health", "/actuator/prometheus", "/health");
         }
+    }
+
+    /**
+     * Lock provider lock provider.
+     *
+     * @param jdbcTemplate       the jdbc template
+     * @param transactionManager the transaction manager
+     * @return the lock provider
+     */
+    @Bean
+    public LockProvider lockProvider(@Autowired JdbcTemplate jdbcTemplate, @Autowired PlatformTransactionManager transactionManager) {
+        return new JdbcTemplateLockProvider(jdbcTemplate, transactionManager, "STATUS_SHEDLOCK");
     }
 }
