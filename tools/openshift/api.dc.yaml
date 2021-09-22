@@ -58,7 +58,7 @@ objects:
                 - configMapRef:
                     name: educ-grad-student-api-config-map
                 - configMapRef:
-                    name: educ-grad-nats-messaging-config
+                    name: educ-grad-nats-messaging-config-map
                 - secretRef:
                     name: api-grad-student-db-secret
                 - secretRef:
