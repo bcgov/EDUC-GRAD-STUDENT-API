@@ -170,7 +170,7 @@ public class GraduationStatusService {
             }
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
-            gradEntity = graduationStatusRepository.save(gradEntity);
+            gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             final GraduationStudentRecord updatedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                     updatedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, accessToken);
