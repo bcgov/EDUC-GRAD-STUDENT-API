@@ -13,7 +13,15 @@ import java.util.UUID;
 @Table(name = "GRADUATION_STUDENT_RECORD")
 public class GraduationStudentRecordEntity extends BaseEntity {
 
-    @Transient
+    public GraduationStudentRecordEntity(String gradProgram, String schoolOfRecord) {
+		this.program= gradProgram;
+		this.schoolOfRecord = schoolOfRecord;
+	}
+
+	public GraduationStudentRecordEntity() {
+	}
+
+	@Transient
     private String pen;
 
     @Lob

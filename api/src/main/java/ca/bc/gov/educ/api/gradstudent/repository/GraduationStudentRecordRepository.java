@@ -1,12 +1,15 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.UUID;
+import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
 
 @Repository
 public interface GraduationStudentRecordRepository extends JpaRepository<GraduationStudentRecordEntity, UUID> {
@@ -18,4 +21,9 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	@Query("select c from GraduationStudentRecordEntity c where c.studentStatus=:statusCode")
 	List<GraduationStudentRecordEntity> existsByStatusCode(String statusCode);
+	
+	@Query(value="SELECT si.* FROM graduation_student_record si where "
+			+ "(:gradProgram is null or si.graduation_program_code = :gradProgram) and "
+			+ "(:schoolOfRecord is null or si.school_of_record = :schoolOfRecord)",nativeQuery = true)
+	public Page<GraduationStudentRecordEntity> findStudentWithFilter(String gradProgram,String schoolOfRecord, Pageable paging);
 }
