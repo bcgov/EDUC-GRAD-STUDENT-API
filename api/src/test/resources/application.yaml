@@ -8,10 +8,8 @@ spring:
       maximum-pool-size: 1
       connection-timeout: 6000
       max-lifetime: 600000
-    driver-class: org.h2.Driver
   jpa:
     show-sql: true
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
     generate-ddl: true
@@ -21,14 +19,7 @@ spring:
     deserialization:
       fail-on-unknown-properties: false
   flyway:
-    enabled: true
-    baseline-on-migrate: true
-    table: FLYWAY_SCHEMA_HISTORY
-    url: jdbc:oracle:thin:@//localhost:1522/XEPDB1
-    schemas: API_GRAD_STUDENT
-    user: API_GRAD_STUDENT
-    password: API_GRAD_STUDENT
-    locations: classpath:db/migration
+    enabled: false
 
 #Logging properties
 logging:
@@ -55,12 +46,40 @@ logging:
           autoconfigure:
             logging: INFO
 
+#Local properties
+server:
+  undertow:
+    threads:
+      worker: 128
+      io: 16
+  port: 9999
+  tomcat:
+    connection-timeout: 200s
+
+#API Documentation
+springdoc:
+  api-docs:
+    path: /api/v1/api-docs
+  swagger-ui:
+    path: /api/v1/api-docs-ui.html
+    operationsSorter: alpha
+
 #NATS
 nats:
-  url: test
+  url: nats://localhost:4222
   maxReconnect: 60
   connectionName: GRAD-STUDENT-API
-
+ 
+#Scheduler
+cron:
+  scheduled:
+    process:
+      events:
+        stan:
+          run: 0 0/5 * * * *
+          lockAtLeastFor: 800ms
+          lockAtMostFor: 900ms
+          
 #Endpoint properties
 endpoint:
   grad-trax-api:
