@@ -70,7 +70,7 @@ public class GradStudentControllerTest {
         Mockito.when(gradStudentService.getStudentFromStudentAPI(
                 null, lastName, null, null, null, null, null, mincode, null, null,
                 null, 1, 5, null)).thenReturn(studentSearch);
-        gradStudentController.getGradStudentFromStudentAPI(null, lastName, null, null, null, null, null, mincode, null, null,
+        gradStudentController.getGradNPenGradStudentFromStudentAPI(null, lastName, null, null, null, null, null, mincode, null, null,
                 null, 1, 5);
         Mockito.verify(gradStudentService).getStudentFromStudentAPI(null, lastName, null, null, null, null, null, mincode, null, null,
                 null, 1, 5, null);
