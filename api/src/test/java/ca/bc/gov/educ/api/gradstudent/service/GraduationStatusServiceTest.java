@@ -235,7 +235,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
-        when(graduationStatusRepository.save(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
+        when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
         var response = graduationStatusService.saveGraduationStatus(studentID, graduationStatus, "accessToken");
         assertThat(response).isNotNull();
@@ -280,7 +280,7 @@ public class GraduationStatusServiceTest {
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         var response = graduationStatusService.saveGraduationStatus(studentID, input, "accessToken");
         assertThat(response).isNotNull();
@@ -325,7 +325,7 @@ public class GraduationStatusServiceTest {
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
         assertThat(response).isNotNull();
@@ -382,7 +382,7 @@ public class GraduationStatusServiceTest {
         student.setEmail("qa@test.com");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByStudentIdUrl(),studentID))).thenReturn(this.requestHeadersMock);
@@ -442,7 +442,7 @@ public class GraduationStatusServiceTest {
         program.setProgramName("Graduation Program 2018");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getGradProgramNameUrl(),program.getProgramCode()))).thenReturn(this.requestHeadersMock);
@@ -501,7 +501,7 @@ public class GraduationStatusServiceTest {
         program.setProgramName("Graduation Program 1950");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
         when(validation.hasErrors()).thenReturn(true);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
@@ -561,7 +561,7 @@ public class GraduationStatusServiceTest {
         program.setProgramName("Graduation Program 2018");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
         when(validation.hasErrors()).thenReturn(true);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
@@ -623,7 +623,7 @@ public class GraduationStatusServiceTest {
         school.setOpenFlag("Y");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),newMincode))).thenReturn(this.requestHeadersMock);
@@ -684,7 +684,7 @@ public class GraduationStatusServiceTest {
         school.setOpenFlag("Y");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),newMincode))).thenReturn(this.requestHeadersMock);
@@ -740,7 +740,7 @@ public class GraduationStatusServiceTest {
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.save(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
         assertThat(response).isNotNull();
@@ -1066,7 +1066,7 @@ public class GraduationStatusServiceTest {
 	     
 	     
     	when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-    	when(graduationStatusRepository.save(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
+    	when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
     	
     	graduationStatusService.restoreGradStudentRecord(studentID, isGraduated);
     	

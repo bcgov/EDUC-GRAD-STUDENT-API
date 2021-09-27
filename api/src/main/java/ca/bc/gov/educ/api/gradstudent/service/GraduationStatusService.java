@@ -136,14 +136,14 @@ public class GraduationStatusService {
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE);
             gradEntity.setRecalculateGradStatus(null);
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
-            gradEntity = graduationStatusRepository.save(gradEntity);
+            gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                     savedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, accessToken);
             gradStatusEventRepository.save(gradStatusEvent);
             return Pair.of(savedGraduationStatus, gradStatusEvent);
         } else {
-            sourceObject = graduationStatusRepository.save(sourceObject);
+            sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(sourceObject);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreateUser(), sourceObject.getUpdateUser(),
                     savedGraduationStatus, EventType.CREATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_CREATED, accessToken);
@@ -170,7 +170,7 @@ public class GraduationStatusService {
             }
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
-            gradEntity = graduationStatusRepository.save(gradEntity);
+            gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             final GraduationStudentRecord updatedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                     updatedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, accessToken);
