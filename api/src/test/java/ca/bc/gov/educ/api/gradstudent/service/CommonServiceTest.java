@@ -53,6 +53,9 @@ public class CommonServiceTest {
     private CommonService commonService;
 
     @MockBean
+    private GraduationStatusService graduationStatusService;
+
+    @MockBean
     private StudentCareerProgramRepository gradStudentCareerProgramRepository;
 
     @MockBean
@@ -447,6 +450,19 @@ public class CommonServiceTest {
 		commonService.updateStudentStatus(obj);
 		
 	}
+
+    @Test
+    public void testDeleteStudentStatus_withGivenStudentStatus() {
+        Mockito.when(graduationStatusService.getStudentStatus("DC")).thenReturn(false);
+        var result = commonService.deleteStudentStatus("DC");
+        assertThat(result).isEqualTo(1);
+    }
+
+	@Test(expected = GradBusinessRuleException.class)
+    public void testDeleteStudentStatus_whenCodeDoesNotExist() {
+        Mockito.when(graduationStatusService.getStudentStatus("DC")).thenReturn(true);
+        commonService.deleteStudentStatus("DC");
+    }
 	
 	private StudentStatusEntity createStudentStatuses() {
     	StudentStatusEntity objEntity = new StudentStatusEntity();
