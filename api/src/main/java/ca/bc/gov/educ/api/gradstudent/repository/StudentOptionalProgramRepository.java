@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
-import ca.bc.gov.educ.api.gradstudent.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
