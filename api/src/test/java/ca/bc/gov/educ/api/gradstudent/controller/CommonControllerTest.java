@@ -18,10 +18,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 
-import ca.bc.gov.educ.api.gradstudent.dto.CareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstudent.model.dto.CareerProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;

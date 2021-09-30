@@ -1,8 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentSearch;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearch;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

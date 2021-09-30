@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradOnlyStudentSearch;
-import ca.bc.gov.educ.api.gradstudent.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentSearch;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradOnlyStudentSearch;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearch;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;

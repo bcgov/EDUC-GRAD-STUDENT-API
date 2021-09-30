@@ -12,8 +12,8 @@ import java.util.UUID;
 
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
-import ca.bc.gov.educ.api.gradstudent.dto.*;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,23 +28,23 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentUngradReasons;
-import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.dto.OptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.School;
-import ca.bc.gov.educ.api.gradstudent.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgramReq;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentUngradReason;
-import ca.bc.gov.educ.api.gradstudent.dto.UngradReason;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUngradReasons;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.School;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramReq;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentUngradReason;
+import ca.bc.gov.educ.api.gradstudent.model.dto.UngradReason;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.transformer.GradStudentSpecialProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentSpecialProgramTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 
@@ -78,6 +78,9 @@ public class GraduationStatusService {
 
     @Autowired
     private GradStudentService gradStudentService;
+    
+    @Autowired
+    private HistoryService historyService;
 
     @Autowired
     GradValidation validation;
@@ -171,6 +174,7 @@ public class GraduationStatusService {
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
+            historyService.createStudentHistory(gradEntity, "USEREDIT");
             final GraduationStudentRecord updatedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                     updatedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, accessToken);

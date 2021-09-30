@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
-import ca.bc.gov.educ.api.gradstudent.dto.ChoreographedEvent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
 import ca.bc.gov.educ.api.gradstudent.service.JetStreamEventHandlerService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;

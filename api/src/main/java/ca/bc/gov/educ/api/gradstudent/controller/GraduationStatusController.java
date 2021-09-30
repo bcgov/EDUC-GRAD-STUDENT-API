@@ -1,9 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentOptionalProgramReq;
-import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramReq;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
