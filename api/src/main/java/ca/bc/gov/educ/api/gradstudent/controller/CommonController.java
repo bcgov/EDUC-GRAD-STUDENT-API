@@ -24,10 +24,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ca.bc.gov.educ.api.gradstudent.dto.GradStudentAlgorithmData;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentAlgorithmData;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
 import ca.bc.gov.educ.api.gradstudent.util.ApiResponseModel;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;

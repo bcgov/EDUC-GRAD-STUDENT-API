@@ -27,21 +27,21 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ca.bc.gov.educ.api.gradstudent.dto.Condition;
-import ca.bc.gov.educ.api.gradstudent.dto.FilterOperation;
-import ca.bc.gov.educ.api.gradstudent.dto.GradOnlyStudentSearch;
-import ca.bc.gov.educ.api.gradstudent.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.dto.RestResponsePage;
-import ca.bc.gov.educ.api.gradstudent.dto.School;
-import ca.bc.gov.educ.api.gradstudent.dto.Search;
-import ca.bc.gov.educ.api.gradstudent.dto.SearchCriteria;
-import ca.bc.gov.educ.api.gradstudent.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentSearch;
-import ca.bc.gov.educ.api.gradstudent.dto.ValueType;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Condition;
+import ca.bc.gov.educ.api.gradstudent.model.dto.FilterOperation;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradOnlyStudentSearch;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.RestResponsePage;
+import ca.bc.gov.educ.api.gradstudent.model.dto.School;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Search;
+import ca.bc.gov.educ.api.gradstudent.model.dto.SearchCriteria;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearch;
+import ca.bc.gov.educ.api.gradstudent.model.dto.ValueType;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 
 @Service
@@ -190,7 +190,7 @@ public class GradStudentService {
 	    return null;
 	}
 	public GradOnlyStudentSearch getStudentFromStudentAPIGradOnly(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
-			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo,String accessToken) {
+			String gender, String minCode, String localID, String birthdateFrom,String birthdateTo,String accessToken) {
 		List<GradSearchStudent> gradStudentList = new ArrayList<>();
 		List<SearchCriteria> criteriaList = new ArrayList<>();
 		criteriaList = getSearchCriteria(legalFirstName,null,LEGAL_FIRST_NAME,criteriaList);
@@ -202,7 +202,7 @@ public class GradStudentService {
 		criteriaList = getSearchCriteria(localID,null,LOCAL_ID,criteriaList);
 		criteriaList = getSearchCriteria(gender,null,GENDER_CODE,criteriaList);
 		criteriaList = getSearchCriteria(birthdateFrom,birthdateTo,DOB,criteriaList);
-		criteriaList = getSearchCriteria(mincode,null,MINCODE,criteriaList);
+		criteriaList = getSearchCriteria(minCode,null,MINCODE,criteriaList);
 		
 		List<Search> searches = new LinkedList<>();
 		GradOnlyStudentSearch searchObj = new GradOnlyStudentSearch();
@@ -214,19 +214,31 @@ public class GradStudentService {
 			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiUrl(),
 				uri -> uri
 					.queryParam(PAGE_NUMBER, "0")
-					.queryParam(PAGE_SIZE, "1000")
+					.queryParam(PAGE_SIZE, "50000")
 					.queryParam(SEARCH_CRITERIA_LIST, encodedURL)
 				.build())
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve().bodyToMono(new ParameterizedTypeReference<RestResponsePage<Student>>() {}).block();
-			List<Student> studentList = response.getContent();
-			if (!studentList.isEmpty()) {
-				studentList.forEach(st -> {
-					GradSearchStudent gradStu = populateGradSearchStudent(st, accessToken);
-					if(gradStu.getProgram() != null) {
-						gradStudentList.add(gradStu);
-					}
-				});
+			List<Student> studentLists = response.getContent();
+			List<UUID> studentIds = studentLists.stream().map(std -> UUID.fromString(std.getStudentID())).collect(Collectors.toList());
+			int partitionSize = 1000;
+			List<List<UUID>> partitions = new LinkedList<List<UUID>>();
+			for (int i = 0; i < studentIds.size(); i += partitionSize) {
+				partitions.add(studentIds.subList(i,Math.min(i + partitionSize, studentIds.size())));
+			}
+			logger.debug(" partitions length " + partitions.size());
+			for(int i=0; i<partitions.size();i++) {
+				List<UUID> subList = partitions.get(i);
+				logger.debug(" sub list length "+subList.size()+" par "+i);
+				List<GraduationStudentRecordEntity> gradList = graduationStatusRepository.findByStudentIDIn(subList);
+				if (!gradList.isEmpty()) {
+					gradList.forEach(st -> {
+						GradSearchStudent gradStu = populateGradStudent(st, accessToken);
+						if(gradStu.getProgram() != null) {
+							gradStudentList.add(gradStu);
+						}
+					});
+				}
 			}
 			searchObj.setGradSearchStudents(gradStudentList);
 			searchObj.setSearchMessage(String.format(messageStringMoreMatchesFound, response.getTotalElements()-gradStudentList.size()));
@@ -272,6 +284,21 @@ public class GradStudentService {
 		}
 		if(criteria != null) criteriaList.add(criteria);
 		return criteriaList;
+	}
+
+	private GradSearchStudent populateGradStudent(GraduationStudentRecordEntity gradRecord, String accessToken) {
+		GradSearchStudent gradStu = new GradSearchStudent();
+		BeanUtils.copyProperties(gradRecord, gradStu);
+		Student studentPen = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), gradRecord.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+		if(studentPen != null) {
+			BeanUtils.copyProperties(studentPen, gradStu);
+		}
+		School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+		if (school != null) {
+			gradStu.setSchoolOfRecordName(school.getSchoolName());
+			gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
+		}
+		return gradStu;
 	}
 
     private GradSearchStudent populateGradSearchStudent(Student student, String accessToken) {

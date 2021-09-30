@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
-import ca.bc.gov.educ.api.gradstudent.dto.BaseModel;
+import ca.bc.gov.educ.api.gradstudent.model.dto.BaseModel;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
