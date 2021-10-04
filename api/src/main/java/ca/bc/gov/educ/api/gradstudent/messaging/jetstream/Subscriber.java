@@ -1,11 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
-import ca.bc.gov.educ.api.gradstudent.dto.ChoreographedEvent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
 import ca.bc.gov.educ.api.gradstudent.service.JetStreamEventHandlerService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import ca.bc.gov.educ.api.gradstudent.util.LogHelper;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.Message;
@@ -64,7 +63,7 @@ public class Subscriber {
   }
 
   /**
-   * This method will process the event message pushed into the student_events_topic.
+   * This method will process the event message pushed into the grad_status_events_topic.
    * this will get the message and update the event status to mark that the event reached the message broker.
    * On message message handler.
    *

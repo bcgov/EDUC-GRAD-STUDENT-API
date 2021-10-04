@@ -1,8 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.dto.*;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
@@ -17,7 +17,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

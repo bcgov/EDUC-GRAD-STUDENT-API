@@ -28,12 +28,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.dto.CareerProgram;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.dto.StudentStatus;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentRecordNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.entity.StudentStatusEntity;
+import ca.bc.gov.educ.api.gradstudent.model.dto.CareerProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
@@ -51,6 +51,9 @@ public class CommonServiceTest {
 
     @Autowired
     private CommonService commonService;
+
+    @MockBean
+    private GraduationStatusService graduationStatusService;
 
     @MockBean
     private StudentCareerProgramRepository gradStudentCareerProgramRepository;
@@ -447,6 +450,19 @@ public class CommonServiceTest {
 		commonService.updateStudentStatus(obj);
 		
 	}
+
+    @Test
+    public void testDeleteStudentStatus_withGivenStudentStatus() {
+        Mockito.when(graduationStatusService.getStudentStatus("DC")).thenReturn(false);
+        var result = commonService.deleteStudentStatus("DC");
+        assertThat(result).isEqualTo(1);
+    }
+
+	@Test(expected = GradBusinessRuleException.class)
+    public void testDeleteStudentStatus_whenCodeDoesNotExist() {
+        Mockito.when(graduationStatusService.getStudentStatus("DC")).thenReturn(true);
+        commonService.deleteStudentStatus("DC");
+    }
 	
 	private StudentStatusEntity createStudentStatuses() {
     	StudentStatusEntity objEntity = new StudentStatusEntity();

@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import ca.bc.gov.educ.api.gradstudent.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 
 @Repository
 public interface GraduationStudentRecordRepository extends JpaRepository<GraduationStudentRecordEntity, UUID> {
@@ -26,4 +26,6 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 			+ "(:gradProgram is null or si.graduation_program_code = :gradProgram) and "
 			+ "(:schoolOfRecord is null or si.school_of_record = :schoolOfRecord)",nativeQuery = true)
 	public Page<GraduationStudentRecordEntity> findStudentWithFilter(String gradProgram,String schoolOfRecord, Pageable paging);
+
+    List<GraduationStudentRecordEntity> findByStudentIDIn(List<UUID> studentIds);
 }

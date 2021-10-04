@@ -17,8 +17,14 @@
             src/main/resources/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/config/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/dto/**,
+            src/main/java/ca/bc/gov/educ/api/gradstudent/entity/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/util/**
+            src/main/java/ca/bc/gov/educ/api/gradstudent/transformer/**
         </sonar.exclusions>
+        <sonar.junit.exclusions>
+            src/main/java/ca/bc/gov/educ/api/gradstudent/messaging/**,
+            src/main/java/ca/bc/gov/educ/api/gradstudent/scheduler/**
+        </sonar.junit.exclusions>
         <java.version>11</java.version>
         <maven.compiler.version>3.8.0</maven.compiler.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>

@@ -2,8 +2,8 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
-import ca.bc.gov.educ.api.gradstudent.dto.ChoreographedEvent;
-import ca.bc.gov.educ.api.gradstudent.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import io.nats.client.Connection;

@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
-import ca.bc.gov.educ.api.gradstudent.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
