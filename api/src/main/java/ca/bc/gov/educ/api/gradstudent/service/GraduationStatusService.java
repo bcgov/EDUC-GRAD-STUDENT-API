@@ -140,6 +140,7 @@ public class GraduationStatusService {
             gradEntity.setRecalculateGradStatus(null);
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
+            historyService.createStudentHistory(gradEntity, "GRADALG");
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                     savedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, accessToken);
@@ -368,8 +369,10 @@ public class GraduationStatusService {
     }
     
     public StudentOptionalProgram updateStudentGradSpecialProgram(StudentOptionalProgramReq gradStudentSpecialProgramReq,String accessToken) {
-        Optional<StudentOptionalProgramEntity> gradStudentSpecialOptional =
-				gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramReq.getId());
+        Optional<StudentOptionalProgramEntity> gradStudentSpecialOptional = Optional.empty();
+        if(gradStudentSpecialProgramReq.getId() != null)
+            gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramReq.getId());
+
         StudentOptionalProgramEntity sourceObject = new StudentOptionalProgramEntity();
         OptionalProgram gradSpecialProgram = webClient.get()
 				.uri(String.format(constants.getGradSpecialProgramDetailsUrl(), gradStudentSpecialProgramReq.getMainProgramCode(),gradStudentSpecialProgramReq.getSpecialProgramCode()))
@@ -377,17 +380,27 @@ public class GraduationStatusService {
 				.retrieve()
 				.bodyToMono(OptionalProgram.class)
 				.block();
+        sourceObject.setId(gradStudentSpecialProgramReq.getId());
         sourceObject.setPen(gradStudentSpecialProgramReq.getPen());
         sourceObject.setStudentID(gradStudentSpecialProgramReq.getStudentID());
         sourceObject.setSpecialProgramCompletionDate(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate() != null ?Date.valueOf(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate()) : null);
         sourceObject.setOptionalProgramID(gradSpecialProgram.getOptionalProgramID());
         if (gradStudentSpecialOptional.isPresent()) {
-            StudentOptionalProgramEntity gradEnity = gradStudentSpecialOptional.get();
-            BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
-            gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
-            return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(gradEnity));
+            StudentOptionalProgramEntity gradEntity = gradStudentSpecialOptional.get();
+            if(gradEntity.getOptionalProgramID().equals(sourceObject.getOptionalProgramID())) {
+                sourceObject.setStudentSpecialProgramData(gradEntity.getStudentSpecialProgramData());
+            }else {
+                sourceObject.setStudentSpecialProgramData(null);
+            }
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE,"id");
+            gradEntity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
+            gradEntity = gradStudentSpecialProgramRepository.save(gradEntity);
+            historyService.createStudentOptionalProgramHistory(gradEntity, "USEREDIT");
+            return gradStudentSpecialProgramTransformer.transformToDTO(gradEntity);
         } else {
-            return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(sourceObject));
+            sourceObject = gradStudentSpecialProgramRepository.save(sourceObject);
+            historyService.createStudentOptionalProgramHistory(sourceObject, "USEREDIT");
+            return gradStudentSpecialProgramTransformer.transformToDTO(sourceObject);
         }
     }
 
@@ -437,6 +450,7 @@ public class GraduationStatusService {
                     gradEntity.setGpa(null);
                     gradEntity.setSchoolAtGrad(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
+                    historyService.createStudentHistory(gradEntity, "USERUNGRAD");
                     final GraduationStudentRecord graduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                             graduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, accessToken);
