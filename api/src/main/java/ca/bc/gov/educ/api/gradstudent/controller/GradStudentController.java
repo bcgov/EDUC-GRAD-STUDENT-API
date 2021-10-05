@@ -64,32 +64,6 @@ public class GradStudentController {
         return gradStudentService.getStudentFromStudentAPIGradOnly(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,gender,mincode,localID,birthdateFrom,birthdateTo,accessToken);
 		
 	}
-    
-    @GetMapping(EducGradStudentApiConstants.SEARCH_GRAD_STUDENTS)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
-	@Operation(summary = "Search For Students", description = "Advanced Search for Student Demographics", tags = { "Student Demographics" })
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-	public GradOnlyStudentSearch getGRADStudents(
-			@RequestParam(value = "legalFirstName", required = false) String legalFirstName,
-			@RequestParam(value = "legalLastName", required = false) String legalLastName,
-			@RequestParam(value = "legalMiddleNames", required = false) String legalMiddleNames,
-			@RequestParam(value = "usualFirstName", required = false) String usualFirstName,
-			@RequestParam(value = "usualLastName", required = false) String usualLastName,
-			@RequestParam(value = "usualMiddleNames", required = false) String usualMiddleNames,
-			@RequestParam(value = "gender", required = false) String gender,
-			@RequestParam(value = "mincode", required = false) String mincode,
-			@RequestParam(value = "localID", required = false) String localID,
-			@RequestParam(value = "birthdateFrom", required = false) String birthdateFrom,
-			@RequestParam(value = "birthdateTo", required = false) String birthdateTo,
-			@RequestParam(value = "schoolOfRecord", required = false) String schoolOfRecord,
-			@RequestParam(value = "gradProgram", required = false) String gradProgram,
-			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-        return gradStudentService.getGRADStudents(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,gender,mincode,localID,birthdateFrom,birthdateTo,schoolOfRecord,gradProgram,pageNumber,pageSize,accessToken);
-		
-	}
 	
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
     @PreAuthorize("#oauth2.hasScope('READ_GRAD_AND_PEN_STUDENT_DATA')")

@@ -4,6 +4,11 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import java.util.List;
 import java.util.UUID;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramHistory;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentOptionalProgramHistoryTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -31,6 +36,12 @@ public class HistoryService {
     @Autowired
     private GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer;
 
+    @Autowired
+    private StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
+
+    @Autowired
+    private StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer;
+
 
     public GraduationStudentRecordHistoryEntity createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
     	logger.info("Create Student History");
@@ -39,10 +50,22 @@ public class HistoryService {
         graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
         return graduationStudentRecordHistoryRepository.save(graduationStudentRecordHistoryEntity);
     }
+
+    public StudentOptionalProgramHistoryEntity createStudentOptionalProgramHistory(StudentOptionalProgramEntity curStudentOptionalProgramEntity, String historyActivityCode) {
+        logger.info("Create Student History");
+        final StudentOptionalProgramHistoryEntity studentOptionalProgramHistoryEntity = new StudentOptionalProgramHistoryEntity();
+        BeanUtils.copyProperties(curStudentOptionalProgramEntity, studentOptionalProgramHistoryEntity);
+        studentOptionalProgramHistoryEntity.setStudentOptionalProgramID(curStudentOptionalProgramEntity.getId());
+        studentOptionalProgramHistoryEntity.setActivityCode(historyActivityCode);
+        return studentOptionalProgramHistoryRepository.save(studentOptionalProgramHistoryEntity);
+    }
     
     public List<GraduationStudentRecordHistory> getStudentEditHistory(UUID studentID) {
         return graduationStudentRecordHistoryTransformer.transformToDTO(graduationStudentRecordHistoryRepository.findByStudentID(studentID));
     }
-    
+
+    public List<StudentOptionalProgramHistory> getStudentOptionalProgramEditHistory(UUID studentID) {
+        return studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findByStudentID(studentID));
+    }
   
 }
