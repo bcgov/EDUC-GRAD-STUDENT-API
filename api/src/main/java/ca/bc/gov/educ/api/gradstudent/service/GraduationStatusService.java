@@ -167,6 +167,9 @@ public class GraduationStatusService {
                 validation.stopOnErrors();
                 return Pair.of(new GraduationStudentRecord(), null);
             }
+            if(hasDataChanged && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
+                deleteStudentOptionalPrograms(sourceObject.getStudentID());
+            }
             if (hasDataChanged) {
                 gradEntity.setRecalculateGradStatus("Y");
             } else {
@@ -323,6 +326,16 @@ public class GraduationStatusService {
         return hasDataChangd;
     }
 
+    private void deleteStudentOptionalPrograms(UUID studentID) {
+        List<StudentOptionalProgramEntity> studOpList = gradStudentSpecialProgramRepository.findByStudentID(studentID);
+        if(!studOpList.isEmpty()) {
+            for (StudentOptionalProgramEntity studentOptionalProgramEntity : studOpList) {
+                historyService.createStudentOptionalProgramHistory(studentOptionalProgramEntity,"USERDELETE");
+                gradStudentSpecialProgramRepository.deleteById(studentOptionalProgramEntity.getId());
+            }
+        }
+    }
+
     private String getHonoursFlag(String gPA) {
         if (Float.parseFloat(gPA) > 3)
             return "Y";
@@ -362,7 +375,9 @@ public class GraduationStatusService {
             StudentOptionalProgramEntity gradEnity = gradStudentSpecialOptional.get();
             BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
             gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
-            return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(gradEnity));
+            gradEnity = gradStudentSpecialProgramRepository.save(gradEnity);
+            historyService.createStudentOptionalProgramHistory(gradEnity,"GRADGALG");
+            return gradStudentSpecialProgramTransformer.transformToDTO(gradEnity);
         } else {
             return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(sourceObject));
         }
