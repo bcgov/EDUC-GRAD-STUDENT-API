@@ -72,6 +72,7 @@ public class Publisher {
       ChoreographedEvent choreographedEvent = new ChoreographedEvent();
       choreographedEvent.setEventType(EventType.valueOf(event.getEventType()));
       choreographedEvent.setEventOutcome(EventOutcome.valueOf(event.getEventOutcome()));
+      choreographedEvent.setActivityCode(event.getActivityCode());
       choreographedEvent.setEventPayload(event.getEventPayload());
       choreographedEvent.setEventID(event.getEventId().toString());
       choreographedEvent.setCreateUser(event.getCreateUser());
