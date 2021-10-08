@@ -66,6 +66,10 @@ public class EducGradStudentApiConstants {
     public static final String STUDENT_ALGORITHM_DATA = "/algorithmdata/{studentID}";
     
     public static final String RETURN_TO_ORIGINAL_STATE = "/algorithmerror/{studentID}";
+
+    public static final String GRAD_STUDENT_EDIT_HISTORY = "/studentHistory/{studentID}";
+    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_EDIT_HISTORY = "/studentOptionalProgramHistory/{studentID}";
+
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final Date DEFAULT_CREATED_TIMESTAMP = new Date();
