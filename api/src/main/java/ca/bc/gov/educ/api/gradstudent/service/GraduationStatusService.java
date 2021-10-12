@@ -143,14 +143,14 @@ public class GraduationStatusService {
             historyService.createStudentHistory(gradEntity, "GRADALG");
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                    savedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, accessToken);
+                    savedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, "GRADALG", accessToken);
             gradStatusEventRepository.save(gradStatusEvent);
             return Pair.of(savedGraduationStatus, gradStatusEvent);
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(sourceObject);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreateUser(), sourceObject.getUpdateUser(),
-                    savedGraduationStatus, EventType.CREATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_CREATED, accessToken);
+                    savedGraduationStatus, EventType.CREATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_CREATED, "GRADALG", accessToken);
             gradStatusEventRepository.save(gradStatusEvent);
             return Pair.of(savedGraduationStatus, gradStatusEvent);
         }
@@ -167,6 +167,9 @@ public class GraduationStatusService {
                 validation.stopOnErrors();
                 return Pair.of(new GraduationStudentRecord(), null);
             }
+            if(hasDataChanged && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
+                deleteStudentOptionalPrograms(sourceObject.getStudentID());
+            }
             if (hasDataChanged) {
                 gradEntity.setRecalculateGradStatus("Y");
             } else {
@@ -178,7 +181,7 @@ public class GraduationStatusService {
             historyService.createStudentHistory(gradEntity, "USEREDIT");
             final GraduationStudentRecord updatedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                    updatedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, accessToken);
+                    updatedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, "USEREDIT", accessToken);
             gradStatusEventRepository.save(gradStatusEvent);
             return Pair.of(updatedGraduationStatus, gradStatusEvent);
         } else {
@@ -323,6 +326,16 @@ public class GraduationStatusService {
         return hasDataChangd;
     }
 
+    private void deleteStudentOptionalPrograms(UUID studentID) {
+        List<StudentOptionalProgramEntity> studOpList = gradStudentSpecialProgramRepository.findByStudentID(studentID);
+        if(!studOpList.isEmpty()) {
+            for (StudentOptionalProgramEntity studentOptionalProgramEntity : studOpList) {
+                historyService.createStudentOptionalProgramHistory(studentOptionalProgramEntity,"USERDELETE");
+                gradStudentSpecialProgramRepository.deleteById(studentOptionalProgramEntity.getId());
+            }
+        }
+    }
+
     private String getHonoursFlag(String gPA) {
         if (Float.parseFloat(gPA) > 3)
             return "Y";
@@ -362,7 +375,9 @@ public class GraduationStatusService {
             StudentOptionalProgramEntity gradEnity = gradStudentSpecialOptional.get();
             BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
             gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
-            return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(gradEnity));
+            gradEnity = gradStudentSpecialProgramRepository.save(gradEnity);
+            historyService.createStudentOptionalProgramHistory(gradEnity,"GRADGALG");
+            return gradStudentSpecialProgramTransformer.transformToDTO(gradEnity);
         } else {
             return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(sourceObject));
         }
@@ -453,7 +468,7 @@ public class GraduationStatusService {
                     historyService.createStudentHistory(gradEntity, "USERUNGRAD");
                     final GraduationStudentRecord graduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                            graduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, accessToken);
+                            graduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, "USERUNGRAD", accessToken);
                     gradStatusEventRepository.save(gradStatusEvent);
                     return Pair.of(graduationStatus, gradStatusEvent);
 		        } else {
@@ -485,6 +500,7 @@ public class GraduationStatusService {
     private GradStatusEvent createGradStatusEvent(String createUser, String updateUser,
                                                   GraduationStudentRecord graduationStatus,
                                                   EventType eventType, EventOutcome eventOutcome,
+                                                  String activityCode,
                                                   String accessToken) throws JsonProcessingException {
         if (StringUtils.isBlank(graduationStatus.getPen())) {
             GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(graduationStatus.getStudentID().toString(), accessToken);
@@ -502,6 +518,7 @@ public class GraduationStatusService {
                 .eventType(eventType.toString())
                 .eventStatus(DB_COMMITTED.toString())
                 .eventOutcome(eventOutcome.toString())
+                .activityCode(activityCode)
                 .build();
     }
 
