@@ -376,7 +376,7 @@ public class GraduationStatusService {
             BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
             gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
             gradEnity = gradStudentSpecialProgramRepository.save(gradEnity);
-            historyService.createStudentOptionalProgramHistory(gradEnity,"GRADGALG");
+            historyService.createStudentOptionalProgramHistory(gradEnity,"GRADALG");
             return gradStudentSpecialProgramTransformer.transformToDTO(gradEnity);
         } else {
             return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(sourceObject));
@@ -460,6 +460,7 @@ public class GraduationStatusService {
 		            saveUngradReason(studentID,ungradReasonCode,ungradDesc,accessToken);
 		            deleteStudentAchievements(studentID,accessToken);
                     gradEntity.setRecalculateGradStatus("Y");
+                    gradEntity.setStudentGradData(null);
                     gradEntity.setProgramCompletionDate(null);
                     gradEntity.setHonoursStanding(null);
                     gradEntity.setGpa(null);
