@@ -129,8 +129,20 @@ public class HistoryServiceTest {
         gradStudentSpecialProgramEntity.setActivityCode("GRADALG");
         histList.add(gradStudentSpecialProgramEntity);
 
+        OptionalProgram specialProgram = new OptionalProgram();
+        specialProgram.setOptionalProgramID(gradStudentSpecialProgramEntity.getOptionalProgramID());
+        specialProgram.setGraduationProgramCode("2018-en");
+        specialProgram.setOptProgramCode("FI");
+        specialProgram.setOptionalProgramName("French Immersion");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),gradStudentSpecialProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
+
         when(studentOptionalProgramHistoryRepository.findByStudentID(studentID)).thenReturn(histList);
-        var result = historyService.getStudentOptionalProgramEditHistory(studentID);
+        var result = historyService.getStudentOptionalProgramEditHistory(studentID,"accessToken");
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
 
@@ -166,8 +178,24 @@ public class HistoryServiceTest {
         gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
         gradStudentSpecialProgramEntity.setHistoryId(new UUID(3,3));
         gradStudentSpecialProgramEntity.setActivityCode("GRADALG");
+
+        OptionalProgram specialProgram = new OptionalProgram();
+        specialProgram.setOptionalProgramID(gradStudentSpecialProgramEntity.getOptionalProgramID());
+        specialProgram.setGraduationProgramCode("2018-en");
+        specialProgram.setOptProgramCode("FI");
+        specialProgram.setOptionalProgramName("French Immersion");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),gradStudentSpecialProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
+
         when(studentOptionalProgramHistoryRepository.findById(historyID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
-        var result = historyService.getStudentOptionalProgramHistoryByID(historyID);
+
+
+
+        var result = historyService.getStudentOptionalProgramHistoryByID(historyID,"accessToken");
         assertThat(result).isNotNull();
     }
 }

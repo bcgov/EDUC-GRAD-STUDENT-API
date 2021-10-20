@@ -45,7 +45,7 @@ public class StudentOptionalProgramHistoryTransformer {
 		List<StudentOptionalProgramHistory> graduationStudentRecordHistoryList = new ArrayList<>();
         for (StudentOptionalProgramHistoryEntity graduationStudentRecordHistoryEntity : graduationStudentRecordHistoryEntities) {
             StudentOptionalProgramHistory graduationStudentRecordHistory = new StudentOptionalProgramHistory();
-        	graduationStudentRecordHistory.setStudentID(graduationStudentRecordHistoryEntity.getStudentID());
+            graduationStudentRecordHistory = modelMapper.map(graduationStudentRecordHistoryEntity, StudentOptionalProgramHistory.class);
         	graduationStudentRecordHistory.setSpecialProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(graduationStudentRecordHistoryEntity.getSpecialProgramCompletionDate() != null ? graduationStudentRecordHistoryEntity.getSpecialProgramCompletionDate().toString():null));
         	graduationStudentRecordHistoryList.add(graduationStudentRecordHistory);
         }
