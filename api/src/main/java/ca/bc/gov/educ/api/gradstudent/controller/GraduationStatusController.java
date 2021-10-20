@@ -238,7 +238,9 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<StudentOptionalProgramHistory>> getStudentOptionalProgramHistory(@PathVariable String studentID) {
         logger.debug("getStudentOptionalProgramEditHistory:");
-        List<StudentOptionalProgramHistory> histList = historyService.getStudentOptionalProgramEditHistory(UUID.fromString(studentID));
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        String accessToken = auth.getTokenValue();
+        List<StudentOptionalProgramHistory> histList = historyService.getStudentOptionalProgramEditHistory(UUID.fromString(studentID),accessToken);
         Collections.sort(histList, Comparator.comparing(StudentOptionalProgramHistory::getCreateDate));
         return response.GET(histList);
     }
@@ -259,7 +261,9 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<StudentOptionalProgramHistory> getStudentOptionalProgramHistoryByID(@PathVariable String historyID) {
         logger.debug("getStudentOptionalProgramEditHistory:");
-        StudentOptionalProgramHistory histObj = historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID));
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        String accessToken = auth.getTokenValue();
+        StudentOptionalProgramHistory histObj = historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),accessToken);
         return response.GET(histObj);
     }
 }
