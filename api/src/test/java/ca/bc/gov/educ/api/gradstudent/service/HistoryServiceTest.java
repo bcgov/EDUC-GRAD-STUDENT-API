@@ -135,4 +135,39 @@ public class HistoryServiceTest {
         assertThat(result.size()).isEqualTo(1);
 
     }
+
+    @Test
+    public void testGetStudentHistoryByHistoryID() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID historyID = UUID.randomUUID();
+        GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setHistoryID(new UUID(1,1));
+        graduationStatusEntity.setActivityCode("GRADALG");
+        when(graduationStudentRecordHistoryRepository.findById(historyID)).thenReturn(Optional.of(graduationStatusEntity));
+        var result = historyService.getStudentHistoryByID(historyID);
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    public  void testGetStudentOptionalProgramHistoryByID() {
+        UUID studentID = UUID.randomUUID();
+        UUID historyID = UUID.randomUUID();
+        StudentOptionalProgramHistoryEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramHistoryEntity();
+        gradStudentSpecialProgramEntity.setStudentOptionalProgramID(new UUID(1,1));
+        gradStudentSpecialProgramEntity.setStudentID(studentID);
+        gradStudentSpecialProgramEntity.setOptionalProgramID(new UUID(2,2));
+        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
+        gradStudentSpecialProgramEntity.setHistoryId(new UUID(3,3));
+        gradStudentSpecialProgramEntity.setActivityCode("GRADALG");
+        when(studentOptionalProgramHistoryRepository.findById(historyID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
+        var result = historyService.getStudentOptionalProgramHistoryByID(historyID);
+        assertThat(result).isNotNull();
+    }
 }

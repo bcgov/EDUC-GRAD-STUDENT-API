@@ -221,25 +221,45 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.restoreGradStudentRecord(UUID.fromString(studentID),isGraduated));
     }
 
-    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_EDIT_HISTORY)
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_HISTORY)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Get all edit history for a Student", description = "Get all edit history for a Student", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GraduationStudentRecordHistory>> getStudentEditHistory(@PathVariable String studentID) {
+    public ResponseEntity<List<GraduationStudentRecordHistory>> getStudentHistory(@PathVariable String studentID) {
         logger.debug("getStudentEditHistory:");
         List<GraduationStudentRecordHistory> historyList =historyService.getStudentEditHistory(UUID.fromString(studentID));
         Collections.sort(historyList, Comparator.comparing(GraduationStudentRecordHistory::getCreateDate));
         return response.GET(historyList);
     }
 
-    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_EDIT_HISTORY)
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_SPECIAL_PROGRAM)
     @Operation(summary = "Get all edit history for a Student Optional Program", description = "Get all edit history for a Student", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<StudentOptionalProgramHistory>> getStudentOptionalProgramEditHistory(@PathVariable String studentID) {
+    public ResponseEntity<List<StudentOptionalProgramHistory>> getStudentOptionalProgramHistory(@PathVariable String studentID) {
         logger.debug("getStudentOptionalProgramEditHistory:");
         List<StudentOptionalProgramHistory> histList = historyService.getStudentOptionalProgramEditHistory(UUID.fromString(studentID));
         Collections.sort(histList, Comparator.comparing(StudentOptionalProgramHistory::getCreateDate));
         return response.GET(histList);
+    }
+
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_HISTORY_BY_ID)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get history for a ID", description = "Get a history for a historyID", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<GraduationStudentRecordHistory> getStudentHistoryByID(@PathVariable String historyID) {
+        logger.debug("getStudentEditHistory:");
+        GraduationStudentRecordHistory historyObj =historyService.getStudentHistoryByID(UUID.fromString(historyID));
+        return response.GET(historyObj);
+    }
+
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY_BY_ID)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_SPECIAL_PROGRAM)
+    @Operation(summary = "Get Student Optional Program History by ID", description = "Get Student Optional Program History by ID", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<StudentOptionalProgramHistory> getStudentOptionalProgramHistoryByID(@PathVariable String historyID) {
+        logger.debug("getStudentOptionalProgramEditHistory:");
+        StudentOptionalProgramHistory histObj = historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID));
+        return response.GET(histObj);
     }
 }

@@ -67,5 +67,12 @@ public class HistoryService {
     public List<StudentOptionalProgramHistory> getStudentOptionalProgramEditHistory(UUID studentID) {
         return studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findByStudentID(studentID));
     }
-  
+
+    public GraduationStudentRecordHistory getStudentHistoryByID(UUID historyID) {
+        return graduationStudentRecordHistoryTransformer.transformToDTO(graduationStudentRecordHistoryRepository.findById(historyID));
+    }
+
+    public StudentOptionalProgramHistory getStudentOptionalProgramHistoryByID(UUID historyID) {
+        return studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findById(historyID));
+    }
 }
