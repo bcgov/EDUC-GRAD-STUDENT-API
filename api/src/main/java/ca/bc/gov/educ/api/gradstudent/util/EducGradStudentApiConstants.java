@@ -67,8 +67,10 @@ public class EducGradStudentApiConstants {
     
     public static final String RETURN_TO_ORIGINAL_STATE = "/algorithmerror/{studentID}";
 
-    public static final String GRAD_STUDENT_EDIT_HISTORY = "/studentHistory/{studentID}";
-    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_EDIT_HISTORY = "/studentOptionalProgramHistory/{studentID}";
+    public static final String GRAD_STUDENT_HISTORY = "/studentHistory/{studentID}";
+    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY = "/studentOptionalProgramHistory/{studentID}";
+    public static final String GRAD_STUDENT_HISTORY_BY_ID = "/studentHistory/historyid/{historyID}";
+    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY_BY_ID = "/studentOptionalProgramHistory/historyid/{historyID}";
 
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
