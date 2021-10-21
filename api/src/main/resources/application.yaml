@@ -97,6 +97,31 @@ cron:
           lockAtLeastFor: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_LOCK_AT_LEAST_FOR}
           lockAtMostFor: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_LOCK_AT_MOST_FOR}
 
+#Resilience
+resilience4j.retry:
+  instances:
+    searchbypen:
+      maxRetryAttempts: ${MAX_RETRY_ATTEMPTS}
+      waitDuration: 5s
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+      ignoreExceptions:
+        - java.lang.NullPointerException
+    advancedsearch:
+      maxRetryAttempts: ${MAX_RETRY_ATTEMPTS}
+      waitDuration: 10s
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+      ignoreExceptions:
+        - java.lang.NullPointerException
+    searchbyid:
+      maxRetryAttempts: ${MAX_RETRY_ATTEMPTS}
+      waitDuration: 5s
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+      ignoreExceptions:
+        - java.lang.NullPointerException
+
 #Endpoint properties
 endpoint:
   grad-trax-api:
