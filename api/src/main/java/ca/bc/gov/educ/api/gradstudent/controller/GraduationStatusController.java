@@ -117,15 +117,15 @@ public class GraduationStatusController {
         return response.GET(result.getLeft());
     }
 
-    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_SPECIAL_PROGRAM)
-    @Operation(summary = "Find all Student Special Grad Status by Student ID", description = "Get All Student Special Grad Status by Student ID", tags = { "Special Student Graduation Status" })
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Find all Student Optional Grad Status by Student ID", description = "Get All Student Optional Grad Status by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
-    public ResponseEntity<List<StudentOptionalProgram>> getStudentGradSpecialPrograms(@PathVariable String studentID) {
+    public ResponseEntity<List<StudentOptionalProgram>> getStudentGradOptionalPrograms(@PathVariable String studentID) {
         logger.debug("Get Student Grad Status for Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
         String accessToken = auth.getTokenValue();
-        List<StudentOptionalProgram> gradResponse = gradStatusService.getStudentGradSpecialProgram(UUID.fromString(studentID),accessToken);
+        List<StudentOptionalProgram> gradResponse = gradStatusService.getStudentGradOptionalProgram(UUID.fromString(studentID),accessToken);
         if(!gradResponse.isEmpty()) {
             return response.GET(gradResponse);
         }else {
@@ -133,15 +133,15 @@ public class GraduationStatusController {
         }
     }
 
-    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_SPECIAL_PROGRAM)
-    @Operation(summary = "Find all Student Special Grad Status by Student ID,SPECIAL PROGRAM ID", description = "Get All Student Special Grad Status by Student ID,SPECIAL PROGRAM ID", tags = { "Special Student Graduation Status" })
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Find all Student Optional Grad Status by Student ID,Optional PROGRAM ID", description = "Get All Student Optional Grad Status by Student ID,Optional PROGRAM ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
-    public ResponseEntity<StudentOptionalProgram> getStudentGradSpecialProgram(@PathVariable String studentID,@PathVariable String specialProgramID) {
+    public ResponseEntity<StudentOptionalProgram> getStudentGradOptionalProgram(@PathVariable String studentID,@PathVariable String optionalProgramID) {
         logger.debug("Get Student Grad Status for Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
         String accessToken = auth.getTokenValue();
-        StudentOptionalProgram gradResponse = gradStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(UUID.fromString(studentID),specialProgramID,accessToken);
+        StudentOptionalProgram gradResponse = gradStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(UUID.fromString(studentID),optionalProgramID,accessToken);
         if(gradResponse != null) {
             return response.GET(gradResponse);
         }else {
@@ -149,24 +149,24 @@ public class GraduationStatusController {
         }
     }
 
-    @PostMapping (EducGradStudentApiConstants.SAVE_GRAD_STUDENT_SPECIAL_PROGRAM)
-    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT_SPECIAL_PROGRAM)
-    @Operation(summary = "Save Student Special Grad Status by Student ID", description = "Save Student Special Grad Status by Student ID", tags = { "Special Student Graduation Status" })
+    @PostMapping (EducGradStudentApiConstants.SAVE_GRAD_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Save Student Optional Grad Status by Student ID", description = "Save Student Optional Grad Status by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<StudentOptionalProgram> saveStudentGradSpecialProgram(@RequestBody StudentOptionalProgram gradStudentSpecialProgram) {
+    public ResponseEntity<StudentOptionalProgram> saveStudentGradOptionalProgram(@RequestBody StudentOptionalProgram gradStudentOptionalProgram) {
         logger.debug("Save student Grad Status for PEN: ");
-        return response.GET(gradStatusService.saveStudentGradSpecialProgram(gradStudentSpecialProgram));
+        return response.GET(gradStatusService.saveStudentGradOptionalProgram(gradStudentOptionalProgram));
     }
 
-    @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_SPECIAL_PROGRAM)
-    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT_SPECIAL_PROGRAM)
-    @Operation(summary = "Update/Create Student Special Grad Status by Student ID", description = "Update/Create Student Special Grad Status by Student ID", tags = { "Special Student Graduation Status" })
+    @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Update/Create Student Optional Grad Status by Student ID", description = "Update/Create Student Optional Grad Status by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<StudentOptionalProgram> updateStudentGradSpecialProgram(@RequestBody StudentOptionalProgramReq gradStudentSpecialProgramReq) {
+    public ResponseEntity<StudentOptionalProgram> updateStudentGradOptionalProgram(@RequestBody StudentOptionalProgramReq gradStudentOptionalProgramReq) {
         logger.debug("Update student Grad Status for PEN: ");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
         String accessToken = auth.getTokenValue();
-        return response.GET(gradStatusService.updateStudentGradSpecialProgram(gradStudentSpecialProgramReq,accessToken));
+        return response.GET(gradStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq,accessToken));
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_RECALCULATE)
@@ -233,7 +233,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_SPECIAL_PROGRAM)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Get all edit history for a Student Optional Program", description = "Get all edit history for a Student", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<StudentOptionalProgramHistory>> getStudentOptionalProgramHistory(@PathVariable String studentID) {
@@ -256,7 +256,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY_BY_ID)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_SPECIAL_PROGRAM)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Get Student Optional Program History by ID", description = "Get Student Optional Program History by ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<StudentOptionalProgramHistory> getStudentOptionalProgramHistoryByID(@PathVariable String historyID) {

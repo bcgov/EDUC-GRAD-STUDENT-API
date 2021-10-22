@@ -130,8 +130,8 @@ endpoint:
   grad-program-api:
     optional_program_name_by_optional_program_id:
       url: ${GRAD_PROGRAM_API}api/v1/program/optionalprograms/id/%s
-    special_program_id_by_program_code_special_program_code:
-      url: ${GRAD_PROGRAM_API}api/v1/programmanagement/optionalprograms/%s/%s
+    optional_program_id_by_program_code_optional_program_code:
+      url: ${GRAD_PROGRAM_API}api/v1/program/optionalprograms/%s/%s
     program_name_by_program_code:
       url: ${GRAD_PROGRAM_API}api/v1/program/programs/%s
     career_program-by-career-code: 
