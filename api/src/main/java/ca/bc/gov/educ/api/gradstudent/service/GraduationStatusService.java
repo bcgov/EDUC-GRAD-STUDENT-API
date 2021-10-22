@@ -14,6 +14,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,7 +44,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentSpecialProgramTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -68,10 +69,10 @@ public class GraduationStatusService {
     private GraduationStatusTransformer graduationStatusTransformer;
 
     @Autowired
-    private StudentOptionalProgramRepository gradStudentSpecialProgramRepository;
+    private StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
 
     @Autowired
-    private GradStudentSpecialProgramTransformer gradStudentSpecialProgramTransformer;
+    private GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer;
     
     @Autowired
     private CommonService commonService;
@@ -327,11 +328,11 @@ public class GraduationStatusService {
     }
 
     private void deleteStudentOptionalPrograms(UUID studentID) {
-        List<StudentOptionalProgramEntity> studOpList = gradStudentSpecialProgramRepository.findByStudentID(studentID);
+        List<StudentOptionalProgramEntity> studOpList = gradStudentOptionalProgramRepository.findByStudentID(studentID);
         if(!studOpList.isEmpty()) {
             for (StudentOptionalProgramEntity studentOptionalProgramEntity : studOpList) {
                 historyService.createStudentOptionalProgramHistory(studentOptionalProgramEntity,"USERDELETE");
-                gradStudentSpecialProgramRepository.deleteById(studentOptionalProgramEntity.getId());
+                gradStudentOptionalProgramRepository.deleteById(studentOptionalProgramEntity.getId());
             }
         }
     }
@@ -343,21 +344,21 @@ public class GraduationStatusService {
             return "N";
     }
 
-    public List<StudentOptionalProgram> getStudentGradSpecialProgram(UUID studentID, String accessToken) {
-        List<StudentOptionalProgram> specialProgramList =
-				gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.findByStudentID(studentID));
-        specialProgramList.forEach(sP -> {
-            OptionalProgram gradSpecialProgram = webClient.get()
-					.uri(String.format(constants.getGradSpecialProgramNameUrl(), sP.getOptionalProgramID()))
+    public List<StudentOptionalProgram> getStudentGradOptionalProgram(UUID studentID, String accessToken) {
+        List<StudentOptionalProgram> optionalProgramList =
+				gradStudentOptionalProgramTransformer.transformToDTO(gradStudentOptionalProgramRepository.findByStudentID(studentID));
+        optionalProgramList.forEach(sP -> {
+            OptionalProgram gradOptionalProgram = webClient.get()
+					.uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
 					.headers(h -> h.setBearerAuth(accessToken))
 					.retrieve()
 					.bodyToMono(OptionalProgram.class)
 					.block();
-            sP.setSpecialProgramName(gradSpecialProgram.getOptionalProgramName());
-            sP.setSpecialProgramCode(gradSpecialProgram.getOptProgramCode());
-            sP.setProgramCode(gradSpecialProgram.getGraduationProgramCode());
+            sP.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
+            sP.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
+            sP.setProgramCode(gradOptionalProgram.getGraduationProgramCode());
         });
-        return specialProgramList;
+        return optionalProgramList;
     }
 
     public int calculateAge(String dob) {
@@ -367,55 +368,54 @@ public class GraduationStatusService {
         return Period.between(birthDate, currentDate).getYears();
     }
 
-    public StudentOptionalProgram saveStudentGradSpecialProgram(StudentOptionalProgram gradStudentSpecialProgram) {
-        Optional<StudentOptionalProgramEntity> gradStudentSpecialOptional =
-				gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgram.getId());
-        StudentOptionalProgramEntity sourceObject = gradStudentSpecialProgramTransformer.transformToEntity(gradStudentSpecialProgram);
-        if (gradStudentSpecialOptional.isPresent()) {
-            StudentOptionalProgramEntity gradEnity = gradStudentSpecialOptional.get();
+    public StudentOptionalProgram saveStudentGradOptionalProgram(StudentOptionalProgram gradStudentOptionalProgram) {
+        Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional =
+				gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgram.getId());
+        StudentOptionalProgramEntity sourceObject = gradStudentOptionalProgramTransformer.transformToEntity(gradStudentOptionalProgram);
+        if (gradStudentOptionalOptional.isPresent()) {
+            StudentOptionalProgramEntity gradEnity = gradStudentOptionalOptional.get();
             BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
-            gradEnity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
-            gradEnity = gradStudentSpecialProgramRepository.save(gradEnity);
+            gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
+            gradEnity = gradStudentOptionalProgramRepository.save(gradEnity);
             historyService.createStudentOptionalProgramHistory(gradEnity,"GRADALG");
-            return gradStudentSpecialProgramTransformer.transformToDTO(gradEnity);
+            return gradStudentOptionalProgramTransformer.transformToDTO(gradEnity);
         } else {
-            return gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialProgramRepository.save(sourceObject));
+            return gradStudentOptionalProgramTransformer.transformToDTO(gradStudentOptionalProgramRepository.save(sourceObject));
         }
     }
     
-    public StudentOptionalProgram updateStudentGradSpecialProgram(StudentOptionalProgramReq gradStudentSpecialProgramReq,String accessToken) {
-        Optional<StudentOptionalProgramEntity> gradStudentSpecialOptional = Optional.empty();
-        if(gradStudentSpecialProgramReq.getId() != null)
-            gradStudentSpecialOptional = gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramReq.getId());
+    public StudentOptionalProgram updateStudentGradOptionalProgram(StudentOptionalProgramReq gradStudentOptionalProgramReq,String accessToken) {
+        Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional = Optional.empty();
+        if(gradStudentOptionalProgramReq.getId() != null)
+            gradStudentOptionalOptional = gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgramReq.getId());
 
         StudentOptionalProgramEntity sourceObject = new StudentOptionalProgramEntity();
-        OptionalProgram gradSpecialProgram = webClient.get()
-				.uri(String.format(constants.getGradSpecialProgramDetailsUrl(), gradStudentSpecialProgramReq.getMainProgramCode(),gradStudentSpecialProgramReq.getSpecialProgramCode()))
+        OptionalProgram gradOptionalProgram = webClient.get()
+				.uri(String.format(constants.getGradOptionalProgramDetailsUrl(), gradStudentOptionalProgramReq.getMainProgramCode(),gradStudentOptionalProgramReq.getOptionalProgramCode()))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve()
 				.bodyToMono(OptionalProgram.class)
 				.block();
-        sourceObject.setId(gradStudentSpecialProgramReq.getId());
-        sourceObject.setPen(gradStudentSpecialProgramReq.getPen());
-        sourceObject.setStudentID(gradStudentSpecialProgramReq.getStudentID());
-        sourceObject.setSpecialProgramCompletionDate(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate() != null ?Date.valueOf(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate()) : null);
-        sourceObject.setOptionalProgramID(gradSpecialProgram.getOptionalProgramID());
-        if (gradStudentSpecialOptional.isPresent()) {
-            StudentOptionalProgramEntity gradEntity = gradStudentSpecialOptional.get();
+        sourceObject.setId(gradStudentOptionalProgramReq.getId());
+        sourceObject.setStudentID(gradStudentOptionalProgramReq.getStudentID());
+        sourceObject.setOptionalProgramCompletionDate(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate() != null ?Date.valueOf(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate()) : null);
+        sourceObject.setOptionalProgramID(gradOptionalProgram.getOptionalProgramID());
+        if (gradStudentOptionalOptional.isPresent()) {
+            StudentOptionalProgramEntity gradEntity = gradStudentOptionalOptional.get();
             if(gradEntity.getOptionalProgramID().equals(sourceObject.getOptionalProgramID())) {
-                sourceObject.setStudentSpecialProgramData(gradEntity.getStudentSpecialProgramData());
+                sourceObject.setStudentOptionalProgramData(gradEntity.getStudentOptionalProgramData());
             }else {
-                sourceObject.setStudentSpecialProgramData(null);
+                sourceObject.setStudentOptionalProgramData(null);
             }
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE,"id");
-            gradEntity.setSpecialProgramCompletionDate(sourceObject.getSpecialProgramCompletionDate());
-            gradEntity = gradStudentSpecialProgramRepository.save(gradEntity);
+            gradEntity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
+            gradEntity = gradStudentOptionalProgramRepository.save(gradEntity);
             historyService.createStudentOptionalProgramHistory(gradEntity, "USEREDIT");
-            return gradStudentSpecialProgramTransformer.transformToDTO(gradEntity);
+            return gradStudentOptionalProgramTransformer.transformToDTO(gradEntity);
         } else {
-            sourceObject = gradStudentSpecialProgramRepository.save(sourceObject);
+            sourceObject = gradStudentOptionalProgramRepository.save(sourceObject);
             historyService.createStudentOptionalProgramHistory(sourceObject, "USEREDIT");
-            return gradStudentSpecialProgramTransformer.transformToDTO(sourceObject);
+            return gradStudentOptionalProgramTransformer.transformToDTO(sourceObject);
         }
     }
 
@@ -423,22 +423,22 @@ public class GraduationStatusService {
         return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateGradStatus("Y"));
     }
 
-    public StudentOptionalProgram getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(
-    		UUID studentID, String specialProgramID, String accessToken) {
-        UUID specialProgramIDUUID = UUID.fromString(specialProgramID);
-        Optional<StudentOptionalProgramEntity> gradStudentSpecialOptional =
-				gradStudentSpecialProgramRepository.findByStudentIDAndOptionalProgramID(studentID, specialProgramIDUUID);
-        if (gradStudentSpecialOptional.isPresent()) {
-            StudentOptionalProgram responseObj = gradStudentSpecialProgramTransformer.transformToDTO(gradStudentSpecialOptional);
-            OptionalProgram gradSpecialProgram = webClient.get()
-					.uri(String.format(constants.getGradSpecialProgramNameUrl(), responseObj.getOptionalProgramID()))
+    public StudentOptionalProgram getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(
+    		UUID studentID, String optionalProgramID, String accessToken) {
+        UUID optionalProgramIDUUID = UUID.fromString(optionalProgramID);
+        Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional =
+				gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramIDUUID);
+        if (gradStudentOptionalOptional.isPresent()) {
+            StudentOptionalProgram responseObj = gradStudentOptionalProgramTransformer.transformToDTO(gradStudentOptionalOptional);
+            OptionalProgram gradOptionalProgram = webClient.get()
+					.uri(String.format(constants.getGradOptionalProgramNameUrl(), responseObj.getOptionalProgramID()))
 					.headers(h -> h.setBearerAuth(accessToken))
 					.retrieve()
 					.bodyToMono(OptionalProgram.class)
 					.block();
-            responseObj.setSpecialProgramName(gradSpecialProgram.getOptionalProgramName());
-            responseObj.setSpecialProgramCode(gradSpecialProgram.getOptProgramCode());
-            responseObj.setProgramCode(gradSpecialProgram.getGraduationProgramCode());
+            responseObj.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
+            responseObj.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
+            responseObj.setProgramCode(gradOptionalProgram.getGraduationProgramCode());
             return responseObj;
         }
         return null;

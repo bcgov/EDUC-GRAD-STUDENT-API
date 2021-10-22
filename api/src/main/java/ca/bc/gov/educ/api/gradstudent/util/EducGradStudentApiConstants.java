@@ -35,10 +35,10 @@ public class EducGradStudentApiConstants {
     public static final String GRADUATION_STATUS_BY_STUDENT_ID_FOR_ALGORITHM = "/studentid/{studentID}/algorithm";
     public static final String GRAD_STUDENT_UPDATE_BY_STUDENT_ID = "/gradstudent/studentid/{studentID}";
 
-    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN = "/specialprogram/studentid/{studentID}";
-    public static final String GRAD_STUDENT_SPECIAL_PROGRAM_BY_PEN_PROGRAM_SPECIAL_PROGRAM = "/specialprogram/{studentID}/{specialProgramID}";
-    public static final String SAVE_GRAD_STUDENT_SPECIAL_PROGRAM = "/specialprogram";
-    public static final String UPDATE_GRAD_STUDENT_SPECIAL_PROGRAM = "/gradstudent/specialprogram";
+    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN = "/optionalprogram/studentid/{studentID}";
+    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";
+    public static final String SAVE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/optionalprogram";
+    public static final String UPDATE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/gradstudent/optionalprogram";
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
     public static final String UNGRAD_STUDENT = "/ungradstudent/studentid/{studentID}";
@@ -50,7 +50,7 @@ public class EducGradStudentApiConstants {
     public static final String GET_ALL_ALGORITHM_RULES_MAPPING="/algorithmrules";
 
     public static final String GET_ALGORITHM_RULES_MAIN_PROGRAM = "/algorithm-rules/main/{programCode}";
-    public static final String GET_ALGORITHM_RULES_SPECIAL_PROGRAM = "/algorithm-rules/special/{programCode}/{specialProgramCode}";
+    public static final String GET_ALGORITHM_RULES_OPTIONAL_PROGRAM = "/algorithm-rules/optional/{programCode}/{optionalProgramCode}";
 
     public static final String GET_ALL_STUDENT_UNGRAD_MAPPING = "/studentungradreason/studentid/{studentID}";
     public static final String GET_STUDENT_UNGRAD_BY_REASON_CODE_MAPPING = "/ungrad/{reasonCode}";
@@ -97,10 +97,10 @@ public class EducGradStudentApiConstants {
     private String careerProgramByCodeUrl;
 
 	@Value("${endpoint.grad-program-api.optional_program_name_by_optional_program_id.url}")
-	private String gradSpecialProgramNameUrl;
+	private String gradOptionalProgramNameUrl;
 
-    @Value("${endpoint.grad-program-api.special_program_id_by_program_code_special_program_code.url}")
-    private String gradSpecialProgramDetailsUrl;
+    @Value("${endpoint.grad-program-api.optional_program_id_by_program_code_optional_program_code.url}")
+    private String gradOptionalProgramDetailsUrl;
 
     @Value("${endpoint.grad-program-api.program_name_by_program_code.url}")
     private String gradProgramNameUrl;

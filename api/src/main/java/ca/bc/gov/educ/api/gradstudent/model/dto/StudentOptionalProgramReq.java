@@ -13,8 +13,8 @@ public class StudentOptionalProgramReq extends BaseModel{
 
 	private UUID id;
     private String pen;
-    private String specialProgramCompletionDate;
-    private String specialProgramCode;
+    private String optionalProgramCompletionDate;
+    private String optionalProgramCode;
     private String mainProgramCode;
     private UUID studentID;
 				

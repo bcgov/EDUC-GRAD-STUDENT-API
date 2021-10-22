@@ -28,15 +28,12 @@ public class StudentOptionalProgramEntity extends BaseEntity {
     
     @Lob
     @Column(name = "PROGRAM_NOTE", columnDefinition="CLOB")
-    private String studentSpecialProgramData;
+    private String studentOptionalProgramData;
 
-    @Column(name = "COMPLETION_DATE", nullable = true)
-    private Date specialProgramCompletionDate;  
+    @Column(name = "COMPLETION_DATE")
+    private Date optionalProgramCompletionDate;
     
     @Column(name = "GRADUATION_STUDENT_RECORD_ID", nullable = false)
     private UUID studentID;
-
-    @Transient
-    private String pen;
 
 }
