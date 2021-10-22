@@ -73,6 +73,8 @@ public class GradStatusEvent {
     private String eventOutcome;
     @Column(name = "REPLY_CHANNEL")
     private String replyChannel;
+    @Column(name = "ACTIVITY_CODE")
+    private String activityCode;
 
     /**
      * Gets event payload.

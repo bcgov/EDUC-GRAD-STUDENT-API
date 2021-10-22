@@ -22,6 +22,10 @@ public class ChoreographedEvent {
    */
   EventOutcome eventOutcome;
   /**
+   * The Activity code.
+   */
+  String activityCode;
+  /**
    * The Event payload.
    */
   String eventPayload;
