@@ -120,26 +120,26 @@ public class HistoryServiceTest {
     public  void testGetStudentOptionalProgramHistory() {
         UUID studentID = UUID.randomUUID();
         List<StudentOptionalProgramHistoryEntity> histList = new ArrayList<>();
-        StudentOptionalProgramHistoryEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramHistoryEntity();
-        gradStudentSpecialProgramEntity.setStudentOptionalProgramID(new UUID(1,1));
-        gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setOptionalProgramID(new UUID(2,2));
-        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
-        gradStudentSpecialProgramEntity.setHistoryId(new UUID(3,3));
-        gradStudentSpecialProgramEntity.setActivityCode("GRADALG");
-        histList.add(gradStudentSpecialProgramEntity);
+        StudentOptionalProgramHistoryEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramHistoryEntity();
+        gradStudentOptionalProgramEntity.setStudentOptionalProgramID(new UUID(1,1));
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(new UUID(2,2));
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+        gradStudentOptionalProgramEntity.setHistoryId(new UUID(3,3));
+        gradStudentOptionalProgramEntity.setActivityCode("GRADALG");
+        histList.add(gradStudentOptionalProgramEntity);
 
-        OptionalProgram specialProgram = new OptionalProgram();
-        specialProgram.setOptionalProgramID(gradStudentSpecialProgramEntity.getOptionalProgramID());
-        specialProgram.setGraduationProgramCode("2018-en");
-        specialProgram.setOptProgramCode("FI");
-        specialProgram.setOptionalProgramName("French Immersion");
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(gradStudentOptionalProgramEntity.getOptionalProgramID());
+        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),gradStudentSpecialProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),gradStudentOptionalProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
         when(studentOptionalProgramHistoryRepository.findByStudentID(studentID)).thenReturn(histList);
         var result = historyService.getStudentOptionalProgramEditHistory(studentID,"accessToken");
@@ -171,27 +171,27 @@ public class HistoryServiceTest {
     public  void testGetStudentOptionalProgramHistoryByID() {
         UUID studentID = UUID.randomUUID();
         UUID historyID = UUID.randomUUID();
-        StudentOptionalProgramHistoryEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramHistoryEntity();
-        gradStudentSpecialProgramEntity.setStudentOptionalProgramID(new UUID(1,1));
-        gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setOptionalProgramID(new UUID(2,2));
-        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
-        gradStudentSpecialProgramEntity.setHistoryId(new UUID(3,3));
-        gradStudentSpecialProgramEntity.setActivityCode("GRADALG");
+        StudentOptionalProgramHistoryEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramHistoryEntity();
+        gradStudentOptionalProgramEntity.setStudentOptionalProgramID(new UUID(1,1));
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(new UUID(2,2));
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+        gradStudentOptionalProgramEntity.setHistoryId(new UUID(3,3));
+        gradStudentOptionalProgramEntity.setActivityCode("GRADALG");
 
-        OptionalProgram specialProgram = new OptionalProgram();
-        specialProgram.setOptionalProgramID(gradStudentSpecialProgramEntity.getOptionalProgramID());
-        specialProgram.setGraduationProgramCode("2018-en");
-        specialProgram.setOptProgramCode("FI");
-        specialProgram.setOptionalProgramName("French Immersion");
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(gradStudentOptionalProgramEntity.getOptionalProgramID());
+        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),gradStudentSpecialProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),gradStudentOptionalProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
-        when(studentOptionalProgramHistoryRepository.findById(historyID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
+        when(studentOptionalProgramHistoryRepository.findById(historyID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
 
 
 

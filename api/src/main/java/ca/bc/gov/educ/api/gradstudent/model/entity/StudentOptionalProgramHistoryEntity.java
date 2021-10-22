@@ -23,7 +23,7 @@ public class StudentOptionalProgramHistoryEntity extends BaseEntity {
     @Column(name = "STUDENT_OPTIONAL_PROGRAM_HISTORY_ID", nullable = false)
     private UUID historyId;
 
-    @Column(name = "HISTORY_ACTIVITY_CODE", nullable = true)
+    @Column(name = "HISTORY_ACTIVITY_CODE", nullable = false)
     private String activityCode;
 
     @Column(name = "STUDENT_OPTIONAL_PROGRAM_ID", nullable = false)
@@ -34,10 +34,10 @@ public class StudentOptionalProgramHistoryEntity extends BaseEntity {
     
     @Lob
     @Column(name = "PROGRAM_NOTE", columnDefinition="CLOB")
-    private String studentSpecialProgramData;
+    private String studentOptionalProgramData;
 
-    @Column(name = "COMPLETION_DATE", nullable = true)
-    private Date specialProgramCompletionDate;  
+    @Column(name = "COMPLETION_DATE")
+    private Date optionalProgramCompletionDate;
     
     @Column(name = "GRADUATION_STUDENT_RECORD_ID", nullable = false)
     private UUID studentID;

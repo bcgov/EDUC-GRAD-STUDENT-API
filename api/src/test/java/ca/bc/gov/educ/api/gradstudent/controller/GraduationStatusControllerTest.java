@@ -208,19 +208,19 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
-    public void testGetStudentGradSpecialPrograms() {
+    public void testGetStudentGradOptionalPrograms() {
         // ID
-        UUID gradStudentSpecialProgramID = UUID.randomUUID();
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        StudentOptionalProgram gradStudentSpecialProgram = new StudentOptionalProgram();
-        gradStudentSpecialProgram.setId(gradStudentSpecialProgramID);
-        gradStudentSpecialProgram.setStudentID(studentID);
-        gradStudentSpecialProgram.setOptionalProgramID(specialProgramID);
-        gradStudentSpecialProgram.setPen(pen);
-        gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
+        StudentOptionalProgram gradStudentOptionalProgram = new StudentOptionalProgram();
+        gradStudentOptionalProgram.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgram.setStudentID(studentID);
+        gradStudentOptionalProgram.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgram.setPen(pen);
+        gradStudentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
@@ -230,13 +230,13 @@ public class GraduationStatusControllerTest {
         Mockito.when(authentication.getDetails()).thenReturn(details);
         SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(graduationStatusService.getStudentGradSpecialProgram(studentID, null)).thenReturn(Arrays.asList(gradStudentSpecialProgram));
-        graduationStatusController.getStudentGradSpecialPrograms(studentID.toString());
-        Mockito.verify(graduationStatusService).getStudentGradSpecialProgram(studentID, null);
+        Mockito.when(graduationStatusService.getStudentGradOptionalProgram(studentID, null)).thenReturn(Arrays.asList(gradStudentOptionalProgram));
+        graduationStatusController.getStudentGradOptionalPrograms(studentID.toString());
+        Mockito.verify(graduationStatusService).getStudentGradOptionalProgram(studentID, null);
     }
 
     @Test
-    public void testGetStudentGradSpecialPrograms_whenNotExists_thenReturnNoContentHttpStatus() {
+    public void testGetStudentGradOptionalPrograms_whenNotExists_thenReturnNoContentHttpStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
 
@@ -248,28 +248,28 @@ public class GraduationStatusControllerTest {
         Mockito.when(authentication.getDetails()).thenReturn(details);
         SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(graduationStatusService.getStudentGradSpecialProgram(studentID, null)).thenReturn(new ArrayList<>());
+        Mockito.when(graduationStatusService.getStudentGradOptionalProgram(studentID, null)).thenReturn(new ArrayList<>());
         Mockito.when(responseHelper.NO_CONTENT()).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
-        var result = graduationStatusController.getStudentGradSpecialPrograms(studentID.toString());
-        Mockito.verify(graduationStatusService).getStudentGradSpecialProgram(studentID, null);
+        var result = graduationStatusController.getStudentGradOptionalPrograms(studentID.toString());
+        Mockito.verify(graduationStatusService).getStudentGradOptionalProgram(studentID, null);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
 
     @Test
-    public void testGetStudentGradSpecialProgram() {
+    public void testGetStudentGradOptionalProgram() {
         // ID
-        UUID gradStudentSpecialProgramID = UUID.randomUUID();
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        StudentOptionalProgram gradStudentSpecialProgram = new StudentOptionalProgram();
-        gradStudentSpecialProgram.setId(gradStudentSpecialProgramID);
-        gradStudentSpecialProgram.setStudentID(studentID);
-        gradStudentSpecialProgram.setOptionalProgramID(specialProgramID);
-        gradStudentSpecialProgram.setPen(pen);
-        gradStudentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
+        StudentOptionalProgram gradStudentOptionalProgram = new StudentOptionalProgram();
+        gradStudentOptionalProgram.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgram.setStudentID(studentID);
+        gradStudentOptionalProgram.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgram.setPen(pen);
+        gradStudentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
@@ -279,16 +279,16 @@ public class GraduationStatusControllerTest {
         Mockito.when(authentication.getDetails()).thenReturn(details);
         SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(graduationStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(studentID, specialProgramID.toString(), null)).thenReturn(gradStudentSpecialProgram);
-        graduationStatusController.getStudentGradSpecialProgram(studentID.toString(), specialProgramID.toString());
-        Mockito.verify(graduationStatusService).getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(studentID, specialProgramID.toString(),null);
+        Mockito.when(graduationStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(), null)).thenReturn(gradStudentOptionalProgram);
+        graduationStatusController.getStudentGradOptionalProgram(studentID.toString(), optionalProgramID.toString());
+        Mockito.verify(graduationStatusService).getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(),null);
     }
 
     @Test
-    public void testGetStudentGradSpecialProgram_whenNotExists_thenReturnNoContentHttpStatus() {
+    public void testGetStudentGradOptionalProgram_whenNotExists_thenReturnNoContentHttpStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
@@ -298,59 +298,59 @@ public class GraduationStatusControllerTest {
         Mockito.when(authentication.getDetails()).thenReturn(details);
         SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(graduationStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(studentID, specialProgramID.toString(), null)).thenReturn(null);
+        Mockito.when(graduationStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(), null)).thenReturn(null);
         Mockito.when(responseHelper.NO_CONTENT()).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
-        var result = graduationStatusController.getStudentGradSpecialProgram(studentID.toString(), specialProgramID.toString());
-        Mockito.verify(graduationStatusService).getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(studentID, specialProgramID.toString(),null);
+        var result = graduationStatusController.getStudentGradOptionalProgram(studentID.toString(), optionalProgramID.toString());
+        Mockito.verify(graduationStatusService).getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(),null);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
 
     @Test
-    public void testSaveStudentGradSpecialProgram() {
+    public void testSaveStudentGradOptionalProgram() {
         // ID
-        UUID gradStudentSpecialProgramID = UUID.randomUUID();
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
-        studentSpecialProgram.setId(gradStudentSpecialProgramID);
-        studentSpecialProgram.setStudentID(studentID);
-        studentSpecialProgram.setOptionalProgramID(specialProgramID);
-        studentSpecialProgram.setPen(pen);
-        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        studentOptionalProgram.setId(gradStudentOptionalProgramID);
+        studentOptionalProgram.setStudentID(studentID);
+        studentOptionalProgram.setOptionalProgramID(optionalProgramID);
+        studentOptionalProgram.setPen(pen);
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
 
-        Mockito.when(graduationStatusService.saveStudentGradSpecialProgram(studentSpecialProgram)).thenReturn(studentSpecialProgram);
-        Mockito.when(responseHelper.GET(studentSpecialProgram)).thenReturn(ResponseEntity.ok().body(studentSpecialProgram));
-        var result = graduationStatusController.saveStudentGradSpecialProgram(studentSpecialProgram);
-        Mockito.verify(graduationStatusService).saveStudentGradSpecialProgram(studentSpecialProgram);
+        Mockito.when(graduationStatusService.saveStudentGradOptionalProgram(studentOptionalProgram)).thenReturn(studentOptionalProgram);
+        Mockito.when(responseHelper.GET(studentOptionalProgram)).thenReturn(ResponseEntity.ok().body(studentOptionalProgram));
+        var result = graduationStatusController.saveStudentGradOptionalProgram(studentOptionalProgram);
+        Mockito.verify(graduationStatusService).saveStudentGradOptionalProgram(studentOptionalProgram);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
-    public void testUpdateStudentGradSpecialProgram() {
+    public void testUpdateStudentGradOptionalProgram() {
         // ID
-        UUID gradStudentSpecialProgramID = UUID.randomUUID();
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        StudentOptionalProgramReq gradStudentSpecialProgramReq = new StudentOptionalProgramReq();
-        gradStudentSpecialProgramReq.setId(gradStudentSpecialProgramID);
-        gradStudentSpecialProgramReq.setStudentID(studentID);
-        gradStudentSpecialProgramReq.setPen(pen);
-        gradStudentSpecialProgramReq.setMainProgramCode("2018-en");
-        gradStudentSpecialProgramReq.setSpecialProgramCode("FI");
-        gradStudentSpecialProgramReq.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
+        StudentOptionalProgramReq gradStudentOptionalProgramReq = new StudentOptionalProgramReq();
+        gradStudentOptionalProgramReq.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramReq.setStudentID(studentID);
+        gradStudentOptionalProgramReq.setPen(pen);
+        gradStudentOptionalProgramReq.setMainProgramCode("2018-en");
+        gradStudentOptionalProgramReq.setOptionalProgramCode("FI");
+        gradStudentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
 
-        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
-        studentSpecialProgram.setId(gradStudentSpecialProgramID);
-        studentSpecialProgram.setStudentID(studentID);
-        studentSpecialProgram.setOptionalProgramID(specialProgramID);
-        studentSpecialProgram.setPen(pen);
-        studentSpecialProgram.setSpecialProgramCompletionDate(gradStudentSpecialProgramReq.getSpecialProgramCompletionDate());
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        studentOptionalProgram.setId(gradStudentOptionalProgramID);
+        studentOptionalProgram.setStudentID(studentID);
+        studentOptionalProgram.setOptionalProgramID(optionalProgramID);
+        studentOptionalProgram.setPen(pen);
+        studentOptionalProgram.setOptionalProgramCompletionDate(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate());
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
@@ -360,10 +360,10 @@ public class GraduationStatusControllerTest {
         Mockito.when(authentication.getDetails()).thenReturn(details);
         SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(graduationStatusService.updateStudentGradSpecialProgram(gradStudentSpecialProgramReq, null)).thenReturn(studentSpecialProgram);
-        Mockito.when(responseHelper.GET(studentSpecialProgram)).thenReturn(ResponseEntity.ok().body(studentSpecialProgram));
-        var result = graduationStatusController.updateStudentGradSpecialProgram(gradStudentSpecialProgramReq);
-        Mockito.verify(graduationStatusService).updateStudentGradSpecialProgram(gradStudentSpecialProgramReq, null);
+        Mockito.when(graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, null)).thenReturn(studentOptionalProgram);
+        Mockito.when(responseHelper.GET(studentOptionalProgram)).thenReturn(ResponseEntity.ok().body(studentOptionalProgram));
+        var result = graduationStatusController.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq);
+        Mockito.verify(graduationStatusService).updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, null);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -475,14 +475,14 @@ public class GraduationStatusControllerTest {
 
         String studentID = UUID.randomUUID().toString();
         List<StudentOptionalProgramHistory> histList = new ArrayList<>();
-        StudentOptionalProgramHistory gradStudentSpecialProgramEntity = new StudentOptionalProgramHistory();
-        gradStudentSpecialProgramEntity.setStudentOptionalProgramId(new UUID(1,1));
-        gradStudentSpecialProgramEntity.setStudentID(UUID.fromString(studentID));
-        gradStudentSpecialProgramEntity.setOptionalProgramID(new UUID(2,2));
-        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()).toString());
-        gradStudentSpecialProgramEntity.setHistoryId(new UUID(3,3));
-        gradStudentSpecialProgramEntity.setActivityCode("GRADALG");
-        histList.add(gradStudentSpecialProgramEntity);
+        StudentOptionalProgramHistory gradStudentOptionalProgramEntity = new StudentOptionalProgramHistory();
+        gradStudentOptionalProgramEntity.setStudentOptionalProgramId(new UUID(1,1));
+        gradStudentOptionalProgramEntity.setStudentID(UUID.fromString(studentID));
+        gradStudentOptionalProgramEntity.setOptionalProgramID(new UUID(2,2));
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()).toString());
+        gradStudentOptionalProgramEntity.setHistoryId(new UUID(3,3));
+        gradStudentOptionalProgramEntity.setActivityCode("GRADALG");
+        histList.add(gradStudentOptionalProgramEntity);
         Mockito.when(historyService.getStudentOptionalProgramEditHistory(UUID.fromString(studentID),null)).thenReturn(histList);
         graduationStatusController.getStudentOptionalProgramHistory(studentID);
         Mockito.verify(historyService).getStudentOptionalProgramEditHistory(UUID.fromString(studentID),null);
@@ -519,14 +519,14 @@ public class GraduationStatusControllerTest {
         // ID
         String historyID = UUID.randomUUID().toString();
         String studentID = UUID.randomUUID().toString();
-        StudentOptionalProgramHistory gradStudentSpecialProgramEntity = new StudentOptionalProgramHistory();
-        gradStudentSpecialProgramEntity.setStudentOptionalProgramId(new UUID(1,1));
-        gradStudentSpecialProgramEntity.setStudentID(UUID.fromString(studentID));
-        gradStudentSpecialProgramEntity.setOptionalProgramID(new UUID(2,2));
-        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()).toString());
-        gradStudentSpecialProgramEntity.setHistoryId(new UUID(3,3));
-        gradStudentSpecialProgramEntity.setActivityCode("GRADALG");
-        Mockito.when(historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),null)).thenReturn(gradStudentSpecialProgramEntity);
+        StudentOptionalProgramHistory gradStudentOptionalProgramEntity = new StudentOptionalProgramHistory();
+        gradStudentOptionalProgramEntity.setStudentOptionalProgramId(new UUID(1,1));
+        gradStudentOptionalProgramEntity.setStudentID(UUID.fromString(studentID));
+        gradStudentOptionalProgramEntity.setOptionalProgramID(new UUID(2,2));
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()).toString());
+        gradStudentOptionalProgramEntity.setHistoryId(new UUID(3,3));
+        gradStudentOptionalProgramEntity.setActivityCode("GRADALG");
+        Mockito.when(historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),null)).thenReturn(gradStudentOptionalProgramEntity);
         graduationStatusController.getStudentOptionalProgramHistoryByID(historyID);
         Mockito.verify(historyService).getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),null);
     }

@@ -16,10 +16,10 @@ public class StudentOptionalProgramHistory extends BaseModel{
 	private UUID studentOptionalProgramId;
     private String pen;
     private UUID optionalProgramID;
-    private String studentSpecialProgramData;
-    private String specialProgramCompletionDate;
-    private String specialProgramName;
-    private String specialProgramCode;
+    private String studentOptionalProgramData;
+    private String optionalProgramCompletionDate;
+    private String optionalProgramName;
+    private String optionalProgramCode;
     private String programCode;
     private UUID studentID;
 				

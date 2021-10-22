@@ -72,15 +72,15 @@ public class HistoryService {
     public List<StudentOptionalProgramHistory> getStudentOptionalProgramEditHistory(UUID studentID,String accessToken) {
         List<StudentOptionalProgramHistory> histList =   studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findByStudentID(studentID));
         histList.forEach(sP -> {
-            OptionalProgram gradSpecialProgram = webClient.get()
-                    .uri(String.format(constants.getGradSpecialProgramNameUrl(), sP.getOptionalProgramID()))
+            OptionalProgram gradOptionalProgram = webClient.get()
+                    .uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
-            sP.setSpecialProgramName(gradSpecialProgram.getOptionalProgramName());
-            sP.setSpecialProgramCode(gradSpecialProgram.getOptProgramCode());
-            sP.setProgramCode(gradSpecialProgram.getGraduationProgramCode());
+            sP.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
+            sP.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
+            sP.setProgramCode(gradOptionalProgram.getGraduationProgramCode());
         });
         return histList;
     }
@@ -92,16 +92,16 @@ public class HistoryService {
     public StudentOptionalProgramHistory getStudentOptionalProgramHistoryByID(UUID historyID,String accessToken) {
         StudentOptionalProgramHistory obj = studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findById(historyID));
         if(obj.getOptionalProgramID() != null) {
-            OptionalProgram gradSpecialProgram = webClient.get()
-                    .uri(String.format(constants.getGradSpecialProgramNameUrl(), obj.getOptionalProgramID()))
+            OptionalProgram gradOptionalProgram = webClient.get()
+                    .uri(String.format(constants.getGradOptionalProgramNameUrl(), obj.getOptionalProgramID()))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
-            if(gradSpecialProgram != null) {
-                obj.setSpecialProgramName(gradSpecialProgram.getOptionalProgramName());
-                obj.setSpecialProgramCode(gradSpecialProgram.getOptProgramCode());
-                obj.setProgramCode(gradSpecialProgram.getGraduationProgramCode());
+            if(gradOptionalProgram != null) {
+                obj.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
+                obj.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
+                obj.setProgramCode(gradOptionalProgram.getGraduationProgramCode());
             }
         }
         return obj;
