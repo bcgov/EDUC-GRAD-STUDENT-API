@@ -372,6 +372,7 @@ public class GraduationStatusService {
         Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional =
 				gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgram.getId());
         StudentOptionalProgramEntity sourceObject = gradStudentOptionalProgramTransformer.transformToEntity(gradStudentOptionalProgram);
+        sourceObject.setUpdateUser(null); //this change is just till idir login is fixed
         if (gradStudentOptionalOptional.isPresent()) {
             StudentOptionalProgramEntity gradEnity = gradStudentOptionalOptional.get();
             BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
