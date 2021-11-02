@@ -109,7 +109,7 @@ resilience4j.retry:
         - java.lang.NullPointerException
     advancedsearch:
       maxRetryAttempts: ${MAX_RETRY_ATTEMPTS}
-      waitDuration: 10s
+      waitDuration: 30s
       retryExceptions:
         - org.springframework.web.client.HttpServerErrorException
       ignoreExceptions:
