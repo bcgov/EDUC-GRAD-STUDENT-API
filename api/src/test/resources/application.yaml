@@ -88,7 +88,7 @@ endpoint:
   grad-program-api:
     optional_program_name_by_optional_program_id:
       url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/optionalprograms/id/%s
-    special_program_id_by_program_code_special_program_code:
+    optional_program_id_by_program_code_optional_program_code:
       url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/optionalprograms/%s/%s
     program_name_by_program_code:
       url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/programs/%s

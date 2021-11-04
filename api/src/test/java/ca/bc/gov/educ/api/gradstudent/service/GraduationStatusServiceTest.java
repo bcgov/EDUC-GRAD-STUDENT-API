@@ -53,7 +53,7 @@ public class GraduationStatusServiceTest {
     private GraduationStudentRecordRepository graduationStatusRepository;
 
     @MockBean
-    private StudentOptionalProgramRepository gradStudentSpecialProgramRepository;
+    private StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     
     @MockBean
     private CommonService commonService;
@@ -758,124 +758,121 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testGetStudentGradSpecialProgram() {
+    public void testGetStudentGradOptionalProgram() {
         // ID
-        UUID gradStudentSpecialProgramID = UUID.randomUUID();
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
-        gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
-        gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setOptionalProgramID(specialProgramID);
-        gradStudentSpecialProgramEntity.setPen(pen);
-        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        OptionalProgram specialProgram = new OptionalProgram();
-        specialProgram.setOptionalProgramID(specialProgramID);
-        specialProgram.setGraduationProgramCode("2018-en");
-        specialProgram.setOptProgramCode("FI");
-        specialProgram.setOptionalProgramName("French Immersion");
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
 
-        when(gradStudentSpecialProgramRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(gradStudentSpecialProgramEntity));
+        when(gradStudentOptionalProgramRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(gradStudentOptionalProgramEntity));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),specialProgramID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),optionalProgramID))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
-        var result = graduationStatusService.getStudentGradSpecialProgram(studentID, "accessToken");
+        var result = graduationStatusService.getStudentGradOptionalProgram(studentID, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        StudentOptionalProgram responseStudentSpecialProgram = result.get(0);
-        assertThat(responseStudentSpecialProgram.getStudentID()).isEqualTo(gradStudentSpecialProgramEntity.getStudentID());
-        assertThat(responseStudentSpecialProgram.getOptionalProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getOptionalProgramID());
-        assertThat(responseStudentSpecialProgram.getSpecialProgramName()).isEqualTo(specialProgram.getOptionalProgramName());
-        assertThat(responseStudentSpecialProgram.getSpecialProgramCode()).isEqualTo(specialProgram.getOptProgramCode());
-        assertThat(responseStudentSpecialProgram.getProgramCode()).isEqualTo(specialProgram.getGraduationProgramCode());
+        StudentOptionalProgram responseStudentOptionalProgram = result.get(0);
+        assertThat(responseStudentOptionalProgram.getStudentID()).isEqualTo(gradStudentOptionalProgramEntity.getStudentID());
+        assertThat(responseStudentOptionalProgram.getOptionalProgramID()).isEqualTo(gradStudentOptionalProgramEntity.getOptionalProgramID());
+        assertThat(responseStudentOptionalProgram.getOptionalProgramName()).isEqualTo(optionalProgram.getOptionalProgramName());
+        assertThat(responseStudentOptionalProgram.getOptionalProgramCode()).isEqualTo(optionalProgram.getOptProgramCode());
+        assertThat(responseStudentOptionalProgram.getProgramCode()).isEqualTo(optionalProgram.getGraduationProgramCode());
     }
 
     @Test
-    public void testSaveStudentGradSpecialProgram() {
+    public void testSaveStudentGradOptionalProgram() {
         // ID
-        UUID gradStudentSpecialProgramID = UUID.randomUUID();
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
-        gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
-        gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setOptionalProgramID(specialProgramID);
-        gradStudentSpecialProgramEntity.setPen(pen);
-        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
-        BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
-        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        when(gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
-        when(gradStudentSpecialProgramRepository.save(gradStudentSpecialProgramEntity)).thenReturn(gradStudentSpecialProgramEntity);
+        when(gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+        when(gradStudentOptionalProgramRepository.save(gradStudentOptionalProgramEntity)).thenReturn(gradStudentOptionalProgramEntity);
 
-        var result = graduationStatusService.saveStudentGradSpecialProgram(studentSpecialProgram);
+        var result = graduationStatusService.saveStudentGradOptionalProgram(studentOptionalProgram);
 
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(gradStudentSpecialProgramEntity.getId());
-        assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getOptionalProgramID());
-        assertThat(result.getSpecialProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentSpecialProgram.getSpecialProgramCompletionDate()));
+        assertThat(result.getId()).isEqualTo(gradStudentOptionalProgramEntity.getId());
+        assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentOptionalProgramEntity.getOptionalProgramID());
+        assertThat(result.getOptionalProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentOptionalProgram.getOptionalProgramCompletionDate()));
     }
 
     @Test
-    public void testUpdateStudentGradSpecialProgram() {
+    public void testUpdateStudentGradOptionalProgram() {
         // ID
-        UUID gradStudentSpecialProgramID = UUID.randomUUID();
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
-        gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
-        gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setOptionalProgramID(specialProgramID);
-        gradStudentSpecialProgramEntity.setPen(pen);
-        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
-        BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
-        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        StudentOptionalProgramReq gradStudentSpecialProgramReq = new StudentOptionalProgramReq();
-        gradStudentSpecialProgramReq.setId(gradStudentSpecialProgramID);
-        gradStudentSpecialProgramReq.setStudentID(studentID);
-        gradStudentSpecialProgramReq.setPen(pen);
-        gradStudentSpecialProgramReq.setMainProgramCode("2018-en");
-        gradStudentSpecialProgramReq.setSpecialProgramCode("FI");
-        gradStudentSpecialProgramReq.setSpecialProgramCompletionDate(studentSpecialProgram.getSpecialProgramCompletionDate());
+        StudentOptionalProgramReq gradStudentOptionalProgramReq = new StudentOptionalProgramReq();
+        gradStudentOptionalProgramReq.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramReq.setStudentID(studentID);
+        gradStudentOptionalProgramReq.setPen(pen);
+        gradStudentOptionalProgramReq.setMainProgramCode("2018-en");
+        gradStudentOptionalProgramReq.setOptionalProgramCode("FI");
+        gradStudentOptionalProgramReq.setOptionalProgramCompletionDate(studentOptionalProgram.getOptionalProgramCompletionDate());
 
-        OptionalProgram specialProgram = new OptionalProgram();
-        specialProgram.setOptionalProgramID(specialProgramID);
-        specialProgram.setGraduationProgramCode("2018-en");
-        specialProgram.setOptProgramCode("FI");
-        specialProgram.setOptionalProgramName("French Immersion");
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
 
-        when(gradStudentSpecialProgramRepository.findById(gradStudentSpecialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
-        when(gradStudentSpecialProgramRepository.save(gradStudentSpecialProgramEntity)).thenReturn(gradStudentSpecialProgramEntity);
+        when(gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+        when(gradStudentOptionalProgramRepository.save(gradStudentOptionalProgramEntity)).thenReturn(gradStudentOptionalProgramEntity);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramDetailsUrl(),specialProgram.getGraduationProgramCode(), specialProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(),optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
-        var result = graduationStatusService.updateStudentGradSpecialProgram(gradStudentSpecialProgramReq, "accessToken");
+        var result = graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "accessToken");
 
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(gradStudentSpecialProgramEntity.getId());
-        assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getOptionalProgramID());
-        assertThat(result.getSpecialProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentSpecialProgram.getSpecialProgramCompletionDate()));
+        assertThat(result.getId()).isEqualTo(gradStudentOptionalProgramEntity.getId());
+        assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentOptionalProgramEntity.getOptionalProgramID());
+        assertThat(result.getOptionalProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentOptionalProgram.getOptionalProgramCompletionDate()));
     }
 
     @Test
@@ -895,46 +892,45 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testGetStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode() {
+    public void testGetStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode() {
         // ID
-        UUID gradStudentSpecialProgramID = UUID.randomUUID();
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        UUID specialProgramID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        StudentOptionalProgramEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramEntity();
-        gradStudentSpecialProgramEntity.setId(gradStudentSpecialProgramID);
-        gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setOptionalProgramID(specialProgramID);
-        gradStudentSpecialProgramEntity.setPen(pen);
-        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        StudentOptionalProgram studentSpecialProgram = new StudentOptionalProgram();
-        BeanUtils.copyProperties(gradStudentSpecialProgramEntity, studentSpecialProgram);
-        studentSpecialProgram.setSpecialProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentSpecialProgramEntity.getSpecialProgramCompletionDate(), "yyyy-MM-dd" ));
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        OptionalProgram specialProgram = new OptionalProgram();
-        specialProgram.setOptionalProgramID(specialProgramID);
-        specialProgram.setGraduationProgramCode("2018-en");
-        specialProgram.setOptProgramCode("FI");
-        specialProgram.setOptionalProgramName("French Immersion");
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
 
-        when(gradStudentSpecialProgramRepository.findByStudentIDAndOptionalProgramID(studentID, specialProgramID)).thenReturn(Optional.of(gradStudentSpecialProgramEntity));
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradSpecialProgramNameUrl(),specialProgramID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),optionalProgramID))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(specialProgram));
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
-        var result = graduationStatusService.getStudentGradSpecialProgramByProgramCodeAndSpecialProgramCode(studentID, specialProgramID.toString(), "accessToken");
+        var result = graduationStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(), "accessToken");
 
         assertThat(result).isNotNull();
-        assertThat(result.getStudentID()).isEqualTo(gradStudentSpecialProgramEntity.getStudentID());
-        assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentSpecialProgramEntity.getOptionalProgramID());
-        assertThat(result.getProgramCode()).isEqualTo(specialProgram.getGraduationProgramCode());
-        assertThat(result.getSpecialProgramCode()).isEqualTo(specialProgram.getOptProgramCode());
-        assertThat(result.getSpecialProgramName()).isEqualTo(specialProgram.getOptionalProgramName());
+        assertThat(result.getStudentID()).isEqualTo(gradStudentOptionalProgramEntity.getStudentID());
+        assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentOptionalProgramEntity.getOptionalProgramID());
+        assertThat(result.getProgramCode()).isEqualTo(optionalProgram.getGraduationProgramCode());
+        assertThat(result.getOptionalProgramCode()).isEqualTo(optionalProgram.getOptProgramCode());
+        assertThat(result.getOptionalProgramName()).isEqualTo(optionalProgram.getOptionalProgramName());
     }
 
     @Test

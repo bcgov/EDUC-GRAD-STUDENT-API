@@ -27,7 +27,7 @@ public class StudentOptionalProgramHistoryTransformer {
 
     public StudentOptionalProgramHistory transformToDTO (StudentOptionalProgramHistoryEntity studentOptionalProgramHistoryEntity) {
         StudentOptionalProgramHistory studentOptionalProgramHistory = modelMapper.map(studentOptionalProgramHistoryEntity, StudentOptionalProgramHistory.class);
-        studentOptionalProgramHistory.setSpecialProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(studentOptionalProgramHistory.getSpecialProgramCompletionDate() != null ? studentOptionalProgramHistory.getSpecialProgramCompletionDate().toString():null));
+        studentOptionalProgramHistory.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(studentOptionalProgramHistory.getOptionalProgramCompletionDate() != null ? studentOptionalProgramHistory.getOptionalProgramCompletionDate().toString():null));
     	return studentOptionalProgramHistory;
     }
 
@@ -37,7 +37,7 @@ public class StudentOptionalProgramHistoryTransformer {
             cae = studentOptionalProgramHistoryEntity.get();
 
         StudentOptionalProgramHistory studentOptionalProgramHistory = modelMapper.map(cae, StudentOptionalProgramHistory.class);
-        studentOptionalProgramHistory.setSpecialProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(cae.getStudentSpecialProgramData() != null ? cae.getSpecialProgramCompletionDate().toString():null));
+        studentOptionalProgramHistory.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(cae.getStudentOptionalProgramData() != null ? cae.getOptionalProgramCompletionDate().toString():null));
         return studentOptionalProgramHistory;
     }
 
@@ -45,8 +45,8 @@ public class StudentOptionalProgramHistoryTransformer {
 		List<StudentOptionalProgramHistory> graduationStudentRecordHistoryList = new ArrayList<>();
         for (StudentOptionalProgramHistoryEntity graduationStudentRecordHistoryEntity : graduationStudentRecordHistoryEntities) {
             StudentOptionalProgramHistory graduationStudentRecordHistory = new StudentOptionalProgramHistory();
-        	graduationStudentRecordHistory.setStudentID(graduationStudentRecordHistoryEntity.getStudentID());
-        	graduationStudentRecordHistory.setSpecialProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(graduationStudentRecordHistoryEntity.getSpecialProgramCompletionDate() != null ? graduationStudentRecordHistoryEntity.getSpecialProgramCompletionDate().toString():null));
+            graduationStudentRecordHistory = modelMapper.map(graduationStudentRecordHistoryEntity, StudentOptionalProgramHistory.class);
+        	graduationStudentRecordHistory.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(graduationStudentRecordHistoryEntity.getOptionalProgramCompletionDate() != null ? graduationStudentRecordHistoryEntity.getOptionalProgramCompletionDate().toString():null));
         	graduationStudentRecordHistoryList.add(graduationStudentRecordHistory);
         }
         return graduationStudentRecordHistoryList;
@@ -56,17 +56,17 @@ public class StudentOptionalProgramHistoryTransformer {
         StudentOptionalProgramHistoryEntity graduationStudentRecordHistoryEntity = modelMapper.map(graduationStudentRecordHistory, StudentOptionalProgramHistoryEntity.class);
         Date programCompletionDate = null;
         try {
-        	if(graduationStudentRecordHistory.getSpecialProgramCompletionDate() != null) {
-        		String pDate = graduationStudentRecordHistory.getSpecialProgramCompletionDate();
-        		if(graduationStudentRecordHistory.getSpecialProgramCompletionDate().length() <= 7) {
-        			pDate = EducGradStudentApiUtils.parsingTraxDate(graduationStudentRecordHistory.getSpecialProgramCompletionDate());
+        	if(graduationStudentRecordHistory.getOptionalProgramCompletionDate() != null) {
+        		String pDate = graduationStudentRecordHistory.getOptionalProgramCompletionDate();
+        		if(graduationStudentRecordHistory.getOptionalProgramCompletionDate().length() <= 7) {
+        			pDate = EducGradStudentApiUtils.parsingTraxDate(graduationStudentRecordHistory.getOptionalProgramCompletionDate());
         		}
         		programCompletionDate= Date.valueOf(pDate);
         	}
         }catch(Exception e) {
         	validation.addErrorAndStop("Invalid Date");
         }
-        graduationStudentRecordHistoryEntity.setSpecialProgramCompletionDate(programCompletionDate);
+        graduationStudentRecordHistoryEntity.setOptionalProgramCompletionDate(programCompletionDate);
         return graduationStudentRecordHistoryEntity;
     }
 }

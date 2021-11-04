@@ -120,19 +120,82 @@ public class HistoryServiceTest {
     public  void testGetStudentOptionalProgramHistory() {
         UUID studentID = UUID.randomUUID();
         List<StudentOptionalProgramHistoryEntity> histList = new ArrayList<>();
-        StudentOptionalProgramHistoryEntity gradStudentSpecialProgramEntity = new StudentOptionalProgramHistoryEntity();
-        gradStudentSpecialProgramEntity.setStudentOptionalProgramID(new UUID(1,1));
-        gradStudentSpecialProgramEntity.setStudentID(studentID);
-        gradStudentSpecialProgramEntity.setOptionalProgramID(new UUID(2,2));
-        gradStudentSpecialProgramEntity.setSpecialProgramCompletionDate(new Date(System.currentTimeMillis()));
-        gradStudentSpecialProgramEntity.setHistoryId(new UUID(3,3));
-        gradStudentSpecialProgramEntity.setActivityCode("GRADALG");
-        histList.add(gradStudentSpecialProgramEntity);
+        StudentOptionalProgramHistoryEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramHistoryEntity();
+        gradStudentOptionalProgramEntity.setStudentOptionalProgramID(new UUID(1,1));
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(new UUID(2,2));
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+        gradStudentOptionalProgramEntity.setHistoryId(new UUID(3,3));
+        gradStudentOptionalProgramEntity.setActivityCode("GRADALG");
+        histList.add(gradStudentOptionalProgramEntity);
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(gradStudentOptionalProgramEntity.getOptionalProgramID());
+        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),gradStudentOptionalProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
         when(studentOptionalProgramHistoryRepository.findByStudentID(studentID)).thenReturn(histList);
-        var result = historyService.getStudentOptionalProgramEditHistory(studentID);
+        var result = historyService.getStudentOptionalProgramEditHistory(studentID,"accessToken");
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
 
+    }
+
+    @Test
+    public void testGetStudentHistoryByHistoryID() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID historyID = UUID.randomUUID();
+        GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setHistoryID(new UUID(1,1));
+        graduationStatusEntity.setActivityCode("GRADALG");
+        when(graduationStudentRecordHistoryRepository.findById(historyID)).thenReturn(Optional.of(graduationStatusEntity));
+        var result = historyService.getStudentHistoryByID(historyID);
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    public  void testGetStudentOptionalProgramHistoryByID() {
+        UUID studentID = UUID.randomUUID();
+        UUID historyID = UUID.randomUUID();
+        StudentOptionalProgramHistoryEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramHistoryEntity();
+        gradStudentOptionalProgramEntity.setStudentOptionalProgramID(new UUID(1,1));
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(new UUID(2,2));
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+        gradStudentOptionalProgramEntity.setHistoryId(new UUID(3,3));
+        gradStudentOptionalProgramEntity.setActivityCode("GRADALG");
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(gradStudentOptionalProgramEntity.getOptionalProgramID());
+        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),gradStudentOptionalProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        when(studentOptionalProgramHistoryRepository.findById(historyID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+
+
+
+        var result = historyService.getStudentOptionalProgramHistoryByID(historyID,"accessToken");
+        assertThat(result).isNotNull();
     }
 }
