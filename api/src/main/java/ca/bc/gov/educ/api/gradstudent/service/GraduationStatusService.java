@@ -118,7 +118,7 @@ public class GraduationStatusService {
             if (gradStatus.getStudentStatus() != null) {
                 StudentStatus statusObj = commonService.getSpecificStudentStatusCode(gradStatus.getStudentStatus());
                 if (statusObj != null)
-                    gradStatus.setStudentStatusName(statusObj.getDescription());
+                    gradStatus.setStudentStatusName(statusObj.getLabel());
             }
 
             if (gradStatus.getSchoolAtGrad() != null)
