@@ -226,29 +226,33 @@ public class GradStudentService {
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve().bodyToMono(new ParameterizedTypeReference<RestResponsePage<Student>>() {}).block();
 			List<Student> studentLists = response != null ? response.getContent():new ArrayList<>();
-			List<UUID> studentIds = studentLists.stream().map(std -> UUID.fromString(std.getStudentID())).collect(Collectors.toList());
-			int partitionSize = 1000;
-			List<List<UUID>> partitions = new LinkedList<>();
-			for (int i = 0; i < studentIds.size(); i += partitionSize) {
-				partitions.add(studentIds.subList(i,Math.min(i + partitionSize, studentIds.size())));
-			}
-			logger.debug(" partitions length " + partitions.size());
-			for(int i=0; i<partitions.size();i++) {
-				List<UUID> subList = partitions.get(i);
-				logger.debug(" sub list length "+subList.size()+" par "+i);
-				List<GraduationStudentRecordEntity> gradList = graduationStatusRepository.findByStudentIDIn(subList);
-				if (!gradList.isEmpty()) {
-					gradList.forEach(st -> {
-						GradSearchStudent gradStu = populateGradStudent(st, accessToken);
-						if(gradStu.getProgram() != null) {
-							gradStudentList.add(gradStu);
-						}
-					});
+			if(studentLists.size() < 25000) {
+				List<UUID> studentIds = studentLists.stream().map(std -> UUID.fromString(std.getStudentID())).collect(Collectors.toList());
+				int partitionSize = 1000;
+				List<List<UUID>> partitions = new LinkedList<>();
+				for (int i = 0; i < studentIds.size(); i += partitionSize) {
+					partitions.add(studentIds.subList(i, Math.min(i + partitionSize, studentIds.size())));
 				}
+				logger.debug(" partitions length " + partitions.size());
+				for (int i = 0; i < partitions.size(); i++) {
+					List<UUID> subList = partitions.get(i);
+					logger.debug(" sub list length " + subList.size() + " par " + i);
+					List<GraduationStudentRecordEntity> gradList = graduationStatusRepository.findByStudentIDIn(subList);
+					if (!gradList.isEmpty()) {
+						gradList.forEach(st -> {
+							GradSearchStudent gradStu = populateGradStudent(st, accessToken);
+							if (gradStu.getProgram() != null) {
+								gradStudentList.add(gradStu);
+							}
+						});
+					}
+				}
+				searchObj.setGradSearchStudents(gradStudentList);
+				searchObj.setSearchMessage(String.format(messageStringMoreMatchesFound, response != null ? (response.getTotalElements() - gradStudentList.size()) : 0));
+			}else {
+				searchObj.setGradSearchStudents(new ArrayList<>());
+				searchObj.setSearchMessage("Change Search Criteria. Too many records as response");
 			}
-			searchObj.setGradSearchStudents(gradStudentList);
-			searchObj.setSearchMessage(String.format(messageStringMoreMatchesFound, response != null ? (response.getTotalElements()-gradStudentList.size()):0));
-			
 			return searchObj;
 			
 		} catch (Exception e) {
