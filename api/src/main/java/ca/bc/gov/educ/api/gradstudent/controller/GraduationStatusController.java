@@ -178,6 +178,15 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.getStudentsForGraduation());
     }
 
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_PROJECTED_RUN)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Find Students For Batch Projected Algorithm", description = "Get Students For Batch Projected Algorithm", tags = { "Batch Algorithm" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForProjectedGraduation() {
+        logger.debug("getStudentsForProjectedGraduation:");
+        return response.GET(gradStatusService.getStudentsForProjectedGraduation());
+    }
+
     @GetMapping(EducGradStudentApiConstants.GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING)
     @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Check if Student Status is valid", description = "Check if Student Status is valid", tags = { "Student Graduation Status" })
