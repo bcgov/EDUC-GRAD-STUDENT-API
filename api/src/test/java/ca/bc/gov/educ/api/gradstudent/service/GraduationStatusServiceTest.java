@@ -892,6 +892,23 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testGetStudentsForProjectedGraduation() {
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(UUID.randomUUID());
+        graduationStatusEntity.setStudentStatus("CUR");
+        graduationStatusEntity.setProgram("2018-EN");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+
+        when(graduationStatusRepository.findByStudentStatus(graduationStatusEntity.getStudentStatus())).thenReturn(Arrays.asList(graduationStatusEntity));
+        var result = graduationStatusService.getStudentsForProjectedGraduation();
+        assertThat(result).isNotNull();
+        assertThat(result.size()).isEqualTo(1);
+        GraduationStudentRecord responseGraduationStatus = result.get(0);
+        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(responseGraduationStatus.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
+    }
+
+    @Test
     public void testGetStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode() {
         // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
