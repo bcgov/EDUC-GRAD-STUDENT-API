@@ -131,7 +131,7 @@ public class GraduationStatusServiceTest {
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen("123456789");
-        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setStudentStatus("CUR");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-en");
         graduationStatusEntity.setSchoolOfRecord(mincode);
@@ -140,8 +140,8 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setStudentStatus("A");
 
         StudentStatus studentStatus = new StudentStatus();
-        studentStatus.setCode("A");
-        studentStatus.setDescription("Active");
+        studentStatus.setCode("CUR");
+        studentStatus.setDescription(null);
 
         GradProgram program = new GradProgram();
         program.setProgramCode("2018-en");

@@ -18,6 +18,7 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgr
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -93,6 +94,7 @@ public class GraduationStatusService {
     private static final String CREATE_DATE = "createDate";
 
 
+    @Retry(name = "generalgetcall")
     public GraduationStudentRecord getGraduationStatusForAlgorithm(UUID studentID) {
         logger.info("getGraduationStatus");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
@@ -104,6 +106,7 @@ public class GraduationStatusService {
 
     }
 
+    @Retry(name = "generalgetcall")
     public GraduationStudentRecord getGraduationStatus(UUID studentID, String accessToken) {
         logger.info("getGraduationStatus");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
@@ -132,6 +135,7 @@ public class GraduationStatusService {
     }
 
     @Transactional
+    @Retry(name = "generalpostcall")
     public Pair<GraduationStudentRecord, GradStatusEvent> saveGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, String accessToken) throws JsonProcessingException {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
@@ -158,6 +162,7 @@ public class GraduationStatusService {
     }
 
     @Transactional
+    @Retry(name = "generalpostcall")
     public Pair<GraduationStudentRecord, GradStatusEvent> updateGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, String accessToken) throws JsonProcessingException {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
@@ -217,10 +222,10 @@ public class GraduationStatusService {
     }
 
     private void validateStudentStatus(String studentStatus) {
-        if (studentStatus.equalsIgnoreCase("M")) {
+        if (studentStatus.equalsIgnoreCase("MER")) {
             validation.addErrorAndStop("Student GRAD data cannot be updated for students with a status of 'M' merged");
         }
-        if (studentStatus.equalsIgnoreCase("D")) {
+        if (studentStatus.equalsIgnoreCase("DEC")) {
             validation.addErrorAndStop("This student is showing as deceased.  Confirm the students' status before re-activating by setting their status to 'A' if they are currently attending school");
         }
     }
@@ -278,13 +283,13 @@ public class GraduationStatusService {
 				.bodyToMono(Student.class)
 				.block();
         if(sourceEntity.getStudentStatus() != null) {
-	        if (sourceEntity.getStudentStatus().equalsIgnoreCase("D")
-					|| sourceEntity.getStudentStatus().equalsIgnoreCase("M")) {
+	        if (sourceEntity.getStudentStatus().equalsIgnoreCase("DEC")
+					|| sourceEntity.getStudentStatus().equalsIgnoreCase("MER")) {
 	            if (!sourceEntity.getStudentStatus().equalsIgnoreCase(studentObj.getStatusCode())) {
 	                validation.addError("Status code selected does not match with the PEN data for this student");
 	            }
 	        } else {
-	            if (!"A".equalsIgnoreCase(studentObj.getStatusCode())) {
+	            if (!"CUR".equalsIgnoreCase(studentObj.getStatusCode())) {
 	                validation.addError("Status code selected does not match with the PEN data for this student");
 	            }
 	        }
@@ -318,7 +323,7 @@ public class GraduationStatusService {
         if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))
 				|| (sourceEntity.getStudentStatus() != null && !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus()))) {
             hasDataChangd = true;
-            validateStudentGrade(sourceEntity, accessToken);
+            //validateStudentGrade(sourceEntity, accessToken); //Commenting for now
         }
         if (sourceEntity.getGpa() != null && !sourceEntity.getGpa().equalsIgnoreCase(existingEntity.getGpa())) {
             hasDataChangd = true;
@@ -424,6 +429,11 @@ public class GraduationStatusService {
         return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateGradStatus("Y"));
     }
 
+    public List<GraduationStudentRecord> getStudentsForProjectedGraduation() {
+        return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByStudentStatus("CUR"));
+    }
+
+    @Retry(name = "generalgetcall")
     public StudentOptionalProgram getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(
     		UUID studentID, String optionalProgramID, String accessToken) {
         UUID optionalProgramIDUUID = UUID.fromString(optionalProgramID);
@@ -451,6 +461,7 @@ public class GraduationStatusService {
     }
 
     @Transactional
+    @Retry(name = "generalpostcall")
     public Pair<GraduationStudentRecord, GradStatusEvent> ungradStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) throws JsonProcessingException {
         if(StringUtils.isNotBlank(ungradReasonCode)) {
         	UngradReason ungradReasonObj = webClient.get().uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(UngradReason.class).block();
@@ -524,6 +535,7 @@ public class GraduationStatusService {
                 .build();
     }
 
+    @Retry(name = "generalpostcall")
 	public boolean restoreGradStudentRecord(UUID studentID,boolean isGraduated) {
 		Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
