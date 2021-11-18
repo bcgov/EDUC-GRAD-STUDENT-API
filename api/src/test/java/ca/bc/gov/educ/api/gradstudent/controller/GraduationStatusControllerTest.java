@@ -141,10 +141,10 @@ public class GraduationStatusControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Mockito.when(graduationStatusService.saveGraduationStatus(studentID, graduationStatus, null)).thenReturn(Pair.of(graduationStatus, null));
+        Mockito.when(graduationStatusService.saveGraduationStatus(studentID, graduationStatus,null, null)).thenReturn(Pair.of(graduationStatus, null));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
-        var result = graduationStatusController.saveStudentGradStatus(studentID.toString(), graduationStatus);
-        Mockito.verify(graduationStatusService).saveGraduationStatus(studentID, graduationStatus, null);
+        var result = graduationStatusController.saveStudentGradStatus(studentID.toString(), graduationStatus,null);
+        Mockito.verify(graduationStatusService).saveGraduationStatus(studentID, graduationStatus,null, null);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
