@@ -65,6 +65,6 @@ public class GraduationStudentRecordHistoryEntity extends BaseEntity {
     private String recalculateProjectedGrad;
 
     @Column(name = "BATCH_ID", nullable = true)
-    private String batchId;
+    private Long batchId;
 
 }
