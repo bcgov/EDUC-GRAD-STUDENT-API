@@ -163,7 +163,7 @@ public class CommonController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<ApiResponseModel<StudentStatus>> updateStudentStatusCode(@Valid @RequestBody StudentStatus studentStatus) {
-        logger.info("updateStudentStatusCode : ");
+        logger.debug("updateStudentStatusCode : ");
         validation.requiredField(studentStatus.getCode(), STATUS_CODE);
         validation.requiredField(studentStatus.getDescription(), "Status Description");
         if (validation.hasErrors()) {
