@@ -447,6 +447,22 @@ public class GraduationStatusControllerTest {
         graduationStatusController.returnToOriginalState(studentID.toString(),true);
         Mockito.verify(graduationStatusService).restoreGradStudentRecord(studentID,true);
     }
+
+    @Test
+    public void testSaveStudentRecord_ProjectedGradRun() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setStudentStatus("A");
+        graduationStatus.setSchoolOfRecord("12345678");
+        graduationStatus.setRecalculateGradStatus("Y");
+
+        Mockito.when(graduationStatusService.saveStudentRecordProjectedTVRRun(studentID,null)).thenReturn(graduationStatus);
+        graduationStatusController.saveStudentGradStatusProjectedRun(studentID.toString(),null);
+        Mockito.verify(graduationStatusService).saveStudentRecordProjectedTVRRun(studentID,null);
+    }
     
     @Test
     public void testreturnToOriginalState_returnsfalse() {
