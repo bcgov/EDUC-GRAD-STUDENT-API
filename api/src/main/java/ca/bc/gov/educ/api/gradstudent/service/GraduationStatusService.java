@@ -96,7 +96,7 @@ public class GraduationStatusService {
 
     @Retry(name = "generalgetcall")
     public GraduationStudentRecord getGraduationStatusForAlgorithm(UUID studentID) {
-        logger.info("getGraduationStatus");
+        logger.debug("getGraduationStatusForAlgorithm");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
         if (responseOptional.isPresent()) {
             return graduationStatusTransformer.transformToDTO(responseOptional.get());
@@ -108,7 +108,7 @@ public class GraduationStatusService {
 
     @Retry(name = "generalgetcall")
     public GraduationStudentRecord getGraduationStatus(UUID studentID, String accessToken) {
-        logger.info("getGraduationStatus");
+        logger.debug("getGraduationStatus");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
         if (responseOptional.isPresent()) {
             GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTO(responseOptional.get());
