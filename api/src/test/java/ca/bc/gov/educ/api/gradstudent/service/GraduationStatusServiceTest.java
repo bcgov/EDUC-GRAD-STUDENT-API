@@ -236,7 +236,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
-        var response = graduationStatusService.saveGraduationStatus(studentID, graduationStatus, "accessToken");
+        var response = graduationStatusService.saveGraduationStatus(studentID, graduationStatus, null,"accessToken");
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -281,7 +281,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
-        var response = graduationStatusService.saveGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.saveGraduationStatus(studentID, input,null, "accessToken");
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -898,8 +898,9 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setStudentStatus("CUR");
         graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setRecalculateProjectedGrad("Y");
 
-        when(graduationStatusRepository.findByStudentStatus(graduationStatusEntity.getStudentStatus())).thenReturn(Arrays.asList(graduationStatusEntity));
+        when(graduationStatusRepository.findByRecalculateProjectedGrad(graduationStatusEntity.getRecalculateProjectedGrad())).thenReturn(Arrays.asList(graduationStatusEntity));
         var result = graduationStatusService.getStudentsForProjectedGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
@@ -987,6 +988,7 @@ public class GraduationStatusServiceTest {
         GraduationStudentRecordEntity responseGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, responseGraduationStatus);
         responseGraduationStatus.setRecalculateGradStatus("Y");
+        responseGraduationStatus.setRecalculateProjectedGrad("Y");
         responseGraduationStatus.setProgramCompletionDate(null);
         responseGraduationStatus.setHonoursStanding(null);
         responseGraduationStatus.setGpa(null);
@@ -1107,5 +1109,31 @@ public class GraduationStatusServiceTest {
     	
     	graduationStatusService.restoreGradStudentRecord(studentID, isGraduated);
     	
+    }
+
+    @Test
+    public void testSaveStudentRecord_projectedRun() {
+        UUID studentID = new UUID(1, 1);
+        Long batchId = null;
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+
+        GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
+        graduationStatusEntity2.setStudentID(studentID);
+        graduationStatusEntity2.setPen("12321321");
+        graduationStatusEntity2.setStudentStatus("A");
+        graduationStatusEntity2.setSchoolOfRecord("12345678");
+        graduationStatusEntity2.setRecalculateProjectedGrad(null);
+        graduationStatusEntity2.setBatchId(batchId);
+
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
+
+        graduationStatusService.saveStudentRecordProjectedTVRRun(studentID, batchId);
+
     }
 }

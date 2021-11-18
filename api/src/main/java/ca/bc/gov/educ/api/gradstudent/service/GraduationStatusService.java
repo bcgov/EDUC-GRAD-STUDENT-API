@@ -136,13 +136,14 @@ public class GraduationStatusService {
 
     @Transactional
     @Retry(name = "generalpostcall")
-    public Pair<GraduationStudentRecord, GradStatusEvent> saveGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, String accessToken) throws JsonProcessingException {
+    public Pair<GraduationStudentRecord, GradStatusEvent> saveGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, Long batchId, String accessToken) throws JsonProcessingException {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE);
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE,"recalculateProjectedGrad");
             gradEntity.setRecalculateGradStatus(null);
+            gradEntity.setBatchId(batchId);
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, "GRADALG");
@@ -181,7 +182,7 @@ public class GraduationStatusService {
             } else {
                 gradEntity.setRecalculateGradStatus(null);
             }
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus");
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus", "recalculateProjectedGrad");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, "USEREDIT");
@@ -430,7 +431,7 @@ public class GraduationStatusService {
     }
 
     public List<GraduationStudentRecord> getStudentsForProjectedGraduation() {
-        return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByStudentStatus("CUR"));
+        return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateProjectedGrad("Y"));
     }
 
     @Retry(name = "generalgetcall")
@@ -472,6 +473,7 @@ public class GraduationStatusService {
 		            saveUngradReason(studentID,ungradReasonCode,ungradDesc,accessToken);
 		            deleteStudentAchievements(studentID,accessToken);
                     gradEntity.setRecalculateGradStatus("Y");
+                    gradEntity.setRecalculateProjectedGrad("Y");
                     gradEntity.setStudentGradData(null);
                     gradEntity.setProgramCompletionDate(null);
                     gradEntity.setHonoursStanding(null);
@@ -552,5 +554,19 @@ public class GraduationStatusService {
         }
         return false;
 	}
+
+    @Retry(name = "generalpostcall")
+    public GraduationStudentRecord saveStudentRecordProjectedTVRRun(UUID studentID,Long batchId) {
+        Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        if (gradStatusOptional.isPresent()) {
+            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            gradEntity.setBatchId(batchId);
+            gradEntity.setRecalculateProjectedGrad(null);
+            gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
+            historyService.createStudentHistory(gradEntity, "GRADPROJECTED");
+            return graduationStatusTransformer.transformToDTO(gradEntity);
+        }
+        return null;
+    }
   
 }
