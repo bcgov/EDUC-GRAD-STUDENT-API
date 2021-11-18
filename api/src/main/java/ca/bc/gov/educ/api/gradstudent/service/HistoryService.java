@@ -49,7 +49,7 @@ public class HistoryService {
     private EducGradStudentApiConstants constants;
 
     public GraduationStudentRecordHistoryEntity createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
-    	logger.info("Create Student History");
+    	logger.debug("Create Student History");
     	final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
         BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
         graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
@@ -57,7 +57,7 @@ public class HistoryService {
     }
 
     public StudentOptionalProgramHistoryEntity createStudentOptionalProgramHistory(StudentOptionalProgramEntity curStudentOptionalProgramEntity, String historyActivityCode) {
-        logger.info("Create Student History");
+        logger.debug("Create Student Optional History");
         final StudentOptionalProgramHistoryEntity studentOptionalProgramHistoryEntity = new StudentOptionalProgramHistoryEntity();
         BeanUtils.copyProperties(curStudentOptionalProgramEntity, studentOptionalProgramHistoryEntity);
         studentOptionalProgramHistoryEntity.setStudentOptionalProgramID(curStudentOptionalProgramEntity.getId());
