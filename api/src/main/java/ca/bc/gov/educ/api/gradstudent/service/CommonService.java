@@ -1,7 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -41,48 +39,27 @@ import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 @Service
 public class CommonService {
     
-    @Autowired
-    private StudentCareerProgramRepository gradStudentCareerProgramRepository;
+    @Autowired StudentCareerProgramRepository gradStudentCareerProgramRepository;
+    @Autowired GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
+    @Autowired StudentNoteTransformer  studentNoteTransformer;
+    @Autowired StudentNoteRepository studentNoteRepository;
+    @Autowired EducGradStudentApiConstants constants;
+    @Autowired StudentStatusRepository studentStatusRepository;
+	@Autowired StudentStatusTransformer studentStatusTransformer;
+	@Autowired GraduationStatusService graduationStatusService;
+	@Autowired GradStudentService gradStudentService;
+    @Autowired WebClient webClient;
+    @Autowired GradValidation validation;
 
-    @Autowired
-    private GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
-    
-    @Autowired
-    private StudentNoteTransformer  studentNoteTransformer;
 
-    @Autowired
-    private StudentNoteRepository studentNoteRepository;
-
-    @Autowired
-	private EducGradStudentApiConstants constants;
-    
-    @Autowired
-	private StudentStatusRepository studentStatusRepository;
-
-	@Autowired
-	private StudentStatusTransformer studentStatusTransformer;
-	
-	@Autowired
-	private GraduationStatusService graduationStatusService;
-	
-	@Autowired
-	private GradStudentService gradStudentService;
-    
-    @Autowired
-    WebClient webClient;
-    
-    @Autowired
-	GradValidation validation;
-
-    @SuppressWarnings("unused")
-	private static Logger logger = LoggerFactory.getLogger(CommonService.class);
+	private static final Logger logger = LoggerFactory.getLogger(CommonService.class);
     
     private static final String CREATE_USER="createUser";
 	private static final String CREATE_DATE="createDate";
 
     @Transactional
   	public List<StudentCareerProgram> getAllGradStudentCareerProgramList(String studentId, String accessToken) {
-
+		logger.debug("getAllGradStudentCareerProgramList");
 		List<StudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
       	gradStudentCareerProgramList.forEach(sC -> {
       		CareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CareerProgram.class).block();
@@ -101,11 +78,12 @@ public class CommonService {
 
 	public List<StudentNote> getAllStudentNotes(UUID studentId) {
 		List<StudentNote> responseList = studentNoteTransformer.transformToDTO(studentNoteRepository.findByStudentID(studentId));
-		Collections.sort(responseList, Comparator.comparing(StudentNote::getUpdateDate).reversed());
+		responseList.sort(Comparator.comparing(StudentNote::getUpdateDate).reversed());
 		return responseList;
 	}
 
 	public StudentNote saveStudentNote(StudentNote studentNote) {
+		logger.debug("saveStudentNote");
 		StudentRecordNoteEntity toBeSaved = studentNoteTransformer.transformToEntity(studentNote);
 		if(studentNote.getId() != null) {
 			Optional<StudentRecordNoteEntity> existingEnity = studentNoteRepository.findById(studentNote.getId());
@@ -149,6 +127,7 @@ public class CommonService {
 
 	@Transactional
 	public StudentStatus getSpecificStudentStatusCode(String statusCode) {
+		logger.debug("getSpecificStudentStatusCode");
 		Optional<StudentStatusEntity> entity = studentStatusRepository.findById(StringUtils.toRootUpperCase(statusCode));
 		if (entity.isPresent()) {
 			return studentStatusTransformer.transformToDTO(entity);

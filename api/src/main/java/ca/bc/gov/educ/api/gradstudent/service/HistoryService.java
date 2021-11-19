@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramHistory;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
@@ -28,41 +27,32 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStudentRecordH
 @Service
 public class HistoryService {
 
-    private static Logger logger = LoggerFactory.getLogger(HistoryService.class);
+    private static final Logger logger = LoggerFactory.getLogger(HistoryService.class);
 
     @Autowired
     WebClient webClient;
 
-    @Autowired
-    private GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;  
+    @Autowired GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
+    @Autowired GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer;
+    @Autowired StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
+    @Autowired StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer;
+    @Autowired EducGradStudentApiConstants constants;
 
-    @Autowired
-    private GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer;
-
-    @Autowired
-    private StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
-
-    @Autowired
-    private StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer;
-
-    @Autowired
-    private EducGradStudentApiConstants constants;
-
-    public GraduationStudentRecordHistoryEntity createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
+    public void createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
     	logger.debug("Create Student History");
     	final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
         BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
         graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
-        return graduationStudentRecordHistoryRepository.save(graduationStudentRecordHistoryEntity);
+        graduationStudentRecordHistoryRepository.save(graduationStudentRecordHistoryEntity);
     }
 
-    public StudentOptionalProgramHistoryEntity createStudentOptionalProgramHistory(StudentOptionalProgramEntity curStudentOptionalProgramEntity, String historyActivityCode) {
+    public void createStudentOptionalProgramHistory(StudentOptionalProgramEntity curStudentOptionalProgramEntity, String historyActivityCode) {
         logger.debug("Create Student Optional History");
         final StudentOptionalProgramHistoryEntity studentOptionalProgramHistoryEntity = new StudentOptionalProgramHistoryEntity();
         BeanUtils.copyProperties(curStudentOptionalProgramEntity, studentOptionalProgramHistoryEntity);
         studentOptionalProgramHistoryEntity.setStudentOptionalProgramID(curStudentOptionalProgramEntity.getId());
         studentOptionalProgramHistoryEntity.setActivityCode(historyActivityCode);
-        return studentOptionalProgramHistoryRepository.save(studentOptionalProgramHistoryEntity);
+        studentOptionalProgramHistoryRepository.save(studentOptionalProgramHistoryEntity);
     }
     
     public List<GraduationStudentRecordHistory> getStudentEditHistory(UUID studentID) {
@@ -78,9 +68,11 @@ public class HistoryService {
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
-            sP.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
-            sP.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
-            sP.setProgramCode(gradOptionalProgram.getGraduationProgramCode());
+            if(gradOptionalProgram != null) {
+                sP.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
+                sP.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
+                sP.setProgramCode(gradOptionalProgram.getGraduationProgramCode());
+            }
         });
         return histList;
     }
