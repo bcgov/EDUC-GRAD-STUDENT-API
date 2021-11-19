@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -18,10 +19,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.CareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
@@ -33,11 +30,9 @@ public class CommonControllerTest {
     @Mock
     private CommonService commonService;
 
-    @Mock
-    ResponseHelper responseHelper;
+    @Mock ResponseHelper responseHelper;
 
-    @Mock
-    GradValidation validation;
+    @Mock GradValidation validation;
 
     @InjectMocks
     private CommonController codeController;
@@ -77,7 +72,6 @@ public class CommonControllerTest {
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
         Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         Mockito.when(authentication.getDetails()).thenReturn(details);
@@ -221,6 +215,34 @@ public class CommonControllerTest {
 		codeController.deleteStudentStatusCodes(statusCode);
 		Mockito.verify(commonService).deleteStudentStatus(statusCode);
 	}
+
+    @Test
+    public void testgetStudentGradStatusForAlgorithm() {
+
+        String studentID = new UUID(1,1).toString();
+        String accessToken = "accessToken";
+        Authentication authentication = Mockito.mock(Authentication.class);
+        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(authentication.getDetails()).thenReturn(details);
+        SecurityContextHolder.setContext(securityContext);
+
+        GradSearchStudent gs = new GradSearchStudent();
+        gs.setStudentID(studentID);
+        gs.setStudentStatus("A");
+
+        GraduationStudentRecord gsr = new GraduationStudentRecord();
+        gsr.setStudentID(UUID.fromString(studentID));
+        gsr.setStudentStatus("CUR");
+
+        GradStudentAlgorithmData data = new GradStudentAlgorithmData();
+        data.setGradStudent(gs);
+        data.setGraduationStudentRecord(gsr);
+
+        Mockito.when(commonService.getGradStudentAlgorithmData(studentID,null)).thenReturn(data);
+        codeController.getStudentGradStatusForAlgorithm(studentID);
+    }
 
 
 }

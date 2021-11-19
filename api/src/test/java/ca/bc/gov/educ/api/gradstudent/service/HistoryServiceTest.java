@@ -4,30 +4,21 @@ import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -45,44 +36,21 @@ import static org.mockito.MockitoAnnotations.openMocks;
 @ActiveProfiles("test")
 public class HistoryServiceTest {
 
-    @Autowired
-    EducGradStudentApiConstants constants;
-
-    @Autowired
-    private HistoryService historyService;
-
-    @MockBean
-    private GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
-
-    @MockBean
-    private StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
-
-    @MockBean
-    GradValidation validation;
-
-    @MockBean
-    private WebClient webClient;
-
-    @Mock
-    private WebClient.RequestHeadersSpec requestHeadersMock;
-    @Mock
-    private WebClient.RequestHeadersUriSpec requestHeadersUriMock;
-    @Mock
-    private WebClient.RequestBodySpec requestBodyMock;
-    @Mock
-    private WebClient.RequestBodyUriSpec requestBodyUriMock;
-    @Mock
-    private WebClient.ResponseSpec responseMock;
+    @Autowired EducGradStudentApiConstants constants;
+    @Autowired HistoryService historyService;
+    @MockBean GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
+    @MockBean StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
+    @MockBean WebClient webClient;
+    @Mock WebClient.RequestHeadersSpec requestHeadersMock;
+    @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
+    @Mock WebClient.RequestBodySpec requestBodyMock;
+    @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
+    @Mock WebClient.ResponseSpec responseMock;
 
     // NATS
-    @MockBean
-    private NatsConnection natsConnection;
-
-    @MockBean
-    private Publisher publisher;
-
-    @MockBean
-    private Subscriber subscriber;
+    @MockBean NatsConnection natsConnection;
+    @MockBean Publisher publisher;
+    @MockBean Subscriber subscriber;
 
     @Before
     public void setUp() {
