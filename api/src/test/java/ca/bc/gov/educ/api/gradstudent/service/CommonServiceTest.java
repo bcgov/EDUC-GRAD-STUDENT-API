@@ -46,47 +46,23 @@ import reactor.core.publisher.Mono;
 @ActiveProfiles("test")
 public class CommonServiceTest {
 
-    @Autowired
-    EducGradStudentApiConstants constants;
-
-    @Autowired
-    private CommonService commonService;
-
-    @MockBean
-    private GraduationStatusService graduationStatusService;
-
-    @MockBean
-    private StudentCareerProgramRepository gradStudentCareerProgramRepository;
-
-    @MockBean
-    private StudentNoteRepository studentNoteRepository;
-    
-    @MockBean
-	private StudentStatusRepository studentStatusRepository;
-
-    @MockBean
-    private WebClient webClient;
-
-    @Mock
-    private WebClient.RequestHeadersSpec requestHeadersMock;
-    @Mock
-    private WebClient.RequestHeadersUriSpec requestHeadersUriMock;
-    @Mock
-    private WebClient.RequestBodySpec requestBodyMock;
-    @Mock
-    private WebClient.RequestBodyUriSpec requestBodyUriMock;
-    @Mock
-    private WebClient.ResponseSpec responseMock;
+    @Autowired EducGradStudentApiConstants constants;
+    @Autowired CommonService commonService;
+    @MockBean GraduationStatusService graduationStatusService;
+    @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
+    @MockBean StudentNoteRepository studentNoteRepository;
+    @MockBean StudentStatusRepository studentStatusRepository;
+    @MockBean WebClient webClient;
+    @Mock WebClient.RequestHeadersSpec requestHeadersMock;
+    @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
+    @Mock WebClient.RequestBodySpec requestBodyMock;
+    @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
+    @Mock WebClient.ResponseSpec responseMock;
 
     // NATS
-    @MockBean
-    private NatsConnection natsConnection;
-
-    @MockBean
-    private Publisher publisher;
-
-    @MockBean
-    private Subscriber subscriber;
+    @MockBean NatsConnection natsConnection;
+    @MockBean Publisher publisher;
+    @MockBean Subscriber subscriber;
 
     @Before
     public void setUp() {
@@ -103,7 +79,6 @@ public class CommonServiceTest {
     public void testGetStudentCareerProgram() {
         // UUID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
         // Career Program
         final CareerProgram gradCareerProgram = new CareerProgram();
         gradCareerProgram.setCode("TEST");
@@ -169,7 +144,6 @@ public class CommonServiceTest {
     public void testGetAllStudentNotes() {
         // UUID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
 
         final List<StudentRecordNoteEntity> allNotesList = new ArrayList<>();
 
@@ -203,7 +177,6 @@ public class CommonServiceTest {
     public void testSaveStudentNote_thenReturnCreateSuccess() {
         // ID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
 
         final StudentNote studentNote = new StudentNote();
         studentNote.setStudentID(studentID.toString());
@@ -212,8 +185,6 @@ public class CommonServiceTest {
         final StudentRecordNoteEntity studentNoteEntity = new StudentRecordNoteEntity();
         studentNoteEntity.setStudentID(studentID);
         studentNoteEntity.setNote("Test Note Body");
-
-        final Optional<StudentRecordNoteEntity> optional = Optional.of(studentNoteEntity);
 
         when(this.studentNoteRepository.save(studentNoteEntity)).thenReturn(studentNoteEntity);
 
@@ -229,7 +200,6 @@ public class CommonServiceTest {
         // ID
         final UUID noteID = UUID.randomUUID();
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
 
         final StudentNote studentNote = new StudentNote();
         studentNote.setId(noteID);
@@ -259,7 +229,6 @@ public class CommonServiceTest {
         // ID
         final UUID noteID = UUID.randomUUID();
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
 
         final StudentRecordNoteEntity studentNoteEntity = new StudentRecordNoteEntity();
         studentNoteEntity.setId(noteID);
@@ -322,7 +291,6 @@ public class CommonServiceTest {
 		obj.setUpdateUser("GRADUATION");
 		obj.setCreateDate(new Date());
 		obj.setUpdateDate(new Date());
-		obj.toString();
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
 		objEntity.setDescription("Data Correction by School");

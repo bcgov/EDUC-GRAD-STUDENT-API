@@ -48,7 +48,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @OpenAPIDefinition(info = @Info(title = "API for Common endpoints.", description = "This API is for Reading Common endpoints.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_UNGRAD_REASONS_DATA","READ_GRAD_STUDENT_CAREER_DATA"})})
 public class CommonController {
 
-    private static Logger logger = LoggerFactory.getLogger(CommonController.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommonController.class);
     
     private static final String STATUS_CODE="Status Code";
 
