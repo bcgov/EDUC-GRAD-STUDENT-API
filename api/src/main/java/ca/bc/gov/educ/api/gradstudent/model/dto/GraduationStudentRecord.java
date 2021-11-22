@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.Column;
 import java.util.UUID;
 
 @Data
@@ -27,5 +28,7 @@ public class GraduationStudentRecord extends BaseModel{
     private UUID studentID;
     private String schoolAtGrad;
     private String schoolAtGradName;
-				
+    private String recalculateProjectedGrad;
+    private Long batchId;
+
 }

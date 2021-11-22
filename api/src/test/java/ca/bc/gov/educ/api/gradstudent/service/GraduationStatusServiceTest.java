@@ -1,11 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -28,7 +28,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -45,45 +45,21 @@ public class GraduationStatusServiceTest {
 
     @Autowired
     EducGradStudentApiConstants constants;
-
-    @Autowired
-    private GraduationStatusService graduationStatusService;
-
-    @MockBean
-    private GraduationStudentRecordRepository graduationStatusRepository;
-
-    @MockBean
-    private StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
-    
-    @MockBean
-    private CommonService commonService;
-
-    @MockBean
-    GradValidation validation;
-
-    @MockBean
-    private WebClient webClient;
-
-    @Mock
-    private WebClient.RequestHeadersSpec requestHeadersMock;
-    @Mock
-    private WebClient.RequestHeadersUriSpec requestHeadersUriMock;
-    @Mock
-    private WebClient.RequestBodySpec requestBodyMock;
-    @Mock
-    private WebClient.RequestBodyUriSpec requestBodyUriMock;
-    @Mock
-    private WebClient.ResponseSpec responseMock;
-
+    @Autowired GraduationStatusService graduationStatusService;
+    @MockBean GraduationStudentRecordRepository graduationStatusRepository;
+    @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
+    @MockBean CommonService commonService;
+    @MockBean GradValidation validation;
+    @MockBean WebClient webClient;
+    @Mock WebClient.RequestHeadersSpec requestHeadersMock;
+    @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
+    @Mock WebClient.RequestBodySpec requestBodyMock;
+    @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
+    @Mock WebClient.ResponseSpec responseMock;
     // NATS
-    @MockBean
-    private NatsConnection natsConnection;
-
-    @MockBean
-    private Publisher publisher;
-
-    @MockBean
-    private Subscriber subscriber;
+    @MockBean NatsConnection natsConnection;
+    @MockBean Publisher publisher;
+    @MockBean Subscriber subscriber;
 
     @Before
     public void setUp() {
@@ -131,7 +107,7 @@ public class GraduationStatusServiceTest {
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen("123456789");
-        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setStudentStatus("CUR");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-en");
         graduationStatusEntity.setSchoolOfRecord(mincode);
@@ -140,8 +116,8 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setStudentStatus("A");
 
         StudentStatus studentStatus = new StudentStatus();
-        studentStatus.setCode("A");
-        studentStatus.setDescription("Active");
+        studentStatus.setCode("CUR");
+        studentStatus.setDescription(null);
 
         GradProgram program = new GradProgram();
         program.setProgramCode("2018-en");
@@ -153,11 +129,11 @@ public class GraduationStatusServiceTest {
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradProgramNameUrl(),program.getProgramCode()))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
+        when(this.webClient.get()).thenReturn(requestHeadersUriMock);
+        when(requestHeadersUriMock.uri(String.format(constants.getGradProgramNameUrl(),program.getProgramCode()))).thenReturn(requestHeadersMock);
+        when(requestHeadersMock.headers(any(Consumer.class))).thenReturn(requestHeadersMock);
+        when(requestHeadersMock.retrieve()).thenReturn(responseMock);
+        when(responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
@@ -188,7 +164,6 @@ public class GraduationStatusServiceTest {
     public void testGetGraduationStatus_withoutprogram() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -216,7 +191,6 @@ public class GraduationStatusServiceTest {
     public void testSaveGraduationStatusAsNew() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
@@ -236,7 +210,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
-        var response = graduationStatusService.saveGraduationStatus(studentID, graduationStatus, "accessToken");
+        var response = graduationStatusService.saveGraduationStatus(studentID, graduationStatus, null,"accessToken");
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -281,7 +255,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
-        var response = graduationStatusService.saveGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.saveGraduationStatus(studentID, input,null, "accessToken");
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -353,7 +327,7 @@ public class GraduationStatusServiceTest {
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
-        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setStudentStatus("CUR");
         graduationStatusEntity.setStudentGrade("11");
         graduationStatusEntity.setProgram("2018-en");
         graduationStatusEntity.setSchoolOfRecord(mincode);
@@ -713,7 +687,6 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
         String mincode = "12345678";
-        String newMincode = "87654321";
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -763,7 +736,6 @@ public class GraduationStatusServiceTest {
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
         UUID optionalProgramID = UUID.randomUUID();
-        String pen = "123456789";
 
         StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
         gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
@@ -777,7 +749,7 @@ public class GraduationStatusServiceTest {
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
-        when(gradStudentOptionalProgramRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(gradStudentOptionalProgramEntity));
+        when(gradStudentOptionalProgramRepository.findByStudentID(studentID)).thenReturn(List.of(gradStudentOptionalProgramEntity));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),optionalProgramID))).thenReturn(this.requestHeadersMock);
@@ -803,7 +775,6 @@ public class GraduationStatusServiceTest {
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
         UUID optionalProgramID = UUID.randomUUID();
-        String pen = "123456789";
 
         StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
         gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
@@ -882,8 +853,26 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setRecalculateGradStatus("Y");
 
-        when(graduationStatusRepository.findByRecalculateGradStatus(graduationStatusEntity.getRecalculateGradStatus())).thenReturn(Arrays.asList(graduationStatusEntity));
+        when(graduationStatusRepository.findByRecalculateGradStatus(graduationStatusEntity.getRecalculateGradStatus())).thenReturn(List.of(graduationStatusEntity));
         var result = graduationStatusService.getStudentsForGraduation();
+        assertThat(result).isNotNull();
+        assertThat(result.size()).isEqualTo(1);
+        GraduationStudentRecord responseGraduationStatus = result.get(0);
+        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(responseGraduationStatus.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
+    }
+
+    @Test
+    public void testGetStudentsForProjectedGraduation() {
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(UUID.randomUUID());
+        graduationStatusEntity.setStudentStatus("CUR");
+        graduationStatusEntity.setProgram("2018-EN");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setRecalculateProjectedGrad("Y");
+
+        when(graduationStatusRepository.findByRecalculateProjectedGrad(graduationStatusEntity.getRecalculateProjectedGrad())).thenReturn(List.of(graduationStatusEntity));
+        var result = graduationStatusService.getStudentsForProjectedGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
         GraduationStudentRecord responseGraduationStatus = result.get(0);
@@ -897,7 +886,6 @@ public class GraduationStatusServiceTest {
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
         UUID optionalProgramID = UUID.randomUUID();
-        String pen = "123456789";
 
         StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
         gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
@@ -944,7 +932,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setSchoolOfRecord("12345678");
         graduationStatusEntity.setRecalculateGradStatus("Y");
 
-        when(graduationStatusRepository.existsByStatusCode(statusCode)).thenReturn(Arrays.asList(graduationStatusEntity));
+        when(graduationStatusRepository.existsByStatusCode(statusCode)).thenReturn(List.of(graduationStatusEntity));
         var result = graduationStatusService.getStudentStatus(statusCode);
         assertThat(result).isTrue();
     }
@@ -970,6 +958,7 @@ public class GraduationStatusServiceTest {
         GraduationStudentRecordEntity responseGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, responseGraduationStatus);
         responseGraduationStatus.setRecalculateGradStatus("Y");
+        responseGraduationStatus.setRecalculateProjectedGrad("Y");
         responseGraduationStatus.setProgramCompletionDate(null);
         responseGraduationStatus.setHonoursStanding(null);
         responseGraduationStatus.setGpa(null);
@@ -1039,7 +1028,6 @@ public class GraduationStatusServiceTest {
     
     @Test
     public void testRestoreGradStudentRecord() {
-    	 boolean isGraduated = false;
     	 UUID studentID = new UUID(1, 1);
 		 GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
 	     graduationStatusEntity.setStudentID(studentID);
@@ -1063,13 +1051,12 @@ public class GraduationStatusServiceTest {
     	when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
     	when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
     	
-    	graduationStatusService.restoreGradStudentRecord(studentID, isGraduated);
+    	graduationStatusService.restoreGradStudentRecord(studentID, false);
     	
     }
     
     @Test
     public void testRestoreGradStudentRecord_graduated() {
-    	 boolean isGraduated = true;
     	 UUID studentID = new UUID(1, 1);
 		 GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
 	     graduationStatusEntity.setStudentID(studentID);
@@ -1088,7 +1075,33 @@ public class GraduationStatusServiceTest {
     	when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
     	when(graduationStatusRepository.save(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
     	
-    	graduationStatusService.restoreGradStudentRecord(studentID, isGraduated);
+    	graduationStatusService.restoreGradStudentRecord(studentID, true);
     	
+    }
+
+    @Test
+    public void testSaveStudentRecord_projectedRun() {
+        UUID studentID = new UUID(1, 1);
+        Long batchId = null;
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+
+        GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
+        graduationStatusEntity2.setStudentID(studentID);
+        graduationStatusEntity2.setPen("12321321");
+        graduationStatusEntity2.setStudentStatus("A");
+        graduationStatusEntity2.setSchoolOfRecord("12345678");
+        graduationStatusEntity2.setRecalculateProjectedGrad(null);
+        graduationStatusEntity2.setBatchId(batchId);
+
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
+
+        graduationStatusService.saveStudentRecordProjectedTVRRun(studentID, batchId);
+
     }
 }

@@ -25,7 +25,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -53,30 +52,15 @@ public class GradStudentServiceTest {
 
     @MockBean
     GraduationStudentRecordRepository graduationStatusRepository;
-
-    @MockBean
-    private GraduationStatusTransformer graduationStatusTransformer;
-
-    @Mock
-    private WebClient.RequestHeadersSpec requestHeadersMock;
-    @Mock
-    private WebClient.RequestHeadersUriSpec requestHeadersUriMock;
-    @Mock
-    private WebClient.RequestBodySpec requestBodyMock;
-    @Mock
-    private WebClient.RequestBodyUriSpec requestBodyUriMock;
-    @Mock
-    private WebClient.ResponseSpec responseMock;
+    @MockBean GraduationStatusTransformer graduationStatusTransformer;
+    @Mock WebClient.RequestHeadersSpec requestHeadersMock;
+    @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
+    @Mock WebClient.ResponseSpec responseMock;
 
     // NATS
-    @MockBean
-    private NatsConnection natsConnection;
-
-    @MockBean
-    private Publisher publisher;
-
-    @MockBean
-    private Subscriber subscriber;
+    @MockBean NatsConnection natsConnection;
+    @MockBean Publisher publisher;
+    @MockBean Subscriber subscriber;
 
     @Before
     public void setUp() {
@@ -114,9 +98,9 @@ public class GradStudentServiceTest {
         student.setLocalID("01234567");
         student.setMemo("test memo text");
 
-        RestResponsePage<Student> response = new RestResponsePage<Student>(Arrays.asList(student));
+        RestResponsePage<Student> response = new RestResponsePage<>(List.of(student));
 
-        final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<RestResponsePage<Student>>() {
+        final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<>() {
         };
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
@@ -241,11 +225,11 @@ public class GradStudentServiceTest {
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
         when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
 
-        org.springframework.data.domain.Page<GraduationStudentRecordEntity> pagedResult = new PageImpl<GraduationStudentRecordEntity>(Arrays.asList(graduationStatusEntity));
+        org.springframework.data.domain.Page<GraduationStudentRecordEntity> pagedResult = new PageImpl<>(List.of(graduationStatusEntity));
         when(this.graduationStatusRepository.findAll(any(), any(Pageable.class))).thenReturn(pagedResult);
 
-        RestResponsePage<Student> response = new RestResponsePage<Student>(Arrays.asList(student));
-        final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<RestResponsePage<Student>>() {
+        RestResponsePage<Student> response = new RestResponsePage<>(List.of(student));
+        final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<>() {
         };
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
@@ -341,9 +325,9 @@ public class GradStudentServiceTest {
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
         when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
-        when(this.graduationStatusRepository.findByStudentIDIn(studentSubList)).thenReturn(Arrays.asList(graduationStatusEntity));
-        RestResponsePage<Student> response = new RestResponsePage<Student>(Arrays.asList(student));
-        final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<RestResponsePage<Student>>() {
+        when(this.graduationStatusRepository.findByStudentIDIn(studentSubList)).thenReturn(List.of(graduationStatusEntity));
+        RestResponsePage<Student> response = new RestResponsePage<>(List.of(student));
+        final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<>() {
         };
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
@@ -412,14 +396,14 @@ public class GradStudentServiceTest {
         student.setStatusCode("A");
         student.setDob("1990-01-01");
 
-        final ParameterizedTypeReference<List<Student>> studentResponseType = new ParameterizedTypeReference<List<Student>>() {
+        final ParameterizedTypeReference<List<Student>> studentResponseType = new ParameterizedTypeReference<>() {
         };
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(Arrays.asList(student)));
+        when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(List.of(student)));
 
         // Graduation Status
         final GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
@@ -508,7 +492,7 @@ public class GradStudentServiceTest {
         student.setDob("1990-01-01");
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByStudentIdUrl(),studentID.toString()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByStudentIdUrl(),studentID))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(student));
@@ -549,23 +533,22 @@ public class GradStudentServiceTest {
 
         assertThat(result).isNotNull();
 
-        GradSearchStudent responseStd = result;
-        assertThat(responseStd.getStudentID()).isEqualTo(studentID.toString());
-        assertThat(responseStd.getProgram()).isEqualTo(program);
-        assertThat(responseStd.getStudentGrade()).isEqualTo(stdGrade);
-        assertThat(responseStd.getStudentStatus()).isEqualTo(gradStatus);
-        assertThat(responseStd.getSchoolOfRecord()).isEqualTo(mincode);
-        assertThat(responseStd.getSchoolOfRecordName()).isEqualTo(schoolName);
+        assertThat(result.getStudentID()).isEqualTo(studentID.toString());
+        assertThat(result.getProgram()).isEqualTo(program);
+        assertThat(result.getStudentGrade()).isEqualTo(stdGrade);
+        assertThat(result.getStudentStatus()).isEqualTo(gradStatus);
+        assertThat(result.getSchoolOfRecord()).isEqualTo(mincode);
+        assertThat(result.getSchoolOfRecordName()).isEqualTo(schoolName);
         // extra
-        assertThat(responseStd.getUsualFirstName()).isEqualTo(student.getUsualFirstName());
-        assertThat(responseStd.getUsualLastName()).isEqualTo(student.getUsualLastName());
-        assertThat(responseStd.getPen()).isEqualTo(student.getPen());
-        assertThat(responseStd.getMincode()).isEqualTo(student.getMincode());
-        assertThat(responseStd.getDob()).isEqualTo(student.getDob());
-        assertThat(responseStd.getSexCode()).isEqualTo(student.getSexCode());
-        assertThat(responseStd.getGenderCode()).isEqualTo(student.getGenderCode());
-        assertThat(responseStd.getStatusCode()).isEqualTo(student.getStatusCode());
-        assertThat(responseStd.getEmail()).isEqualTo(student.getEmail());
-        assertThat(responseStd.getEmailVerified()).isEqualTo(student.getEmailVerified());
+        assertThat(result.getUsualFirstName()).isEqualTo(student.getUsualFirstName());
+        assertThat(result.getUsualLastName()).isEqualTo(student.getUsualLastName());
+        assertThat(result.getPen()).isEqualTo(student.getPen());
+        assertThat(result.getMincode()).isEqualTo(student.getMincode());
+        assertThat(result.getDob()).isEqualTo(student.getDob());
+        assertThat(result.getSexCode()).isEqualTo(student.getSexCode());
+        assertThat(result.getGenderCode()).isEqualTo(student.getGenderCode());
+        assertThat(result.getStatusCode()).isEqualTo(student.getStatusCode());
+        assertThat(result.getEmail()).isEqualTo(student.getEmail());
+        assertThat(result.getEmailVerified()).isEqualTo(student.getEmailVerified());
     }
 }

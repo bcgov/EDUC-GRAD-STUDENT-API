@@ -90,11 +90,11 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID", description = "Save Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<GraduationStudentRecord> saveStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStudentRecord graduationStatus) throws JsonProcessingException {
+    public ResponseEntity<GraduationStudentRecord> saveStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStudentRecord graduationStatus, @RequestParam(required = false) Long batchId) throws JsonProcessingException {
         logger.debug("Save student Grad Status for Student ID");
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
         String accessToken = auth.getTokenValue();
-        var result = gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken);
+        var result = gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus,batchId,accessToken);
         publishToJetStream(result.getRight());
         return response.GET(result.getLeft());
     }
@@ -176,6 +176,15 @@ public class GraduationStatusController {
     public ResponseEntity<List<GraduationStudentRecord>> getStudentsForGraduation() {
         logger.debug("getStudentsForGraduation:");
         return response.GET(gradStatusService.getStudentsForGraduation());
+    }
+
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_PROJECTED_RUN)
+    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Find Students For Batch Projected Algorithm", description = "Get Students For Batch Projected Algorithm", tags = { "Batch Algorithm" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForProjectedGraduation() {
+        logger.debug("getStudentsForProjectedGraduation:");
+        return response.GET(gradStatusService.getStudentsForProjectedGraduation());
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING)
@@ -265,5 +274,15 @@ public class GraduationStatusController {
         String accessToken = auth.getTokenValue();
         StudentOptionalProgramHistory histObj = historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),accessToken);
         return response.GET(histObj);
+    }
+
+    @PostMapping (EducGradStudentApiConstants.GRADUATION_RECORD_BY_STUDENT_ID_PROJECTED_RUN)
+    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
+    @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<GraduationStudentRecord> saveStudentGradStatusProjectedRun(@PathVariable String studentID, @RequestParam(required = false) Long batchId) {
+        logger.debug("Save student Grad Status for Student ID");
+        GraduationStudentRecord gradRecord =  gradStatusService.saveStudentRecordProjectedTVRRun(UUID.fromString(studentID),batchId);
+        return response.GET(gradRecord);
     }
 }

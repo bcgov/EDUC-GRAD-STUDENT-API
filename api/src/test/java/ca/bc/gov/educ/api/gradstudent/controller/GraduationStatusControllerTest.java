@@ -2,8 +2,6 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
@@ -143,10 +141,10 @@ public class GraduationStatusControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Mockito.when(graduationStatusService.saveGraduationStatus(studentID, graduationStatus, null)).thenReturn(Pair.of(graduationStatus, null));
+        Mockito.when(graduationStatusService.saveGraduationStatus(studentID, graduationStatus,null, null)).thenReturn(Pair.of(graduationStatus, null));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
-        var result = graduationStatusController.saveStudentGradStatus(studentID.toString(), graduationStatus);
-        Mockito.verify(graduationStatusService).saveGraduationStatus(studentID, graduationStatus, null);
+        var result = graduationStatusController.saveStudentGradStatus(studentID.toString(), graduationStatus,null);
+        Mockito.verify(graduationStatusService).saveGraduationStatus(studentID, graduationStatus,null, null);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -230,7 +228,7 @@ public class GraduationStatusControllerTest {
         Mockito.when(authentication.getDetails()).thenReturn(details);
         SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(graduationStatusService.getStudentGradOptionalProgram(studentID, null)).thenReturn(Arrays.asList(gradStudentOptionalProgram));
+        Mockito.when(graduationStatusService.getStudentGradOptionalProgram(studentID, null)).thenReturn(List.of(gradStudentOptionalProgram));
         graduationStatusController.getStudentGradOptionalPrograms(studentID.toString());
         Mockito.verify(graduationStatusService).getStudentGradOptionalProgram(studentID, null);
     }
@@ -381,9 +379,27 @@ public class GraduationStatusControllerTest {
         graduationStatus.setSchoolOfRecord("12345678");
         graduationStatus.setRecalculateGradStatus("Y");
 
-        Mockito.when(graduationStatusService.getStudentsForGraduation()).thenReturn(Arrays.asList(graduationStatus));
+        Mockito.when(graduationStatusService.getStudentsForGraduation()).thenReturn(List.of(graduationStatus));
         graduationStatusController.getStudentsForGraduation();
         Mockito.verify(graduationStatusService).getStudentsForGraduation();
+    }
+
+    @Test
+    public void testGetStudentsForProjectedGraduation() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setPen(pen);
+        graduationStatus.setStudentStatus("CUR");
+        graduationStatus.setSchoolOfRecord("12345678");
+        graduationStatus.setRecalculateGradStatus("Y");
+
+        Mockito.when(graduationStatusService.getStudentsForProjectedGraduation()).thenReturn(List.of(graduationStatus));
+        graduationStatusController.getStudentsForProjectedGraduation();
+        Mockito.verify(graduationStatusService).getStudentsForProjectedGraduation();
     }
 
     @Test
@@ -431,6 +447,22 @@ public class GraduationStatusControllerTest {
         graduationStatusController.returnToOriginalState(studentID.toString(),true);
         Mockito.verify(graduationStatusService).restoreGradStudentRecord(studentID,true);
     }
+
+    @Test
+    public void testSaveStudentRecord_ProjectedGradRun() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setStudentStatus("A");
+        graduationStatus.setSchoolOfRecord("12345678");
+        graduationStatus.setRecalculateGradStatus("Y");
+
+        Mockito.when(graduationStatusService.saveStudentRecordProjectedTVRRun(studentID,null)).thenReturn(graduationStatus);
+        graduationStatusController.saveStudentGradStatusProjectedRun(studentID.toString(),null);
+        Mockito.verify(graduationStatusService).saveStudentRecordProjectedTVRRun(studentID,null);
+    }
     
     @Test
     public void testreturnToOriginalState_returnsfalse() {
@@ -467,7 +499,6 @@ public class GraduationStatusControllerTest {
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
         Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         Mockito.when(authentication.getDetails()).thenReturn(details);
@@ -511,7 +542,6 @@ public class GraduationStatusControllerTest {
     public void testGetOptionalProgramStudentHistoryByID() {
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
         Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         Mockito.when(authentication.getDetails()).thenReturn(details);

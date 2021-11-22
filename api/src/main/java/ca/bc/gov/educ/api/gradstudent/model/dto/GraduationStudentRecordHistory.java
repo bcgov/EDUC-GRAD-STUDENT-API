@@ -27,5 +27,7 @@ public class GraduationStudentRecordHistory extends BaseModel{
     private String studentStatus;
     private UUID studentID;
     private String schoolAtGrad;
+    private String recalculateProjectedGrad;
+    private Long batchId;
 				
 }
