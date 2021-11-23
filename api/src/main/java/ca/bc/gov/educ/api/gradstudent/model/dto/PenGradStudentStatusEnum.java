@@ -10,7 +10,7 @@ public enum PenGradStudentStatusEnum {
 
     public final String label;
 
-    private PenGradStudentStatusEnum(String label) {
+    PenGradStudentStatusEnum(String label) {
         this.label = label;
     }
 }
