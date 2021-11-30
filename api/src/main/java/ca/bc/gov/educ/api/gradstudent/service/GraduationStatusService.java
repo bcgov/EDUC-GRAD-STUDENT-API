@@ -352,17 +352,20 @@ public class GraduationStatusService {
     public StudentOptionalProgram saveStudentGradOptionalProgram(StudentOptionalProgram gradStudentOptionalProgram) {
         Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional =
 				gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgram.getId());
+        logger.debug("Save with payload ==> Student Optional Program ID: {}", gradStudentOptionalProgram.getId());
         StudentOptionalProgramEntity sourceObject = gradStudentOptionalProgramTransformer.transformToEntity(gradStudentOptionalProgram);
         sourceObject.setUpdateUser(null); //this change is just till idir login is fixed
         if (gradStudentOptionalOptional.isPresent()) {
             StudentOptionalProgramEntity gradEnity = gradStudentOptionalOptional.get();
+            logger.debug(" -> Student Optional Program Entity is found for ID: {} === Entity ID: {}", gradStudentOptionalProgram.getId(), gradEnity.getId());
             BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
             gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
             gradEnity = gradStudentOptionalProgramRepository.save(gradEnity);
             historyService.createStudentOptionalProgramHistory(gradEnity,"GRADALG");
             return gradStudentOptionalProgramTransformer.transformToDTO(gradEnity);
         } else {
-            return gradStudentOptionalProgramTransformer.transformToDTO(gradStudentOptionalProgramRepository.save(sourceObject));
+            logger.debug(" -> Student Optional Program Entity is not found for ID: {}", gradStudentOptionalProgram.getId());
+            return null;
         }
     }
     
