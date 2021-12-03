@@ -8,6 +8,10 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.HistoryActivityTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.CareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentAlgorithmData;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
@@ -50,6 +47,8 @@ public class CommonService {
 	@Autowired GradStudentService gradStudentService;
     @Autowired WebClient webClient;
     @Autowired GradValidation validation;
+	@Autowired HistoryActivityRepository historyActivityRepository;
+	@Autowired HistoryActivityTransformer historyActivityTransformer;
 
 
 	private static final Logger logger = LoggerFactory.getLogger(CommonService.class);
@@ -180,5 +179,21 @@ public class CommonService {
 		data.setGradStudent(gradStudent);
 		data.setGraduationStudentRecord(gradStudentRecord);		
 		return data;
+	}
+
+	@Transactional
+	public List<HistoryActivity> getAllHistoryActivityCodeList() {
+		return historyActivityTransformer.transformToDTO(historyActivityRepository.findAll());
+	}
+
+	@Transactional
+	public HistoryActivity getSpecificHistoryActivityCode(String activityCode) {
+		logger.debug("getSpecificStudentStatusCode");
+		Optional<HistoryActivityCodeEntity> entity = historyActivityRepository.findById(StringUtils.toRootUpperCase(activityCode));
+		if (entity.isPresent()) {
+			return historyActivityTransformer.transformToDTO(entity);
+		} else {
+			return null;
+		}
 	}
 }
