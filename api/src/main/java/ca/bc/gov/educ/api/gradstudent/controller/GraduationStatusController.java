@@ -7,7 +7,7 @@ import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import ca.bc.gov.educ.api.gradstudent.util.PermissionsContants;
+import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -57,7 +57,7 @@ public class GraduationStatusController {
     ResponseHelper response;
 
     @GetMapping (EducGradStudentApiConstants.GRADUATION_STATUS_BY_STUDENT_ID)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Student Grad Status by Student ID", description = "Get Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GraduationStudentRecord> getStudentGradStatus(@PathVariable String studentID) {
@@ -73,7 +73,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRADUATION_STATUS_BY_STUDENT_ID_FOR_ALGORITHM)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Student Grad Status by Student ID for algorithm", description = "Get Student Grad Status by Student ID for algorithm", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GraduationStudentRecord> getStudentGradStatusForAlgorithm(@PathVariable String studentID) {
@@ -87,7 +87,7 @@ public class GraduationStatusController {
     }
 
     @PostMapping (EducGradStudentApiConstants.GRADUATION_STATUS_BY_STUDENT_ID)
-    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID", description = "Save Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecord> saveStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStudentRecord graduationStatus, @RequestParam(required = false) Long batchId) throws JsonProcessingException {
@@ -100,7 +100,7 @@ public class GraduationStatusController {
     }
 
     @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_UPDATE_BY_STUDENT_ID)
-    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Update Student Grad Status by Student ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<GraduationStudentRecord> updateStudentGradStatus(@PathVariable String studentID, @RequestBody GraduationStudentRecord graduationStatus) throws JsonProcessingException {
@@ -118,7 +118,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Find all Student Optional Grad Status by Student ID", description = "Get All Student Optional Grad Status by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<List<StudentOptionalProgram>> getStudentGradOptionalPrograms(@PathVariable String studentID) {
@@ -134,7 +134,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Find all Student Optional Grad Status by Student ID,Optional PROGRAM ID", description = "Get All Student Optional Grad Status by Student ID,Optional PROGRAM ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<StudentOptionalProgram> getStudentGradOptionalProgram(@PathVariable String studentID,@PathVariable String optionalProgramID) {
@@ -150,7 +150,7 @@ public class GraduationStatusController {
     }
 
     @PostMapping (EducGradStudentApiConstants.SAVE_GRAD_STUDENT_OPTIONAL_PROGRAM)
-    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Save Student Optional Grad Status by Student ID", description = "Save Student Optional Grad Status by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<StudentOptionalProgram> saveStudentGradOptionalProgram(@RequestBody StudentOptionalProgram gradStudentOptionalProgram) {
@@ -159,7 +159,7 @@ public class GraduationStatusController {
     }
 
     @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_OPTIONAL_PROGRAM)
-    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Update/Create Student Optional Grad Status by Student ID", description = "Update/Create Student Optional Grad Status by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<StudentOptionalProgram> updateStudentGradOptionalProgram(@RequestBody StudentOptionalProgramReq gradStudentOptionalProgramReq) {
@@ -170,7 +170,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_RECALCULATE)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Students For Batch Algorithm", description = "Get Students For Batch Algorithm", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<GraduationStudentRecord>> getStudentsForGraduation() {
@@ -179,7 +179,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_PROJECTED_RUN)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Students For Batch Projected Algorithm", description = "Get Students For Batch Projected Algorithm", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<GraduationStudentRecord>> getStudentsForProjectedGraduation() {
@@ -188,7 +188,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Check if Student Status is valid", description = "Check if Student Status is valid", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Boolean> getStudentStatus(@PathVariable String statusCode) {
@@ -197,7 +197,7 @@ public class GraduationStatusController {
     }
 
     @PostMapping (EducGradStudentApiConstants.UNGRAD_STUDENT)
-    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Ungrad Student Grad Status by STudent ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<GraduationStudentRecord> ungradStudent(@PathVariable String studentID,  @RequestParam(value = "ungradReasonCode", required = false) String ungradReasonCode,
@@ -222,7 +222,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping(EducGradStudentApiConstants.RETURN_TO_ORIGINAL_STATE)
-    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Incase algorithm errors out, bring the original record back", description = "Check if Student Status is valid", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Boolean> returnToOriginalState(@PathVariable String studentID, @RequestParam(value = "isGraduated", required = false, defaultValue = "false") boolean isGraduated) {
@@ -231,7 +231,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_HISTORY)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Get all edit history for a Student", description = "Get all edit history for a Student", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<GraduationStudentRecordHistory>> getStudentHistory(@PathVariable String studentID) {
@@ -242,7 +242,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Get all edit history for a Student Optional Program", description = "Get all edit history for a Student", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<StudentOptionalProgramHistory>> getStudentOptionalProgramHistory(@PathVariable String studentID) {
@@ -255,7 +255,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_HISTORY_BY_ID)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Get history for a ID", description = "Get a history for a historyID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecordHistory> getStudentHistoryByID(@PathVariable String historyID) {
@@ -265,7 +265,7 @@ public class GraduationStatusController {
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY_BY_ID)
-    @PreAuthorize(PermissionsContants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Get Student Optional Program History by ID", description = "Get Student Optional Program History by ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<StudentOptionalProgramHistory> getStudentOptionalProgramHistoryByID(@PathVariable String historyID) {
@@ -277,7 +277,7 @@ public class GraduationStatusController {
     }
 
     @PostMapping (EducGradStudentApiConstants.GRADUATION_RECORD_BY_STUDENT_ID_PROJECTED_RUN)
-    @PreAuthorize(PermissionsContants.UPDATE_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecord> saveStudentGradStatusProjectedRun(@PathVariable String studentID, @RequestParam(required = false) Long batchId) {

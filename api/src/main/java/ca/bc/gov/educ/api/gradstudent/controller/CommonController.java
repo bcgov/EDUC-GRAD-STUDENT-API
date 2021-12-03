@@ -29,7 +29,7 @@ import ca.bc.gov.educ.api.gradstudent.service.CommonService;
 import ca.bc.gov.educ.api.gradstudent.util.ApiResponseModel;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import ca.bc.gov.educ.api.gradstudent.util.PermissionsContants;
+import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -59,7 +59,7 @@ public class CommonController {
 	ResponseHelper response;
     
     @GetMapping(EducGradStudentApiConstants.GET_STUDENT_CAREER_PROGRAM_BY_CAREER_PROGRAM_CODE_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_CAREER_DATA)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_CAREER_DATA)
     @Operation(summary = "Check if Career Program is valid", description = "Check if Career Program is valid", tags = { "Career Programs" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Boolean> getStudentCareerProgram(@PathVariable String cpCode) { 
@@ -68,7 +68,7 @@ public class CommonController {
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_CAREER_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_CAREER_DATA)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_CAREER_DATA)
     @Operation(summary = "Find Student Career Program by Student ID", description = "Find Student Career Program by Student ID", tags = { "Career Programs" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<StudentCareerProgram>> getAllStudentCareerProgramsList(@PathVariable String studentID) { 
@@ -79,7 +79,7 @@ public class CommonController {
     }
     
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NOTES_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_NOTES_DATA)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_NOTES_DATA)
     @Operation(summary = "Find Student Notes by Pen", description = "Get Student Notes By Pen", tags = { "Student Notes" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<StudentNote>> getAllStudentNotes(@PathVariable String studentID) { 
@@ -88,17 +88,17 @@ public class CommonController {
     }
     
     @PostMapping (EducGradStudentApiConstants.STUDENT_NOTES_MAPPING)
-    @PreAuthorize(PermissionsContants.CREATE_OR_UPDATE_GRAD_STUDENT_NOTES_DATA)
+    @PreAuthorize(PermissionsConstants.CREATE_OR_UPDATE_GRAD_STUDENT_NOTES_DATA)
     @Operation(summary = "Create Student Notes", description = "Create Student Notes", tags = { "Student Notes" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<ApiResponseModel<StudentNote>> saveStudentNotes(@RequestBody StudentNote studentNote) {
-        logger.debug("Create student Grad Note for PEN: " + studentNote.getStudentID());
+        logger.debug("Create student Grad Note for PEN: {}", studentNote.getStudentID());
         validation.requiredField(studentNote.getStudentID(), "Pen");
         return response.UPDATED(commonService.saveStudentNote(studentNote));
     }
     
     @DeleteMapping(EducGradStudentApiConstants.STUDENT_NOTES_DELETE_MAPPING)
-    @PreAuthorize(PermissionsContants.DELETE_GRAD_STUDENT_NOTES_DATA)
+    @PreAuthorize(PermissionsConstants.DELETE_GRAD_STUDENT_NOTES_DATA)
     @Operation(summary = "Delete a note", description = "Delete a note", tags = { "Student Notes" })
     @ApiResponses(value = {@ApiResponse(responseCode = "204", description = "NO CONTENT"), @ApiResponse(responseCode = "404", description = "NOT FOUND.")})
     public ResponseEntity<Void> deleteNotes(@Valid @PathVariable String noteID) { 
@@ -112,7 +112,7 @@ public class CommonController {
     }
     
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_STATUS)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
     @Operation(summary = "Find all Student Status", description = "Get all Student Status", tags = {"Student Status"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
@@ -122,7 +122,7 @@ public class CommonController {
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_BY_CODE_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_STATUS)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
     @Operation(summary = "Find a Student Status by Student Status Code",
             description = "Get a Student Status by Student Status Code", tags = {"Student Status"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
@@ -139,7 +139,7 @@ public class CommonController {
     }
 
     @PostMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_MAPPING)
-    @PreAuthorize(PermissionsContants.CREATE_STUDENT_STATUS)
+    @PreAuthorize(PermissionsConstants.CREATE_STUDENT_STATUS)
     @Operation(summary = "Create a Student Status", description = "Create a Student Status", tags = {"Student Status"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
@@ -155,7 +155,7 @@ public class CommonController {
     }
 
     @PutMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_MAPPING)
-    @PreAuthorize(PermissionsContants.UPDATE_STUDENT_STATUS)
+    @PreAuthorize(PermissionsConstants.UPDATE_STUDENT_STATUS)
     @Operation(summary = "Update an Student Status", description = "Update an Student Status", tags = {"Student Status"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
@@ -171,7 +171,7 @@ public class CommonController {
     }
 
     @DeleteMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_BY_CODE_MAPPING)
-    @PreAuthorize(PermissionsContants.DELETE_STUDENT_STATUS)
+    @PreAuthorize(PermissionsConstants.DELETE_STUDENT_STATUS)
     @Operation(summary = "Delete an Student Status", description = "Delete an Student Status", tags = {"Student Status"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
@@ -186,7 +186,7 @@ public class CommonController {
     }
     
     @GetMapping (EducGradStudentApiConstants.STUDENT_ALGORITHM_DATA)
-    @PreAuthorize(PermissionsContants.STUDENT_ALGORITHM_DATA)
+    @PreAuthorize(PermissionsConstants.STUDENT_ALGORITHM_DATA)
     @Operation(summary = "Find Student Grad Status by Student ID for algorithm", description = "Get Student Grad Status by Student ID for algorithm", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GradStudentAlgorithmData> getStudentGradStatusForAlgorithm(@PathVariable String studentID) {
@@ -202,7 +202,7 @@ public class CommonController {
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_HISTORY_ACTIVITY_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRAD_HISTORY_ACTIVITY)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_HISTORY_ACTIVITY)
     @Operation(summary = "Find all History Activity Codes", description = "Get all History Activity codes", tags = {"History Activity"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
@@ -212,7 +212,7 @@ public class CommonController {
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_HISTORY_ACTIVITY_BY_CODE_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRAD_HISTORY_ACTIVITY)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_HISTORY_ACTIVITY)
     @Operation(summary = "Find a History Activity Code by Code",
             description = "Find a History Activity Code by Code", tags = {"History Activity"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
