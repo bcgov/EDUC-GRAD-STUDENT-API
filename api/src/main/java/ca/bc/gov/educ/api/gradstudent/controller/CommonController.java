@@ -202,8 +202,8 @@ public class CommonController {
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_HISTORY_ACTIVITY_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_STATUS)
-    @Operation(summary = "Find all Student Status", description = "Get all Student Status", tags = {"Student Status"})
+    @PreAuthorize(PermissionsContants.READ_GRAD_HISTORY_ACTIVITY)
+    @Operation(summary = "Find all History Activity Codes", description = "Get all History Activity codes", tags = {"History Activity"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<HistoryActivity>> getAllHistoryActivityCodeList() {
@@ -212,13 +212,13 @@ public class CommonController {
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_HISTORY_ACTIVITY_BY_CODE_MAPPING)
-    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_STATUS)
+    @PreAuthorize(PermissionsContants.READ_GRAD_HISTORY_ACTIVITY)
     @Operation(summary = "Find a History Activity Code by Code",
             description = "Find a History Activity Code by Code", tags = {"History Activity"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<HistoryActivity> getSpecificHistoryActivityCode(@PathVariable String activityCode) {
-        logger.debug("getSpecificUngradReasonCode : ");
+        logger.debug("getSpecificHistoryActivityCode : ");
         HistoryActivity gradResponse = commonService.getSpecificHistoryActivityCode(activityCode);
         if (gradResponse != null) {
             return response.GET(gradResponse);
