@@ -74,6 +74,9 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_HISTORY_BY_ID = "/studentHistory/historyid/{historyID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY_BY_ID = "/studentOptionalProgramHistory/historyid/{historyID}";
 
+    public static final String GET_ALL_HISTORY_ACTIVITY_MAPPING = "/historyactivity";
+    public static final String GET_ALL_HISTORY_ACTIVITY_BY_CODE_MAPPING = "/historyactivity/{activityCode}";
+
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final Date DEFAULT_CREATED_TIMESTAMP = new Date();

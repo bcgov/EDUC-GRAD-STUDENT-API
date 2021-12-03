@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentAlgorithmData;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
 import ca.bc.gov.educ.api.gradstudent.util.ApiResponseModel;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -202,6 +199,33 @@ public class CommonController {
     	}else {
     		return response.NO_CONTENT();
     	}
+    }
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_HISTORY_ACTIVITY_MAPPING)
+    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find all Student Status", description = "Get all Student Status", tags = {"Student Status"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<HistoryActivity>> getAllHistoryActivityCodeList() {
+        logger.debug("getAllHistoryActivityCodeList : ");
+        return response.GET(commonService.getAllHistoryActivityCodeList());
+    }
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_HISTORY_ACTIVITY_BY_CODE_MAPPING)
+    @PreAuthorize(PermissionsContants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find a History Activity Code by Code",
+            description = "Find a History Activity Code by Code", tags = {"History Activity"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<HistoryActivity> getSpecificHistoryActivityCode(@PathVariable String activityCode) {
+        logger.debug("getSpecificUngradReasonCode : ");
+        HistoryActivity gradResponse = commonService.getSpecificHistoryActivityCode(activityCode);
+        if (gradResponse != null) {
+            return response.GET(gradResponse);
+        } else {
+            return response.NO_CONTENT();
+        }
+
     }
    
 }
