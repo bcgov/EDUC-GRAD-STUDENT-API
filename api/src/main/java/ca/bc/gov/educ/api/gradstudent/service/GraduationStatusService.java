@@ -14,8 +14,10 @@ import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -38,7 +40,6 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.School;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgram;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramReq;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentUngradReason;
 import ca.bc.gov.educ.api.gradstudent.model.dto.UngradReason;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -65,38 +66,36 @@ public class GraduationStatusService {
     WebClient webClient;
 
     final GraduationStudentRecordRepository graduationStatusRepository;
+    final StudentStatusRepository studentStatusRepository;
     final GradStatusEventRepository gradStatusEventRepository;
     final GraduationStatusTransformer graduationStatusTransformer;
     final StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     final GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer;
-    final CommonService commonService;
     final GradStudentService gradStudentService;
     final HistoryService historyService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
 
     @Autowired
-    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, CommonService commonService, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
+        this.studentStatusRepository = studentStatusRepository;
         this.gradStatusEventRepository = gradStatusEventRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
         this.gradStudentOptionalProgramRepository = gradStudentOptionalProgramRepository;
         this.gradStudentOptionalProgramTransformer = gradStudentOptionalProgramTransformer;
-        this.commonService = commonService;
         this.gradStudentService = gradStudentService;
         this.historyService = historyService;
         this.validation = validation;
         this.constants = constants;
     }
 
-
     @Retry(name = "generalgetcall")
     public GraduationStudentRecord getGraduationStatusForAlgorithm(UUID studentID) {
         logger.debug("getGraduationStatusForAlgorithm");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
         return responseOptional.map(graduationStatusTransformer::transformToDTO).orElse(null);
-
     }
 
     @Retry(name = "generalgetcall")
@@ -112,9 +111,10 @@ public class GraduationStatusService {
                 gradStatus.setSchoolName(getSchoolName(gradStatus.getSchoolOfRecord(), accessToken));
 
             if (gradStatus.getStudentStatus() != null) {
-                StudentStatus statusObj = commonService.getSpecificStudentStatusCode(gradStatus.getStudentStatus());
-                if (statusObj != null)
-                    gradStatus.setStudentStatusName(statusObj.getLabel());
+                Optional<StudentStatusEntity> statusEntity = studentStatusRepository.findById(StringUtils.toRootUpperCase(gradStatus.getStudentStatus()));
+                if (statusEntity.isPresent()) {
+                    gradStatus.setStudentStatusName(statusEntity.get().getLabel());
+                }
             }
 
             if (gradStatus.getSchoolAtGrad() != null)
