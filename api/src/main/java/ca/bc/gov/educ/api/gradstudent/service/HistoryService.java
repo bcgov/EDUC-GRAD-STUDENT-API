@@ -29,14 +29,24 @@ public class HistoryService {
 
     private static final Logger logger = LoggerFactory.getLogger(HistoryService.class);
 
-    @Autowired
+    final
     WebClient webClient;
 
-    @Autowired GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
-    @Autowired GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer;
-    @Autowired StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
-    @Autowired StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer;
-    @Autowired EducGradStudentApiConstants constants;
+    final GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
+    final GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer;
+    final StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
+    final StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer;
+    final EducGradStudentApiConstants constants;
+
+    @Autowired
+    public HistoryService(WebClient webClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants) {
+        this.webClient = webClient;
+        this.graduationStudentRecordHistoryRepository = graduationStudentRecordHistoryRepository;
+        this.graduationStudentRecordHistoryTransformer = graduationStudentRecordHistoryTransformer;
+        this.studentOptionalProgramHistoryRepository = studentOptionalProgramHistoryRepository;
+        this.studentOptionalProgramHistoryTransformer = studentOptionalProgramHistoryTransformer;
+        this.constants = constants;
+    }
 
     public void createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
     	logger.debug("Create Student History");

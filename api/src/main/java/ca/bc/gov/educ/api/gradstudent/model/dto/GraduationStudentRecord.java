@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.Column;
 import java.util.UUID;
 
 @Data

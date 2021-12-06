@@ -48,6 +48,9 @@ public class GradStudentServiceTest {
     GradStudentService gradStudentService;
 
     @MockBean
+    CommonService commonService;
+
+    @MockBean
     WebClient webClient;
 
     @MockBean
@@ -141,8 +144,8 @@ public class GradStudentServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        var result = gradStudentService.getStudentFromStudentAPI(legalFirstName, legalLastName, null, null, null, null, null,
-                mincode, null, null, null, 1, 10, "accessToken");
+        StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder().legalFirstName(legalFirstName).legalLastName(legalFirstName).mincode(mincode).build();
+        var result = gradStudentService.getStudentFromStudentAPI(studentSearchRequest, 1, 10, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getGradSearchStudents().isEmpty()).isFalse();
@@ -238,9 +241,9 @@ public class GradStudentServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(response));
 
-        var result = gradStudentService.getGRADStudents(
-                legalFirstName, legalLastName, null, null, null, null, null, null,
-                null, null, null, mincode, program, 1, 5, "accessToken");
+        StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder().legalFirstName(legalFirstName).legalLastName(legalFirstName)
+                .mincode(mincode).gradProgram(program).build();
+        var result = gradStudentService.getGRADStudents(studentSearchRequest, 1, 5, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getGradSearchStudents().isEmpty()).isFalse();
@@ -342,9 +345,9 @@ public class GradStudentServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(student));
 
-        var result = gradStudentService.getStudentFromStudentAPIGradOnly(
-                legalFirstName, legalLastName, null, null, null, null, null, mincode,
-                null, null, null, "accessToken");
+        StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder().legalFirstName(legalFirstName).legalLastName(legalFirstName)
+                .mincode(mincode).build();
+        var result = gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getGradSearchStudents().isEmpty()).isFalse();
