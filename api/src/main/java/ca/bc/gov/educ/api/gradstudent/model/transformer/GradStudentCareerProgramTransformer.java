@@ -18,8 +18,7 @@ public class GradStudentCareerProgramTransformer {
     ModelMapper modelMapper;
 
     public StudentCareerProgram transformToDTO (StudentCareerProgramEntity gradProgramEntity) {
-    	StudentCareerProgram gradCertificateTypes = modelMapper.map(gradProgramEntity, StudentCareerProgram.class);
-        return gradCertificateTypes;
+    	return modelMapper.map(gradProgramEntity, StudentCareerProgram.class);
     }
 
     public StudentCareerProgram transformToDTO ( Optional<StudentCareerProgramEntity> gradProgramEntity ) {
@@ -27,22 +26,19 @@ public class GradStudentCareerProgramTransformer {
         if (gradProgramEntity.isPresent())
             cae = gradProgramEntity.get();
 
-        StudentCareerProgram gradCertificateTypes = modelMapper.map(cae, StudentCareerProgram.class);
-        return gradCertificateTypes;
+        return modelMapper.map(cae, StudentCareerProgram.class);
     }
 
 	public List<StudentCareerProgram> transformToDTO (Iterable<StudentCareerProgramEntity> gradCertificateTypesEntities ) {
-		List<StudentCareerProgram> gradCertificateTypesList = new ArrayList<StudentCareerProgram>();
+		List<StudentCareerProgram> gradCertificateTypesList = new ArrayList<>();
         for (StudentCareerProgramEntity gradCertificateTypesEntity : gradCertificateTypesEntities) {
-        	StudentCareerProgram gradCertificateTypes = new StudentCareerProgram();
-        	gradCertificateTypes = modelMapper.map(gradCertificateTypesEntity, StudentCareerProgram.class);            
+            StudentCareerProgram gradCertificateTypes = modelMapper.map(gradCertificateTypesEntity, StudentCareerProgram.class);
         	gradCertificateTypesList.add(gradCertificateTypes);
         }
         return gradCertificateTypesList;
     }
 
     public StudentCareerProgramEntity transformToEntity(StudentCareerProgram gradCertificateTypes) {
-        StudentCareerProgramEntity gradCertificateTypesEntity = modelMapper.map(gradCertificateTypes, StudentCareerProgramEntity.class);
-        return gradCertificateTypesEntity;
+        return modelMapper.map(gradCertificateTypes, StudentCareerProgramEntity.class);
     }
 }

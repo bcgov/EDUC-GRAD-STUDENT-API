@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,18 +29,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.Condition;
-import ca.bc.gov.educ.api.gradstudent.model.dto.FilterOperation;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradOnlyStudentSearch;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.model.dto.RestResponsePage;
-import ca.bc.gov.educ.api.gradstudent.model.dto.School;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Search;
-import ca.bc.gov.educ.api.gradstudent.model.dto.SearchCriteria;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearch;
-import ca.bc.gov.educ.api.gradstudent.model.dto.ValueType;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
@@ -47,14 +36,8 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 
 @Service
 public class GradStudentService {
-
 	private static final Logger logger = LoggerFactory.getLogger(GradStudentService.class);
 	
-	@Autowired EducGradStudentApiConstants constants;
-    @Autowired WebClient webClient;
-    @Autowired GraduationStudentRecordRepository graduationStatusRepository;
-    @Autowired GraduationStatusTransformer graduationStatusTransformer;
-    
     @Value("${more.search.match.found}")
 	String messageStringMoreMatchesFound;
     
@@ -72,20 +55,23 @@ public class GradStudentService {
     private static final String PAGE_SIZE="pageSize";
     private static final String SEARCH_CRITERIA_LIST = "searchCriteriaList";
 
-	public StudentSearch getStudentFromStudentAPI(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
-			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo, Integer pageNumber, Integer pageSize, String accessToken) {
+	final EducGradStudentApiConstants constants;
+	final WebClient webClient;
+	final GraduationStudentRecordRepository graduationStatusRepository;
+	final GraduationStatusTransformer graduationStatusTransformer;
+
+	@Autowired
+	public GradStudentService(EducGradStudentApiConstants constants, WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, GraduationStatusTransformer graduationStatusTransformer) {
+		this.constants = constants;
+		this.webClient = webClient;
+		this.graduationStatusRepository = graduationStatusRepository;
+		this.graduationStatusTransformer = graduationStatusTransformer;
+	}
+
+	public StudentSearch getStudentFromStudentAPI(StudentSearchRequest studentSearchRequest, Integer pageNumber, Integer pageSize, String accessToken) {
 		List<GradSearchStudent> gradStudentList = new ArrayList<>();
 		List<SearchCriteria> criteriaList = new ArrayList<>();
-		getSearchCriteria(legalFirstName,null,LEGAL_FIRST_NAME,criteriaList);
-		getSearchCriteria(legalLastName,null,LEGAL_LAST_NAME,criteriaList);
-		getSearchCriteria(legalMiddleNames,null,LEGAL_MIDDLE_NAME,criteriaList);
-		getSearchCriteria(usualFirstName,null,USUAL_FIRST_NAME,criteriaList);
-		getSearchCriteria(usualLastName,null,USUAL_LAST_NAME,criteriaList);
-		getSearchCriteria(usualMiddleNames,null,USUAL_MIDDLE_NAME,criteriaList);
-		getSearchCriteria(localID,null,LOCAL_ID,criteriaList);
-		getSearchCriteria(gender,null,GENDER_CODE,criteriaList);
-		getSearchCriteria(birthdateFrom,birthdateTo,DOB,criteriaList);
-		getSearchCriteria(mincode,null,MINCODE,criteriaList);
+		populateSearchCriteria(studentSearchRequest, criteriaList);
 		
 		List<Search> searches = new LinkedList<>();
 		StudentSearch searchObj = new StudentSearch();
@@ -128,30 +114,20 @@ public class GradStudentService {
 		return null;
 	}
 	
-	public GradOnlyStudentSearch getGRADStudents(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
-			String gender, String mincode, String localID, String birthdateFrom,String birthdateTo,String schoolOfRecord, String gradProgram,Integer pageNumber,Integer pageSize,String accessToken) {
+	public GradOnlyStudentSearch getGRADStudents(StudentSearchRequest studentSearchRequest,Integer pageNumber,Integer pageSize,String accessToken) {
 		
 		Pageable paging = PageRequest.of(pageNumber, pageSize);
 		List<GradSearchStudent> gradStudentList = new ArrayList<>();
 		List<SearchCriteria> criteriaList = new ArrayList<>();
 		ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreNullValues();
-		Example<GraduationStudentRecordEntity> exampleQuery = Example.of(new GraduationStudentRecordEntity(gradProgram,schoolOfRecord), matcher);
+		Example<GraduationStudentRecordEntity> exampleQuery = Example.of(new GraduationStudentRecordEntity(studentSearchRequest.getGradProgram(),studentSearchRequest.getSchoolOfRecord()), matcher);
 		Page<GraduationStudentRecordEntity> pagedResult = graduationStatusRepository.findAll(exampleQuery,paging);
 		List<GraduationStudentRecordEntity> studList = pagedResult.getContent();
 		if(!studList.isEmpty()) {
 			String studentIds = studList.stream().map(std -> String.valueOf(std.getStudentID())).collect(Collectors.joining(","));
 			getSearchCriteria(studentIds,null,"studentID",criteriaList);
-		}		
-		getSearchCriteria(legalFirstName,null,LEGAL_FIRST_NAME,criteriaList);
-		getSearchCriteria(legalLastName,null,LEGAL_LAST_NAME,criteriaList);
-		getSearchCriteria(legalMiddleNames,null,LEGAL_MIDDLE_NAME,criteriaList);
-		getSearchCriteria(usualFirstName,null,USUAL_FIRST_NAME,criteriaList);
-		getSearchCriteria(usualLastName,null,USUAL_LAST_NAME,criteriaList);
-		getSearchCriteria(usualMiddleNames,null,USUAL_MIDDLE_NAME,criteriaList);
-		getSearchCriteria(localID,null,LOCAL_ID,criteriaList);
-		getSearchCriteria(gender,null,GENDER_CODE,criteriaList);
-		getSearchCriteria(birthdateFrom,birthdateTo,DOB,criteriaList);
-		getSearchCriteria(mincode,null,MINCODE,criteriaList);
+		}
+		populateSearchCriteria(studentSearchRequest, criteriaList);
 		
 		List<Search> searches = new LinkedList<>();
 		GradOnlyStudentSearch searchObj = new GradOnlyStudentSearch();
@@ -195,20 +171,9 @@ public class GradStudentService {
 
 	@Transactional
 	@Retry(name = "advancedsearch")
-	public GradOnlyStudentSearch getStudentFromStudentAPIGradOnly(String legalFirstName, String legalLastName, String legalMiddleNames,String usualFirstName, String usualLastName, String usualMiddleNames,
-			String gender, String minCode, String localID, String birthdateFrom,String birthdateTo,String accessToken) {
-		List<GradSearchStudent> gradStudentList = new ArrayList<>();
+	public GradOnlyStudentSearch getStudentFromStudentAPIGradOnly(StudentSearchRequest studentSearchRequest,String accessToken) {
 		List<SearchCriteria> criteriaList = new ArrayList<>();
-		getSearchCriteria(legalFirstName,null,LEGAL_FIRST_NAME,criteriaList);
-		getSearchCriteria(legalLastName,null,LEGAL_LAST_NAME,criteriaList);
-		getSearchCriteria(legalMiddleNames,null,LEGAL_MIDDLE_NAME,criteriaList);
-		getSearchCriteria(usualFirstName,null,USUAL_FIRST_NAME,criteriaList);
-		getSearchCriteria(usualLastName,null,USUAL_LAST_NAME,criteriaList);
-		getSearchCriteria(usualMiddleNames,null,USUAL_MIDDLE_NAME,criteriaList);
-		getSearchCriteria(localID,null,LOCAL_ID,criteriaList);
-		getSearchCriteria(gender,null,GENDER_CODE,criteriaList);
-		getSearchCriteria(birthdateFrom,birthdateTo,DOB,criteriaList);
-		getSearchCriteria(minCode,null,MINCODE,criteriaList);
+		populateSearchCriteria(studentSearchRequest, criteriaList);
 		
 		List<Search> searches = new LinkedList<>();
 		GradOnlyStudentSearch searchObj = new GradOnlyStudentSearch();
@@ -227,26 +192,7 @@ public class GradStudentService {
 				.retrieve().bodyToMono(new ParameterizedTypeReference<RestResponsePage<Student>>() {}).block();
 			List<Student> studentLists = response != null ? response.getContent():new ArrayList<>();
 			if(studentLists.size() < 25000) {
-				List<UUID> studentIds = studentLists.stream().map(std -> UUID.fromString(std.getStudentID())).collect(Collectors.toList());
-				int partitionSize = 1000;
-				List<List<UUID>> partitions = new LinkedList<>();
-				for (int i = 0; i < studentIds.size(); i += partitionSize) {
-					partitions.add(studentIds.subList(i, Math.min(i + partitionSize, studentIds.size())));
-				}
-				logger.debug(" partitions length " + partitions.size());
-				for (int i = 0; i < partitions.size(); i++) {
-					List<UUID> subList = partitions.get(i);
-					logger.debug(" sub list length " + subList.size() + " par " + i);
-					List<GraduationStudentRecordEntity> gradList = graduationStatusRepository.findByStudentIDIn(subList);
-					if (!gradList.isEmpty()) {
-						gradList.forEach(st -> {
-							GradSearchStudent gradStu = populateGradStudent(st, accessToken);
-							if (gradStu.getProgram() != null) {
-								gradStudentList.add(gradStu);
-							}
-						});
-					}
-				}
+				List<GradSearchStudent> gradStudentList = buildPartitions(studentLists, accessToken);
 				searchObj.setGradSearchStudents(gradStudentList);
 				searchObj.setSearchMessage(String.format(messageStringMoreMatchesFound, response != null ? (response.getTotalElements() - gradStudentList.size()) : 0));
 			}else {
@@ -259,6 +205,32 @@ public class GradStudentService {
 			logger.info(e.getMessage());
 		}
 		return null;
+	}
+
+	private List<GradSearchStudent> buildPartitions(List<Student> studentLists, String accessToken) {
+		List<GradSearchStudent> gradStudentList = new ArrayList<>();
+
+		List<UUID> studentIds = studentLists.stream().map(std -> UUID.fromString(std.getStudentID())).collect(Collectors.toList());
+		int partitionSize = 1000;
+		List<List<UUID>> partitions = new LinkedList<>();
+		for (int i = 0; i < studentIds.size(); i += partitionSize) {
+			partitions.add(studentIds.subList(i, Math.min(i + partitionSize, studentIds.size())));
+		}
+		logger.debug(" partitions length {}", partitions.size());
+		for (int i = 0; i < partitions.size(); i++) {
+			List<UUID> subList = partitions.get(i);
+			logger.debug(" sub list length {} par {}", subList.size(), i);
+			List<GraduationStudentRecordEntity> gradList = graduationStatusRepository.findByStudentIDIn(subList);
+			if (!gradList.isEmpty()) {
+				gradList.forEach(st -> {
+					GradSearchStudent gradStu = populateGradStudent(st, accessToken);
+					if (gradStu.getProgram() != null) {
+						gradStudentList.add(gradStu);
+					}
+				});
+			}
+		}
+		return gradStudentList;
 	}
 	
 	@Transactional
@@ -275,6 +247,19 @@ public class GradStudentService {
     	
     	return gradStudentList;
     }
+
+    private void populateSearchCriteria(StudentSearchRequest studentSearchRequest, List<SearchCriteria> criteriaList) {
+		getSearchCriteria(studentSearchRequest.getLegalFirstName(),null,LEGAL_FIRST_NAME,criteriaList);
+		getSearchCriteria(studentSearchRequest.getLegalLastName(),null,LEGAL_LAST_NAME,criteriaList);
+		getSearchCriteria(studentSearchRequest.getLegalMiddleNames(),null,LEGAL_MIDDLE_NAME,criteriaList);
+		getSearchCriteria(studentSearchRequest.getUsualFirstName(),null,USUAL_FIRST_NAME,criteriaList);
+		getSearchCriteria(studentSearchRequest.getUsualLastName(),null,USUAL_LAST_NAME,criteriaList);
+		getSearchCriteria(studentSearchRequest.getUsualMiddleNames(),null,USUAL_MIDDLE_NAME,criteriaList);
+		getSearchCriteria(studentSearchRequest.getLocalID(),null,LOCAL_ID,criteriaList);
+		getSearchCriteria(studentSearchRequest.getGender(),null,GENDER_CODE,criteriaList);
+		getSearchCriteria(studentSearchRequest.getBirthdateFrom(),studentSearchRequest.getBirthdateTo(),DOB,criteriaList);
+		getSearchCriteria(studentSearchRequest.getMincode(),null,MINCODE,criteriaList);
+	}
 
 	private void getSearchCriteria(String value, String value2, String paramterType, List<SearchCriteria> criteriaList) {
 		SearchCriteria criteria = null;

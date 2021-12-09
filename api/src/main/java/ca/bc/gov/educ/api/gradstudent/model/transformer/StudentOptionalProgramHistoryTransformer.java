@@ -1,8 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordHistory;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramHistory;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -44,8 +42,7 @@ public class StudentOptionalProgramHistoryTransformer {
 	public List<StudentOptionalProgramHistory> transformToDTO (Iterable<StudentOptionalProgramHistoryEntity> graduationStudentRecordHistoryEntities ) {
 		List<StudentOptionalProgramHistory> graduationStudentRecordHistoryList = new ArrayList<>();
         for (StudentOptionalProgramHistoryEntity graduationStudentRecordHistoryEntity : graduationStudentRecordHistoryEntities) {
-            StudentOptionalProgramHistory graduationStudentRecordHistory = new StudentOptionalProgramHistory();
-            graduationStudentRecordHistory = modelMapper.map(graduationStudentRecordHistoryEntity, StudentOptionalProgramHistory.class);
+            StudentOptionalProgramHistory graduationStudentRecordHistory = modelMapper.map(graduationStudentRecordHistoryEntity, StudentOptionalProgramHistory.class);
         	graduationStudentRecordHistory.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(graduationStudentRecordHistoryEntity.getOptionalProgramCompletionDate() != null ? graduationStudentRecordHistoryEntity.getOptionalProgramCompletionDate().toString():null));
         	graduationStudentRecordHistoryList.add(graduationStudentRecordHistory);
         }

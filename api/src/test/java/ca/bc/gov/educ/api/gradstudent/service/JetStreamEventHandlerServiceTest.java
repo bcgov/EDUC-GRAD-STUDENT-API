@@ -37,6 +37,8 @@ public class JetStreamEventHandlerServiceTest {
     @Autowired
     JetStreamEventHandlerService jetStreamEventHandlerService;
 
+    @MockBean CommonService commonService;
+
     @MockBean
     GradStatusEventRepository gradStatusEventRepository;
 

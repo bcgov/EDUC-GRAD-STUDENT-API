@@ -18,8 +18,7 @@ public class StudentNoteTransformer {
     ModelMapper modelMapper;
 
     public StudentNote transformToDTO (StudentRecordNoteEntity studentNoteEntity) {
-    	StudentNote studentNote = modelMapper.map(studentNoteEntity, StudentNote.class);
-        return studentNote;
+    	return modelMapper.map(studentNoteEntity, StudentNote.class);
     }
 
     public StudentNote transformToDTO ( Optional<StudentRecordNoteEntity> studentNoteEntity ) {
@@ -27,22 +26,19 @@ public class StudentNoteTransformer {
         if (studentNoteEntity.isPresent())
             cae = studentNoteEntity.get();
 
-        StudentNote studentNote = modelMapper.map(cae, StudentNote.class);
-        return studentNote;
+        return modelMapper.map(cae, StudentNote.class);
     }
 
 	public List<StudentNote> transformToDTO (List<StudentRecordNoteEntity> studentNoteEntities ) {
-		List<StudentNote> studentNoteList = new ArrayList<StudentNote>();
+		List<StudentNote> studentNoteList = new ArrayList<>();
         for (StudentRecordNoteEntity studentNoteEntity : studentNoteEntities) {
-        	StudentNote studentNote = new StudentNote();
-        	studentNote = modelMapper.map(studentNoteEntity, StudentNote.class);            
+            StudentNote studentNote = modelMapper.map(studentNoteEntity, StudentNote.class);
         	studentNoteList.add(studentNote);
         }
         return studentNoteList;
     }
 
     public StudentRecordNoteEntity transformToEntity(StudentNote studentNote) {
-        StudentRecordNoteEntity studentNoteEntity = modelMapper.map(studentNote, StudentRecordNoteEntity.class);
-        return studentNoteEntity;
+        return modelMapper.map(studentNote, StudentRecordNoteEntity.class);
     }
 }
