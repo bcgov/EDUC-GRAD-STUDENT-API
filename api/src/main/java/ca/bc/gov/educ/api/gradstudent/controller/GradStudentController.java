@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import java.util.List;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearchRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -61,7 +62,12 @@ public class GradStudentController {
 			@RequestParam(value = "birthdateTo", required = false) String birthdateTo) {
 		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentFromStudentAPIGradOnly(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,gender,mincode,localID,birthdateFrom,birthdateTo,accessToken);
+		StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder()
+			.legalFirstName(legalFirstName).legalLastName(legalLastName).legalMiddleNames(legalMiddleNames)
+			.usualFirstName(usualFirstName).usualLastName(usualLastName).usualMiddleNames(usualMiddleNames)
+			.gender(gender).mincode(mincode).localID(localID).birthdateFrom(birthdateFrom).birthdateTo(birthdateTo)
+			.build();
+        return gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest,accessToken);
 		
 	}
 	
@@ -85,7 +91,12 @@ public class GradStudentController {
 			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
 		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
     	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentFromStudentAPI(legalFirstName,legalLastName,legalMiddleNames,usualFirstName,usualLastName,usualMiddleNames,gender,mincode,localID,birthdateFrom,birthdateTo,pageNumber,pageSize,accessToken);
+		StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder()
+			.legalFirstName(legalFirstName).legalLastName(legalLastName).legalMiddleNames(legalMiddleNames)
+			.usualFirstName(usualFirstName).usualLastName(usualLastName).usualMiddleNames(usualMiddleNames)
+			.gender(gender).mincode(mincode).localID(localID).birthdateFrom(birthdateFrom).birthdateTo(birthdateTo)
+			.build();
+        return gradStudentService.getStudentFromStudentAPI(studentSearchRequest,pageNumber,pageSize,accessToken);
 		
 	}
     

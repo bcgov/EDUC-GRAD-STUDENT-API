@@ -138,14 +138,14 @@ public class ResponseHelper {
 
 
 	//************   DELETE methods
-	public <T> ResponseEntity<Void> DELETE(int deleteCount) {
+	public ResponseEntity<Void> DELETE(int deleteCount) {
 		if (deleteCount == 0) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
-	protected <T> ResponseEntity<Void> DELETE() {
+	protected ResponseEntity<Void> DELETE() {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
@@ -161,9 +161,7 @@ public class ResponseHelper {
 	 * @param converters
 	 */
 	protected void addConverters(Converter<?, ?>... converters) {
-		Stream.of(converters).forEach((converter) -> {
-			modelMapper.addConverter(converter);
-		});
+		Stream.of(converters).forEach(converter -> modelMapper.addConverter(converter));
 	}
 
 }

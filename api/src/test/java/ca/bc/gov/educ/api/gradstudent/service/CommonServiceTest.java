@@ -15,6 +15,9 @@ import java.util.function.Consumer;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
+import ca.bc.gov.educ.api.gradstudent.model.dto.HistoryActivity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +55,7 @@ public class CommonServiceTest {
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
     @MockBean StudentNoteRepository studentNoteRepository;
     @MockBean StudentStatusRepository studentStatusRepository;
+    @MockBean HistoryActivityRepository historyActivityRepository;
     @MockBean WebClient webClient;
     @Mock WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
@@ -442,4 +446,56 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		return objEntity;
 	}
+
+    @Test
+    public void testGetAllHistoryActivityCodeList() {
+        List<HistoryActivityCodeEntity> gradHistoryActivityList = new ArrayList<>();
+        HistoryActivityCodeEntity obj = new HistoryActivityCodeEntity();
+        obj.setCode("DC");
+        obj.setDescription("Data Correction by School");
+        obj.setCreateUser("GRADUATION");
+        obj.setUpdateUser("GRADUATION");
+        obj.setCreateDate(new Date());
+        obj.setUpdateDate(new Date());
+        gradHistoryActivityList.add(obj);
+        obj = new HistoryActivityCodeEntity();
+        obj.setCode("CC");
+        obj.setDescription("Courses not complete");
+        obj.setCreateUser("GRADUATION");
+        obj.setUpdateUser("GRADUATION");
+        obj.setCreateDate(new Date());
+        obj.setUpdateDate(new Date());
+        gradHistoryActivityList.add(obj);
+        Mockito.when(historyActivityRepository.findAll()).thenReturn(gradHistoryActivityList);
+        commonService.getAllHistoryActivityCodeList();
+    }
+
+    @Test
+    public void testGetSpecificHistoryActivityCode() {
+        String reasonCode = "DC";
+        HistoryActivity obj = new HistoryActivity();
+        obj.setCode("DC");
+        obj.setDescription("Data Correction by School");
+        obj.setCreateUser("GRADUATION");
+        obj.setUpdateUser("GRADUATION");
+        obj.setCreateDate(new Date());
+        obj.setUpdateDate(new Date());
+        HistoryActivityCodeEntity objEntity = new HistoryActivityCodeEntity();
+        objEntity.setCode("DC");
+        objEntity.setDescription("Data Correction by School");
+        objEntity.setCreateUser("GRADUATION");
+        objEntity.setUpdateUser("GRADUATION");
+        objEntity.setCreateDate(new Date());
+        objEntity.setUpdateDate(new Date());
+        Optional<HistoryActivityCodeEntity> ent = Optional.of(objEntity);
+        Mockito.when(historyActivityRepository.findById(reasonCode)).thenReturn(ent);
+        commonService.getSpecificHistoryActivityCode(reasonCode);
+    }
+
+    @Test
+    public void testGetSpecificHistoryActivityCodeReturnsNull() {
+        String reasonCode = "DC";
+        Mockito.when(historyActivityRepository.findById(reasonCode)).thenReturn(Optional.empty());
+        commonService.getSpecificHistoryActivityCode(reasonCode);
+    }
 }

@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearch;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearchRequest;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,13 +67,12 @@ public class GradStudentControllerTest {
         Mockito.when(authentication.getDetails()).thenReturn(details);
         SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(gradStudentService.getStudentFromStudentAPI(
-                null, lastName, null, null, null, null, null, mincode, null, null,
-                null, 1, 5, null)).thenReturn(studentSearch);
+        StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder().legalLastName(lastName).mincode(mincode).build();
+
+        Mockito.when(gradStudentService.getStudentFromStudentAPI(studentSearchRequest, 1, 5, null)).thenReturn(studentSearch);
         gradStudentController.getGradNPenGradStudentFromStudentAPI(null, lastName, null, null, null, null, null, mincode, null, null,
                 null, 1, 5);
-        Mockito.verify(gradStudentService).getStudentFromStudentAPI(null, lastName, null, null, null, null, null, mincode, null, null,
-                null, 1, 5, null);
+        Mockito.verify(gradStudentService).getStudentFromStudentAPI(studentSearchRequest, 1, 5, null);
 
     }
 

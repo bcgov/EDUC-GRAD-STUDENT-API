@@ -8,6 +8,10 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.HistoryActivityTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.CareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentAlgorithmData;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
@@ -35,29 +32,57 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentStatusTransformer
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 
-
 @Service
 public class CommonService {
-    
-    @Autowired StudentCareerProgramRepository gradStudentCareerProgramRepository;
-    @Autowired GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
-    @Autowired StudentNoteTransformer  studentNoteTransformer;
-    @Autowired StudentNoteRepository studentNoteRepository;
-    @Autowired EducGradStudentApiConstants constants;
-    @Autowired StudentStatusRepository studentStatusRepository;
-	@Autowired StudentStatusTransformer studentStatusTransformer;
-	@Autowired GraduationStatusService graduationStatusService;
-	@Autowired GradStudentService gradStudentService;
-    @Autowired WebClient webClient;
-    @Autowired GradValidation validation;
-
-
 	private static final Logger logger = LoggerFactory.getLogger(CommonService.class);
     
     private static final String CREATE_USER="createUser";
 	private static final String CREATE_DATE="createDate";
 
-    @Transactional
+	final StudentCareerProgramRepository gradStudentCareerProgramRepository;
+	final GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
+	final StudentNoteTransformer  studentNoteTransformer;
+	final StudentNoteRepository studentNoteRepository;
+	final EducGradStudentApiConstants constants;
+	final StudentStatusRepository studentStatusRepository;
+	final StudentStatusTransformer studentStatusTransformer;
+	final GraduationStatusService graduationStatusService;
+	final GradStudentService gradStudentService;
+	final WebClient webClient;
+	final GradValidation validation;
+	final HistoryActivityRepository historyActivityRepository;
+	final HistoryActivityTransformer historyActivityTransformer;
+
+	@Autowired
+	public CommonService(EducGradStudentApiConstants constants,
+						 StudentCareerProgramRepository gradStudentCareerProgramRepository,
+						 GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,
+						 StudentNoteTransformer studentNoteTransformer,
+						 StudentNoteRepository studentNoteRepository,
+						 StudentStatusRepository studentStatusRepository,
+						 StudentStatusTransformer studentStatusTransformer,
+						 GraduationStatusService graduationStatusService,
+						 GradStudentService gradStudentService,
+						 HistoryActivityRepository historyActivityRepository,
+						 HistoryActivityTransformer historyActivityTransformer,
+						 WebClient webClient,
+						 GradValidation validation) {
+		this.constants = constants;
+		this.gradStudentCareerProgramRepository = gradStudentCareerProgramRepository;
+		this.gradStudentCareerProgramTransformer = gradStudentCareerProgramTransformer;
+		this.studentNoteTransformer = studentNoteTransformer;
+		this.studentNoteRepository = studentNoteRepository;
+		this.studentStatusRepository = studentStatusRepository;
+		this.studentStatusTransformer = studentStatusTransformer;
+		this.graduationStatusService = graduationStatusService;
+		this.gradStudentService = gradStudentService;
+		this.historyActivityRepository = historyActivityRepository;
+		this.historyActivityTransformer = historyActivityTransformer;
+		this.webClient = webClient;
+		this.validation = validation;
+	}
+
+	@Transactional
   	public List<StudentCareerProgram> getAllGradStudentCareerProgramList(String studentId, String accessToken) {
 		logger.debug("getAllGradStudentCareerProgramList");
 		List<StudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
@@ -96,16 +121,11 @@ public class CommonService {
 					gradEntity.setStudentID(UUID.fromString(studentNote.getStudentID()));
 				}
 				return studentNoteTransformer.transformToDTO(studentNoteRepository.save(gradEntity));
-			}else {
-				if(studentNote.getStudentID() != null) {
-					toBeSaved.setStudentID(UUID.fromString(studentNote.getStudentID()));
-				}
 			}
-		}else {
-			if(studentNote.getStudentID() != null) {
-				toBeSaved.setStudentID(UUID.fromString(studentNote.getStudentID()));
-			}
-			
+		}
+
+		if(studentNote.getStudentID() != null) {
+			toBeSaved.setStudentID(UUID.fromString(studentNote.getStudentID()));
 		}
 		return studentNoteTransformer.transformToDTO(studentNoteRepository.save(toBeSaved));
 	}
@@ -180,5 +200,21 @@ public class CommonService {
 		data.setGradStudent(gradStudent);
 		data.setGraduationStudentRecord(gradStudentRecord);		
 		return data;
+	}
+
+	@Transactional
+	public List<HistoryActivity> getAllHistoryActivityCodeList() {
+		return historyActivityTransformer.transformToDTO(historyActivityRepository.findAll());
+	}
+
+	@Transactional
+	public HistoryActivity getSpecificHistoryActivityCode(String activityCode) {
+		logger.debug("getSpecificStudentStatusCode");
+		Optional<HistoryActivityCodeEntity> entity = historyActivityRepository.findById(StringUtils.toRootUpperCase(activityCode));
+		if (entity.isPresent()) {
+			return historyActivityTransformer.transformToDTO(entity);
+		} else {
+			return null;
+		}
 	}
 }

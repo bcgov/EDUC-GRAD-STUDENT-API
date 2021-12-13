@@ -38,6 +38,7 @@ public class HistoryServiceTest {
 
     @Autowired EducGradStudentApiConstants constants;
     @Autowired HistoryService historyService;
+    @MockBean CommonService commonService;
     @MockBean GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
     @MockBean StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
     @MockBean WebClient webClient;

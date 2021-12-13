@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
 /**
- * This class is responsible to check the GRAD_STATUS_EVENT table periodically and publish messages to JET STREAM, if some them are not yet published
+ * This class is responsible to check the GRAD_STATUS_EVENT table periodically and publish messages to JET STREAM; if some them are not yet published
  * this is a very edge case scenario which will occur.
  */
 @Component
