@@ -1,6 +1,3 @@
-# EDUC-GRAD-STUDENT-API
-Student Demographics API for GRAD team
-
 [![img](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md) &nbsp;
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bcgov/educ-grad-student-api/Build) &nbsp; 
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=bcgov_EDUC-GRAD-STUDENT-API&metric=bugs)](https://sonarcloud.io/summary/new_code?id=bcgov_EDUC-GRAD-STUDENT-API) &nbsp;
@@ -15,4 +12,7 @@ Student Demographics API for GRAD team
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=bcgov_EDUC-GRAD-STUDENT-API&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=bcgov_EDUC-GRAD-STUDENT-API) &nbsp;
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=bcgov_EDUC-GRAD-STUDENT-API&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=bcgov_EDUC-GRAD-STUDENT-API) &nbsp;
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=bcgov_EDUC-GRAD-STUDENT-API&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=bcgov_EDUC-GRAD-STUDENT-API) &nbsp;
+
+# EDUC-GRAD-STUDENT-API
+Student Demographics API for GRAD team
 
