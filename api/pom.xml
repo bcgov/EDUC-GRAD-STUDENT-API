@@ -6,7 +6,7 @@
 
     <groupId>ca.bc.gov.educ</groupId>
 	<artifactId>educ-grad-student-api</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>educ-grad-student-api</name>
 	<description>Student Demographics API for GRAD team</description>
    
@@ -35,7 +35,7 @@
         <nats.version>2.11.0</nats.version>
         <resilience4j.version>1.7.0</resilience4j.version>
         <guava.version>30.1.1-jre</guava.version>
-        <log4j.version>2.16.0</log4j.version>
+        <log4j.version>2.17.1</log4j.version>
     </properties>
 
     <parent>
