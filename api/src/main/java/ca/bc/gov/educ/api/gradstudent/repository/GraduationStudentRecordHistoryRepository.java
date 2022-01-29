@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,5 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
 
     List<GraduationStudentRecordHistoryEntity> findAll();
 	List<GraduationStudentRecordHistoryEntity> findByStudentID(UUID studentID);
+    List<GraduationStudentRecordHistoryEntity> findByBatchId(Long batchId);
 }

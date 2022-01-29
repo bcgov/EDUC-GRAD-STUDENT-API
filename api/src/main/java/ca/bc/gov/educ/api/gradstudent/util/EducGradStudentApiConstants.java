@@ -72,6 +72,8 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_HISTORY_BY_ID = "/studentHistory/historyid/{historyID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY_BY_ID = "/studentOptionalProgramHistory/historyid/{historyID}";
 
+    public static final String GRAD_STUDENT_HISTORY_BY_BATCH_ID = "/studentHistory/batchid/{batchId}";
+
     public static final String GET_ALL_HISTORY_ACTIVITY_MAPPING = "/historyactivity";
     public static final String GET_ALL_HISTORY_ACTIVITY_BY_CODE_MAPPING = "/historyactivity/{activityCode}";
 
