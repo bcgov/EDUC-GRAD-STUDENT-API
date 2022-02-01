@@ -285,4 +285,14 @@ public class GraduationStatusController {
         GraduationStudentRecord gradRecord =  gradStatusService.saveStudentRecordProjectedTVRRun(UUID.fromString(studentID),batchId);
         return response.GET(gradRecord);
     }
+
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_HISTORY_BY_BATCH_ID)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get history for a Batch ID", description = "Get a history for a BatchId", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<GraduationStudentRecordHistory>> getStudentHistoryByBatchID(@PathVariable Long batchId) {
+        logger.debug("getStudentHistoryByBatchID:");
+        List<GraduationStudentRecordHistory> historyList = historyService.getStudentHistoryByBatchID(batchId);
+        return response.GET(historyList);
+    }
 }
