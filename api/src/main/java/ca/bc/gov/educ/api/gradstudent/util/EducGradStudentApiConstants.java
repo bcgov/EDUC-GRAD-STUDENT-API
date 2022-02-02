@@ -117,10 +117,13 @@ public class EducGradStudentApiConstants {
     private String ungradReasonDetailsUrl;
 
     @Value("${endpoint.pen-student-api.search.url}")
-    private String penStudentApiUrl;
+    private String penStudentApiSearchUrl;
 
     @Value("${endpoint.pen-student-api.by-pen.url}")
     private String penStudentApiByPenUrl;
+
+    @Value("${endpoint.pen-student-api.student.url}")
+    private String penStudentApiUrl;
     
     @Value("${endpoint.grad-graduation-report-api.delete-student-achievement.url}")
     private String deleteStudentAchievements;
