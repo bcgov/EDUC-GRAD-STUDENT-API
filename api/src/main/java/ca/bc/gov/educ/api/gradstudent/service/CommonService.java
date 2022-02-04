@@ -193,6 +193,7 @@ public class CommonService {
 		
 	}
 
+	@Transactional
 	public GradStudentAlgorithmData getGradStudentAlgorithmData(String studentID,String accessToken) {
 		GradStudentAlgorithmData data = new GradStudentAlgorithmData();
 		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID, accessToken);
