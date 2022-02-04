@@ -197,8 +197,10 @@ public class CommonService {
 		GradStudentAlgorithmData data = new GradStudentAlgorithmData();
 		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID, accessToken);
 		GraduationStudentRecord gradStudentRecord = graduationStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID));
+		List<StudentCareerProgram> cpList = getAllGradStudentCareerProgramList(studentID,accessToken);
 		data.setGradStudent(gradStudent);
-		data.setGraduationStudentRecord(gradStudentRecord);		
+		data.setGraduationStudentRecord(gradStudentRecord);
+		data.setStudentCareerProgramList(cpList);
 		return data;
 	}
 
