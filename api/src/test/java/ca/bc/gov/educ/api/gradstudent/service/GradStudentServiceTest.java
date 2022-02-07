@@ -572,7 +572,7 @@ public class GradStudentServiceTest {
         final String schoolName = "Test School";
 
         // Grad Student
-        final Student student = new Student();
+        final StudentCreate student = new StudentCreate();
         student.setStudentID(studentID.toString());
         student.setPen(pen);
         student.setLegalLastName(lastName);
@@ -586,6 +586,7 @@ public class GradStudentServiceTest {
         student.setEmailVerified("Y");
         student.setStatusCode("A");
         student.setDob("1990-01-01");
+        student.setHistoryActivityCode("USERNEW");
 
         when(this.webClient.post()).thenReturn(this.requestBodyUriMock);
         when(this.requestBodyUriMock.uri(constants.getPenStudentApiUrl())).thenReturn(this.requestBodyUriMock);
