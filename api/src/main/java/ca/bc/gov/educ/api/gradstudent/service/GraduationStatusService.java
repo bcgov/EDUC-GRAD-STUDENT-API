@@ -292,7 +292,7 @@ public class GraduationStatusService {
         }
 
         if(sourceEntity.getProgram().contains("1950") && (sourceEntity.getStudentGrade().compareTo("AN") != 0 || sourceEntity.getStudentGrade().compareTo("AD") != 0)) {
-            validation.addError("Student Grade Should be AD or AN for ");
+            validation.addError("Student Grade Should be AD or AN");
         }
         
     }
