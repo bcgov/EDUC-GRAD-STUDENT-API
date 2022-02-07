@@ -115,7 +115,7 @@ public class GradStudentController {
 
     @PostMapping
 	@PreAuthorize("#oauth2.hasScope('WRITE_STUDENT')")
-    public Student addNewPenFromStudentAPI(@Validated @RequestBody Student student) {
+    public Student addNewPenFromStudentAPI(@Validated @RequestBody StudentCreate student) {
 		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
 		String accessToken = auth.getTokenValue();
 		return gradStudentService.addNewPenFromStudentAPI(student, accessToken);
