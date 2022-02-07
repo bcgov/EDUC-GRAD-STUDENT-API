@@ -329,7 +329,7 @@ public class GradStudentService {
     }
 
 	@Transactional
-	public Student addNewPenFromStudentAPI(Student student, String accessToken) {
+	public Student addNewPenFromStudentAPI(StudentCreate student, String accessToken) {
 		return webClient.post()
 				.uri(constants.getPenStudentApiUrl())
 				.headers(h -> h.setBearerAuth(accessToken))

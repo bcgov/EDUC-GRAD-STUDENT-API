@@ -1,9 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearch;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearchRequest;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -126,7 +123,7 @@ public class GradStudentControllerTest {
         final String schoolName = "Test School";
 
         // Grad Student
-        final Student student = new Student();
+        final StudentCreate student = new StudentCreate();
         student.setStudentID(studentID.toString());
         student.setPen(pen);
         student.setLegalLastName(lastName);
@@ -140,6 +137,7 @@ public class GradStudentControllerTest {
         student.setEmailVerified("Y");
         student.setStatusCode("A");
         student.setDob("1990-01-01");
+        student.setHistoryActivityCode("USERNEW");
 
         Authentication authentication = Mockito.mock(Authentication.class);
         OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
