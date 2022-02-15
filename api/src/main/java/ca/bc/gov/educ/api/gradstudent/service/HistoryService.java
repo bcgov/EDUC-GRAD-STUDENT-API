@@ -108,4 +108,8 @@ public class HistoryService {
         }
         return obj;
     }
+
+    public List<GraduationStudentRecordHistory> getStudentHistoryByBatchID(Long batchId) {
+        return graduationStudentRecordHistoryTransformer.transformToDTO(graduationStudentRecordHistoryRepository.findByBatchId(batchId));
+    }
 }

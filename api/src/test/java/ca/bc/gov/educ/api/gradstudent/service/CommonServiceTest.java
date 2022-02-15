@@ -15,8 +15,9 @@ import java.util.function.Consumer;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
-import ca.bc.gov.educ.api.gradstudent.model.dto.HistoryActivity;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
 import org.junit.After;
 import org.junit.Before;
@@ -31,9 +32,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.CareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
@@ -51,6 +49,8 @@ public class CommonServiceTest {
 
     @Autowired EducGradStudentApiConstants constants;
     @Autowired CommonService commonService;
+
+    @MockBean GradStudentService gradStudentService;
     @MockBean GraduationStatusService graduationStatusService;
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
     @MockBean StudentNoteRepository studentNoteRepository;
@@ -497,5 +497,42 @@ public class CommonServiceTest {
         String reasonCode = "DC";
         Mockito.when(historyActivityRepository.findById(reasonCode)).thenReturn(Optional.empty());
         commonService.getSpecificHistoryActivityCode(reasonCode);
+    }
+
+    @Test
+    public  void testGetGradStudentAlgorithmData() {
+        UUID studentID = UUID.randomUUID();
+
+        // Career Program
+        final CareerProgram gradCareerProgram = new CareerProgram();
+        gradCareerProgram.setCode("TEST");
+        gradCareerProgram.setDescription("Test Code Name");
+
+        GradSearchStudent gss = new GradSearchStudent();
+        gss.setStudentID(studentID.toString());
+        gss.setStudentGrade("12");
+
+        GraduationStudentRecord gradStudentRecord = new GraduationStudentRecord();
+        gradStudentRecord.setStudentID(studentID);
+        gradStudentRecord.setStudentGrade("12");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getCareerProgramByCodeUrl(), gradCareerProgram.getCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(CareerProgram.class)).thenReturn(Mono.just(gradCareerProgram));
+
+        List<StudentCareerProgramEntity> cpList = new ArrayList<>();
+        StudentCareerProgramEntity spg = new StudentCareerProgramEntity();
+        spg.setStudentID(studentID);
+        spg.setCareerProgramCode("TEST");
+        cpList.add(spg);
+
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), null)).thenReturn(gss);
+        when(graduationStatusService.getGraduationStatusForAlgorithm(studentID)).thenReturn(gradStudentRecord);
+        when(gradStudentCareerProgramRepository.findByStudentID(studentID)).thenReturn(cpList);
+
+        GradStudentAlgorithmData data =  commonService.getGradStudentAlgorithmData(studentID.toString(),null);
+        assertThat(data).isNotNull();
     }
 }

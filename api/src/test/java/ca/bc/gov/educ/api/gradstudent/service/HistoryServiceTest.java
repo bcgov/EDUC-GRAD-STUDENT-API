@@ -167,4 +167,27 @@ public class HistoryServiceTest {
         var result = historyService.getStudentOptionalProgramHistoryByID(historyID,"accessToken");
         assertThat(result).isNotNull();
     }
+
+    @Test
+    public void testGetStudentHistoryByBatchID() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID historyID = UUID.randomUUID();
+        List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
+        GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setHistoryID(new UUID(1,1));
+        graduationStatusEntity.setActivityCode("GRADALG");
+        graduationStatusEntity.setBatchId(4000L);
+        histList.add(graduationStatusEntity);
+        when(graduationStudentRecordHistoryRepository.findByBatchId(4000L)).thenReturn(histList);
+        List<GraduationStudentRecordHistory> list = historyService.getStudentHistoryByBatchID(4000L);
+        assertThat(list).isNotEmpty();
+        assertThat(list.size()).isEqualTo(1);
+    }
 }

@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,7 +81,7 @@ public class GradStudentService {
 	    try {
 			String criteriaJSON = objectMapper.writeValueAsString(searches);
 			String encodedURL = URLEncoder.encode(criteriaJSON,StandardCharsets.UTF_8.toString());
-			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiUrl(),
+			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiSearchUrl(),
 				uri -> uri
 					.queryParam(PAGE_NUMBER, pageNumber)
 					.queryParam(PAGE_SIZE, pageSize)
@@ -136,7 +137,7 @@ public class GradStudentService {
 	    try {
 			String criteriaJSON = objectMapper.writeValueAsString(searches);
 			String encodedURL = URLEncoder.encode(criteriaJSON,StandardCharsets.UTF_8.toString());
-			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiUrl(),
+			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiSearchUrl(),
 				uri -> uri
 					.queryParam(PAGE_NUMBER, "0")
 					.queryParam(PAGE_SIZE, studList.size())
@@ -182,7 +183,7 @@ public class GradStudentService {
 	    try {
 			String criteriaJSON = objectMapper.writeValueAsString(searches);
 			String encodedURL = URLEncoder.encode(criteriaJSON,StandardCharsets.UTF_8.toString());
-			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiUrl(),
+			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiSearchUrl(),
 				uri -> uri
 					.queryParam(PAGE_NUMBER, "0")
 					.queryParam(PAGE_SIZE, "50000")
@@ -326,4 +327,13 @@ public class GradStudentService {
 		}    	
     	return gradStu;
     }
+
+	@Transactional
+	public Student addNewPenFromStudentAPI(StudentCreate student, String accessToken) {
+		return webClient.post()
+				.uri(constants.getPenStudentApiUrl())
+				.headers(h -> h.setBearerAuth(accessToken))
+				.body(BodyInserters.fromValue(student))
+				.retrieve().bodyToMono(Student.class).block();
+	}
 }

@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
@@ -559,5 +560,27 @@ public class GraduationStatusControllerTest {
         Mockito.when(historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),null)).thenReturn(gradStudentOptionalProgramEntity);
         graduationStatusController.getStudentOptionalProgramHistoryByID(historyID);
         Mockito.verify(historyService).getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),null);
+    }
+
+    @Test
+    public void testGetStudentHistoryByBatchID() {
+        // ID
+        String historyID = UUID.randomUUID().toString();
+        UUID studentID = UUID.randomUUID();
+        List<GraduationStudentRecordHistory> histList = new ArrayList<>();
+        GraduationStudentRecordHistory graduationStatusEntity = new GraduationStudentRecordHistory();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setHistoryID(new UUID(1,1));
+        graduationStatusEntity.setActivityCode("GRADALG");
+        graduationStatusEntity.setBatchId(4000L);
+        histList.add(graduationStatusEntity);
+        Mockito.when(historyService.getStudentHistoryByBatchID(4000L)).thenReturn(histList);
+        graduationStatusController.getStudentHistoryByBatchID(4000L);
+        Mockito.verify(historyService).getStudentHistoryByBatchID(4000L);
     }
 }

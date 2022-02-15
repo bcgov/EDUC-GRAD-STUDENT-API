@@ -170,6 +170,8 @@ endpoint:
       url: ${PEN_API}api/v1/student/paginated
     by-pen:
       url: ${PEN_API}api/v1/student?pen=%s
+    student:
+      url: ${PEN_API}api/v1/student
   grad-graduation-report-api:
     delete-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentachievement/%s

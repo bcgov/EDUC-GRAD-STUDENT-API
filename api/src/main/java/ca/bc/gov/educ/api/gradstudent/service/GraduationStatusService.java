@@ -290,6 +290,10 @@ public class GraduationStatusService {
                 validation.addError("Adult student should be at least 18 years old");
             }
         }
+
+        if(sourceEntity.getProgram().contains("1950") && (sourceEntity.getStudentGrade().compareTo("AN") != 0 || sourceEntity.getStudentGrade().compareTo("AD") != 0)) {
+            validation.addError("Student Grade Should be AD or AN");
+        }
         
     }
 

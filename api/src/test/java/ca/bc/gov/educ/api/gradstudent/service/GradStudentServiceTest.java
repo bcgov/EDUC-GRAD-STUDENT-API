@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -58,6 +59,8 @@ public class GradStudentServiceTest {
     @MockBean GraduationStatusTransformer graduationStatusTransformer;
     @Mock WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
+    @Mock WebClient.RequestBodySpec requestBodyMock;
+    @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
     @Mock WebClient.ResponseSpec responseMock;
 
     // NATS
@@ -107,7 +110,7 @@ public class GradStudentServiceTest {
         };
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(eq(this.constants.getPenStudentApiUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(eq(this.constants.getPenStudentApiSearchUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(response));
@@ -236,7 +239,7 @@ public class GradStudentServiceTest {
         };
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(eq(this.constants.getPenStudentApiUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(eq(this.constants.getPenStudentApiSearchUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(response));
@@ -334,7 +337,7 @@ public class GradStudentServiceTest {
         };
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(eq(this.constants.getPenStudentApiUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(eq(this.constants.getPenStudentApiSearchUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(response));
@@ -553,5 +556,48 @@ public class GradStudentServiceTest {
         assertThat(result.getStatusCode()).isEqualTo(student.getStatusCode());
         assertThat(result.getEmail()).isEqualTo(student.getEmail());
         assertThat(result.getEmailVerified()).isEqualTo(student.getEmailVerified());
+    }
+
+    @Test
+    public void testAddNewPenFromStudentAPI() {
+        // ID
+        final UUID studentID = UUID.randomUUID();
+        final String pen = "123456789";
+        final String firstName = "FirstName";
+        final String lastName = "LastName";
+        final String program = "2018-EN";
+        final String gradStatus = "A";
+        final String stdGrade = "12";
+        final String mincode = "12345678";
+        final String schoolName = "Test School";
+
+        // Grad Student
+        final StudentCreate student = new StudentCreate();
+        student.setStudentID(studentID.toString());
+        student.setPen(pen);
+        student.setLegalLastName(lastName);
+        student.setLegalFirstName(firstName);
+        student.setMincode(mincode);
+        student.setSexCode("M");
+        student.setGenderCode("M");
+        student.setUsualFirstName("Usual First");
+        student.setUsualLastName("Usual Last");
+        student.setEmail("junit@test.com");
+        student.setEmailVerified("Y");
+        student.setStatusCode("A");
+        student.setDob("1990-01-01");
+        student.setHistoryActivityCode("USERNEW");
+
+        when(this.webClient.post()).thenReturn(this.requestBodyUriMock);
+        when(this.requestBodyUriMock.uri(constants.getPenStudentApiUrl())).thenReturn(this.requestBodyUriMock);
+        when(this.requestBodyUriMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
+        when(this.requestBodyMock.contentType(any())).thenReturn(this.requestBodyMock);
+        when(this.requestBodyMock.body(any(BodyInserter.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(student));
+
+        var result = gradStudentService.addNewPenFromStudentAPI(student, "accessToken");
+        assertThat(result).isNotNull();
+        assertThat(result.getPen()).isEqualTo(pen);
     }
 }

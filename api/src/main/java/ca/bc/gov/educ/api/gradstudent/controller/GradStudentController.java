@@ -2,23 +2,16 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import java.util.List;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearchRequest;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradOnlyStudentSearch;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearch;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -119,4 +112,12 @@ public class GradStudentController {
     	String accessToken = auth.getTokenValue();
         return gradStudentService.getStudentByStudentIDFromStudentAPI(studentID,accessToken);
     }
+
+    @PostMapping
+	@PreAuthorize("#oauth2.hasScope('WRITE_STUDENT')")
+    public Student addNewPenFromStudentAPI(@Validated @RequestBody StudentCreate student) {
+		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+		String accessToken = auth.getTokenValue();
+		return gradStudentService.addNewPenFromStudentAPI(student, accessToken);
+	}
 }
