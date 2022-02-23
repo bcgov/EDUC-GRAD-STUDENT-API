@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,5 +16,5 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
 
     List<GraduationStudentRecordHistoryEntity> findAll();
 	List<GraduationStudentRecordHistoryEntity> findByStudentID(UUID studentID);
-    List<GraduationStudentRecordHistoryEntity> findByBatchId(Long batchId);
+    Page<GraduationStudentRecordHistoryEntity> findByBatchId(Long batchId, Pageable paging);
 }

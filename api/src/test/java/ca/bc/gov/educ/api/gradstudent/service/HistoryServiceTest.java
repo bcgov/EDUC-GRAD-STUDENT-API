@@ -17,6 +17,10 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -174,6 +178,8 @@ public class HistoryServiceTest {
         UUID studentID = UUID.randomUUID();
         UUID historyID = UUID.randomUUID();
         List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
+
+
         GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
@@ -185,9 +191,11 @@ public class HistoryServiceTest {
         graduationStatusEntity.setActivityCode("GRADALG");
         graduationStatusEntity.setBatchId(4000L);
         histList.add(graduationStatusEntity);
-        when(graduationStudentRecordHistoryRepository.findByBatchId(4000L)).thenReturn(histList);
-        List<GraduationStudentRecordHistory> list = historyService.getStudentHistoryByBatchID(4000L);
+        Pageable paging = PageRequest.of(0, 10);
+        Page<GraduationStudentRecordHistoryEntity> hPage = new PageImpl(histList);
+        when(graduationStudentRecordHistoryRepository.findByBatchId(4000L,paging)).thenReturn(hPage);
+        Page<GraduationStudentRecordHistoryEntity> list = historyService.getStudentHistoryByBatchID(4000L, 0, 10);
         assertThat(list).isNotEmpty();
-        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.getContent()).hasSize(1);
     }
 }
