@@ -4,6 +4,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import java.util.List;
 import java.util.UUID;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramHistory;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
@@ -11,6 +12,9 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistory
 import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentOptionalProgramHistoryTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -114,6 +118,20 @@ public class HistoryService {
 
     public Page<GraduationStudentRecordHistoryEntity> getStudentHistoryByBatchID(Long batchId, Integer pageNumber, Integer pageSize) {
         Pageable paging = PageRequest.of(pageNumber, pageSize);
-        return graduationStudentRecordHistoryRepository.findByBatchId(batchId,paging);
+        Page<GraduationStudentRecordHistoryEntity> pagedDate = graduationStudentRecordHistoryRepository.findByBatchId(batchId,paging);
+        List<GraduationStudentRecordHistoryEntity> list = pagedDate.getContent();
+        list.forEach(ent->{
+            try {
+                GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
+                ent.setPen(existingData.getGradStudent().getPen());
+                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
+                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
+                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+                ent.setStudentGradData(null);
+            } catch (JsonProcessingException e) {
+                logger.debug("Error : {}",e.getMessage());
+            }
+        });
+        return pagedDate;
     }
 }

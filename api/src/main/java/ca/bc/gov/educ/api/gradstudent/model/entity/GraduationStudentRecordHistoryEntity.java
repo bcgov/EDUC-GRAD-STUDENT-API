@@ -67,4 +67,16 @@ public class GraduationStudentRecordHistoryEntity extends BaseEntity {
     @Column(name = "BATCH_ID", nullable = true)
     private Long batchId;
 
+    @Transient
+    private String pen;
+
+    @Transient
+    private String legalFirstName;
+
+    @Transient
+    private String legalMiddleNames;
+
+    @Transient
+    private String legalLastName;
+
 }
