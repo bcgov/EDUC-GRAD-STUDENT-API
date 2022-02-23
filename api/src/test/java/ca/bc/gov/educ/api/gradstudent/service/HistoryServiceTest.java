@@ -196,6 +196,6 @@ public class HistoryServiceTest {
         when(graduationStudentRecordHistoryRepository.findByBatchId(4000L,paging)).thenReturn(hPage);
         Page<GraduationStudentRecordHistoryEntity> list = historyService.getStudentHistoryByBatchID(4000L, 0, 10);
         assertThat(list).isNotEmpty();
-        assertThat(list.getContent().size()).isEqualTo(1);
+        assertThat(list.getContent()).hasSize(1);
     }
 }

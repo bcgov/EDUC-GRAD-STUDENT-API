@@ -114,7 +114,6 @@ public class HistoryService {
 
     public Page<GraduationStudentRecordHistoryEntity> getStudentHistoryByBatchID(Long batchId, Integer pageNumber, Integer pageSize) {
         Pageable paging = PageRequest.of(pageNumber, pageSize);
-        Page<GraduationStudentRecordHistoryEntity> pagedResult = graduationStudentRecordHistoryRepository.findByBatchId(batchId,paging);
-        return pagedResult;
+        return graduationStudentRecordHistoryRepository.findByBatchId(batchId,paging);
     }
 }
