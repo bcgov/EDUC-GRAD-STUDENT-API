@@ -129,7 +129,7 @@ public class HistoryService {
                 ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
                 ent.setStudentGradData(null);
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                logger.debug("Error : {}",e.getMessage());
             }
         });
         return pagedDate;
