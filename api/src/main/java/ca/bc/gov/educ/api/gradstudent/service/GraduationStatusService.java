@@ -273,7 +273,7 @@ public class GraduationStatusService {
         }
     }
 
-    private void validateStudentGrade(GraduationStudentRecordEntity sourceEntity, String accessToken) {
+    private void validateStudentGrade(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
         Student studentObj = webClient.get()
 				.uri(String.format(constants.getPenStudentApiByStudentIdUrl(), sourceEntity.getStudentID()))
 				.headers(h -> h.setBearerAuth(accessToken))
@@ -293,7 +293,7 @@ public class GraduationStatusService {
             }
         }
 
-        if(sourceEntity.getProgram().contains("1950") && (sourceEntity.getStudentGrade().compareTo("AN") != 0 || sourceEntity.getStudentGrade().compareTo("AD") != 0)) {
+        if(sourceEntity.getProgram().contains("1950") && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()) && (sourceEntity.getStudentGrade().compareTo("AN") != 0 || sourceEntity.getStudentGrade().compareTo("AD") != 0)) {
             validation.addError("Student Grade Should be AD or AN");
         }
         
@@ -320,7 +320,7 @@ public class GraduationStatusService {
         if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))
 				|| (sourceEntity.getStudentStatus() != null && !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus()))) {
             hasDataChanged = true;
-            validateStudentGrade(sourceEntity, accessToken);
+            validateStudentGrade(sourceEntity,existingEntity,accessToken);
         }
         if (sourceEntity.getGpa() != null && !sourceEntity.getGpa().equalsIgnoreCase(existingEntity.getGpa())) {
             hasDataChanged = true;
