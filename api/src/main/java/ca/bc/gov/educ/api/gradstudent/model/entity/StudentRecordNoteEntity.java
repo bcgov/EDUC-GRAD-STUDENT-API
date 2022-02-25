@@ -25,7 +25,7 @@ public class StudentRecordNoteEntity extends BaseEntity {
 	@Column(name = "RECORD_NOTE", nullable = true)
     private String note;
 	
-	@Column(name = "GRADUTION_STUDENT_RECORD_ID", nullable = false)
+	@Column(name = "GRADUATION_STUDENT_RECORD_ID", nullable = false)
     private UUID studentID;
 		
 }
