@@ -9,6 +9,8 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistory
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +19,10 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -174,9 +180,23 @@ public class HistoryServiceTest {
         UUID studentID = UUID.randomUUID();
         UUID historyID = UUID.randomUUID();
         List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
+
+        GradSearchStudent serObj = new GradSearchStudent();
+        serObj.setPen("123123");
+        serObj.setLegalFirstName("Asdad");
+        serObj.setLegalMiddleNames("Adad");
+        serObj.setLegalLastName("sadad");
+        GraduationData gd = new GraduationData();
+        gd.setGradStudent(serObj);
+
         GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
+        try {
+            graduationStatusEntity.setStudentGradData(new ObjectMapper().writeValueAsString(gd));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-en");
         graduationStatusEntity.setSchoolOfRecord("223333");
@@ -184,10 +204,16 @@ public class HistoryServiceTest {
         graduationStatusEntity.setHistoryID(new UUID(1,1));
         graduationStatusEntity.setActivityCode("GRADALG");
         graduationStatusEntity.setBatchId(4000L);
+        graduationStatusEntity.setPen("123123");
+        graduationStatusEntity.setLegalFirstName("Asdad");
+        graduationStatusEntity.setLegalMiddleNames("Adad");
+        graduationStatusEntity.setLegalLastName("sadad");
         histList.add(graduationStatusEntity);
-        when(graduationStudentRecordHistoryRepository.findByBatchId(4000L)).thenReturn(histList);
-        List<GraduationStudentRecordHistory> list = historyService.getStudentHistoryByBatchID(4000L);
+        Pageable paging = PageRequest.of(0, 10);
+        Page<GraduationStudentRecordHistoryEntity> hPage = new PageImpl(histList);
+        when(graduationStudentRecordHistoryRepository.findByBatchId(4000L,paging)).thenReturn(hPage);
+        Page<GraduationStudentRecordHistoryEntity> list = historyService.getStudentHistoryByBatchID(4000L, 0, 10);
         assertThat(list).isNotEmpty();
-        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.getContent()).hasSize(1);
     }
 }

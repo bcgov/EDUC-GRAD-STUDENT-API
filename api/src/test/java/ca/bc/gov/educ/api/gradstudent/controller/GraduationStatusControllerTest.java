@@ -18,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -27,7 +29,6 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -579,8 +580,9 @@ public class GraduationStatusControllerTest {
         graduationStatusEntity.setActivityCode("GRADALG");
         graduationStatusEntity.setBatchId(4000L);
         histList.add(graduationStatusEntity);
-        Mockito.when(historyService.getStudentHistoryByBatchID(4000L)).thenReturn(histList);
-        graduationStatusController.getStudentHistoryByBatchID(4000L);
-        Mockito.verify(historyService).getStudentHistoryByBatchID(4000L);
+        Page<GraduationStudentRecordHistoryEntity> hPage = new PageImpl(histList);
+        Mockito.when(historyService.getStudentHistoryByBatchID(4000L, 0, 10)).thenReturn(hPage);
+        graduationStatusController.getStudentHistoryByBatchID(4000L,0,10);
+        Mockito.verify(historyService).getStudentHistoryByBatchID(4000L, 0,10);
     }
 }
