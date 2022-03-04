@@ -184,7 +184,13 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public List<GraduationStudentRecord> searchGraduationStudentRecords(final GraduationStudentRecordSearchCriteria searchCriteria) {
+    public List<GraduationStudentRecord> searchGraduationStudentRecords(final StudentSearchRequest searchRequest) {
+        GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
+                .pens(searchRequest.getPens())
+                .schoolOfRecords(searchRequest.getSchoolOfRecords())
+                .districts(searchRequest.getDistricts())
+                .programs(searchRequest.getPrograms())
+                .build();
         return graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(GraduationStudentRecordSearchSpecification.findByCriteria(searchCriteria)));
     }
 
