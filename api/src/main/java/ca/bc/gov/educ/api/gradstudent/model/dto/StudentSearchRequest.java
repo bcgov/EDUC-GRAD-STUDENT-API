@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Data;
 
@@ -26,4 +27,8 @@ public class StudentSearchRequest {
     List<String> districts;
     List<String> pens;
     List<String> programs;
+
+    public String toJson() {
+        return new Gson().toJson(this);
+    }
 }
