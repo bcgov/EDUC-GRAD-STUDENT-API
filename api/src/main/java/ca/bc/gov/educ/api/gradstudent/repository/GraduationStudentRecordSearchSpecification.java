@@ -18,6 +18,7 @@ public class GraduationStudentRecordSearchSpecification {
         return new Specification<GraduationStudentRecordEntity>() {
             @Override
             public Predicate toPredicate(Root<GraduationStudentRecordEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                logger.debug("toPredicate()");
                 if (searchCriteria.getPens() != null && !searchCriteria.getPens().isEmpty()) {
                     return criteriaBuilder.and(root.get("pen").in(searchCriteria.getPens()));
                 } else if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
