@@ -1,9 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordSearchCriteria;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -187,6 +188,21 @@ public class GraduationStatusController {
     public ResponseEntity<List<GraduationStudentRecord>> getStudentsForProjectedGraduation() {
         logger.debug("getStudentsForProjectedGraduation:");
         return response.GET(gradStatusService.getStudentsForProjectedGraduation());
+    }
+
+    @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_BY_MULTIPLE_CRITERIAS)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Find Students by multiply criterias", description = "Find Students by multiply criterias", tags = { "Search Student Records" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<GraduationStudentRecord>> searchGraduationStudentRecords(@RequestBody StudentSearchRequest searchRequest) {
+        logger.debug("searchGraduationStudentRecords:");
+        GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
+                .pens(searchRequest.getPens())
+                .schoolOfRecords(searchRequest.getSchoolOfRecords())
+                .districts(searchRequest.getDistricts())
+                .programs(searchRequest.getPrograms())
+                .build();
+        return response.GET(gradStatusService.searchGraduationStudentRecords(searchCriteria));
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING)

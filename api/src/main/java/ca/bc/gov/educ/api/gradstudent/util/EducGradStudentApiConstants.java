@@ -26,6 +26,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_PENS = "/multipen";
+    public static final String GRAD_STUDENT_BY_MULTIPLE_CRITERIAS = "/studentmultisearch";
     public static final String GRAD_STUDENT_BY_ANY_NAME = "/studentsearch";
     public static final String GRAD_STUDENT_BY_ANY_NAME_ONLY = "/gradstudentsearch";
     public static final String SEARCH_GRAD_STUDENTS = "/gradsearch";

@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +11,7 @@ import java.util.List;
 @Data
 @Getter
 @Setter
+@Builder
 public class GraduationStudentRecordSearchCriteria implements Serializable {
 
     private static final long serialVersionUID = 1L;

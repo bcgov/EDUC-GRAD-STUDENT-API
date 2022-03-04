@@ -3,6 +3,8 @@ package ca.bc.gov.educ.api.gradstudent.model.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class StudentSearchRequest {
@@ -19,4 +21,9 @@ public class StudentSearchRequest {
     String birthdateTo;
     String schoolOfRecord;
     String gradProgram;
+
+    List<String> schoolOfRecords;
+    List<String> districts;
+    List<String> pens;
+    List<String> programs;
 }
