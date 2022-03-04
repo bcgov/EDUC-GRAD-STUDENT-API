@@ -1,23 +1,18 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -32,23 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUngradReasons;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.School;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramReq;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentUngradReason;
-import ca.bc.gov.educ.api.gradstudent.model.dto.UngradReason;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
@@ -75,6 +61,9 @@ public class GraduationStatusService {
     final HistoryService historyService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
+
+    @Autowired
+    GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
     public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
@@ -192,6 +181,11 @@ public class GraduationStatusService {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
             return Pair.of(graduationStatus, null);
         }
+    }
+
+    @Transactional
+    public List<GraduationStudentRecord> searchGraduationStudentRecords(final GraduationStudentRecordSearchCriteria searchCriteria) {
+        return graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(GraduationStudentRecordSearchSpecification.findByCriteria(searchCriteria)));
     }
 
     private String getSchoolName(String minCode, String accessToken) {
