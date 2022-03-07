@@ -4,10 +4,11 @@ import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordSearchRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -28,6 +29,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,6 +50,7 @@ public class GraduationStatusServiceTest {
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
+    @Autowired GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
     @MockBean WebClient webClient;
@@ -861,6 +864,30 @@ public class GraduationStatusServiceTest {
         assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(responseGraduationStatus.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
     }
+
+    @Test
+    public void testSearchGraduationStudentRecords() {
+
+        List<String> schoolOfRecords = new ArrayList<>();
+        //schoolOfRecords.add("06299164");
+
+        List<String> districts = new ArrayList<>();
+        districts.add("044");
+
+        List<String> programs = new ArrayList<>();
+        //programs.add("1950");
+
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .schoolOfRecords(schoolOfRecords)
+                .districts(districts)
+                .programs(programs)
+                .build();
+
+        var result = graduationStatusService.searchGraduationStudentRecords(searchRequest);
+        assertThat(result).isNotNull();
+
+    }
+
 
     @Test
     public void testGetStudentsForProjectedGraduation() {

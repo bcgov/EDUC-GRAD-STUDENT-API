@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -191,7 +192,9 @@ public class GraduationStatusService {
                 .districts(searchRequest.getDistricts())
                 .programs(searchRequest.getPrograms())
                 .build();
-        return graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(GraduationStudentRecordSearchSpecification.findByCriteria(searchCriteria)));
+
+        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
+        return graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(Specification.where(spec)));
     }
 
     private String getSchoolName(String minCode, String accessToken) {
