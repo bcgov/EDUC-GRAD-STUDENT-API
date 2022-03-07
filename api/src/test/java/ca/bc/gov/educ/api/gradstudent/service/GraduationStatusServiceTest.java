@@ -872,7 +872,7 @@ public class GraduationStatusServiceTest {
         //schoolOfRecords.add("06299164");
 
         List<String> districts = new ArrayList<>();
-        districts.add("044");
+        //districts.add("044");
 
         List<String> programs = new ArrayList<>();
         //programs.add("1950");
