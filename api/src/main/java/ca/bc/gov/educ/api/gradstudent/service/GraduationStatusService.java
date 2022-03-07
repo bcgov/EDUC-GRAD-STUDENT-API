@@ -186,6 +186,7 @@ public class GraduationStatusService {
 
     @Transactional
     public List<GraduationStudentRecord> searchGraduationStudentRecords(final StudentSearchRequest searchRequest) {
+        logger.debug("searchGraduationStudentRecords:{}", searchRequest.toJson());
         GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
                 .pens(searchRequest.getPens())
                 .schoolOfRecords(searchRequest.getSchoolOfRecords())

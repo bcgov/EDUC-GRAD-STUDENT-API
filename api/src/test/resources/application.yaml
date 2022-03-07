@@ -45,7 +45,7 @@ logging:
         gov:
           educ:
             api:
-              gradstudent: INFO
+              gradstudent: DEBUG
     org:
       springframework:
         web: INFO

@@ -14,6 +14,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -869,13 +870,14 @@ public class GraduationStatusServiceTest {
     public void testSearchGraduationStudentRecords() {
 
         List<String> schoolOfRecords = new ArrayList<>();
-        //schoolOfRecords.add("06299164");
+        schoolOfRecords.add("06299164");
+        schoolOfRecords.add("03838000");
 
         List<String> districts = new ArrayList<>();
-        //districts.add("044");
+        districts.add("044");
 
         List<String> programs = new ArrayList<>();
-        //programs.add("1950");
+        programs.add("1950");
 
         StudentSearchRequest searchRequest = StudentSearchRequest.builder()
                 .schoolOfRecords(schoolOfRecords)
@@ -885,7 +887,7 @@ public class GraduationStatusServiceTest {
 
         var result = graduationStatusService.searchGraduationStudentRecords(searchRequest);
         assertThat(result).isNotNull();
-
+        Assert.assertFalse(result.isEmpty());
     }
 
 

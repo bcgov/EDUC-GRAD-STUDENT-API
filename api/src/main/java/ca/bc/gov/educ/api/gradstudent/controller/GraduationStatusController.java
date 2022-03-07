@@ -194,7 +194,7 @@ public class GraduationStatusController {
     @Operation(summary = "Find Students by multiply criterias", description = "Find Students by multiply criterias", tags = { "Search Student Records" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<GraduationStudentRecord>> searchGraduationStudentRecords(@RequestBody StudentSearchRequest searchRequest) {
-        logger.debug("searchGraduationStudentRecords:", searchRequest.toJson());
+        logger.debug("searchGraduationStudentRecords:{}", searchRequest.toJson());
         return response.GET(gradStatusService.searchGraduationStudentRecords(searchRequest));
     }
 
