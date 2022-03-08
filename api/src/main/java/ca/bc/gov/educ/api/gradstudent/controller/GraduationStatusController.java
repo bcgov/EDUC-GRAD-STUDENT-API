@@ -195,7 +195,9 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<GraduationStudentRecord>> searchGraduationStudentRecords(@RequestBody StudentSearchRequest searchRequest) {
         logger.debug("searchGraduationStudentRecords:{}", searchRequest.toJson());
-        return response.GET(gradStatusService.searchGraduationStudentRecords(searchRequest));
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        String accessToken = auth.getTokenValue();
+        return response.GET(gradStatusService.searchGraduationStudentRecords(searchRequest, accessToken));
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING)

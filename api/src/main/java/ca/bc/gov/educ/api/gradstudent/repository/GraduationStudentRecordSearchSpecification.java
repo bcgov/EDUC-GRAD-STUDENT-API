@@ -25,8 +25,8 @@ public class GraduationStudentRecordSearchSpecification implements Specification
     @Nullable
     public Predicate toPredicate(Root<GraduationStudentRecordEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
         logger.debug("toPredicate()");
-        if (searchCriteria.getPens() != null && !searchCriteria.getPens().isEmpty()) {
-            return criteriaBuilder.and(root.get("pen").in(searchCriteria.getPens()));
+        if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
+            return criteriaBuilder.and(root.get("studentID").in(searchCriteria.getStudentIds()));
         } else if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
             return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()));
         } else if (searchCriteria.getDistricts() != null && !searchCriteria.getDistricts().isEmpty()) {

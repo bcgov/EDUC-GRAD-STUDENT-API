@@ -33,6 +33,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -185,10 +186,21 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public List<GraduationStudentRecord> searchGraduationStudentRecords(final StudentSearchRequest searchRequest) {
+    public List<GraduationStudentRecord> searchGraduationStudentRecords(final StudentSearchRequest searchRequest, final String accessToken) {
         logger.debug("searchGraduationStudentRecords:{}", searchRequest.toJson());
+
+        List<String> studentIds = new ArrayList<>();
+        if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
+            for(String pen: searchRequest.getPens()) {
+                List<GradSearchStudent> students = gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken);
+                for(GradSearchStudent st: students) {
+                    studentIds.add(st.getStudentID());
+                }
+            }
+        }
+
         GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
-                .pens(searchRequest.getPens())
+                .studentIds(studentIds)
                 .schoolOfRecords(searchRequest.getSchoolOfRecords())
                 .districts(searchRequest.getDistricts())
                 .programs(searchRequest.getPrograms())
