@@ -896,6 +896,8 @@ public class GraduationStatusServiceTest {
         }
 
         List<String> pens = new ArrayList<>();
+//        pens.add("142524123");
+//        pens.add("132622598");
 
         List<String> schoolOfRecords = new ArrayList<>();
         schoolOfRecords.add("06299164");
@@ -922,7 +924,6 @@ public class GraduationStatusServiceTest {
                 .build();
         Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
 
-        //when(graduationStudentRecordSearchRepository.findAll(Specification.where(spec))).thenReturn(mockSearchResult);
         var result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.size()).isGreaterThan(0);
