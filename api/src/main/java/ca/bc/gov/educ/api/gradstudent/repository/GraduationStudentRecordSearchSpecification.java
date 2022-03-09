@@ -26,13 +26,21 @@ public class GraduationStudentRecordSearchSpecification implements Specification
     public Predicate toPredicate(Root<GraduationStudentRecordEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
         logger.debug("toPredicate()");
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
-            return criteriaBuilder.and(root.get("studentID").in(searchCriteria.getStudentIds()));
+            return criteriaBuilder.and(root.get("studentID").in(searchCriteria.getStudentIds()),
+                    criteriaBuilder.notEqual(root.get("studentStatus"), "MER")
+            );
         } else if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
-            return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()));
+            return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()),
+                    criteriaBuilder.equal(root.get("studentStatus"), "CUR")
+            );
         } else if (searchCriteria.getDistricts() != null && !searchCriteria.getDistricts().isEmpty()) {
-            return criteriaBuilder.substring(root.get("schoolOfRecord").as(String.class), 0,3).in(searchCriteria.getDistricts());
+            return criteriaBuilder.substring(root.get("schoolOfRecord").as(String.class), 0,3).in(searchCriteria.getDistricts(),
+                    criteriaBuilder.equal(root.get("studentStatus"), "CUR")
+            );
         } else if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
-            return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()));
+            return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
+                    criteriaBuilder.equal(root.get("studentStatus"), "CUR")
+            );
         }
         return criteriaBuilder.and();
     }

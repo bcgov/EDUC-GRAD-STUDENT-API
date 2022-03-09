@@ -194,7 +194,9 @@ public class GraduationStatusService {
             for(String pen: searchRequest.getPens()) {
                 List<GradSearchStudent> students = gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken);
                 for(GradSearchStudent st: students) {
-                    studentIds.add(st.getStudentID());
+                    if(!"MER".equalsIgnoreCase(st.getStudentStatus())) {
+                        studentIds.add(st.getStudentID());
+                    }
                 }
             }
         }
