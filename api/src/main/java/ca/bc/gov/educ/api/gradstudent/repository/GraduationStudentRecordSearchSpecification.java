@@ -10,6 +10,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.UUID;
 
 public class GraduationStudentRecordSearchSpecification implements Specification<GraduationStudentRecordEntity> {
 
@@ -26,7 +27,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
     public Predicate toPredicate(Root<GraduationStudentRecordEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
         logger.debug("toPredicate()");
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
-            return criteriaBuilder.and(root.get("studentID").in(searchCriteria.getStudentIds()),
+            return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
                     criteriaBuilder.notEqual(root.get("studentStatus"), "MER")
             );
         } else if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {

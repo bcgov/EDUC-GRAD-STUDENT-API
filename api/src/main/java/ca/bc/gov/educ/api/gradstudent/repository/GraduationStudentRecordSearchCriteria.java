@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Getter
@@ -20,4 +22,12 @@ public class GraduationStudentRecordSearchCriteria implements Serializable {
     private List<String> districts;
     private List<String> studentIds;
     private List<String> programs;
+
+    public List<UUID> getStudentUUIDs() {
+        List<UUID> result = new ArrayList<>();
+        for(String id: studentIds) {
+            result.add(UUID.fromString(id));
+        }
+        return result;
+    }
 }
