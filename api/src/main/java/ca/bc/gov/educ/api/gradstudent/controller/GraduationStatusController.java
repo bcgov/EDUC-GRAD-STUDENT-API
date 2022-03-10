@@ -193,7 +193,7 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Students by multiply criterias", description = "Find Students by multiply criterias", tags = { "Search Student Records" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GraduationStudentRecord>> searchGraduationStudentRecords(@RequestBody StudentSearchRequest searchRequest) {
+    public ResponseEntity<GraduationStudentRecordSearchResult> searchGraduationStudentRecords(@RequestBody StudentSearchRequest searchRequest) {
         logger.debug("searchGraduationStudentRecords:{}", searchRequest.toJson());
         OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
         String accessToken = auth.getTokenValue();

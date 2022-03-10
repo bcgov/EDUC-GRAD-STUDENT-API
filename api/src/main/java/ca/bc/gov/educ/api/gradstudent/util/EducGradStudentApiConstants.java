@@ -96,6 +96,9 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-trax-api.school-by-min-code.url}")
     private String schoolByMincodeUrl;
 
+    @Value("${endpoint.grad-trax-api.district-by-district-code.url}")
+    private String districtByDistrictCodeUrl;
+
     @Value("${endpoint.grad-program-api.career_program-by-career-code.url}")
     private String careerProgramByCodeUrl;
 

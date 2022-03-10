@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -186,8 +187,10 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public List<GraduationStudentRecord> searchGraduationStudentRecords(final StudentSearchRequest searchRequest, final String accessToken) {
+    public GraduationStudentRecordSearchResult searchGraduationStudentRecords(final StudentSearchRequest searchRequest, final String accessToken) {
         logger.debug("searchGraduationStudentRecords:{}", searchRequest.toJson());
+
+        final GraduationStudentRecordSearchResult searchResult = new GraduationStudentRecordSearchResult();
 
         List<String> studentIds = new ArrayList<>();
         if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
@@ -196,7 +199,56 @@ public class GraduationStatusService {
                 for(GradSearchStudent st: students) {
                     if(!"MER".equalsIgnoreCase(st.getStudentStatus())) {
                         studentIds.add(st.getStudentID());
+                        switch(st.getStudentStatus()) {
+                            case "ARC": {
+                                String errorString = String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "ARC");
+                                searchResult.addError(errorString, st.getPen());
+                            }
+                                break;
+                            case "TER": {
+                                String errorString = String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "TER");
+                                searchResult.addError(errorString, st.getPen());
+                            }
+                                break;
+                            case "DEC": {
+                                String errorString = String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "DEC");
+                                searchResult.addError(errorString, st.getPen());
+                            }
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        String errorString = String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_ERROR, "MER");
+                        searchResult.addError(errorString, st.getPen());
                     }
+                }
+            }
+        }
+
+        if(searchRequest.getSchoolOfRecords() != null && !searchRequest.getSchoolOfRecords().isEmpty()) {
+            for(String schoolOfRecord: searchRequest.getSchoolOfRecords()) {
+                String schoolName = getSchoolName(schoolOfRecord, accessToken);
+                if(schoolName == null) {
+                    searchResult.addError(GraduationStudentRecordSearchResult.MINCODE_VALIDATION_ERROR, schoolOfRecord);
+                }
+            }
+        }
+
+        if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty()) {
+            for(String district: searchRequest.getDistricts()) {
+                String districtName = getDistrictName(district, accessToken);
+                if(districtName == null) {
+                    searchResult.addError(GraduationStudentRecordSearchResult.DISTRICT_VALIDATION_ERROR, district);
+                }
+            }
+        }
+
+        if(searchRequest.getPrograms() != null && !searchRequest.getPrograms().isEmpty()) {
+            for(String program: searchRequest.getPrograms()) {
+                String programName = getProgramName(program, accessToken);
+                if(programName == null) {
+                    searchResult.addError(GraduationStudentRecordSearchResult.PROGRAM_VALIDATION_ERROR, programName);
                 }
             }
         }
@@ -209,7 +261,13 @@ public class GraduationStatusService {
                 .build();
 
         Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
-        return graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(Specification.where(spec)));
+        List<GraduationStudentRecord> students = graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(Specification.where(spec)));
+        searchResult.setGraduationStudentRecords(students);
+        return searchResult;
+    }
+
+    private List<Student> getStudentByPenFromStudentAPI(String pen, String accessToken) {
+        return webClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
     }
 
     private String getSchoolName(String minCode, String accessToken) {
@@ -221,6 +279,19 @@ public class GraduationStatusService {
                 .block();
         if (schObj != null)
             return schObj.getSchoolName();
+        else
+            return null;
+    }
+
+    private String getDistrictName(String districtCode, String accessToken) {
+        District distObj = webClient.get()
+                .uri(String.format(constants.getDistrictByDistrictCodeUrl(), districtCode))
+                .headers(h -> h.setBearerAuth(accessToken))
+                .retrieve()
+                .bodyToMono(District.class)
+                .block();
+        if (distObj != null)
+            return distObj.getDistrictName();
         else
             return null;
     }

@@ -384,6 +384,9 @@ public class GraduationStatusControllerTest {
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
 
+        GraduationStudentRecordSearchResult searchResult = new GraduationStudentRecordSearchResult();
+        searchResult.setGraduationStudentRecords(List.of(graduationStatus));
+
         List<String> pens = new ArrayList<>();
 
         List<String> schoolOfRecords = new ArrayList<>();
@@ -403,7 +406,7 @@ public class GraduationStatusControllerTest {
                 .programs(programs)
                 .build();
 
-        Mockito.when(graduationStatusService.searchGraduationStudentRecords(searchRequest, null)).thenReturn(List.of(graduationStatus));
+        Mockito.when(graduationStatusService.searchGraduationStudentRecords(searchRequest, null)).thenReturn(searchResult);
         graduationStatusController.searchGraduationStudentRecords(searchRequest);
         Mockito.verify(graduationStatusService).searchGraduationStudentRecords(searchRequest, null);
     }
