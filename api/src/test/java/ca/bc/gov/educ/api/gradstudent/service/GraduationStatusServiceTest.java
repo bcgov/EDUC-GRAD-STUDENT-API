@@ -6,7 +6,9 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.*;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordSearchRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -20,7 +22,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -63,7 +64,7 @@ public class GraduationStatusServiceTest {
     @MockBean Publisher publisher;
     @MockBean Subscriber subscriber;
 
-    @MockBean
+    @Autowired
     GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Before
@@ -870,25 +871,21 @@ public class GraduationStatusServiceTest {
     @Test
     public void testSearchGraduationStudentRecords() {
 
+        final UUID studentId = UUID.randomUUID();
         final String pen = "142524123";
         final String schoolOfRecord = "06299164";
         final String distCode = "062";
-        final String programCode = "1950";
-
-        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgram(programCode);
-        graduationStudentRecordEntity.setSchoolOfRecord(schoolOfRecord);
-        graduationStudentRecordEntity.setStudentStatus("CUR");
+        final String programCode = "2018-EN";
 
         List<String> pens = new ArrayList<>();
         //pens.add(pen);
 
         Student student = new Student();
         student.setPen(pen);
+        student.setStudentID(studentId.toString());
 
         List<String> schoolOfRecords = new ArrayList<>();
-        schoolOfRecords.add(schoolOfRecord);
+        //schoolOfRecords.add(schoolOfRecord);
 
         School school = new School();
         school.setMinCode(schoolOfRecord);
@@ -902,17 +899,19 @@ public class GraduationStatusServiceTest {
         district.setDistrictName("Test District");
 
         List<String> programs = new ArrayList<>();
-        programs.add(programCode);
+        //programs.add(programCode);
 
         GradProgram program = new GradProgram();
         program.setProgramCode(programCode);
         program.setProgramName(programCode);
 
         GradSearchStudent gradSearchStudent = new GradSearchStudent();
+        gradSearchStudent.setStudentID(studentId.toString());
         gradSearchStudent.setPen(pen);
         gradSearchStudent.setStudentStatus("ARC");
         gradSearchStudent.setProgram(programCode);
         gradSearchStudent.setSchoolOfRecord(schoolOfRecord);
+
 
         StudentSearchRequest searchRequest = StudentSearchRequest.builder()
                 .pens(pens)
@@ -921,13 +920,21 @@ public class GraduationStatusServiceTest {
                 .programs(programs)
                 .build();
 
-        GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
-                .studentIds(searchRequest.getPens())
-                .schoolOfRecords(searchRequest.getSchoolOfRecords())
-                .districts(searchRequest.getDistricts())
-                .programs(searchRequest.getPrograms())
-                .build();
-        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
+//        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+//        graduationStudentRecordEntity.setStudentID(studentId);
+//        graduationStudentRecordEntity.setProgram(programCode);
+//        graduationStudentRecordEntity.setSchoolOfRecord(schoolOfRecord);
+//        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+//        GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
+//                .studentIds(searchRequest.getPens())
+//                .schoolOfRecords(searchRequest.getSchoolOfRecords())
+//                .districts(searchRequest.getDistricts())
+//                .programs(searchRequest.getPrograms())
+//                .build();
+//        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
+
+//        when(graduationStudentRecordSearchRepository.findAll(Specification.where(spec))).thenReturn(List.of(graduationStudentRecordEntity));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
@@ -954,8 +961,6 @@ public class GraduationStatusServiceTest {
         when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
 
         when(gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken")).thenReturn(List.of(gradSearchStudent));
-
-        when(graduationStudentRecordSearchRepository.findAll(Specification.where(spec))).thenReturn(List.of(graduationStudentRecordEntity));
 
         var result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
         assertThat(result).isNotNull();
