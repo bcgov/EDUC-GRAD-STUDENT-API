@@ -197,6 +197,11 @@ public class GraduationStatusService {
             for(String pen: searchRequest.getPens()) {
                 List<GradSearchStudent> students = gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken);
                 for(GradSearchStudent st: students) {
+                    var gradStudent = graduationStatusRepository.findByStudentID(UUID.fromString(st.getStudentID()));
+                    if(gradStudent == null) {
+                        searchResult.addError(GraduationStudentRecordSearchResult.PEN_VALIDATION_ERROR, st.getPen());
+                        continue;
+                    }
                     if(!"MER".equalsIgnoreCase(st.getStudentStatus())) {
                         studentIds.add(st.getStudentID());
                         switch(st.getStudentStatus()) {
@@ -263,6 +268,7 @@ public class GraduationStatusService {
         Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
         List<GraduationStudentRecord> students = graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(Specification.where(spec)));
         searchResult.setGraduationStudentRecords(students);
+
         return searchResult;
     }
 
