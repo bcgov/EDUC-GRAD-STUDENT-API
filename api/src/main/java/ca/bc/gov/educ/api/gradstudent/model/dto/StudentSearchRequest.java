@@ -28,6 +28,8 @@ public class StudentSearchRequest {
     List<String> pens;
     List<String> programs;
 
+    Boolean validateInput;
+
     public String toJson() {
         return new Gson().toJson(this);
     }

@@ -197,10 +197,12 @@ public class GraduationStatusService {
             for(String pen: searchRequest.getPens()) {
                 List<GradSearchStudent> students = gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken);
                 for(GradSearchStudent st: students) {
-                    var gradStudent = graduationStatusRepository.findByStudentID(UUID.fromString(st.getStudentID()));
-                    if(gradStudent == null) {
-                        searchResult.addError(GraduationStudentRecordSearchResult.PEN_VALIDATION_ERROR, st.getPen());
-                        continue;
+                    if(searchRequest.getValidateInput()) {
+                        var gradStudent = graduationStatusRepository.findByStudentID(UUID.fromString(st.getStudentID()));
+                        if (gradStudent == null) {
+                            searchResult.addError(GraduationStudentRecordSearchResult.PEN_VALIDATION_ERROR, st.getPen());
+                            continue;
+                        }
                     }
                     if(!"MER".equalsIgnoreCase(st.getStudentStatus())) {
                         studentIds.add(st.getStudentID());
@@ -231,7 +233,7 @@ public class GraduationStatusService {
             }
         }
 
-        if(searchRequest.getSchoolOfRecords() != null && !searchRequest.getSchoolOfRecords().isEmpty()) {
+        if(searchRequest.getSchoolOfRecords() != null && !searchRequest.getSchoolOfRecords().isEmpty() && searchRequest.getValidateInput()) {
             for(String schoolOfRecord: searchRequest.getSchoolOfRecords()) {
                 String schoolName = getSchoolName(schoolOfRecord, accessToken);
                 if(schoolName == null) {
@@ -240,7 +242,7 @@ public class GraduationStatusService {
             }
         }
 
-        if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty()) {
+        if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty() && searchRequest.getValidateInput()) {
             for(String district: searchRequest.getDistricts()) {
                 String districtName = getDistrictName(district, accessToken);
                 if(districtName == null) {
@@ -249,7 +251,7 @@ public class GraduationStatusService {
             }
         }
 
-        if(searchRequest.getPrograms() != null && !searchRequest.getPrograms().isEmpty()) {
+        if(searchRequest.getPrograms() != null && !searchRequest.getPrograms().isEmpty() && searchRequest.getValidateInput()) {
             for(String program: searchRequest.getPrograms()) {
                 String programName = getProgramName(program, accessToken);
                 if(programName == null) {

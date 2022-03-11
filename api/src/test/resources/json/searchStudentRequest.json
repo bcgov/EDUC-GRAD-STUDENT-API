@@ -17,5 +17,6 @@
   "programs": [
     "2018-EN",
     "SCCP"
-  ]
+  ],
+  "validateInput": false
 }
