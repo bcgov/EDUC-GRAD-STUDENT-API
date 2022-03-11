@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +10,6 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-@JsonRootName("GraduationStudentRecords")
 public class GraduationStudentRecordSearchResult {
 
     public static final String PEN_VALIDATION_ERROR = "STUDENTs not exist in GRAD:";
