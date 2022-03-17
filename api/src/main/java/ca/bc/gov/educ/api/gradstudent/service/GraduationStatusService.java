@@ -1,16 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
@@ -19,7 +9,10 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -36,21 +29,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUngradReasons;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.School;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramReq;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentUngradReason;
-import ca.bc.gov.educ.api.gradstudent.model.dto.UngradReason;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
@@ -155,8 +142,7 @@ public class GraduationStatusService {
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(sourceObject);
-            final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreateUser(), sourceObject.getUpdateUser(),
-                    savedGraduationStatus, EventType.CREATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_CREATED, GRAD_ALG, accessToken);
+            final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreateUser(), sourceObject.getUpdateUser(), savedGraduationStatus, EventType.CREATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_CREATED, GRAD_ALG, accessToken);
             gradStatusEventRepository.save(gradStatusEvent);
             return Pair.of(savedGraduationStatus, gradStatusEvent);
         }
