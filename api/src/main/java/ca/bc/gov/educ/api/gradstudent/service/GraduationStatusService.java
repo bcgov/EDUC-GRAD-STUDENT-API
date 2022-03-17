@@ -1,23 +1,18 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -27,28 +22,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUngradReasons;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.School;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramReq;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentUngradReason;
-import ca.bc.gov.educ.api.gradstudent.model.dto.UngradReason;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
@@ -75,6 +64,9 @@ public class GraduationStatusService {
     final HistoryService historyService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
+
+    @Autowired
+    GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
     public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
@@ -194,6 +186,98 @@ public class GraduationStatusService {
         }
     }
 
+    @Transactional
+    public GraduationStudentRecordSearchResult searchGraduationStudentRecords(final StudentSearchRequest searchRequest, final String accessToken) {
+        logger.debug("searchGraduationStudentRecords:{}", searchRequest.toJson());
+
+        final GraduationStudentRecordSearchResult searchResult = new GraduationStudentRecordSearchResult();
+
+        List<String> studentIds = new ArrayList<>();
+        if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
+            for(String pen: searchRequest.getPens()) {
+                List<GradSearchStudent> students = gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken);
+                for(GradSearchStudent st: students) {
+                    if(searchRequest.getValidateInput()) {
+                        var gradStudent = graduationStatusRepository.findByStudentID(UUID.fromString(st.getStudentID()));
+                        if (gradStudent == null) {
+                            searchResult.addError(GraduationStudentRecordSearchResult.PEN_VALIDATION_ERROR, st.getPen());
+                            continue;
+                        }
+                    }
+                    if(!"MER".equalsIgnoreCase(st.getStudentStatus())) {
+                        studentIds.add(st.getStudentID());
+                        switch(st.getStudentStatus()) {
+                            case "ARC": {
+                                String errorString = String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "ARC");
+                                searchResult.addError(errorString, st.getPen());
+                            }
+                                break;
+                            case "TER": {
+                                String errorString = String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "TER");
+                                searchResult.addError(errorString, st.getPen());
+                            }
+                                break;
+                            case "DEC": {
+                                String errorString = String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "DEC");
+                                searchResult.addError(errorString, st.getPen());
+                            }
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        String errorString = String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_ERROR, "MER");
+                        searchResult.addError(errorString, st.getPen());
+                    }
+                }
+            }
+        }
+
+        if(searchRequest.getSchoolOfRecords() != null && !searchRequest.getSchoolOfRecords().isEmpty() && searchRequest.getValidateInput()) {
+            for(String schoolOfRecord: searchRequest.getSchoolOfRecords()) {
+                String schoolName = getSchoolName(schoolOfRecord, accessToken);
+                if(schoolName == null) {
+                    searchResult.addError(GraduationStudentRecordSearchResult.MINCODE_VALIDATION_ERROR, schoolOfRecord);
+                }
+            }
+        }
+
+        if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty() && searchRequest.getValidateInput()) {
+            for(String district: searchRequest.getDistricts()) {
+                String districtName = getDistrictName(district, accessToken);
+                if(districtName == null) {
+                    searchResult.addError(GraduationStudentRecordSearchResult.DISTRICT_VALIDATION_ERROR, district);
+                }
+            }
+        }
+
+        if(searchRequest.getPrograms() != null && !searchRequest.getPrograms().isEmpty() && searchRequest.getValidateInput()) {
+            for(String program: searchRequest.getPrograms()) {
+                String programName = getProgramName(program, accessToken);
+                if(programName == null) {
+                    searchResult.addError(GraduationStudentRecordSearchResult.PROGRAM_VALIDATION_ERROR, programName);
+                }
+            }
+        }
+
+        GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
+                .studentIds(studentIds)
+                .schoolOfRecords(searchRequest.getSchoolOfRecords())
+                .districts(searchRequest.getDistricts())
+                .programs(searchRequest.getPrograms())
+                .build();
+
+        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
+        List<GraduationStudentRecord> students = graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(Specification.where(spec)));
+        searchResult.setGraduationStudentRecords(students);
+
+        return searchResult;
+    }
+
+    private List<Student> getStudentByPenFromStudentAPI(String pen, String accessToken) {
+        return webClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
+    }
+
     private String getSchoolName(String minCode, String accessToken) {
         School schObj = webClient.get()
                 .uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
@@ -203,6 +287,19 @@ public class GraduationStatusService {
                 .block();
         if (schObj != null)
             return schObj.getSchoolName();
+        else
+            return null;
+    }
+
+    private String getDistrictName(String districtCode, String accessToken) {
+        District distObj = webClient.get()
+                .uri(String.format(constants.getDistrictByDistrictCodeUrl(), districtCode))
+                .headers(h -> h.setBearerAuth(accessToken))
+                .retrieve()
+                .bodyToMono(District.class)
+                .block();
+        if (distObj != null)
+            return distObj.getDistrictName();
         else
             return null;
     }
