@@ -8,8 +8,14 @@ spring:
       maximum-pool-size: 1
       connection-timeout: 6000
       max-lifetime: 600000
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:gradstudent-api-h2db;MODE=Oracle
+    username: user
+    password: password
+    data: classpath:data/test.sql
   jpa:
     show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
     generate-ddl: true
@@ -24,10 +30,12 @@ spring:
 #Logging properties
 logging:
   file:
-    max-history: 1
-    clean-history-on-start: true
-    max-size: 20MB
     name: /logs/app.log
+  logback:
+    rollingpolicy:
+      max-history: 1
+      max-file-size: 20MB
+      clean-history-on-start: true
   #pattern:
   #  file: %d | [${HOSTNAME}] | %clr(%5p) | [%t]   | %logger{36}:%L | %msg%n
   #  console: %d | [${HOSTNAME}] | %clr(%5p) | [%t]   | %logger{36}:%L | %msg%n
@@ -37,7 +45,7 @@ logging:
         gov:
           educ:
             api:
-              gradstudent: INFO
+              gradstudent: DEBUG
     org:
       springframework:
         web: INFO
@@ -85,6 +93,8 @@ endpoint:
   grad-trax-api:
     school-by-min-code:
       url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/school/%s
+    district-by-district-code:
+      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/district/%s
   grad-program-api:
     optional_program_name_by_optional_program_id:
       url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/optionalprograms/id/%s

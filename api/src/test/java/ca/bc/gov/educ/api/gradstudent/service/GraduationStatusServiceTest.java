@@ -4,10 +4,11 @@ import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordSearchRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -28,6 +29,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,6 +48,7 @@ public class GraduationStatusServiceTest {
     @Autowired
     EducGradStudentApiConstants constants;
     @Autowired GraduationStatusService graduationStatusService;
+    @MockBean GradStudentService gradStudentService;
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     @MockBean CommonService commonService;
@@ -60,6 +63,9 @@ public class GraduationStatusServiceTest {
     @MockBean NatsConnection natsConnection;
     @MockBean Publisher publisher;
     @MockBean Subscriber subscriber;
+
+    @Autowired
+    GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Before
     public void setUp() {
@@ -861,6 +867,106 @@ public class GraduationStatusServiceTest {
         assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(responseGraduationStatus.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
     }
+
+    @Test
+    public void testSearchGraduationStudentRecords() {
+
+        final UUID studentId = UUID.randomUUID();
+        final String pen = "142524123";
+        final String schoolOfRecord = "06299164";
+        final String distCode = "062";
+        final String programCode = "2018-EN";
+
+        List<String> pens = new ArrayList<>();
+        //pens.add(pen);
+
+        Student student = new Student();
+        student.setPen(pen);
+        student.setStudentID(studentId.toString());
+
+        List<String> schoolOfRecords = new ArrayList<>();
+        //schoolOfRecords.add(schoolOfRecord);
+
+        School school = new School();
+        school.setMinCode(schoolOfRecord);
+        school.setSchoolName("Test School");
+
+        List<String> districts = new ArrayList<>();
+        districts.add(distCode);
+
+        District district = new District();
+        district.setDistrictNumber(distCode);
+        district.setDistrictName("Test District");
+
+        List<String> programs = new ArrayList<>();
+        //programs.add(programCode);
+
+        GradProgram program = new GradProgram();
+        program.setProgramCode(programCode);
+        program.setProgramName(programCode);
+
+        GradSearchStudent gradSearchStudent = new GradSearchStudent();
+        gradSearchStudent.setStudentID(studentId.toString());
+        gradSearchStudent.setPen(pen);
+        gradSearchStudent.setStudentStatus("ARC");
+        gradSearchStudent.setProgram(programCode);
+        gradSearchStudent.setSchoolOfRecord(schoolOfRecord);
+
+
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .pens(pens)
+                .schoolOfRecords(schoolOfRecords)
+                .districts(districts)
+                .programs(programs)
+                .build();
+
+//        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+//        graduationStudentRecordEntity.setStudentID(studentId);
+//        graduationStudentRecordEntity.setProgram(programCode);
+//        graduationStudentRecordEntity.setSchoolOfRecord(schoolOfRecord);
+//        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+//        GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
+//                .studentIds(searchRequest.getPens())
+//                .schoolOfRecords(searchRequest.getSchoolOfRecords())
+//                .districts(searchRequest.getDistricts())
+//                .programs(searchRequest.getPrograms())
+//                .build();
+//        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
+
+//        when(graduationStudentRecordSearchRepository.findAll(Specification.where(spec))).thenReturn(List.of(graduationStudentRecordEntity));
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(student));
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),schoolOfRecord))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getDistrictByDistrictCodeUrl(),distCode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(District.class)).thenReturn(Mono.just(district));
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradProgramNameUrl(),programCode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
+
+        when(gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken")).thenReturn(List.of(gradSearchStudent));
+
+        var result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
+        assertThat(result).isNotNull();
+
+    }
+
 
     @Test
     public void testGetStudentsForProjectedGraduation() {
