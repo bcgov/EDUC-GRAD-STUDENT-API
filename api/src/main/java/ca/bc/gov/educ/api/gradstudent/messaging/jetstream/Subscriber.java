@@ -76,7 +76,7 @@ public class Subscriber {
       LogHelper.logMessagingEventDetails(eventString);
       ChoreographedEvent event = JsonUtil.getJsonObjectFromString(ChoreographedEvent.class, eventString);
       jetStreamEventHandlerService.updateEventStatus(event);
-      log.info("received event :: {} ", event);
+      log.debug("received event :: {} ", event);
       message.ack();
     } catch (final Exception ex) {
       log.error("Exception ", ex);
