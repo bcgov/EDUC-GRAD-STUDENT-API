@@ -977,7 +977,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setRecalculateProjectedGrad("Y");
 
-        when(graduationStatusRepository.findByRecalculateProjectedGrad(graduationStatusEntity.getRecalculateProjectedGrad())).thenReturn(List.of(graduationStatusEntity));
+        when(graduationStatusRepository.findTop3000ByRecalculateProjectedGrad(graduationStatusEntity.getRecalculateProjectedGrad())).thenReturn(List.of(graduationStatusEntity));
         var result = graduationStatusService.getStudentsForProjectedGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
