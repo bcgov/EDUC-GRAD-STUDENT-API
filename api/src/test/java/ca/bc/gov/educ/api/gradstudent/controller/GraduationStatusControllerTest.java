@@ -406,6 +406,14 @@ public class GraduationStatusControllerTest {
                 .programs(programs)
                 .build();
 
+        Authentication authentication = Mockito.mock(Authentication.class);
+        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
+        // Mockito.whens() for your authorization object
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(authentication.getDetails()).thenReturn(details);
+        SecurityContextHolder.setContext(securityContext);
+
         Mockito.when(graduationStatusService.searchGraduationStudentRecords(searchRequest, null)).thenReturn(searchResult);
         graduationStatusController.searchGraduationStudentRecords(searchRequest);
         Mockito.verify(graduationStatusService).searchGraduationStudentRecords(searchRequest, null);

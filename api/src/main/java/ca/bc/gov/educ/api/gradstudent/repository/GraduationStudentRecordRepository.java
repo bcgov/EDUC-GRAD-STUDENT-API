@@ -17,7 +17,7 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
     List<GraduationStudentRecordEntity> findAll();
 
 	List<GraduationStudentRecordEntity> findByRecalculateGradStatus(String recalulateFlag);
-	List<GraduationStudentRecordEntity> findTop3000ByRecalculateProjectedGrad(String recalculateProjectedGrad);
+	List<GraduationStudentRecordEntity> findByRecalculateProjectedGrad(String recalculateProjectedGrad);
 	GraduationStudentRecordEntity findByStudentID(UUID studentID);
 
 	@Query("select c from GraduationStudentRecordEntity c where c.studentStatus=:statusCode")

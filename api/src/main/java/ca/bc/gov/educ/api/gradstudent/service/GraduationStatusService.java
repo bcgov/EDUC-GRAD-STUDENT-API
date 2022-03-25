@@ -528,7 +528,7 @@ public class GraduationStatusService {
     }
 
     public List<GraduationStudentRecord> getStudentsForProjectedGraduation() {
-        return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findTop3000ByRecalculateProjectedGrad("Y"));
+        return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateProjectedGrad("Y"));
     }
 
     @Retry(name = "generalgetcall")
