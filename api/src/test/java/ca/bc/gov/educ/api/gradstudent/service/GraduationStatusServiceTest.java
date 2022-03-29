@@ -18,10 +18,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -37,6 +42,7 @@ import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -428,6 +434,12 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
+
+        when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
+        when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
 
         var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
         assertThat(response).isNotNull();
@@ -918,6 +930,7 @@ public class GraduationStatusServiceTest {
                 .schoolOfRecords(schoolOfRecords)
                 .districts(districts)
                 .programs(programs)
+                .validateInput(false)
                 .build();
 
 //        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
@@ -935,6 +948,14 @@ public class GraduationStatusServiceTest {
 //        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
 
 //        when(graduationStudentRecordSearchRepository.findAll(Specification.where(spec))).thenReturn(List.of(graduationStudentRecordEntity));
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
+        // Mockito.whens() for your authorization object
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(authentication.getDetails()).thenReturn(details);
+        SecurityContextHolder.setContext(securityContext);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByPenUrl(),pen))).thenReturn(this.requestHeadersMock);

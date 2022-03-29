@@ -162,6 +162,7 @@ public class GraduationStatusService {
             }
             if(hasDataChanged && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
+                deleteStudentAchievements(sourceObject.getStudentID(),accessToken);
             }
             if (hasDataChanged) {
                 gradEntity.setRecalculateGradStatus("Y");

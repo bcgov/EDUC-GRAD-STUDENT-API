@@ -51,17 +51,6 @@ public class GraduationStatusTransformer {
 		List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
         for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
-//            try {
-//                GraduationData data = objectMapper.readValue(gradStatusEntity.getStudentGradData(), GraduationData.class);
-//                GradSearchStudent student = data.getGradStudent();
-//                if(student != null) {
-//                    gradStatus.setPen(data.getGradStudent().getPen());
-//                    gradStatus.setProgramName(student.getProgram());
-//                    gradStatus.setSchoolName(student.getSchoolOfRecordName());
-//                }
-//            } catch (JsonProcessingException e) {
-//                e.printStackTrace();
-//            }
             gradStatus.setStudentGradData(null);
         	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
         	gradStatusList.add(gradStatus);
