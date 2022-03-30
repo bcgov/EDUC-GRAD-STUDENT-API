@@ -110,7 +110,7 @@ public class GradStudentService {
 			return searchObj;
 			
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			logger.error(e.getMessage());
 		}
 		return null;
 	}
@@ -164,7 +164,7 @@ public class GradStudentService {
 			searchObj.setNumber(pagedResult.getNumber());
 			return searchObj;
 	    } catch (Exception e) {
-	    	logger.info(e.getMessage());
+	    	logger.error(e.getMessage());
 		}
 		
 	    return null;
@@ -203,7 +203,7 @@ public class GradStudentService {
 			return searchObj;
 			
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			logger.error(e.getMessage());
 		}
 		return null;
 	}

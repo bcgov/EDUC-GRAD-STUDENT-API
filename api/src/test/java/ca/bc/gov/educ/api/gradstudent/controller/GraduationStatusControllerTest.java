@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
@@ -366,6 +366,57 @@ public class GraduationStatusControllerTest {
         Mockito.verify(graduationStatusService).updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, null);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void testSearchGraduationStudentRecords() {
+
+        UUID studentID = UUID.randomUUID();
+        String mincode = "12345678";
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setPen("126785500");
+        graduationStatus.setStudentStatus("A");
+        graduationStatus.setRecalculateGradStatus("Y");
+        graduationStatus.setProgram("1950");
+        graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setSchoolAtGrad(mincode);
+        graduationStatus.setGpa("4");
+
+        GraduationStudentRecordSearchResult searchResult = new GraduationStudentRecordSearchResult();
+        searchResult.setGraduationStudentRecords(List.of(graduationStatus));
+
+        List<String> pens = new ArrayList<>();
+
+        List<String> schoolOfRecords = new ArrayList<>();
+        schoolOfRecords.add("06299164");
+        schoolOfRecords.add("03838000");
+
+        List<String> districts = new ArrayList<>();
+        districts.add("044");
+
+        List<String> programs = new ArrayList<>();
+        programs.add("1950");
+
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .pens(pens)
+                .schoolOfRecords(schoolOfRecords)
+                .districts(districts)
+                .programs(programs)
+                .build();
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
+        // Mockito.whens() for your authorization object
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(authentication.getDetails()).thenReturn(details);
+        SecurityContextHolder.setContext(securityContext);
+
+        Mockito.when(graduationStatusService.searchGraduationStudentRecords(searchRequest, null)).thenReturn(searchResult);
+        graduationStatusController.searchGraduationStudentRecords(searchRequest);
+        Mockito.verify(graduationStatusService).searchGraduationStudentRecords(searchRequest, null);
     }
 
     @Test

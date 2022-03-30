@@ -25,7 +25,8 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API = "/stdid/{studentID}";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
-    public static final String GRAD_STUDENT_BY_MULTIPLE_PENS = "/multipen";
+    public static final String GRAD_STUDENT_BY_MULTIPLE_STUDENTIDS = "/multistudentids";
+    public static final String GRAD_STUDENT_BY_LIST_CRITERIAS = "/studentlistsearch";
     public static final String GRAD_STUDENT_BY_ANY_NAME = "/studentsearch";
     public static final String GRAD_STUDENT_BY_ANY_NAME_ONLY = "/gradstudentsearch";
     public static final String SEARCH_GRAD_STUDENTS = "/gradsearch";
@@ -94,6 +95,9 @@ public class EducGradStudentApiConstants {
     //Endpoints
     @Value("${endpoint.grad-trax-api.school-by-min-code.url}")
     private String schoolByMincodeUrl;
+
+    @Value("${endpoint.grad-trax-api.district-by-district-code.url}")
+    private String districtByDistrictCodeUrl;
 
     @Value("${endpoint.grad-program-api.career_program-by-career-code.url}")
     private String careerProgramByCodeUrl;
