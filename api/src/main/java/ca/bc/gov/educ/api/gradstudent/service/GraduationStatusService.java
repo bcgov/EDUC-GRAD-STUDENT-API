@@ -4,10 +4,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
@@ -15,6 +12,8 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -23,6 +22,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -668,5 +670,21 @@ public class GraduationStatusService {
         }
         return null;
     }
-  
+
+    public List<GraduationStudentRecordEntity> getStudentDataByStudentIDs(List<UUID> studentIds) {
+        List<GraduationStudentRecordEntity> list = graduationStatusRepository.findByStudentIDIn(studentIds);
+        list.forEach(ent->{
+            try {
+                GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
+                ent.setPen(existingData.getGradStudent().getPen());
+                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
+                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
+                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+                ent.setStudentGradData(null);
+            } catch (JsonProcessingException e) {
+                logger.debug("Error : {}",e.getMessage());
+            }
+        });
+        return list;
+    }
 }

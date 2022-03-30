@@ -25,7 +25,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API = "/stdid/{studentID}";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
-    public static final String GRAD_STUDENT_BY_MULTIPLE_PENS = "/multipen";
+    public static final String GRAD_STUDENT_BY_MULTIPLE_STUDENTIDS = "/multistudentids";
     public static final String GRAD_STUDENT_BY_LIST_CRITERIAS = "/studentlistsearch";
     public static final String GRAD_STUDENT_BY_ANY_NAME = "/studentsearch";
     public static final String GRAD_STUDENT_BY_ANY_NAME_ONLY = "/gradstudentsearch";

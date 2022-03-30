@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
@@ -307,5 +308,15 @@ public class GraduationStatusController {
         logger.debug("getStudentHistoryByBatchID:");
         Page<GraduationStudentRecordHistoryEntity> historyList = historyService.getStudentHistoryByBatchID(batchId,pageNumber,pageSize);
         return response.GET(historyList);
+    }
+
+    @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_BY_MULTIPLE_STUDENTIDS)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get history for a Batch ID", description = "Get a history for a BatchId", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<GraduationStudentRecordEntity>> getStudentDetailsByStudentIDs(@RequestBody List<UUID> studentIds) {
+        logger.debug("getStudentDetailsByStudentIDs:");
+        List<GraduationStudentRecordEntity> studentList = gradStatusService.getStudentDataByStudentIDs(studentIds);
+        return response.GET(studentList);
     }
 }
