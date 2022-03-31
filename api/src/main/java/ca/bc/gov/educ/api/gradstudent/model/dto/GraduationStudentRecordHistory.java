@@ -29,5 +29,5 @@ public class GraduationStudentRecordHistory extends BaseModel{
     private String schoolAtGrad;
     private String recalculateProjectedGrad;
     private Long batchId;
-				
+    private String consumerEducationRequirementMet;
 }
