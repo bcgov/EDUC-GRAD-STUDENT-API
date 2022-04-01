@@ -128,7 +128,7 @@ public class GraduationStatusService {
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE,"recalculateProjectedGrad","programCompletionDate");
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE,"recalculateProjectedGrad","programCompletionDate","consumerEducationRequirementMet");
             gradEntity.setRecalculateGradStatus(null);
             gradEntity.setBatchId(batchId);
             if(!gradEntity.getProgram().equalsIgnoreCase("SCCP") && !gradEntity.getProgram().equalsIgnoreCase("NOPROG")) {
@@ -173,7 +173,7 @@ public class GraduationStatusService {
                 gradEntity.setRecalculateGradStatus(null);
                 gradEntity.setRecalculateProjectedGrad(null);
             }
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus", "recalculateProjectedGrad");
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus", "recalculateProjectedGrad","consumerEducationRequirementMet");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
