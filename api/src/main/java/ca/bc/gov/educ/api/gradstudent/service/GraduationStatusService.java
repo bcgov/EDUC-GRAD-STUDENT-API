@@ -671,15 +671,23 @@ public class GraduationStatusService {
         return null;
     }
 
-    public List<GraduationStudentRecordEntity> getStudentDataByStudentIDs(List<UUID> studentIds) {
+    public List<GraduationStudentRecordEntity> getStudentDataByStudentIDs(List<UUID> studentIds,String accessToken) {
         List<GraduationStudentRecordEntity> list = graduationStatusRepository.findByStudentIDIn(studentIds);
         list.forEach(ent->{
             try {
-                GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-                ent.setPen(existingData.getGradStudent().getPen());
-                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+                if(ent.getStudentGradData() != null) {
+                    GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
+                    ent.setPen(existingData.getGradStudent().getPen());
+                    ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
+                    ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
+                    ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+                }else {
+                    Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+                    ent.setPen(stuData.getPen());
+                    ent.setLegalFirstName(stuData.getLegalFirstName());
+                    ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
+                    ent.setLegalLastName(stuData.getLegalLastName());
+                }
                 ent.setStudentGradData(null);
             } catch (JsonProcessingException e) {
                 logger.debug("Error : {}",e.getMessage());
