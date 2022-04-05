@@ -316,7 +316,9 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<GraduationStudentRecordEntity>> getStudentDetailsByStudentIDs(@RequestBody StudentList sList) {
         logger.debug("getStudentDetailsByStudentIDs:");
-        List<GraduationStudentRecordEntity> studentList = gradStatusService.getStudentDataByStudentIDs(sList.getStudentids());
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        String accessToken = auth.getTokenValue();
+        List<GraduationStudentRecordEntity> studentList = gradStatusService.getStudentDataByStudentIDs(sList.getStudentids(),accessToken);
         return response.GET(studentList);
     }
 }
