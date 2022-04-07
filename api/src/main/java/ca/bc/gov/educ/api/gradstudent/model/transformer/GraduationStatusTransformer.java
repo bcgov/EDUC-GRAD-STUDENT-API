@@ -4,6 +4,8 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,12 @@ public class GraduationStatusTransformer {
     
     @Autowired
     GradValidation validation;
+
+    private static ObjectMapper objectMapper;
+
+    static {
+        objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
     public GraduationStudentRecord transformToDTO (GraduationStudentRecordEntity gradStatusEntity) {
     	GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
@@ -42,9 +50,8 @@ public class GraduationStatusTransformer {
 	public List<GraduationStudentRecord> transformToDTO (Iterable<GraduationStudentRecordEntity> gradStatusEntities ) {
 		List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
         for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
-        	GraduationStudentRecord gradStatus = new GraduationStudentRecord();
-        	gradStatus.setStudentID(gradStatusEntity.getStudentID());
-        	gradStatus.setProgram(gradStatusEntity.getProgram());
+            GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
+            gradStatus.setStudentGradData(null);
         	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
         	gradStatusList.add(gradStatus);
         }
