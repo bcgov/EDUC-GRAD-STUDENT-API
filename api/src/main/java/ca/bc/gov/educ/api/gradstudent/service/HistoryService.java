@@ -60,6 +60,7 @@ public class HistoryService {
     	final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
         BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
         graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
+        graduationStudentRecordHistoryEntity.setStudentGradData("{ EMPTY CLOB }");
         graduationStudentRecordHistoryRepository.save(graduationStudentRecordHistoryEntity);
     }
 
@@ -69,6 +70,7 @@ public class HistoryService {
         BeanUtils.copyProperties(curStudentOptionalProgramEntity, studentOptionalProgramHistoryEntity);
         studentOptionalProgramHistoryEntity.setStudentOptionalProgramID(curStudentOptionalProgramEntity.getId());
         studentOptionalProgramHistoryEntity.setActivityCode(historyActivityCode);
+        studentOptionalProgramHistoryEntity.setStudentOptionalProgramData("{ EMPTY CLOB }");
         studentOptionalProgramHistoryRepository.save(studentOptionalProgramHistoryEntity);
     }
     
