@@ -306,7 +306,9 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Page<GraduationStudentRecordHistoryEntity>> getStudentHistoryByBatchID(@PathVariable Long batchId, @RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber, @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         logger.debug("getStudentHistoryByBatchID:");
-        Page<GraduationStudentRecordHistoryEntity> historyList = historyService.getStudentHistoryByBatchID(batchId,pageNumber,pageSize);
+        OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        String accessToken = auth.getTokenValue();
+        Page<GraduationStudentRecordHistoryEntity> historyList = historyService.getStudentHistoryByBatchID(batchId,pageNumber,pageSize,accessToken);
         return response.GET(historyList);
     }
 

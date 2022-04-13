@@ -4,9 +4,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import java.util.List;
 import java.util.UUID;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
-import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramHistory;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentOptionalProgramHistoryTransformer;
@@ -25,7 +23,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordHistory;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
@@ -118,21 +115,17 @@ public class HistoryService {
         return obj;
     }
 
-    public Page<GraduationStudentRecordHistoryEntity> getStudentHistoryByBatchID(Long batchId, Integer pageNumber, Integer pageSize) {
+    public Page<GraduationStudentRecordHistoryEntity> getStudentHistoryByBatchID(Long batchId, Integer pageNumber, Integer pageSize,String accessToken) {
         Pageable paging = PageRequest.of(pageNumber, pageSize);
         Page<GraduationStudentRecordHistoryEntity> pagedDate = graduationStudentRecordHistoryRepository.findByBatchId(batchId,paging);
         List<GraduationStudentRecordHistoryEntity> list = pagedDate.getContent();
         list.forEach(ent->{
-            try {
-                GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-                ent.setPen(existingData.getGradStudent().getPen());
-                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-                ent.setStudentGradData(null);
-            } catch (JsonProcessingException e) {
-                logger.debug("Error : {}",e.getMessage());
-            }
+            Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+            ent.setPen(stuData.getPen());
+            ent.setLegalFirstName(stuData.getLegalFirstName());
+            ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
+            ent.setLegalLastName(stuData.getLegalLastName());
+            ent.setStudentGradData(null);
         });
         return pagedDate;
     }
