@@ -181,6 +181,12 @@ public class HistoryServiceTest {
         UUID historyID = UUID.randomUUID();
         List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
 
+        Student std = new Student();
+        std.setPen("123123");
+        std.setLegalFirstName("Asdad");
+        std.setLegalMiddleNames("Adad");
+        std.setLegalLastName("sadad");
+
         GradSearchStudent serObj = new GradSearchStudent();
         serObj.setPen("123123");
         serObj.setLegalFirstName("Asdad");
@@ -188,6 +194,12 @@ public class HistoryServiceTest {
         serObj.setLegalLastName("sadad");
         GraduationData gd = new GraduationData();
         gd.setGradStudent(serObj);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByStudentIdUrl(),studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(std));
 
         GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -212,7 +224,7 @@ public class HistoryServiceTest {
         Pageable paging = PageRequest.of(0, 10);
         Page<GraduationStudentRecordHistoryEntity> hPage = new PageImpl(histList);
         when(graduationStudentRecordHistoryRepository.findByBatchId(4000L,paging)).thenReturn(hPage);
-        Page<GraduationStudentRecordHistoryEntity> list = historyService.getStudentHistoryByBatchID(4000L, 0, 10);
+        Page<GraduationStudentRecordHistoryEntity> list = historyService.getStudentHistoryByBatchID(4000L, 0, 10,null);
         assertThat(list).isNotEmpty();
         assertThat(list.getContent()).hasSize(1);
     }
