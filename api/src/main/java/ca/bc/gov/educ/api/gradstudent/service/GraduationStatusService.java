@@ -259,37 +259,47 @@ public class GraduationStatusService {
             }
         }
 
+        if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty()) {
+            List<CommonSchool> schools = new ArrayList<CommonSchool>(getSchools(accessToken));
+            for(Iterator<CommonSchool> it = schools.iterator(); it.hasNext();) {
+                CommonSchool school = it.next();
+                if(!searchRequest.getDistricts().contains(school.getDistNo())) {
+                    it.remove();
+                } else {
+                    if(searchRequest.getSchoolCategoryCodes() != null && !searchRequest.getSchoolCategoryCodes().isEmpty()) {
+                        if(!searchRequest.getSchoolCategoryCodes().contains(school.getSchoolCategoryCode())) {
+                            it.remove();
+                        } else {
+                            searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
+                        }
+                    } else {
+                        searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
+                    }
+                }
+            }
+        }
+
         GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
                 .studentIds(studentIds)
                 .schoolOfRecords(searchRequest.getSchoolOfRecords())
-                .districts(searchRequest.getDistricts())
-                .schoolCategoryCodes(searchRequest.getSchoolCategoryCodes())
                 .programs(searchRequest.getPrograms())
                 .build();
 
         Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
         List<GraduationStudentRecord> students = graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(Specification.where(spec)));
-        logger.debug("searchGraduationStudentRecords: found {} students", students.size());
-        if(searchCriteria.getSchoolCategoryCodes() != null && !searchCriteria.getSchoolCategoryCodes().isEmpty()) {
-            Iterator<GraduationStudentRecord> it = students.iterator();
-            while(it.hasNext()) {
-                GraduationStudentRecord student = it.next();
-                String schoolCategoryCode = getSchoolCategoryCode(accessToken, student.getSchoolOfRecord());
-                //if(StringUtils.trimToNull(schoolCategoryCode) != null) {
-                    if (!searchCriteria.getSchoolCategoryCodes().contains(schoolCategoryCode)) {
-                        it.remove();
-                    }
-                //}
-            }
-        }
-        logger.debug("searchGraduationStudentRecords: final result is {} students", students.size());
         searchResult.setGraduationStudentRecords(students);
 
         return searchResult;
     }
 
+    public List<CommonSchool> getSchools(String accessToken) {
+        List<CommonSchool> commonSchools = webClient.get().uri((constants.getSchoolsSchoolApiUrl())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<CommonSchool>>() {
+        }).block();
+        return commonSchools;
+    }
+
     public String getSchoolCategoryCode(String accessToken, String mincode) {
-        CommonSchool commonSchoolObj = webClient.get().uri(String.format(constants.getSchoolCategoryCode(), mincode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CommonSchool.class).block();
+        CommonSchool commonSchoolObj = webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CommonSchool.class).block();
         if (commonSchoolObj != null) {
             return commonSchoolObj.getSchoolCategoryCode();
         }

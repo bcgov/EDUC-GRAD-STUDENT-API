@@ -20,7 +20,6 @@ public class GraduationStudentRecordSearchCriteria implements Serializable {
 
     private List<String> schoolOfRecords;
     private List<String> districts;
-    private List<String> schoolCategoryCodes;
     private List<String> studentIds;
     private List<String> programs;
 
