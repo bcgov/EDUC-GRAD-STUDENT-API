@@ -131,5 +131,8 @@ public class EducGradStudentApiConstants {
     
     @Value("${endpoint.grad-graduation-report-api.delete-student-achievement.url}")
     private String deleteStudentAchievements;
+
+    @Value("${endpoint.educ-school-api.url}")
+    private String schoolCategoryCode;
     
 }

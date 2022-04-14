@@ -36,10 +36,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
@@ -272,9 +269,31 @@ public class GraduationStatusService {
 
         Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
         List<GraduationStudentRecord> students = graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(Specification.where(spec)));
+        logger.debug("searchGraduationStudentRecords: found {} students", students.size());
+        if(searchCriteria.getSchoolCategoryCodes() != null && !searchCriteria.getSchoolCategoryCodes().isEmpty()) {
+            Iterator<GraduationStudentRecord> it = students.iterator();
+            while(it.hasNext()) {
+                GraduationStudentRecord student = it.next();
+                String schoolCategoryCode = getSchoolCategoryCode(accessToken, student.getSchoolOfRecord());
+                //if(StringUtils.trimToNull(schoolCategoryCode) != null) {
+                    if (!searchCriteria.getSchoolCategoryCodes().contains(schoolCategoryCode)) {
+                        it.remove();
+                    }
+                //}
+            }
+        }
+        logger.debug("searchGraduationStudentRecords: final result is {} students", students.size());
         searchResult.setGraduationStudentRecords(students);
 
         return searchResult;
+    }
+
+    public String getSchoolCategoryCode(String accessToken, String mincode) {
+        CommonSchool commonSchoolObj = webClient.get().uri(String.format(constants.getSchoolCategoryCode(), mincode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CommonSchool.class).block();
+        if (commonSchoolObj != null) {
+            return commonSchoolObj.getSchoolCategoryCode();
+        }
+        return null;
     }
 
     private List<Student> getStudentByPenFromStudentAPI(String pen, String accessToken) {
