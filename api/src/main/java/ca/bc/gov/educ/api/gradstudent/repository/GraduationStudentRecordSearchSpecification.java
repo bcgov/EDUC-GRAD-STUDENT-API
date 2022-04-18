@@ -34,10 +34,10 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()),
                     criteriaBuilder.equal(root.get("studentStatus"), "CUR")
             );
-        } else if (searchCriteria.getDistricts() != null && !searchCriteria.getDistricts().isEmpty()) {
-            return criteriaBuilder.and(criteriaBuilder.substring(root.get("schoolOfRecord").as(String.class), 0,3).in(searchCriteria.getDistricts()),
-                    criteriaBuilder.equal(root.get("studentStatus"), "CUR")
-            );
+//        } else if (searchCriteria.getDistricts() != null && !searchCriteria.getDistricts().isEmpty()) {
+//            return criteriaBuilder.and(criteriaBuilder.substring(root.get("schoolOfRecord").as(String.class), 0, 3).in(searchCriteria.getDistricts()),
+//                    criteriaBuilder.equal(root.get("studentStatus"), "CUR")
+//            );
         } else if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
             return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
                     criteriaBuilder.equal(root.get("studentStatus"), "CUR")

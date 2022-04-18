@@ -4,7 +4,10 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
@@ -22,9 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,10 +36,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
@@ -262,10 +259,29 @@ public class GraduationStatusService {
             }
         }
 
+        if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty()) {
+            List<CommonSchool> schools = new ArrayList<CommonSchool>(getSchools(accessToken));
+            for(Iterator<CommonSchool> it = schools.iterator(); it.hasNext();) {
+                CommonSchool school = it.next();
+                if(!searchRequest.getDistricts().contains(school.getDistNo())) {
+                    it.remove();
+                } else {
+                    if(searchRequest.getSchoolCategoryCodes() != null && !searchRequest.getSchoolCategoryCodes().isEmpty()) {
+                        if(!searchRequest.getSchoolCategoryCodes().contains(school.getSchoolCategoryCode())) {
+                            it.remove();
+                        } else {
+                            searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
+                        }
+                    } else {
+                        searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
+                    }
+                }
+            }
+        }
+
         GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
                 .studentIds(studentIds)
                 .schoolOfRecords(searchRequest.getSchoolOfRecords())
-                .districts(searchRequest.getDistricts())
                 .programs(searchRequest.getPrograms())
                 .build();
 
@@ -274,6 +290,20 @@ public class GraduationStatusService {
         searchResult.setGraduationStudentRecords(students);
 
         return searchResult;
+    }
+
+    public List<CommonSchool> getSchools(String accessToken) {
+        List<CommonSchool> commonSchools = webClient.get().uri((constants.getSchoolsSchoolApiUrl())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<CommonSchool>>() {
+        }).block();
+        return commonSchools;
+    }
+
+    public String getSchoolCategoryCode(String accessToken, String mincode) {
+        CommonSchool commonSchoolObj = webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CommonSchool.class).block();
+        if (commonSchoolObj != null) {
+            return commonSchoolObj.getSchoolCategoryCode();
+        }
+        return null;
     }
 
     private List<Student> getStudentByPenFromStudentAPI(String pen, String accessToken) {

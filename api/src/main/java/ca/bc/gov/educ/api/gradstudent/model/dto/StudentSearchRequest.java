@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -25,10 +26,46 @@ public class StudentSearchRequest {
 
     List<String> schoolOfRecords;
     List<String> districts;
+    List<String> schoolCategoryCodes;
     List<String> pens;
     List<String> programs;
 
     Boolean validateInput;
+
+    public List<String> getSchoolOfRecords() {
+        if(schoolOfRecords == null) {
+            schoolOfRecords = new ArrayList<>();
+        }
+        return schoolOfRecords;
+    }
+
+    public List<String> getDistricts() {
+        if(districts == null) {
+            districts = new ArrayList<>();
+        }
+        return districts;
+    }
+
+    public List<String> getSchoolCategoryCodes() {
+        if(schoolCategoryCodes == null) {
+            schoolCategoryCodes = new ArrayList<>();
+        }
+        return schoolCategoryCodes;
+    }
+
+    public List<String> getPens() {
+        if(pens == null) {
+            pens = new ArrayList<>();
+        }
+        return pens;
+    }
+
+    public List<String> getPrograms() {
+        if(programs == null) {
+            programs = new ArrayList<>();
+        }
+        return programs;
+    }
 
     public String toJson() {
         return new Gson().toJson(this);
