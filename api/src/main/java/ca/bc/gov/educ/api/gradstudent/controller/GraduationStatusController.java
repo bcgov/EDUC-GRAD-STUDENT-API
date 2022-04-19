@@ -42,7 +42,7 @@ import java.util.UUID;
 @OpenAPIDefinition(info = @Info(title = "API for Grad Student Status.", description = "This API is for Grad Student Status.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"UPDATE_GRAD_GRADUATION_STATUS"})})
 public class GraduationStatusController {
 
-    private static Logger logger = LoggerFactory.getLogger(GraduationStatusController.class);
+    private static final Logger logger = LoggerFactory.getLogger(GraduationStatusController.class);
 
     @Autowired
     GraduationStatusService gradStatusService;
@@ -322,5 +322,20 @@ public class GraduationStatusController {
         String accessToken = auth.getTokenValue();
         List<GraduationStudentRecordEntity> studentList = gradStatusService.getStudentDataByStudentIDs(sList.getStudentids(),accessToken);
         return response.GET(studentList);
+    }
+
+
+    @GetMapping (EducGradStudentApiConstants.GET_STUDENTS_FOR_YEARLY_DISTRIBUTION)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Find Students for yearly run", description = "find students for yearly run", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
+    public ResponseEntity<List<UUID>> getStudentsForYearlyRun() {
+        logger.debug("getStudentsForYearlyRun");
+        List<UUID> studentIds = gradStatusService.getStudentsForYearlyDistribution();
+        if(!studentIds.isEmpty()) {
+            return response.GET(studentIds);
+        }else {
+            return response.NO_CONTENT();
+        }
     }
 }

@@ -29,4 +29,7 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	public Page<GraduationStudentRecordEntity> findStudentWithFilter(String gradProgram,String schoolOfRecord, Pageable paging);
 
     List<GraduationStudentRecordEntity> findByStudentIDIn(List<UUID> studentIds);
+
+	@Query("select c from GraduationStudentRecordEntity c where c.programCompletionDate is null and c.studentStatus='CUR' and (c.studentGrade='AD' or c.studentGrade='12')")
+    List<GraduationStudentRecordEntity> findStudentsForYearlyDistribution();
 }

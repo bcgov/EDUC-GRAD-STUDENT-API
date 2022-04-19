@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
@@ -724,5 +725,12 @@ public class GraduationStatusService {
             }
         });
         return list;
+    }
+
+    public List<UUID> getStudentsForYearlyDistribution() {
+        List<GraduationStudentRecordEntity> studentLists = graduationStatusRepository.findStudentsForYearlyDistribution();
+        if(!studentLists.isEmpty())
+            return studentLists.stream().map(GraduationStudentRecordEntity::getStudentID).collect(Collectors.toList());
+        return  new ArrayList<>();
     }
 }
