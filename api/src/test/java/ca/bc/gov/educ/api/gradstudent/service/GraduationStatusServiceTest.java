@@ -1292,4 +1292,29 @@ public class GraduationStatusServiceTest {
         assertThat(list).isNotEmpty();
         assertThat(list).hasSize(1);
     }
+
+    @Test
+    public void testGetStudentsForYearlyDistribution() {
+
+        List<GraduationStudentRecordEntity> histList = new ArrayList<>();
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(new UUID(1,1));
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setBatchId(4000L);
+        graduationStatusEntity.setPen("123123");
+        graduationStatusEntity.setLegalFirstName("Asdad");
+        graduationStatusEntity.setLegalMiddleNames("Adad");
+        graduationStatusEntity.setLegalLastName("sadad");
+        histList.add(graduationStatusEntity);
+
+        when(graduationStatusRepository.findStudentsForYearlyDistribution()).thenReturn(histList);
+        List<UUID> list = graduationStatusService.getStudentsForYearlyDistribution();
+        assertThat(list).isNotEmpty();
+        assertThat(list).hasSize(1);
+    }
 }

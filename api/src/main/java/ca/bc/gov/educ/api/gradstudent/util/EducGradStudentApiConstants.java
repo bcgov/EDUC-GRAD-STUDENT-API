@@ -78,6 +78,8 @@ public class EducGradStudentApiConstants {
     public static final String GET_ALL_HISTORY_ACTIVITY_MAPPING = "/historyactivity";
     public static final String GET_ALL_HISTORY_ACTIVITY_BY_CODE_MAPPING = "/historyactivity/{activityCode}";
 
+    public static final String GET_STUDENTS_FOR_YEARLY_DISTRIBUTION = "/yearlydistribution";
+
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final String DEFAULT_UPDATED_BY = "API_GRAD_STUDENT";
