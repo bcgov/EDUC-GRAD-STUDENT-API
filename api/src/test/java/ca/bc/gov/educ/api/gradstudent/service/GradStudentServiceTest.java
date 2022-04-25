@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -599,5 +600,28 @@ public class GradStudentServiceTest {
         var result = gradStudentService.addNewPenFromStudentAPI(student, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getPen()).isEqualTo(pen);
+    }
+
+    @Test
+    public void testGetStudentInfoFromGRAD() {
+        // ID
+        final UUID studentID = UUID.randomUUID();
+
+        // Grad Student
+        GraduationStudentRecordEntity rec = new GraduationStudentRecordEntity();
+        rec.setStudentID(studentID);
+        rec.setProgram("2018-EN");
+        rec.setSchoolOfRecord("31121121");
+        GraduationStudentRecord rec2 = new GraduationStudentRecord();
+        rec2.setStudentID(studentID);
+        rec2.setProgram("2018-EN");
+        rec2.setSchoolOfRecord("31121121");
+
+
+        Mockito.when(graduationStatusRepository.findByStudentID(UUID.fromString(studentID.toString()))).thenReturn(rec);
+        when(this.graduationStatusTransformer.tToD(rec)).thenReturn(rec2);
+        var result = gradStudentService.getStudentByStudentIDFromGrad(studentID.toString());
+        assertThat(result).isNotNull();
+        assertThat(result.getProgram()).isEqualTo("2018-EN");
     }
 }
