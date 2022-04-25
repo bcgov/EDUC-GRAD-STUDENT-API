@@ -14,7 +14,7 @@ import java.util.UUID;
 public class GraduationStudentRecordEntity extends BaseEntity {
 
     public GraduationStudentRecordEntity(String gradProgram, String schoolOfRecord) {
-		this.program= gradProgram;
+		this.program = gradProgram;
 		this.schoolOfRecord = schoolOfRecord;
 	}
 

@@ -642,4 +642,13 @@ public class GraduationStatusControllerTest {
         graduationStatusController.getStudentHistoryByBatchID(4000L,0,10);
         Mockito.verify(historyService).getStudentHistoryByBatchID(4000L, 0,10,null);
     }
+
+    @Test
+    public void testGetStudentsForYearlyRun() {
+        List<UUID> histList = new ArrayList<>();
+        histList.add(new UUID(1,1));
+        Mockito.when(graduationStatusService.getStudentsForYearlyDistribution()).thenReturn(histList);
+        graduationStatusController.getStudentsForYearlyRun();
+        Mockito.verify(graduationStatusService).getStudentsForYearlyDistribution();
+    }
 }

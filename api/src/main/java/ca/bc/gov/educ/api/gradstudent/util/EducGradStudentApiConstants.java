@@ -23,6 +23,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_PEN = "/{pen}";
     public static final String GRAD_STUDENT_BY_PEN_STUDENT_API = "/pen/{pen}";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API = "/stdid/{studentID}";
+    public static final String GRAD_STUDENT_BY_STUDENT_ID_GRAD="/grad/{studentID}";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_STUDENTIDS = "/multistudentids";
@@ -78,6 +79,8 @@ public class EducGradStudentApiConstants {
     public static final String GET_ALL_HISTORY_ACTIVITY_MAPPING = "/historyactivity";
     public static final String GET_ALL_HISTORY_ACTIVITY_BY_CODE_MAPPING = "/historyactivity/{activityCode}";
 
+    public static final String GET_STUDENTS_FOR_YEARLY_DISTRIBUTION = "/yearlydistribution";
+
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final String DEFAULT_UPDATED_BY = "API_GRAD_STUDENT";
@@ -132,6 +135,12 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-graduation-report-api.delete-student-achievement.url}")
     private String deleteStudentAchievements;
 
+    @Value("${endpoint.educ-school-api.get-school-by-mincode.url}")
+    private String schoolByMincodeSchoolApiUrl;
+
+    @Value("${endpoint.educ-school-api.url}")
+    private String schoolsSchoolApiUrl;
+    
     // Splunk LogHelper Enabled
     @Value("${splunk.log-helper.enabled}")
     private boolean splunkLogHelperEnabled;

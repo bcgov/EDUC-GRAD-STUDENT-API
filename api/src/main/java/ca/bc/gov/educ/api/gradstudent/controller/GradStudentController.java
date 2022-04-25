@@ -113,6 +113,14 @@ public class GradStudentController {
         return gradStudentService.getStudentByStudentIDFromStudentAPI(studentID,accessToken);
     }
 
+	@GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_GRAD)
+	@PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
+	@Operation(summary = "GET Student by STUDENT ID", description = "Get Student Demographics by Student ID", tags = { "Student Demographics" })
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+	public GraduationStudentRecord getGradStudentByStudentIDFromGRAD(@PathVariable String studentID) {
+		return gradStudentService.getStudentByStudentIDFromGrad(studentID);
+	}
+
     @PostMapping
 	@PreAuthorize("#oauth2.hasScope('WRITE_STUDENT')")
     public Student addNewPenFromStudentAPI(@Validated @RequestBody StudentCreate student) {

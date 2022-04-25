@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,6 +21,7 @@ public class GraduationStudentRecordSearchResult {
     public static final String PROGRAM_VALIDATION_ERROR = "The following PROGRAMs not exist in GRAD:";
 
     private List<GraduationStudentRecord> graduationStudentRecords;
+    @JsonInclude(content = JsonInclude.Include.NON_EMPTY)
     private Map<String, List<String>> validationErrors = new HashMap<>();
 
     public void addError(String key, String value) {

@@ -329,6 +329,13 @@ public class GradStudentService {
     }
 
 	@Transactional
+	@Retry(name = "searchbyid")
+	public GraduationStudentRecord getStudentByStudentIDFromGrad(String studentID) {
+		return graduationStatusTransformer.tToD(graduationStatusRepository.findByStudentID(UUID.fromString(studentID)));
+	}
+
+
+	@Transactional
 	public Student addNewPenFromStudentAPI(StudentCreate student, String accessToken) {
 		return webClient.post()
 				.uri(constants.getPenStudentApiUrl())
