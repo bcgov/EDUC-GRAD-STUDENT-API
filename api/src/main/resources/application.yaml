@@ -177,3 +177,8 @@ endpoint:
   grad-graduation-report-api:
     delete-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentachievement/%s
+
+#Splunk LogHelper
+splunk:
+  log-helper:
+    enabled: ${ENABLE_SPLUNK_LOG_HELPER}

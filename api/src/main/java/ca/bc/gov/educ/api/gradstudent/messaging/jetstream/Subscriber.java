@@ -31,6 +31,7 @@ import static ca.bc.gov.educ.api.gradstudent.constant.Topics.GRAD_STATUS_EVENTS_
 public class Subscriber {
   private final JetStreamEventHandlerService jetStreamEventHandlerService;
   private final Connection natsConnection;
+  private final EducGradStudentApiConstants constants;
 
   /**
    * Instantiates a new Subscriber.
@@ -39,9 +40,10 @@ public class Subscriber {
    * @param jetStreamEventHandlerService the stan event handler service
    */
   @Autowired
-  public Subscriber(final Connection natsConnection, final JetStreamEventHandlerService jetStreamEventHandlerService) {
+  public Subscriber(final Connection natsConnection, final JetStreamEventHandlerService jetStreamEventHandlerService, final EducGradStudentApiConstants constants) {
     this.jetStreamEventHandlerService = jetStreamEventHandlerService;
     this.natsConnection = natsConnection;
+    this.constants = constants;
   }
 
 
@@ -73,7 +75,7 @@ public class Subscriber {
     log.info("Received message Subject:: {} , SID :: {} , sequence :: {}, pending :: {} ", message.getSubject(), message.getSID(), message.metaData().consumerSequence(), message.metaData().pendingCount());
     try {
       val eventString = new String(message.getData());
-      LogHelper.logMessagingEventDetails(eventString);
+      LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());
       ChoreographedEvent event = JsonUtil.getJsonObjectFromString(ChoreographedEvent.class, eventString);
       jetStreamEventHandlerService.updateEventStatus(event);
       log.debug("received event :: {} ", event);
