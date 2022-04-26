@@ -181,3 +181,9 @@ endpoint:
     url: ${EDUC_SCHOOL_API}api/v1/schools
     get-school-by-mincode:
       url: ${EDUC_SCHOOL_API}api/v1/schools/%s
+
+#Splunk LogHelper
+splunk:
+  log-helper:
+    enabled: ${ENABLE_SPLUNK_LOG_HELPER}
+

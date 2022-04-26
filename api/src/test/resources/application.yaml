@@ -126,3 +126,9 @@ endpoint:
     url: https://school-api-75e61b-dev.apps.silver.devops.gov.bc.ca/api/v1/schools
     get-school-by-mincode:
       url: https://school-api-75e61b-dev.apps.silver.devops.gov.bc.ca/api/v1/schools/%s
+
+#Splunk LogHelper
+splunk:
+  log-helper:
+    enabled: false
+
