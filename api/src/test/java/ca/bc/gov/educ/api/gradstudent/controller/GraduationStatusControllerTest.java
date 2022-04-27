@@ -616,6 +616,12 @@ public class GraduationStatusControllerTest {
 
     @Test
     public void testGetStudentHistoryByBatchID() {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        Mockito.when(authentication.getDetails()).thenReturn(details);
+        SecurityContextHolder.setContext(securityContext);
         // ID
         String historyID = UUID.randomUUID().toString();
         UUID studentID = UUID.randomUUID();
@@ -632,8 +638,17 @@ public class GraduationStatusControllerTest {
         graduationStatusEntity.setBatchId(4000L);
         histList.add(graduationStatusEntity);
         Page<GraduationStudentRecordHistoryEntity> hPage = new PageImpl(histList);
-        Mockito.when(historyService.getStudentHistoryByBatchID(4000L, 0, 10)).thenReturn(hPage);
+        Mockito.when(historyService.getStudentHistoryByBatchID(4000L, 0, 10,null)).thenReturn(hPage);
         graduationStatusController.getStudentHistoryByBatchID(4000L,0,10);
-        Mockito.verify(historyService).getStudentHistoryByBatchID(4000L, 0,10);
+        Mockito.verify(historyService).getStudentHistoryByBatchID(4000L, 0,10,null);
+    }
+
+    @Test
+    public void testGetStudentsForYearlyRun() {
+        List<UUID> histList = new ArrayList<>();
+        histList.add(new UUID(1,1));
+        Mockito.when(graduationStatusService.getStudentsForYearlyDistribution()).thenReturn(histList);
+        graduationStatusController.getStudentsForYearlyRun();
+        Mockito.verify(graduationStatusService).getStudentsForYearlyDistribution();
     }
 }

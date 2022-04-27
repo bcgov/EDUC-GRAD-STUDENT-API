@@ -37,6 +37,12 @@ public class GraduationStatusTransformer {
     	return gradStatus;
     }
 
+    public GraduationStudentRecord tToD (GraduationStudentRecordEntity gradStatusEntity) {
+        GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
+        gradStatus.setStudentGradData(null);
+        return gradStatus;
+    }
+
     public GraduationStudentRecord transformToDTO ( Optional<GraduationStudentRecordEntity> gradStatusEntity ) {
     	GraduationStudentRecordEntity cae = new GraduationStudentRecordEntity();
         if (gradStatusEntity.isPresent())
