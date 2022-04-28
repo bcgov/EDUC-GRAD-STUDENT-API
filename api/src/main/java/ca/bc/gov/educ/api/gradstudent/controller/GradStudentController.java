@@ -92,6 +92,7 @@ public class GradStudentController {
 	@Operation(summary = "Search For Students by PEN", description = "Search for Student Demographics by PEN", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public List<GradSearchStudent> getGradStudentByPenFromStudentAPI(@PathVariable String pen, @RequestHeader(name="Authorization") String accessToken) {
+		logger.trace("####ACCESS_TOKEN#####" + accessToken);
     	 return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken);
     }
     
