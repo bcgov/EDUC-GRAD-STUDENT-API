@@ -9,6 +9,7 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -38,10 +39,16 @@ public class BaseEntity {
 	@PrePersist
 	protected void onCreate() {
 		if (StringUtils.isBlank(createUser)) {
-			this.createUser = EducGradStudentApiConstants.DEFAULT_CREATED_BY;
+			this.createUser = ThreadLocalStateUtil.getCurrentUser();
+			if (StringUtils.isBlank(createUser)) {
+				this.createUser = EducGradStudentApiConstants.DEFAULT_CREATED_BY;
+			}
 		}		
 		if (StringUtils.isBlank(updateUser)) {
-			this.updateUser = EducGradStudentApiConstants.DEFAULT_UPDATED_BY;
+			this.updateUser = ThreadLocalStateUtil.getCurrentUser();
+			if (StringUtils.isBlank(updateUser)) {
+				this.updateUser = EducGradStudentApiConstants.DEFAULT_UPDATED_BY;
+			}
 		}		
 		this.createDate = new Date(System.currentTimeMillis());
 		this.updateDate = new Date(System.currentTimeMillis());
@@ -52,10 +59,16 @@ public class BaseEntity {
 	protected void onPersist() {
 		this.updateDate = new Date();
 		if (StringUtils.isBlank(updateUser)) {
-			this.updateUser = EducGradStudentApiConstants.DEFAULT_UPDATED_BY;
+			this.updateUser = ThreadLocalStateUtil.getCurrentUser();
+			if (StringUtils.isBlank(updateUser)) {
+				this.updateUser = EducGradStudentApiConstants.DEFAULT_UPDATED_BY;
+			}
 		}
 		if (StringUtils.isBlank(createUser)) {
-			this.createUser = EducGradStudentApiConstants.DEFAULT_CREATED_BY;
+			this.createUser = ThreadLocalStateUtil.getCurrentUser();
+			if (StringUtils.isBlank(createUser)) {
+				this.createUser = EducGradStudentApiConstants.DEFAULT_CREATED_BY;
+			}
 		}
 		if (this.createDate == null) {
 			this.createDate = new Date();

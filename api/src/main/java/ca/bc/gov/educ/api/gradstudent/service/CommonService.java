@@ -12,6 +12,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.HistoryActivityTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
+import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +88,11 @@ public class CommonService {
 		logger.debug("getAllGradStudentCareerProgramList");
 		List<StudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
       	gradStudentCareerProgramList.forEach(sC -> {
-      		CareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CareerProgram.class).block();
+      		CareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode()))
+									.headers(h -> {
+										h.setBearerAuth(accessToken);
+										h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+									}).retrieve().bodyToMono(CareerProgram.class).block();
     		if(gradCareerProgram != null) {
     			sC.setCareerProgramCode(gradCareerProgram.getCode());
     			sC.setCareerProgramName(gradCareerProgram.getDescription());
