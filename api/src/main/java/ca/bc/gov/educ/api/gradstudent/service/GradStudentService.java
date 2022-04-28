@@ -87,7 +87,7 @@ public class GradStudentService {
 					.queryParam(PAGE_SIZE, pageSize)
 					.queryParam(SEARCH_CRITERIA_LIST, encodedURL)
 				.build())
-				.headers(h -> h.setBearerAuth(accessToken))
+				.headers(h -> h.setBearerAuth(accessToken.substring(7)))
 				.retrieve().bodyToMono(new ParameterizedTypeReference<RestResponsePage<Student>>() {}).block();
 			List<Student> studentList = response != null ? response.getContent():new ArrayList<>();
 			if (!studentList.isEmpty()) {
