@@ -67,7 +67,7 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
 		if (correlationID != null) {
 			response.setHeader(EducGradStudentApiConstants.CORRELATION_ID, request.getHeader(EducGradStudentApiConstants.CORRELATION_ID));
 		}
-		// reset
+		// clear
 		ThreadLocalStateUtil.clear();
 	}
 }
