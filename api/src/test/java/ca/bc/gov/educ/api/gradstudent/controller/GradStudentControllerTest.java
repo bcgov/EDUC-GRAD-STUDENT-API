@@ -14,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Arrays;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @RunWith(MockitoJUnitRunner.class)
 @ExtendWith(MockitoExtension.class)
 public class GradStudentControllerTest {
@@ -26,7 +28,7 @@ public class GradStudentControllerTest {
 
     @Test
     public void testFake() {
-        Mockito.when("A".concat("B")).thenReturn("AB");
+        assertEquals(1, 1);
     }
 
     /*@Test
