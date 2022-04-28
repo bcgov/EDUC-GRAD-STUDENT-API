@@ -28,7 +28,7 @@ public class GradStudentControllerTest {
 
     @Test
     public void testFake() {
-        assertEquals(1, 1);
+        assertEquals(20-10, 40-30);
     }
 
     /*@Test
