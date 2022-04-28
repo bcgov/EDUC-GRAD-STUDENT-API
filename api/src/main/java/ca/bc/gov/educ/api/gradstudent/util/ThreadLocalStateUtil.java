@@ -39,4 +39,9 @@ public class ThreadLocalStateUtil {
     public static String getCurrentUser() {
         return user.get();
     }
+
+    public static void clear() {
+        transaction.remove();
+        user.remove();
+    }
 }
