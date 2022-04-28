@@ -62,7 +62,7 @@ public class CommonController {
     public ResponseEntity<List<StudentCareerProgram>> getAllStudentCareerProgramsList(@PathVariable String studentID,
                                                                                       @RequestHeader(name="Authorization") String accessToken) {
     	logger.debug("getAllStudentCareerProgramsList : ");
-        return response.GET(commonService.getAllGradStudentCareerProgramList(studentID,accessToken));
+        return response.GET(commonService.getAllGradStudentCareerProgramList(studentID,accessToken.replaceAll("Bearer ", "")));
     }
     
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NOTES_MAPPING)
@@ -179,7 +179,7 @@ public class CommonController {
     public ResponseEntity<GradStudentAlgorithmData> getStudentGradStatusForAlgorithm(@PathVariable String studentID,
                                                                                      @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Get Student Grad Status for studentID");
-        GradStudentAlgorithmData gradResponse = commonService.getGradStudentAlgorithmData(studentID,accessToken);
+        GradStudentAlgorithmData gradResponse = commonService.getGradStudentAlgorithmData(studentID,accessToken.replaceAll("Bearer ", ""));
         if(gradResponse != null) {
     		return response.GET(gradResponse);
     	}else {
