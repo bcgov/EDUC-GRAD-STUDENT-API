@@ -330,8 +330,8 @@ public class GradStudentService {
 
 	@Transactional
 	@Retry(name = "searchbyid")
-	public GraduationStudentRecord getStudentByStudentIDFromGrad(String studentID) {
-		return graduationStatusTransformer.tToD(graduationStatusRepository.findByStudentID(UUID.fromString(studentID)));
+	public GraduationStudentRecordDistribution getStudentByStudentIDFromGrad(String studentID) {
+		return graduationStatusTransformer.tToDForDistribution(graduationStatusRepository.findByStudentID(UUID.fromString(studentID)));
 	}
 
 

@@ -117,7 +117,7 @@ public class GradStudentController {
 	@PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
 	@Operation(summary = "GET Student by STUDENT ID", description = "Get Student Demographics by Student ID", tags = { "Student Demographics" })
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-	public GraduationStudentRecord getGradStudentByStudentIDFromGRAD(@PathVariable String studentID) {
+	public GraduationStudentRecordDistribution getGradStudentByStudentIDFromGRAD(@PathVariable String studentID) {
 		return gradStudentService.getStudentByStudentIDFromGrad(studentID);
 	}
 
