@@ -21,6 +21,9 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
 	@Autowired
 	GradValidation validation;
 
+	@Autowired
+	EducGradStudentApiConstants constants;
+
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		// for async this is called twice so need a check to avoid setting twice.
@@ -42,7 +45,7 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
 	 */
 	@Override
 	public void afterCompletion(@NonNull final HttpServletRequest request, final HttpServletResponse response, @NonNull final Object handler, final Exception ex) {
-		LogHelper.logServerHttpReqResponseDetails(request, response);
+		LogHelper.logServerHttpReqResponseDetails(request, response, constants.isSplunkLogHelperEnabled());
 		val correlationID = request.getHeader(EducGradStudentApiConstants.CORRELATION_ID);
 		if (correlationID != null) {
 			response.setHeader(EducGradStudentApiConstants.CORRELATION_ID, request.getHeader(EducGradStudentApiConstants.CORRELATION_ID));

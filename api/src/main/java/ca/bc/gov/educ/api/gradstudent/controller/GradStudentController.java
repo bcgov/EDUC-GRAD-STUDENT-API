@@ -6,9 +6,6 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +19,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
-@EnableResourceServer
 @CrossOrigin
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
 @OpenAPIDefinition(info = @Info(title = "API for Student Demographics.", description = "This API is for Reading demographics data of a student.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_DATA"})})
@@ -38,7 +34,7 @@ public class GradStudentController {
 	}
 	
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME_ONLY)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
+    @PreAuthorize("hasAuthority('SCOPE_READ_GRAD_STUDENT_DATA')")
 	@Operation(summary = "Search For Students", description = "Advanced Search for Student Demographics", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
 	public GradOnlyStudentSearch getGradStudentsFromStudentAPI(
@@ -52,20 +48,19 @@ public class GradStudentController {
 			@RequestParam(value = "mincode", required = false) String mincode,
 			@RequestParam(value = "localID", required = false) String localID,
 			@RequestParam(value = "birthdateFrom", required = false) String birthdateFrom,
-			@RequestParam(value = "birthdateTo", required = false) String birthdateTo) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
+			@RequestParam(value = "birthdateTo", required = false) String birthdateTo,
+			@RequestHeader(name="Authorization") String accessToken) {
 		StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder()
 			.legalFirstName(legalFirstName).legalLastName(legalLastName).legalMiddleNames(legalMiddleNames)
 			.usualFirstName(usualFirstName).usualLastName(usualLastName).usualMiddleNames(usualMiddleNames)
 			.gender(gender).mincode(mincode).localID(localID).birthdateFrom(birthdateFrom).birthdateTo(birthdateTo)
 			.build();
-        return gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest,accessToken);
+        return gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest,accessToken.replaceAll("Bearer ", ""));
 		
 	}
 	
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_AND_PEN_STUDENT_DATA')")
+    @PreAuthorize("hasAuthority('SCOPE_READ_GRAD_AND_PEN_STUDENT_DATA')")
 	@Operation(summary = "Search For Students", description = "Advanced Search for Student Demographics", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
 	public StudentSearch getGradNPenGradStudentFromStudentAPI(
@@ -81,9 +76,8 @@ public class GradStudentController {
 			@RequestParam(value = "birthdateFrom", required = false) String birthdateFrom,
 			@RequestParam(value = "birthdateTo", required = false) String birthdateTo,
 			@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
-			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
+			@RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+			@RequestHeader(name="Authorization") String accessToken) {
 		StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder()
 			.legalFirstName(legalFirstName).legalLastName(legalLastName).legalMiddleNames(legalMiddleNames)
 			.usualFirstName(usualFirstName).usualLastName(usualLastName).usualMiddleNames(usualMiddleNames)
@@ -94,27 +88,23 @@ public class GradStudentController {
 	}
     
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_PEN_STUDENT_API)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
+    @PreAuthorize("hasAuthority('SCOPE_READ_GRAD_STUDENT_DATA')")
 	@Operation(summary = "Search For Students by PEN", description = "Search for Student Demographics by PEN", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public List<GradSearchStudent> getGradStudentByPenFromStudentAPI(@PathVariable String pen) {
-    	OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken);
+    public List<GradSearchStudent> getGradStudentByPenFromStudentAPI(@PathVariable String pen, @RequestHeader(name="Authorization") String accessToken) {
+    	 return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken.replaceAll("Bearer ", ""));
     }
     
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API)
-    @PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
+    @PreAuthorize("hasAuthority('SCOPE_READ_GRAD_STUDENT_DATA')")
 	@Operation(summary = "GET Student by STUDENT ID", description = "Get Student Demographics by Student ID", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public GradSearchStudent getGradStudentByStudentIDFromStudentAPI(@PathVariable String studentID) {
-    	OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails(); 
-    	String accessToken = auth.getTokenValue();
-        return gradStudentService.getStudentByStudentIDFromStudentAPI(studentID,accessToken);
+    public GradSearchStudent getGradStudentByStudentIDFromStudentAPI(@PathVariable String studentID, @RequestHeader(name="Authorization") String accessToken) {
+    	return gradStudentService.getStudentByStudentIDFromStudentAPI(studentID,accessToken.replaceAll("Bearer ", ""));
     }
 
 	@GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_GRAD)
-	@PreAuthorize("#oauth2.hasScope('READ_GRAD_STUDENT_DATA')")
+	@PreAuthorize("hasAuthority('SCOPE_READ_GRAD_STUDENT_DATA')")
 	@Operation(summary = "GET Student by STUDENT ID", description = "Get Student Demographics by Student ID", tags = { "Student Demographics" })
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
 	public GraduationStudentRecordDistribution getGradStudentByStudentIDFromGRAD(@PathVariable String studentID) {
@@ -122,10 +112,8 @@ public class GradStudentController {
 	}
 
     @PostMapping
-	@PreAuthorize("#oauth2.hasScope('WRITE_STUDENT')")
-    public Student addNewPenFromStudentAPI(@Validated @RequestBody StudentCreate student) {
-		OAuth2AuthenticationDetails auth = (OAuth2AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
-		String accessToken = auth.getTokenValue();
-		return gradStudentService.addNewPenFromStudentAPI(student, accessToken);
+	@PreAuthorize("hasAuthority('SCOPE_WRITE_STUDENT')")
+    public Student addNewPenFromStudentAPI(@Validated @RequestBody StudentCreate student, @RequestHeader(name="Authorization") String accessToken) {
+		return gradStudentService.addNewPenFromStudentAPI(student, accessToken.replaceAll("Bearer ", ""));
 	}
 }

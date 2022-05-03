@@ -66,8 +66,6 @@ objects:
                     name: educ-grad-nats-messaging-config-map
                 - secretRef:
                     name: api-grad-student-db-secret
-                - secretRef:
-                    name: grad-keycloak-pk-secret
               resources: {}
             - image: docker-remote.artifacts.developer.gov.bc.ca/fluent/fluent-bit:1.5.7
               name: "${REPO_NAME}-fluent-bit-sidecar"

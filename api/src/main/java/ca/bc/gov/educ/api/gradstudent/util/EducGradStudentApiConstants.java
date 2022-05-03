@@ -141,4 +141,7 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.educ-school-api.url}")
     private String schoolsSchoolApiUrl;
     
+    // Splunk LogHelper Enabled
+    @Value("${splunk.log-helper.enabled}")
+    private boolean splunkLogHelperEnabled;
 }
