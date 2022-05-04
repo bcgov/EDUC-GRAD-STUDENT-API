@@ -10,6 +10,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistory
 import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentOptionalProgramHistoryTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,7 +81,10 @@ public class HistoryService {
         histList.forEach(sP -> {
             OptionalProgram gradOptionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
-                    .headers(h -> h.setBearerAuth(accessToken))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    })
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
@@ -102,7 +106,10 @@ public class HistoryService {
         if(obj.getOptionalProgramID() != null) {
             OptionalProgram gradOptionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), obj.getOptionalProgramID()))
-                    .headers(h -> h.setBearerAuth(accessToken))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    })
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
@@ -120,7 +127,12 @@ public class HistoryService {
         Page<GraduationStudentRecordHistoryEntity> pagedDate = graduationStudentRecordHistoryRepository.findByBatchId(batchId,paging);
         List<GraduationStudentRecordHistoryEntity> list = pagedDate.getContent();
         list.forEach(ent->{
-            Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+            Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
+                .retrieve().bodyToMono(Student.class).block();
             ent.setPen(stuData.getPen());
             ent.setLegalFirstName(stuData.getLegalFirstName());
             ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
