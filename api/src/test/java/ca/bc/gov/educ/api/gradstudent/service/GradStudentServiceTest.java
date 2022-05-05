@@ -612,14 +612,14 @@ public class GradStudentServiceTest {
         rec.setStudentID(studentID);
         rec.setProgram("2018-EN");
         rec.setSchoolOfRecord("31121121");
-        GraduationStudentRecord rec2 = new GraduationStudentRecord();
+        GraduationStudentRecordDistribution rec2 = new GraduationStudentRecordDistribution();
         rec2.setStudentID(studentID);
         rec2.setProgram("2018-EN");
         rec2.setSchoolOfRecord("31121121");
 
 
         Mockito.when(graduationStatusRepository.findByStudentID(UUID.fromString(studentID.toString()))).thenReturn(rec);
-        when(this.graduationStatusTransformer.tToD(rec)).thenReturn(rec2);
+        when(this.graduationStatusTransformer.tToDForDistribution(rec)).thenReturn(rec2);
         var result = gradStudentService.getStudentByStudentIDFromGrad(studentID.toString());
         assertThat(result).isNotNull();
         assertThat(result.getProgram()).isEqualTo("2018-EN");

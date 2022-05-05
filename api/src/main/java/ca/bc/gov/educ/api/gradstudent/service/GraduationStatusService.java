@@ -14,6 +14,7 @@ import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
+import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -294,13 +295,23 @@ public class GraduationStatusService {
     }
 
     public List<CommonSchool> getSchools(String accessToken) {
-        List<CommonSchool> commonSchools = webClient.get().uri((constants.getSchoolsSchoolApiUrl())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<CommonSchool>>() {
+        List<CommonSchool> commonSchools = webClient.get().uri((constants.getSchoolsSchoolApiUrl()))
+            .headers(h -> {
+                h.setBearerAuth(accessToken);
+                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+            })
+            .retrieve().bodyToMono(new ParameterizedTypeReference<List<CommonSchool>>() {
         }).block();
         return commonSchools;
     }
 
     public String getSchoolCategoryCode(String accessToken, String mincode) {
-        CommonSchool commonSchoolObj = webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CommonSchool.class).block();
+        CommonSchool commonSchoolObj = webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode))
+            .headers(h -> {
+                h.setBearerAuth(accessToken);
+                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+            })
+            .retrieve().bodyToMono(CommonSchool.class).block();
         if (commonSchoolObj != null) {
             return commonSchoolObj.getSchoolCategoryCode();
         }
@@ -308,13 +319,21 @@ public class GraduationStatusService {
     }
 
     private List<Student> getStudentByPenFromStudentAPI(String pen, String accessToken) {
-        return webClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
+        return webClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
+                .retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
     }
 
     private String getSchoolName(String minCode, String accessToken) {
         School schObj = webClient.get()
                 .uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
-                .headers(h -> h.setBearerAuth(accessToken))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
                 .retrieve()
                 .bodyToMono(School.class)
                 .block();
@@ -327,7 +346,10 @@ public class GraduationStatusService {
     private String getDistrictName(String districtCode, String accessToken) {
         District distObj = webClient.get()
                 .uri(String.format(constants.getDistrictByDistrictCodeUrl(), districtCode))
-                .headers(h -> h.setBearerAuth(accessToken))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
                 .retrieve()
                 .bodyToMono(District.class)
                 .block();
@@ -340,7 +362,10 @@ public class GraduationStatusService {
     private String getProgramName(String programCode, String accessToken) {
         GradProgram gradProgram = webClient.get()
                 .uri(String.format(constants.getGradProgramNameUrl(), programCode))
-                .headers(h -> h.setBearerAuth(accessToken))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
                 .retrieve()
                 .bodyToMono(GradProgram.class)
                 .block();
@@ -361,7 +386,10 @@ public class GraduationStatusService {
     private void validateProgram(GraduationStudentRecordEntity sourceEntity, String accessToken) {
         GradProgram gradProgram = webClient.get()
 				.uri(String.format(constants.getGradProgramNameUrl(), sourceEntity.getProgram()))
-				.headers(h -> h.setBearerAuth(accessToken))
+				.headers(h -> {
+            h.setBearerAuth(accessToken);
+            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+        })
 				.retrieve()
 				.bodyToMono(GradProgram.class)
 				.block();
@@ -389,7 +417,10 @@ public class GraduationStatusService {
     private void validateSchool(String minCode, String accessToken) {
         School schObj = webClient.get()
 				.uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
-				.headers(h -> h.setBearerAuth(accessToken))
+				.headers(h -> {
+            h.setBearerAuth(accessToken);
+            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+        })
 				.retrieve()
 				.bodyToMono(School.class)
 				.block();
@@ -406,7 +437,10 @@ public class GraduationStatusService {
     private void validateStudentGrade(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
         Student studentObj = webClient.get()
 				.uri(String.format(constants.getPenStudentApiByStudentIdUrl(), sourceEntity.getStudentID()))
-				.headers(h -> h.setBearerAuth(accessToken))
+				.headers(h -> {
+            h.setBearerAuth(accessToken);
+            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+        })
 				.retrieve()
 				.bodyToMono(Student.class)
 				.block();
@@ -482,7 +516,10 @@ public class GraduationStatusService {
         optionalProgramList.forEach(sP -> {
             OptionalProgram gradOptionalProgram = webClient.get()
 					.uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
-					.headers(h -> h.setBearerAuth(accessToken))
+					.headers(h -> {
+              h.setBearerAuth(accessToken);
+              h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+          })
 					.retrieve()
 					.bodyToMono(OptionalProgram.class)
 					.block();
@@ -530,7 +567,10 @@ public class GraduationStatusService {
         StudentOptionalProgramEntity sourceObject = new StudentOptionalProgramEntity();
         OptionalProgram gradOptionalProgram = webClient.get()
 				.uri(String.format(constants.getGradOptionalProgramDetailsUrl(), gradStudentOptionalProgramReq.getMainProgramCode(),gradStudentOptionalProgramReq.getOptionalProgramCode()))
-				.headers(h -> h.setBearerAuth(accessToken))
+				.headers(h -> {
+            h.setBearerAuth(accessToken);
+            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+        })
 				.retrieve()
 				.bodyToMono(OptionalProgram.class)
 				.block();
@@ -575,7 +615,10 @@ public class GraduationStatusService {
             StudentOptionalProgram responseObj = gradStudentOptionalProgramTransformer.transformToDTO(gradStudentOptionalOptional);
             OptionalProgram gradOptionalProgram = webClient.get()
 					.uri(String.format(constants.getGradOptionalProgramNameUrl(), responseObj.getOptionalProgramID()))
-					.headers(h -> h.setBearerAuth(accessToken))
+					.headers(h -> {
+              h.setBearerAuth(accessToken);
+              h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+          })
 					.retrieve()
 					.bodyToMono(OptionalProgram.class)
 					.block();
@@ -598,7 +641,12 @@ public class GraduationStatusService {
     @Retry(name = "generalpostcall")
     public Pair<GraduationStudentRecord, GradStatusEvent> ungradStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) throws JsonProcessingException {
         if(StringUtils.isNotBlank(ungradReasonCode)) {
-        	UngradReason ungradReasonObj = webClient.get().uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(UngradReason.class).block();
+        	UngradReason ungradReasonObj = webClient.get().uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode))
+              .headers(h -> {
+                  h.setBearerAuth(accessToken);
+                  h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+              })
+              .retrieve().bodyToMono(UngradReason.class).block();
     		if(ungradReasonObj != null) {
 		    	Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 		        if (gradStatusOptional.isPresent()) {
@@ -634,7 +682,11 @@ public class GraduationStatusService {
     }
     
     private void deleteStudentAchievements(UUID studentID,String accessToken) {
-    	webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Integer.class).block();
+    	webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
+          .headers(h -> {
+              h.setBearerAuth(accessToken);
+              h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+          }).retrieve().bodyToMono(Integer.class).block();
 	}
 
 	public void saveUngradReason(UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
@@ -642,7 +694,13 @@ public class GraduationStatusService {
         toBeSaved.setGraduationStudentRecordID(studentID);
         toBeSaved.setUngradReasonCode(ungradReasonCode);
         toBeSaved.setUngradReasonDescription(unGradDesc);
-        webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID)).headers(h -> h.setBearerAuth(accessToken)).body(BodyInserters.fromValue(toBeSaved)).retrieve().bodyToMono(GradStudentUngradReasons.class).block();
+        webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID))
+            .headers(h -> {
+                h.setBearerAuth(accessToken);
+                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+            })
+            .body(BodyInserters.fromValue(toBeSaved))
+            .retrieve().bodyToMono(GradStudentUngradReasons.class).block();
     }
 
     private GradStatusEvent createGradStatusEvent(String createUser, String updateUser,
@@ -713,7 +771,11 @@ public class GraduationStatusService {
                     ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
                     ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
                 }else {
-                    Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+                    Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+                        .headers(h -> {
+                            h.setBearerAuth(accessToken);
+                            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                        }).retrieve().bodyToMono(Student.class).block();
                     ent.setPen(stuData.getPen());
                     ent.setLegalFirstName(stuData.getLegalFirstName());
                     ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
