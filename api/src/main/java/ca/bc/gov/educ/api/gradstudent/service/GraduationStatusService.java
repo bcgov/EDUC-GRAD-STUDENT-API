@@ -294,6 +294,35 @@ public class GraduationStatusService {
         return searchResult;
     }
 
+    public StudentDemographic getStudentDemographics(String pen, String accessToken) {
+        List<GradSearchStudent> gradSearchStudents = gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken);
+        if(gradSearchStudents.isEmpty()) {
+            validation.addErrorAndStop("Student with pen {} not found", pen);
+        }
+        GradSearchStudent gradSearchStudent = gradSearchStudents.get(0);
+        String minCode = gradSearchStudent.getMincode();
+        School school = getSchool(minCode, accessToken);
+        if(school == null) {
+            validation.addErrorAndStop("School with mincode {} not found", minCode);
+        }
+        String englishCert = null;
+        String frenchCert = null;
+        String dogwood = null;
+        List<GradStudentCertificates> gradStudentCertificates = getGradStudentCertificates(gradSearchStudent.getStudentID(), accessToken);
+        for(GradStudentCertificates certificates: gradStudentCertificates) {
+
+        }
+        StudentDemographic studentDemographic = StudentDemographic.builder()
+
+                .build();
+        return studentDemographic;
+    }
+
+    private List<GradStudentCertificates> getGradStudentCertificates(String studentID, String accessToken) {
+        //TODO: Implement external call
+        return List.of(new GradStudentCertificates());
+    }
+
     public List<CommonSchool> getSchools(String accessToken) {
         List<CommonSchool> commonSchools = webClient.get().uri((constants.getSchoolsSchoolApiUrl()))
             .headers(h -> {
@@ -305,13 +334,17 @@ public class GraduationStatusService {
         return commonSchools;
     }
 
+    public CommonSchool getCommonSchool(String accessToken, String mincode) {
+        return webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
+                .retrieve().bodyToMono(CommonSchool.class).block();
+    }
+
     public String getSchoolCategoryCode(String accessToken, String mincode) {
-        CommonSchool commonSchoolObj = webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode))
-            .headers(h -> {
-                h.setBearerAuth(accessToken);
-                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-            })
-            .retrieve().bodyToMono(CommonSchool.class).block();
+        CommonSchool commonSchoolObj = getCommonSchool(accessToken, mincode);
         if (commonSchoolObj != null) {
             return commonSchoolObj.getSchoolCategoryCode();
         }
@@ -327,8 +360,8 @@ public class GraduationStatusService {
                 .retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
     }
 
-    private String getSchoolName(String minCode, String accessToken) {
-        School schObj = webClient.get()
+    private School getSchool(String minCode, String accessToken) {
+        return webClient.get()
                 .uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
                 .headers(h -> {
                     h.setBearerAuth(accessToken);
@@ -337,14 +370,18 @@ public class GraduationStatusService {
                 .retrieve()
                 .bodyToMono(School.class)
                 .block();
+    }
+
+    private String getSchoolName(String minCode, String accessToken) {
+        School schObj = getSchool(minCode, accessToken);
         if (schObj != null)
             return schObj.getSchoolName();
         else
             return null;
     }
 
-    private String getDistrictName(String districtCode, String accessToken) {
-        District distObj = webClient.get()
+    private District getDistrict(String districtCode, String accessToken) {
+        return webClient.get()
                 .uri(String.format(constants.getDistrictByDistrictCodeUrl(), districtCode))
                 .headers(h -> {
                     h.setBearerAuth(accessToken);
@@ -353,14 +390,18 @@ public class GraduationStatusService {
                 .retrieve()
                 .bodyToMono(District.class)
                 .block();
+    }
+
+    private String getDistrictName(String districtCode, String accessToken) {
+        District distObj = getDistrict(districtCode, accessToken);
         if (distObj != null)
             return distObj.getDistrictName();
         else
             return null;
     }
 
-    private String getProgramName(String programCode, String accessToken) {
-        GradProgram gradProgram = webClient.get()
+    private GradProgram getProgram(String programCode, String accessToken) {
+        return webClient.get()
                 .uri(String.format(constants.getGradProgramNameUrl(), programCode))
                 .headers(h -> {
                     h.setBearerAuth(accessToken);
@@ -369,6 +410,10 @@ public class GraduationStatusService {
                 .retrieve()
                 .bodyToMono(GradProgram.class)
                 .block();
+    }
+
+    private String getProgramName(String programCode, String accessToken) {
+        GradProgram gradProgram = getProgram(programCode, accessToken);
         if (gradProgram != null)
             return gradProgram.getProgramName();
         return null;
