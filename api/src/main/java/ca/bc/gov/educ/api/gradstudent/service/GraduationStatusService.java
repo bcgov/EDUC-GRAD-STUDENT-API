@@ -661,10 +661,10 @@ public class GraduationStatusService {
                     gradEntity.setGpa(null);
                     gradEntity.setSchoolAtGrad(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
-                    historyService.createStudentHistory(gradEntity, "USERUNGRAD");
+                    historyService.createStudentHistory(gradEntity, "USERUNDOCMPL");
                     final GraduationStudentRecord graduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                            graduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, "USERUNGRAD", accessToken);
+                            graduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, "USERUNDOCMPL", accessToken);
                     gradStatusEventRepository.save(gradStatusEvent);
                     return Pair.of(graduationStatus, gradStatusEvent);
 		        } else {
