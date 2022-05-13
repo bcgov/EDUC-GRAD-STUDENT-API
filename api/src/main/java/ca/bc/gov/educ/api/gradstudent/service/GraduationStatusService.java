@@ -305,12 +305,38 @@ public class GraduationStatusService {
         if(school == null) {
             validation.addErrorAndStop("School with mincode {} not found", minCode);
         }
-        String englishCert = null;
-        String frenchCert = null;
+        String englishCert = "";
+        String frenchCert = "";
         String dogwood = null;
+        String sccDate = null;
         List<GradStudentCertificates> gradStudentCertificates = getGradStudentCertificates(gradSearchStudent.getStudentID(), accessToken);
         for(GradStudentCertificates certificates: gradStudentCertificates) {
-
+            String certificateTypeCode = certificates.getGradCertificateTypeCode();
+            dogwood = certificates.getDistributionDate() != null ? "Y" : "N";
+            sccDate = certificates.getDistributionDate() != null ? "Y" : "N";
+            switch(certificateTypeCode) {
+                case "E":
+                    englishCert = certificateTypeCode;
+                    break;
+                case "EI":
+                    englishCert = "E";
+                    break;
+                case "A":
+                    englishCert = "E";
+                    break;
+                case "AI":
+                    englishCert = "E";
+                    break;
+                case "O":
+                    englishCert = "E";
+                    break;
+                case "S":
+                    frenchCert = certificateTypeCode;
+                    break;
+                case "F":
+                    frenchCert = certificateTypeCode;
+                    break;
+            }
         }
         StudentDemographic studentDemographic = StudentDemographic.builder()
 
