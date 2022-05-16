@@ -22,6 +22,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_API_ROOT_MAPPING = "/api/" + API_VERSION + "/student" ;
     public static final String GRAD_STUDENT_BY_PEN = "/{pen}";
     public static final String GRAD_STUDENT_BY_PEN_STUDENT_API = "/pen/{pen}";
+    public static final String GRAD_STUDENT_DEMOG_BY_PEN = "/demog/pen/{pen}";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API = "/stdid/{studentID}";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_GRAD="/grad/{studentID}";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
@@ -134,6 +135,9 @@ public class EducGradStudentApiConstants {
     
     @Value("${endpoint.grad-graduation-report-api.delete-student-achievement.url}")
     private String deleteStudentAchievements;
+
+    @Value("${endpoint.grad-graduation-report-api.student-certificates.url}")
+    private String studentCertificates;
 
     @Value("${endpoint.educ-school-api.get-school-by-mincode.url}")
     private String schoolByMincodeSchoolApiUrl;

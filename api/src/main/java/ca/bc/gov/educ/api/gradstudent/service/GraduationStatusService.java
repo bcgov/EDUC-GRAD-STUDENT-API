@@ -33,6 +33,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -300,11 +301,27 @@ public class GraduationStatusService {
             validation.addErrorAndStop("Student with pen {} not found", pen);
         }
         GradSearchStudent gradSearchStudent = gradSearchStudents.get(0);
+
+        String gradDate = null;
+        Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
+        GraduationStudentRecordEntity graduationStudentRecordEntity = null;
+        if(graduationStudentRecordEntityOptional.isPresent()) {
+            graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM");
+            gradDate = simpleDateFormat.format(graduationStudentRecordEntity.getProgramCompletionDate());
+        }
+
         String minCode = gradSearchStudent.getMincode();
         School school = getSchool(minCode, accessToken);
         if(school == null) {
             validation.addErrorAndStop("School with mincode {} not found", minCode);
         }
+
+        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getMincode());
+        if(commonSchool == null) {
+            validation.addErrorAndStop("Common School with mincode {} not found", gradSearchStudent.getMincode());
+        }
+
         String englishCert = "";
         String frenchCert = "";
         String dogwood = null;
@@ -339,14 +356,48 @@ public class GraduationStatusService {
             }
         }
         StudentDemographic studentDemographic = StudentDemographic.builder()
-
+                .pen(pen)
+                .legalFirstName(gradSearchStudent.getLegalFirstName())
+                .legalMiddleNames(gradSearchStudent.getLegalMiddleNames())
+                .legalLastName(gradSearchStudent.getLegalLastName())
+                .dob(gradSearchStudent.getDob())
+                .sexCode(gradSearchStudent.getSexCode())
+                .genderCode(gradSearchStudent.getGenderCode())
+                .usualFirstName(gradSearchStudent.getUsualFirstName())
+                .usualMiddleNames(gradSearchStudent.getUsualMiddleNames())
+                .usualLastName(gradSearchStudent.getUsualLastName())
+                .email(gradSearchStudent.getEmail())
+                .emailVerified(gradSearchStudent.getEmailVerified())
+                .deceasedDate(gradSearchStudent.getDeceasedDate())
+                .postalCode(gradSearchStudent.getPostalCode())
+                .mincode(gradSearchStudent.getMincode())
+                .gradeCode(gradSearchStudent.getGradeCode())
+                .gradeYear(gradSearchStudent.getGradeYear())
+                .demogCode(gradSearchStudent.getDemogCode())
+                .statusCode(gradSearchStudent.getStatusCode())
+                .trueStudentID(gradSearchStudent.getTrueStudentID())
+                .gradProgram(gradSearchStudent.getProgram())
+                .gradDate(gradDate)
+                .dogwoodFlag(dogwood)
+                .frenchCert(frenchCert)
+                .englishCert(englishCert)
+                .sccDate(sccDate)
+                .transcriptEligibility(school.getTranscriptEligibility())
+                .schoolCategory(commonSchool.getSchoolCategoryCode())
+                .schoolName(commonSchool.getSchoolName())
+                .formerStudent(null)
                 .build();
         return studentDemographic;
     }
 
     private List<GradStudentCertificates> getGradStudentCertificates(String studentID, String accessToken) {
-        //TODO: Implement external call
-        return List.of(new GradStudentCertificates());
+        return webClient.get().uri((String.format(constants.getStudentCertificates(), studentID)))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
+                .retrieve().bodyToMono(new ParameterizedTypeReference<List<GradStudentCertificates>>() {
+                }).block();
     }
 
     public List<CommonSchool> getSchools(String accessToken) {

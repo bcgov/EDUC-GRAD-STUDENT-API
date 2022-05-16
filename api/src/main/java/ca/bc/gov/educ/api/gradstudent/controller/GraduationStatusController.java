@@ -245,6 +245,14 @@ public class GraduationStatusController {
         return response.GET(historyList);
     }
 
+    @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_DEMOG_BY_PEN)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Student Demographics by PEN", description = "Search for Student Demographics by PEN", tags = { "Student Demographics" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public StudentDemographic getStudentDemographics(@PathVariable String pen, @RequestHeader(name="Authorization") String accessToken) {
+        return gradStatusService.getStudentDemographics(pen,accessToken.replace("Bearer ", ""));
+    }
+
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Get all edit history for a Student Optional Program", description = "Get all edit history for a Student", tags = { "Student Graduation Status" })

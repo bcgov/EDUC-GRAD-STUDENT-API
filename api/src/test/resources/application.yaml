@@ -129,6 +129,8 @@ endpoint:
   grad-graduation-report-api:
     delete-student-achievement:
       url: https://educ-grad-graduation-report-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/graduationreports/studentachievement/%s
+    student-certificates:
+      url: https://educ-grad-graduation-report-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/graduationreports/studentcertificates/%s
   educ-school-api:
     url: https://school-api-75e61b-dev.apps.silver.devops.gov.bc.ca/api/v1/schools
     get-school-by-mincode:
