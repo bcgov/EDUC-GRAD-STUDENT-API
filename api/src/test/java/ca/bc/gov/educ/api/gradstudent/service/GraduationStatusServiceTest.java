@@ -19,12 +19,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -1090,7 +1088,7 @@ public class GraduationStatusServiceTest {
         String ungradReasonCode = "NM";
         String ungradReasonDesc = "FDFS";
 
-        UngradReason ungradReasons = new UngradReason();
+        UndoCompletionReason ungradReasons = new UndoCompletionReason();
         ungradReasons.setCode(ungradReasonCode);
         ungradReasons.setDescription("Not Met");
 
@@ -1109,23 +1107,22 @@ public class GraduationStatusServiceTest {
         responseGraduationStatus.setGpa(null);
         responseGraduationStatus.setSchoolAtGrad(null);
 
-        GradStudentUngradReasons responseStudentUngradReasons = new GradStudentUngradReasons();
-        responseStudentUngradReasons.setStudentID(studentID);
-        responseStudentUngradReasons.setPen(pen);
-        responseStudentUngradReasons.setUngradReasonCode(ungradReasonCode);
+        StudentUndoCompletionReason responseStudentUndoCompletionReasons = new StudentUndoCompletionReason();
+        responseStudentUndoCompletionReasons.setGraduationStudentRecordID(studentID);
+        responseStudentUndoCompletionReasons.setUndoCompletionReasonCode(ungradReasonCode);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getUndoCompletionReasonDetailsUrl(),ungradReasonCode))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(UngradReason.class)).thenReturn(Mono.just(ungradReasons));
+        when(this.responseMock.bodyToMono(UndoCompletionReason.class)).thenReturn(Mono.just(ungradReasons));
 
         when(this.webClient.post()).thenReturn(this.requestBodyUriMock);
-        when(this.requestBodyUriMock.uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID))).thenReturn(this.requestBodyUriMock);
+        when(this.requestBodyUriMock.uri(String.format(constants.getSaveStudentUndoCompletionReasonByStudentIdUrl(),studentID))).thenReturn(this.requestBodyUriMock);
         when(this.requestBodyUriMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
         when(this.requestBodyMock.body(any(BodyInserter.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradStudentUngradReasons.class)).thenReturn(Mono.just(responseStudentUngradReasons));
+        when(this.responseMock.bodyToMono(StudentUndoCompletionReason.class)).thenReturn(Mono.just(responseStudentUndoCompletionReasons));
         
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -1136,7 +1133,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.save(responseGraduationStatus)).thenReturn(responseGraduationStatus);
 
-        var response = graduationStatusService.ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
+        var response = graduationStatusService.undoCompletionStudent(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -1150,24 +1147,24 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void saveUngradReason() {
+    public void saveUndoCompletionReason() {
         // ID
         UUID studentID = UUID.randomUUID();
         String ungradReasonCode = "NM";
         String ungradReasonDesc= "FDFS";
 
-        GradStudentUngradReasons responseStudentUngradReasons = new GradStudentUngradReasons();
-        responseStudentUngradReasons.setStudentID(studentID);
-        responseStudentUngradReasons.setUngradReasonCode(ungradReasonCode);
+        StudentUndoCompletionReason responseStudentUndoCompletionReasons = new StudentUndoCompletionReason();
+        responseStudentUndoCompletionReasons.setGraduationStudentRecordID(studentID);
+        responseStudentUndoCompletionReasons.setUndoCompletionReasonCode(ungradReasonCode);
 
         when(this.webClient.post()).thenReturn(this.requestBodyUriMock);
-        when(this.requestBodyUriMock.uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID))).thenReturn(this.requestBodyUriMock);
+        when(this.requestBodyUriMock.uri(String.format(constants.getSaveStudentUndoCompletionReasonByStudentIdUrl(),studentID))).thenReturn(this.requestBodyUriMock);
         when(this.requestBodyUriMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
         when(this.requestBodyMock.body(any(BodyInserter.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(GradStudentUngradReasons.class)).thenReturn(Mono.just(responseStudentUngradReasons));
+        when(this.responseMock.bodyToMono(StudentUndoCompletionReason.class)).thenReturn(Mono.just(responseStudentUndoCompletionReasons));
 
-        graduationStatusService.saveUngradReason(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
+        graduationStatusService.saveUndoCompletionReason(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
 
     }
     

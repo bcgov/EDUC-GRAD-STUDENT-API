@@ -51,7 +51,7 @@ public class GraduationStatusControllerTest {
     @InjectMocks
     private GraduationStatusController graduationStatusController;
 
-    /*@Test
+    @Test
     public void testGetStudentGradStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -67,39 +67,24 @@ public class GraduationStatusControllerTest {
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(graduationStatusService.getGraduationStatus(studentID, null)).thenReturn(graduationStatus);
-        graduationStatusController.getStudentGradStatus(studentID.toString(), "");
-        Mockito.verify(graduationStatusService).getGraduationStatus(studentID, null);
-    }*/
+        Mockito.when(graduationStatusService.getGraduationStatus(studentID, "accessToken")).thenReturn(graduationStatus);
+        graduationStatusController.getStudentGradStatus(studentID.toString(), "accessToken");
+        Mockito.verify(graduationStatusService).getGraduationStatus(studentID, "accessToken");
+    }
 
-    /*@Test
+    @Test
     public void testGetStudentGradStatus_whenNotExists_thenReturnNoContentHttpStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
-
-        Mockito.when(graduationStatusService.getGraduationStatus(studentID, null)).thenReturn(null);
+        Mockito.when(graduationStatusService.getGraduationStatus(studentID, "accessToken")).thenReturn(null);
         Mockito.when(responseHelper.NO_CONTENT()).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
-        var result = graduationStatusController.getStudentGradStatus(studentID.toString(), "");
-        Mockito.verify(graduationStatusService).getGraduationStatus(studentID, null);
+        var result = graduationStatusController.getStudentGradStatus(studentID.toString(), "accessToken");
+        Mockito.verify(graduationStatusService).getGraduationStatus(studentID, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-    }*/
+    }
 
     @Test
     public void testGetStudentGradStatusForAlgorithm() {
@@ -122,7 +107,7 @@ public class GraduationStatusControllerTest {
         Mockito.verify(graduationStatusService).getGraduationStatusForAlgorithm(studentID);
     }
 
-    /*@Test
+    @Test
     public void testSaveStudentGradStatus() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -139,16 +124,16 @@ public class GraduationStatusControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Mockito.when(graduationStatusService.saveGraduationStatus(studentID, graduationStatus,null, null)).thenReturn(Pair.of(graduationStatus, null));
+        Mockito.when(graduationStatusService.saveGraduationStatus(studentID, graduationStatus,null, "accessToken")).thenReturn(Pair.of(graduationStatus, null));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
         var result = graduationStatusController
-                .saveStudentGradStatus(studentID.toString(), graduationStatus,null, "");
-        Mockito.verify(graduationStatusService).saveGraduationStatus(studentID, graduationStatus,null, null);
+                .saveStudentGradStatus(studentID.toString(), graduationStatus,null, "accessToken");
+        Mockito.verify(graduationStatusService).saveGraduationStatus(studentID, graduationStatus,null, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    }*/
+    }
 
-    /*@Test
+    @Test
     public void testUpdateStudentGradStatus() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -165,24 +150,16 @@ public class GraduationStatusControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
-
         Mockito.when(validation.hasErrors()).thenReturn(false);
-        Mockito.when(graduationStatusService.updateGraduationStatus(studentID, graduationStatus, null)).thenReturn(Pair.of(graduationStatus, null));
+        Mockito.when(graduationStatusService.updateGraduationStatus(studentID, graduationStatus, "accessToken")).thenReturn(Pair.of(graduationStatus, null));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
-        var result = graduationStatusController.updateStudentGradStatus(studentID.toString(), graduationStatus, "");
-        Mockito.verify(graduationStatusService).updateGraduationStatus(studentID, graduationStatus, null);
+        var result = graduationStatusController.updateStudentGradStatus(studentID.toString(), graduationStatus, "accessToken");
+        Mockito.verify(graduationStatusService).updateGraduationStatus(studentID, graduationStatus, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    }*/
+    }
 
-    /*@Test
+    @Test
     public void testUpdateStudentGradStatus_whenValidationHasErrors_thenReturnBadRequestHttpStatus() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -190,21 +167,13 @@ public class GraduationStatusControllerTest {
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
-
         Mockito.when(validation.hasErrors()).thenReturn(true);
-        var result = graduationStatusController.updateStudentGradStatus(studentID.toString(), graduationStatus, "");
+        var result = graduationStatusController.updateStudentGradStatus(studentID.toString(), graduationStatus, null);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }*/
+    }
 
-    /*@Test
+    @Test
     public void testGetStudentGradOptionalPrograms() {
         // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
@@ -219,41 +188,25 @@ public class GraduationStatusControllerTest {
         gradStudentOptionalProgram.setPen(pen);
         gradStudentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
+        Mockito.when(graduationStatusService.getStudentGradOptionalProgram(studentID, "accessToken")).thenReturn(List.of(gradStudentOptionalProgram));
+        graduationStatusController.getStudentGradOptionalPrograms(studentID.toString(), "accessToken");
+        Mockito.verify(graduationStatusService).getStudentGradOptionalProgram(studentID, "accessToken");
+    }
 
-        Mockito.when(graduationStatusService.getStudentGradOptionalProgram(studentID, null)).thenReturn(List.of(gradStudentOptionalProgram));
-        graduationStatusController.getStudentGradOptionalPrograms(studentID.toString(), "");
-        Mockito.verify(graduationStatusService).getStudentGradOptionalProgram(studentID, null);
-    }*/
-
-    /*@Test
+    @Test
     public void testGetStudentGradOptionalPrograms_whenNotExists_thenReturnNoContentHttpStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
-
-        Mockito.when(graduationStatusService.getStudentGradOptionalProgram(studentID, null)).thenReturn(new ArrayList<>());
+        Mockito.when(graduationStatusService.getStudentGradOptionalProgram(studentID, "accessToken")).thenReturn(new ArrayList<>());
         Mockito.when(responseHelper.NO_CONTENT()).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
-        var result = graduationStatusController.getStudentGradOptionalPrograms(studentID.toString(), "");
-        Mockito.verify(graduationStatusService).getStudentGradOptionalProgram(studentID, null);
+        var result = graduationStatusController.getStudentGradOptionalPrograms(studentID.toString(), "accessToken");
+        Mockito.verify(graduationStatusService).getStudentGradOptionalProgram(studentID, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-    }*/
+    }
 
-    /*@Test
+    @Test
     public void testGetStudentGradOptionalProgram() {
         // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
@@ -268,40 +221,24 @@ public class GraduationStatusControllerTest {
         gradStudentOptionalProgram.setPen(pen);
         gradStudentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM" ));
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
+        Mockito.when(graduationStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(), "accessToken")).thenReturn(gradStudentOptionalProgram);
+        graduationStatusController.getStudentGradOptionalProgram(studentID.toString(), optionalProgramID.toString(), "accessToken");
+        Mockito.verify(graduationStatusService).getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(),"accessToken");
+    }
 
-        Mockito.when(graduationStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(), null)).thenReturn(gradStudentOptionalProgram);
-        graduationStatusController.getStudentGradOptionalProgram(studentID.toString(), optionalProgramID.toString(), "");
-        Mockito.verify(graduationStatusService).getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(),null);
-    }*/
-
-    /*@Test
+    @Test
     public void testGetStudentGradOptionalProgram_whenNotExists_thenReturnNoContentHttpStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
         UUID optionalProgramID = UUID.randomUUID();
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
-
-        Mockito.when(graduationStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(), null)).thenReturn(null);
+        Mockito.when(graduationStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(), "accessToken")).thenReturn(null);
         Mockito.when(responseHelper.NO_CONTENT()).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
-        var result = graduationStatusController.getStudentGradOptionalProgram(studentID.toString(), optionalProgramID.toString(), "");
-        Mockito.verify(graduationStatusService).getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(),null);
+        var result = graduationStatusController.getStudentGradOptionalProgram(studentID.toString(), optionalProgramID.toString(), "accessToken");
+        Mockito.verify(graduationStatusService).getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(studentID, optionalProgramID.toString(),"accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-    }*/
+    }
 
     @Test
     public void testSaveStudentGradOptionalProgram() {
@@ -326,7 +263,7 @@ public class GraduationStatusControllerTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
-    /*@Test
+    @Test
     public void testUpdateStudentGradOptionalProgram() {
         // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
@@ -349,23 +286,15 @@ public class GraduationStatusControllerTest {
         studentOptionalProgram.setPen(pen);
         studentOptionalProgram.setOptionalProgramCompletionDate(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate());
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
-
-        Mockito.when(graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, null)).thenReturn(studentOptionalProgram);
+        Mockito.when(graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "accessToken")).thenReturn(studentOptionalProgram);
         Mockito.when(responseHelper.GET(studentOptionalProgram)).thenReturn(ResponseEntity.ok().body(studentOptionalProgram));
-        var result = graduationStatusController.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "");
-        Mockito.verify(graduationStatusService).updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, null);
+        var result = graduationStatusController.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "accessToken");
+        Mockito.verify(graduationStatusService).updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    }*/
+    }
 
-    /*@Test
+    @Test
     public void testSearchGraduationStudentRecords() {
 
         UUID studentID = UUID.randomUUID();
@@ -403,18 +332,10 @@ public class GraduationStatusControllerTest {
                 .programs(programs)
                 .build();
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
-
-        Mockito.when(graduationStatusService.searchGraduationStudentRecords(searchRequest, null)).thenReturn(searchResult);
-        graduationStatusController.searchGraduationStudentRecords(searchRequest, "");
-        Mockito.verify(graduationStatusService).searchGraduationStudentRecords(searchRequest, null);
-    }*/
+        Mockito.when(graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken")).thenReturn(searchResult);
+        graduationStatusController.searchGraduationStudentRecords(searchRequest, "accessToken");
+        Mockito.verify(graduationStatusService).searchGraduationStudentRecords(searchRequest, "accessToken");
+    }
 
     @Test
     public void testGetStudentsForGraduation() {
@@ -459,7 +380,7 @@ public class GraduationStatusControllerTest {
         Mockito.verify(graduationStatusService).getStudentStatus("A");
     }
 
-    /*@Test
+    @Test
     public void testUgradStudent() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -474,20 +395,19 @@ public class GraduationStatusControllerTest {
         graduationStatus.setSchoolOfRecord("12345678");
         graduationStatus.setRecalculateGradStatus("Y");
 
-        GradStudentUngradReasons responseStudentUngradReasons = new GradStudentUngradReasons();
-        responseStudentUngradReasons.setStudentID(studentID);
-        responseStudentUngradReasons.setPen(pen);
-        responseStudentUngradReasons.setUngradReasonCode(ungradReasonCode);
+        StudentUndoCompletionReason responseStudentUngradReasons = new StudentUndoCompletionReason();
+        responseStudentUngradReasons.setGraduationStudentRecordID(studentID);
+        responseStudentUngradReasons.setUndoCompletionReasonCode(ungradReasonCode);
 
         Mockito.when(validation.hasErrors()).thenReturn(false);
-        Mockito.when(graduationStatusService.ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, null)).thenReturn(Pair.of(graduationStatus, null));
+        Mockito.when(graduationStatusService.undoCompletionStudent(studentID, ungradReasonCode,ungradReasonDesc, "accessToken")).thenReturn(Pair.of(graduationStatus, null));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
-        var result = graduationStatusController.ungradStudent(studentID.toString(), ungradReasonCode,ungradReasonDesc, "");
-        Mockito.verify(graduationStatusService).ungradStudent(studentID, ungradReasonCode,ungradReasonDesc, null);
+        var result = graduationStatusController.ungradStudent(studentID.toString(), ungradReasonCode,ungradReasonDesc, "accessToken");
+        Mockito.verify(graduationStatusService).undoCompletionStudent(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-    }*/
+    }
 
     @Test
     public void testreturnToOriginalState() {
@@ -543,17 +463,9 @@ public class GraduationStatusControllerTest {
         Mockito.verify(historyService).getStudentEditHistory(UUID.fromString(studentID));
     }
 
-    /*@Test
+    @Test
     public void testGetOptionalProgramStudentHistory() {
         // ID
-
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
-
         String studentID = UUID.randomUUID().toString();
         List<StudentOptionalProgramHistory> histList = new ArrayList<>();
         StudentOptionalProgramHistory gradStudentOptionalProgramEntity = new StudentOptionalProgramHistory();
@@ -564,10 +476,10 @@ public class GraduationStatusControllerTest {
         gradStudentOptionalProgramEntity.setHistoryId(new UUID(3,3));
         gradStudentOptionalProgramEntity.setActivityCode("GRADALG");
         histList.add(gradStudentOptionalProgramEntity);
-        Mockito.when(historyService.getStudentOptionalProgramEditHistory(UUID.fromString(studentID),null)).thenReturn(histList);
-        graduationStatusController.getStudentOptionalProgramHistory(studentID, "");
-        Mockito.verify(historyService).getStudentOptionalProgramEditHistory(UUID.fromString(studentID),null);
-    }*/
+        Mockito.when(historyService.getStudentOptionalProgramEditHistory(UUID.fromString(studentID),"accessToken")).thenReturn(histList);
+        graduationStatusController.getStudentOptionalProgramHistory(studentID, "accessToken");
+        Mockito.verify(historyService).getStudentOptionalProgramEditHistory(UUID.fromString(studentID),"accessToken");
+    }
 
     @Test
     public void testGetStudentHistoryByID() {
@@ -588,14 +500,8 @@ public class GraduationStatusControllerTest {
         Mockito.verify(historyService).getStudentHistoryByID(UUID.fromString(historyID));
     }
 
-    /*@Test
+    @Test
     public void testGetOptionalProgramStudentHistoryByID() {
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
         // ID
         String historyID = UUID.randomUUID().toString();
         String studentID = UUID.randomUUID().toString();
@@ -606,19 +512,13 @@ public class GraduationStatusControllerTest {
         gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()).toString());
         gradStudentOptionalProgramEntity.setHistoryId(new UUID(3,3));
         gradStudentOptionalProgramEntity.setActivityCode("GRADALG");
-        Mockito.when(historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),null)).thenReturn(gradStudentOptionalProgramEntity);
-        graduationStatusController.getStudentOptionalProgramHistoryByID(historyID, "");
-        Mockito.verify(historyService).getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),null);
-    }*/
+        Mockito.when(historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),"accessToken")).thenReturn(gradStudentOptionalProgramEntity);
+        graduationStatusController.getStudentOptionalProgramHistoryByID(historyID, "accessToken");
+        Mockito.verify(historyService).getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),"accessToken");
+    }
 
-    /*@Test
+    @Test
     public void testGetStudentHistoryByBatchID() {
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
         // ID
         String historyID = UUID.randomUUID().toString();
         UUID studentID = UUID.randomUUID();
@@ -635,10 +535,10 @@ public class GraduationStatusControllerTest {
         graduationStatusEntity.setBatchId(4000L);
         histList.add(graduationStatusEntity);
         Page<GraduationStudentRecordHistoryEntity> hPage = new PageImpl(histList);
-        Mockito.when(historyService.getStudentHistoryByBatchID(4000L, 0, 10,null)).thenReturn(hPage);
-        graduationStatusController.getStudentHistoryByBatchID(4000L,0,10, "");
-        Mockito.verify(historyService).getStudentHistoryByBatchID(4000L, 0,10,null);
-    }*/
+        Mockito.when(historyService.getStudentHistoryByBatchID(4000L, 0, 10,"accessToken")).thenReturn(hPage);
+        graduationStatusController.getStudentHistoryByBatchID(4000L,0,10, "accessToken");
+        Mockito.verify(historyService).getStudentHistoryByBatchID(4000L, 0,10,"accessToken");
+    }
 
     @Test
     public void testGetStudentsForYearlyRun() {

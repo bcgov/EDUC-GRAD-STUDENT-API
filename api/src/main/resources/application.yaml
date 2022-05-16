@@ -162,9 +162,9 @@ endpoint:
   grad-student-graduation-api:
     ungrad-reason: 
       ungrad-reason-by-reason-code: 
-        url: ${GRAD_STUDENT_GRADUATION_API}api/v1/ungrad/ungradreason/%s
+        url: ${GRAD_STUDENT_GRADUATION_API}api/v1/ungrad/undocompletionreason/%s
     save-student-ungrad-reason:
-      url: ${GRAD_STUDENT_GRADUATION_API}api/v1/ungrad/studentungradreason/studentid/%s
+      url: ${GRAD_STUDENT_GRADUATION_API}api/v1/ungrad/studentundocompletionreason/studentid/%s
   pen-student-api:
     by-studentid:
       url: ${PEN_API}api/v1/student/%s

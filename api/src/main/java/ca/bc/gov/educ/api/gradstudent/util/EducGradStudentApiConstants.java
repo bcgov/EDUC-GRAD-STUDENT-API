@@ -43,7 +43,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GRAD_STUDENT_PROJECTED_RUN = "/projected";
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
-    public static final String UNGRAD_STUDENT = "/ungradstudent/studentid/{studentID}";
+    public static final String UNGRAD_STUDENT = "/undocompletionstudent/studentid/{studentID}";
 
     public static final String GET_ALL_STUDENT_CAREER_MAPPING = "/studentcareerprogram/studentid/{studentID}";
     public static final String STUDENT_REPORT = "/studentreport";
@@ -118,10 +118,10 @@ public class EducGradStudentApiConstants {
     private String penStudentApiByStudentIdUrl;
 
     @Value("${endpoint.grad-student-graduation-api.save-student-ungrad-reason.url}")
-    private String saveStudentUngradReasonByStudentIdUrl;
+    private String saveStudentUndoCompletionReasonByStudentIdUrl;
 
     @Value("${endpoint.grad-student-graduation-api.ungrad-reason.ungrad-reason-by-reason-code.url}")
-    private String ungradReasonDetailsUrl;
+    private String undoCompletionReasonDetailsUrl;
 
     @Value("${endpoint.pen-student-api.search.url}")
     private String penStudentApiSearchUrl;
