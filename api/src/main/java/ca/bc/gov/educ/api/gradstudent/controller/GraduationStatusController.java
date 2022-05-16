@@ -214,7 +214,7 @@ public class GraduationStatusController {
             validation.stopOnErrors();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        var result = gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken.replaceAll("Bearer ", ""));
+        var result = gradStatusService.undoCompletionStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken.replaceAll("Bearer ", ""));
         publishToJetStream(result.getRight());
         return response.GET(result.getLeft());
     }

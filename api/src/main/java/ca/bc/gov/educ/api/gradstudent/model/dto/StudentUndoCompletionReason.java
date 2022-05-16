@@ -9,10 +9,10 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component
-public class StudentUngradReason extends BaseModel {
+public class StudentUndoCompletionReason extends BaseModel {
 
-    private UUID studentUngradReasonID;
+    private UUID studentUndoCompletionReasonID;
     private UUID graduationStudentRecordID;
-    private String ungradReasonCode;
-    private String ungradReasonDescription;
+    private String undoCompletionReasonCode;
+    private String undoCompletionReasonDescription;
 }

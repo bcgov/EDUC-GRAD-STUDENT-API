@@ -639,19 +639,19 @@ public class GraduationStatusService {
 
     @Transactional
     @Retry(name = "generalpostcall")
-    public Pair<GraduationStudentRecord, GradStatusEvent> ungradStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) throws JsonProcessingException {
+    public Pair<GraduationStudentRecord, GradStatusEvent> undoCompletionStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) throws JsonProcessingException {
         if(StringUtils.isNotBlank(ungradReasonCode)) {
-        	UngradReason ungradReasonObj = webClient.get().uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode))
+        	UndoCompletionReason ungradReasonObj = webClient.get().uri(String.format(constants.getUndoCompletionReasonDetailsUrl(),ungradReasonCode))
               .headers(h -> {
                   h.setBearerAuth(accessToken);
                   h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
               })
-              .retrieve().bodyToMono(UngradReason.class).block();
+              .retrieve().bodyToMono(UndoCompletionReason.class).block();
     		if(ungradReasonObj != null) {
 		    	Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 		        if (gradStatusOptional.isPresent()) {
 		            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-		            saveUngradReason(studentID,ungradReasonCode,ungradDesc,accessToken);
+		            saveUndoCompletionReason(studentID,ungradReasonCode,ungradDesc,accessToken);
 		            deleteStudentAchievements(studentID,accessToken);
                     gradEntity.setRecalculateGradStatus("Y");
                     gradEntity.setRecalculateProjectedGrad("Y");
@@ -689,18 +689,18 @@ public class GraduationStatusService {
           }).retrieve().bodyToMono(Integer.class).block();
 	}
 
-	public void saveUngradReason(UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
-        StudentUngradReason toBeSaved = new StudentUngradReason();
+	public void saveUndoCompletionReason(UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
+        StudentUndoCompletionReason toBeSaved = new StudentUndoCompletionReason();
         toBeSaved.setGraduationStudentRecordID(studentID);
-        toBeSaved.setUngradReasonCode(ungradReasonCode);
-        toBeSaved.setUngradReasonDescription(unGradDesc);
-        webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID))
+        toBeSaved.setUndoCompletionReasonCode(ungradReasonCode);
+        toBeSaved.setUndoCompletionReasonDescription(unGradDesc);
+        webClient.post().uri(String.format(constants.getSaveStudentUndoCompletionReasonByStudentIdUrl(),studentID))
             .headers(h -> {
                 h.setBearerAuth(accessToken);
                 h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
             })
             .body(BodyInserters.fromValue(toBeSaved))
-            .retrieve().bodyToMono(GradStudentUngradReasons.class).block();
+            .retrieve().bodyToMono(StudentUndoCompletionReason.class).block();
     }
 
     private GradStatusEvent createGradStatusEvent(String createUser, String updateUser,
