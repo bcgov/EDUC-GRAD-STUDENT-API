@@ -178,7 +178,7 @@ endpoint:
     delete-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentachievement/%s
     student-certificates:
-      url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentcertificates/%s
+      url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentcertificates
   educ-school-api:
     url: ${EDUC_SCHOOL_API}api/v1/schools
     get-school-by-mincode:

@@ -296,30 +296,30 @@ public class GraduationStatusService {
     }
 
     public StudentDemographic getStudentDemographics(String pen, String accessToken) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM");
         List<GradSearchStudent> gradSearchStudents = gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken);
         if(gradSearchStudents.isEmpty()) {
-            validation.addErrorAndStop("Student with pen {} not found", pen);
+            validation.addErrorAndStop("Student with pen %s not found", pen);
         }
         GradSearchStudent gradSearchStudent = gradSearchStudents.get(0);
 
         String gradDate = null;
+        String formerStudent = "F";
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
         GraduationStudentRecordEntity graduationStudentRecordEntity = null;
         if(graduationStudentRecordEntityOptional.isPresent()) {
             graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM");
             gradDate = simpleDateFormat.format(graduationStudentRecordEntity.getProgramCompletionDate());
-        }
-
-        String minCode = gradSearchStudent.getMincode();
-        School school = getSchool(minCode, accessToken);
-        if(school == null) {
-            validation.addErrorAndStop("School with mincode {} not found", minCode);
+            if("CUR".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
+                || "TER".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
+            ) {
+                formerStudent = "C";
+            }
         }
 
         CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getMincode());
         if(commonSchool == null) {
-            validation.addErrorAndStop("Common School with mincode {} not found", gradSearchStudent.getMincode());
+            validation.addErrorAndStop("Common School with mincode %s not found", gradSearchStudent.getMincode());
         }
 
         String englishCert = "";
@@ -329,8 +329,8 @@ public class GraduationStatusService {
         List<GradStudentCertificates> gradStudentCertificates = getGradStudentCertificates(gradSearchStudent.getStudentID(), accessToken);
         for(GradStudentCertificates certificates: gradStudentCertificates) {
             String certificateTypeCode = certificates.getGradCertificateTypeCode();
-            dogwood = certificates.getDistributionDate() != null ? "Y" : "N";
-            sccDate = certificates.getDistributionDate() != null ? "Y" : "N";
+            dogwood = (!"SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && certificates.getDistributionDate() != null) ? "Y" : "N";
+            sccDate = ("SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && certificates.getDistributionDate() != null) ? simpleDateFormat.format(certificates.getDistributionDate()) : null;
             switch(certificateTypeCode) {
                 case "E":
                     englishCert = certificateTypeCode;
@@ -356,6 +356,7 @@ public class GraduationStatusService {
             }
         }
         StudentDemographic studentDemographic = StudentDemographic.builder()
+                .studentID(gradSearchStudent.getStudentID())
                 .pen(pen)
                 .legalFirstName(gradSearchStudent.getLegalFirstName())
                 .legalMiddleNames(gradSearchStudent.getLegalMiddleNames())
@@ -382,16 +383,19 @@ public class GraduationStatusService {
                 .frenchCert(frenchCert)
                 .englishCert(englishCert)
                 .sccDate(sccDate)
-                .transcriptEligibility(school.getTranscriptEligibility())
+                .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
                 .schoolCategory(commonSchool.getSchoolCategoryCode())
                 .schoolName(commonSchool.getSchoolName())
-                .formerStudent(null)
+                .formerStudent(formerStudent)
                 .build();
         return studentDemographic;
     }
 
     private List<GradStudentCertificates> getGradStudentCertificates(String studentID, String accessToken) {
-        return webClient.get().uri((String.format(constants.getStudentCertificates(), studentID)))
+        return webClient.get().uri(String.format(constants.getStudentCertificates(), studentID),
+                        uri -> uri
+                                .queryParam("studentID", studentID)
+                                .build())
                 .headers(h -> {
                     h.setBearerAuth(accessToken);
                     h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
