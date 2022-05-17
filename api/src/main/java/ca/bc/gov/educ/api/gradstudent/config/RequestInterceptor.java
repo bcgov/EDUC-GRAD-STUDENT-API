@@ -1,9 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.config;
 
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import ca.bc.gov.educ.api.gradstudent.util.LogHelper;
-import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
+import ca.bc.gov.educ.api.gradstudent.util.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +42,7 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
 		// username
 		JwtAuthenticationToken authenticationToken = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 		Jwt jwt = (Jwt) authenticationToken.getCredentials();
-		String username = (String) jwt.getClaims().get("preferred_username");
+		String username = JwtUtil.getName(jwt);
 		if (username != null) {
 			ThreadLocalStateUtil.setCurrentUser(username);
 		}
