@@ -450,6 +450,71 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testUpdateGraduationStatus_givenDifferentPrograms_whenProgramIsValidated_thenReturnSuccess_SCCP() throws JsonProcessingException {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
+        String mincode = "12345678";
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setStudentGrade("12");
+        graduationStatusEntity.setProgram("SCCP");
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        GraduationStudentRecord input = new GraduationStudentRecord();
+        BeanUtils.copyProperties(graduationStatusEntity, input);
+        input.setRecalculateGradStatus(null);
+        input.setProgram("2018-en");
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
+        BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
+        savedGraduationStatus.setRecalculateGradStatus("Y");
+        savedGraduationStatus.setProgram("2018-en");
+        savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+
+        GradProgram program = new GradProgram();
+        program.setProgramCode("2018-en");
+        program.setProgramName("Graduation Program 2018");
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradProgramNameUrl(),program.getProgramCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
+
+        when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getArchiveStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
+        when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
+
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(response).isNotNull();
+
+        var result = response.getLeft();
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
+        assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
+        assertThat(result.getStudentStatus()).isEqualTo(savedGraduationStatus.getStudentStatus());
+        assertThat(result.getProgram()).isEqualTo(savedGraduationStatus.getProgram());
+        assertThat(result.getSchoolOfRecord()).isEqualTo(savedGraduationStatus.getSchoolOfRecord());
+        assertThat(result.getGpa()).isEqualTo(savedGraduationStatus.getGpa());
+
+        assertThat(result.getRecalculateGradStatus()).isEqualTo(savedGraduationStatus.getRecalculateGradStatus());
+        assertThat(result.getProgramCompletionDate()).isEqualTo(input.getProgramCompletionDate());
+    }
+
+    @Test
     public void testUpdateGraduationStatus_givenDifferentPrograms_when1950ProgramIsValidated_thenReturnErrorWithEmptyObject() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();

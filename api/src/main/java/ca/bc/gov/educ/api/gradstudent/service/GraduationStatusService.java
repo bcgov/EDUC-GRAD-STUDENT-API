@@ -163,7 +163,11 @@ public class GraduationStatusService {
             }
             if(hasDataChanged && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
-                deleteStudentAchievements(sourceObject.getStudentID(),accessToken);
+                if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
+                    archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
+                }else {
+                    deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
+                }
             }
             if (hasDataChanged) {
                 gradEntity.setRecalculateGradStatus("Y");
@@ -688,6 +692,15 @@ public class GraduationStatusService {
               h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
           }).retrieve().bodyToMono(Integer.class).block();
 	}
+
+    private void archiveStudentAchievements(UUID studentID,String accessToken) {
+        webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                }).retrieve().bodyToMono(Integer.class).block();
+    }
+
 
 	public void saveUndoCompletionReason(UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
         StudentUndoCompletionReason toBeSaved = new StudentUndoCompletionReason();
