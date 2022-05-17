@@ -392,10 +392,7 @@ public class GraduationStatusService {
     }
 
     private List<GradStudentCertificates> getGradStudentCertificates(String studentID, String accessToken) {
-        return webClient.get().uri(String.format(constants.getStudentCertificates(), studentID),
-                        uri -> uri
-                                .queryParam("studentID", studentID)
-                                .build())
+        return webClient.get().uri(String.format(constants.getStudentCertificates(), studentID))
                 .headers(h -> {
                     h.setBearerAuth(accessToken);
                     h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
