@@ -911,6 +911,8 @@ public class GraduationStatusService {
         }
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            gradEntity.setUpdateUser(null);
+            gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
             gradEntity.setRecalculateProjectedGrad(null);
             gradEntity.setStudentProjectedGradData(projectedClob);
