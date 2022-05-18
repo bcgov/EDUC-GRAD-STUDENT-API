@@ -302,6 +302,7 @@ public class GraduationStatusService {
             validation.addErrorAndStop("Student with pen %s not found", pen);
         }
         GradSearchStudent gradSearchStudent = gradSearchStudents.get(0);
+        assert gradSearchStudent != null;
 
         String gradDate = null;
         String formerStudent = "F";
@@ -353,9 +354,12 @@ public class GraduationStatusService {
                 case "F":
                     frenchCert = certificateTypeCode;
                     break;
+                default:
+                    break;
             }
         }
-        StudentDemographic studentDemographic = StudentDemographic.builder()
+        assert commonSchool != null;
+        return StudentDemographic.builder()
                 .studentID(gradSearchStudent.getStudentID())
                 .pen(pen)
                 .legalFirstName(gradSearchStudent.getLegalFirstName())
@@ -388,7 +392,6 @@ public class GraduationStatusService {
                 .schoolName(commonSchool.getSchoolName())
                 .formerStudent(formerStudent)
                 .build();
-        return studentDemographic;
     }
 
     private List<GradStudentCertificates> getGradStudentCertificates(String studentID, String accessToken) {
