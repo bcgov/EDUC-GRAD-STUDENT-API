@@ -33,6 +33,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -298,6 +299,115 @@ public class GraduationStatusService {
         return searchResult;
     }
 
+    public StudentDemographic getStudentDemographics(String pen, String accessToken) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM");
+        List<GradSearchStudent> gradSearchStudents = gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken);
+        if(gradSearchStudents.isEmpty()) {
+            validation.addErrorAndStop("Student with pen %s not found", pen);
+        }
+        GradSearchStudent gradSearchStudent = gradSearchStudents.get(0);
+        assert gradSearchStudent != null;
+
+        String gradDate = null;
+        String formerStudent = "F";
+        Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
+        GraduationStudentRecordEntity graduationStudentRecordEntity = null;
+        if(graduationStudentRecordEntityOptional.isPresent()) {
+            graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
+            gradDate = simpleDateFormat.format(graduationStudentRecordEntity.getProgramCompletionDate());
+            if("CUR".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
+                || "TER".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
+            ) {
+                formerStudent = "C";
+            }
+        }
+
+        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getMincode());
+        if(commonSchool == null) {
+            validation.addErrorAndStop("Common School with mincode %s not found", gradSearchStudent.getMincode());
+        }
+
+        String englishCert = "";
+        String frenchCert = "";
+        String dogwood = null;
+        String sccDate = null;
+        List<GradStudentCertificates> gradStudentCertificates = getGradStudentCertificates(gradSearchStudent.getStudentID(), accessToken);
+        for(GradStudentCertificates certificates: gradStudentCertificates) {
+            String certificateTypeCode = certificates.getGradCertificateTypeCode();
+            dogwood = (!"SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && certificates.getDistributionDate() != null) ? "Y" : "N";
+            sccDate = ("SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && certificates.getDistributionDate() != null) ? simpleDateFormat.format(certificates.getDistributionDate()) : null;
+            switch(certificateTypeCode) {
+                case "E":
+                    englishCert = certificateTypeCode;
+                    break;
+                case "EI":
+                    englishCert = "E";
+                    break;
+                case "A":
+                    englishCert = "E";
+                    break;
+                case "AI":
+                    englishCert = "E";
+                    break;
+                case "O":
+                    englishCert = "E";
+                    break;
+                case "S":
+                    frenchCert = certificateTypeCode;
+                    break;
+                case "F":
+                    frenchCert = certificateTypeCode;
+                    break;
+                default:
+                    break;
+            }
+        }
+        assert commonSchool != null;
+        return StudentDemographic.builder()
+                .studentID(gradSearchStudent.getStudentID())
+                .pen(pen)
+                .legalFirstName(gradSearchStudent.getLegalFirstName())
+                .legalMiddleNames(gradSearchStudent.getLegalMiddleNames())
+                .legalLastName(gradSearchStudent.getLegalLastName())
+                .dob(gradSearchStudent.getDob())
+                .sexCode(gradSearchStudent.getSexCode())
+                .genderCode(gradSearchStudent.getGenderCode())
+                .usualFirstName(gradSearchStudent.getUsualFirstName())
+                .usualMiddleNames(gradSearchStudent.getUsualMiddleNames())
+                .usualLastName(gradSearchStudent.getUsualLastName())
+                .email(gradSearchStudent.getEmail())
+                .emailVerified(gradSearchStudent.getEmailVerified())
+                .deceasedDate(gradSearchStudent.getDeceasedDate())
+                .postalCode(gradSearchStudent.getPostalCode())
+                .mincode(gradSearchStudent.getMincode())
+                .gradeCode(gradSearchStudent.getGradeCode())
+                .gradeYear(gradSearchStudent.getGradeYear())
+                .demogCode(gradSearchStudent.getDemogCode())
+                .statusCode(gradSearchStudent.getStatusCode())
+                .trueStudentID(gradSearchStudent.getTrueStudentID())
+                .gradProgram(gradSearchStudent.getProgram())
+                .gradDate(gradDate)
+                .dogwoodFlag(dogwood)
+                .frenchCert(frenchCert)
+                .englishCert(englishCert)
+                .sccDate(sccDate)
+                .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
+                .schoolCategory(commonSchool.getSchoolCategoryCode())
+                .schoolName(commonSchool.getSchoolName())
+                .formerStudent(formerStudent)
+                .build();
+    }
+
+    private List<GradStudentCertificates> getGradStudentCertificates(String studentID, String accessToken) {
+        return webClient.get().uri(String.format(constants.getStudentCertificates(), studentID))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
+                .retrieve().bodyToMono(new ParameterizedTypeReference<List<GradStudentCertificates>>() {
+                }).block();
+    }
+
     public List<CommonSchool> getSchools(String accessToken) {
         List<CommonSchool> commonSchools = webClient.get().uri((constants.getSchoolsSchoolApiUrl()))
             .headers(h -> {
@@ -309,13 +419,17 @@ public class GraduationStatusService {
         return commonSchools;
     }
 
+    public CommonSchool getCommonSchool(String accessToken, String mincode) {
+        return webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
+                .retrieve().bodyToMono(CommonSchool.class).block();
+    }
+
     public String getSchoolCategoryCode(String accessToken, String mincode) {
-        CommonSchool commonSchoolObj = webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode))
-            .headers(h -> {
-                h.setBearerAuth(accessToken);
-                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-            })
-            .retrieve().bodyToMono(CommonSchool.class).block();
+        CommonSchool commonSchoolObj = getCommonSchool(accessToken, mincode);
         if (commonSchoolObj != null) {
             return commonSchoolObj.getSchoolCategoryCode();
         }
@@ -331,8 +445,8 @@ public class GraduationStatusService {
                 .retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
     }
 
-    private String getSchoolName(String minCode, String accessToken) {
-        School schObj = webClient.get()
+    private School getSchool(String minCode, String accessToken) {
+        return webClient.get()
                 .uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
                 .headers(h -> {
                     h.setBearerAuth(accessToken);
@@ -341,14 +455,18 @@ public class GraduationStatusService {
                 .retrieve()
                 .bodyToMono(School.class)
                 .block();
+    }
+
+    private String getSchoolName(String minCode, String accessToken) {
+        School schObj = getSchool(minCode, accessToken);
         if (schObj != null)
             return schObj.getSchoolName();
         else
             return null;
     }
 
-    private String getDistrictName(String districtCode, String accessToken) {
-        District distObj = webClient.get()
+    private District getDistrict(String districtCode, String accessToken) {
+        return webClient.get()
                 .uri(String.format(constants.getDistrictByDistrictCodeUrl(), districtCode))
                 .headers(h -> {
                     h.setBearerAuth(accessToken);
@@ -357,14 +475,18 @@ public class GraduationStatusService {
                 .retrieve()
                 .bodyToMono(District.class)
                 .block();
+    }
+
+    private String getDistrictName(String districtCode, String accessToken) {
+        District distObj = getDistrict(districtCode, accessToken);
         if (distObj != null)
             return distObj.getDistrictName();
         else
             return null;
     }
 
-    private String getProgramName(String programCode, String accessToken) {
-        GradProgram gradProgram = webClient.get()
+    private GradProgram getProgram(String programCode, String accessToken) {
+        return webClient.get()
                 .uri(String.format(constants.getGradProgramNameUrl(), programCode))
                 .headers(h -> {
                     h.setBearerAuth(accessToken);
@@ -373,6 +495,10 @@ public class GraduationStatusService {
                 .retrieve()
                 .bodyToMono(GradProgram.class)
                 .block();
+    }
+
+    private String getProgramName(String programCode, String accessToken) {
+        GradProgram gradProgram = getProgram(programCode, accessToken);
         if (gradProgram != null)
             return gradProgram.getProgramName();
         return null;

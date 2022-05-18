@@ -177,6 +177,8 @@ endpoint:
   grad-graduation-report-api:
     delete-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentachievement/%s
+    student-certificates:
+      url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentcertificates?studentID=%s
     archive-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/archiveachievement/%s
   educ-school-api:
