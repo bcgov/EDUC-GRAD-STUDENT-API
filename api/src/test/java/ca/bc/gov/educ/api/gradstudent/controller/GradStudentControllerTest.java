@@ -31,7 +31,7 @@ public class GradStudentControllerTest {
         assertEquals(20-10, 40-30);
     }
 
-    /*@Test
+    @Test
     public void testGetGradStudentFromStudentAPI() {
         // ID
         final UUID studentID = UUID.randomUUID();
@@ -60,24 +60,17 @@ public class GradStudentControllerTest {
         studentSearch.setSize(5);
         studentSearch.setNumberOfElements(1);
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
 
         StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder().legalLastName(lastName).mincode(mincode).build();
 
         Mockito.when(gradStudentService.getStudentFromStudentAPI(studentSearchRequest, 1, 5, null)).thenReturn(studentSearch);
         gradStudentController.getGradNPenGradStudentFromStudentAPI(null, lastName, null, null, null, null, null, mincode, null, null,
-                null, 1, 5, "");
+                null, 1, 5, null);
         Mockito.verify(gradStudentService).getStudentFromStudentAPI(studentSearchRequest, 1, 5, null);
 
-    }*/
+    }
 
-    /*@Test
+    @Test
     public void testGetGradStudentByPenFromStudentAPI() {
         // ID
         final UUID studentID = UUID.randomUUID();
@@ -99,20 +92,13 @@ public class GradStudentControllerTest {
         gradSearchStudent.setStudentStatus(gradStatus);
         gradSearchStudent.setSchoolOfRecordName(schoolName);
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(gradStudentService.getStudentByPenFromStudentAPI(pen, null)).thenReturn(Arrays.asList(gradSearchStudent));
-        gradStudentController.getGradStudentByPenFromStudentAPI(pen, "");
-        Mockito.verify(gradStudentService).getStudentByPenFromStudentAPI(pen, null);
-    }*/
+        Mockito.when(gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken")).thenReturn(Arrays.asList(gradSearchStudent));
+        gradStudentController.getGradStudentByPenFromStudentAPI(pen, "accessToken");
+        Mockito.verify(gradStudentService).getStudentByPenFromStudentAPI(pen, "accessToken");
+    }
 
-    /*@Test
+    @Test
     public void testAddNewPenFromStudentAPI() {
         // ID
         final UUID studentID = UUID.randomUUID();
@@ -142,17 +128,10 @@ public class GradStudentControllerTest {
         student.setDob("1990-01-01");
         student.setHistoryActivityCode("USERNEW");
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(gradStudentService.addNewPenFromStudentAPI(student, null)).thenReturn(student);
-        gradStudentController.addNewPenFromStudentAPI(student, "");
-        Mockito.verify(gradStudentService).addNewPenFromStudentAPI(student, null);
-    }*/
+        Mockito.when(gradStudentService.addNewPenFromStudentAPI(student, "accessToken")).thenReturn(student);
+        gradStudentController.addNewPenFromStudentAPI(student, "accessToken");
+        Mockito.verify(gradStudentService).addNewPenFromStudentAPI(student, "accessToken");
+    }
 
 }

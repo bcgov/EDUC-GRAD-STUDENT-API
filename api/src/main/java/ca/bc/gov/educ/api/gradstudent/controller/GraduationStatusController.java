@@ -214,7 +214,7 @@ public class GraduationStatusController {
             validation.stopOnErrors();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        var result = gradStatusService.ungradStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken.replaceAll("Bearer ", ""));
+        var result = gradStatusService.undoCompletionStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken.replaceAll("Bearer ", ""));
         publishToJetStream(result.getRight());
         return response.GET(result.getLeft());
     }
@@ -290,9 +290,9 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<GraduationStudentRecord> saveStudentGradStatusProjectedRun(@PathVariable String studentID, @RequestParam(required = false) Long batchId) {
+    public ResponseEntity<GraduationStudentRecord> saveStudentGradStatusProjectedRun(@PathVariable String studentID, @RequestParam(required = false) Long batchId, @RequestBody ProjectedRunClob projectedRunClob) {
         logger.debug("Save student Grad Status for Student ID");
-        GraduationStudentRecord gradRecord =  gradStatusService.saveStudentRecordProjectedTVRRun(UUID.fromString(studentID),batchId);
+        GraduationStudentRecord gradRecord =  gradStatusService.saveStudentRecordProjectedTVRRun(UUID.fromString(studentID),batchId,projectedRunClob);
         return response.GET(gradRecord);
     }
 
@@ -332,5 +332,15 @@ public class GraduationStatusController {
         }else {
             return response.NO_CONTENT();
         }
+    }
+
+    @PostMapping (EducGradStudentApiConstants.GRADUATION_RECORD_BY_STUDENT_ID_DISTRIBUTION_RUN)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
+    @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<GraduationStudentRecord> saveStudentGradStatusDistributionRun(@PathVariable String studentID, @RequestParam(required = false) Long batchId,@RequestParam(required = false) String activityCode) {
+        logger.debug("Save student Grad Status for Student ID");
+        GraduationStudentRecord gradRecord =  gradStatusService.saveStudentRecordDistributionRun(UUID.fromString(studentID),batchId,activityCode);
+        return response.GET(gradRecord);
     }
 }

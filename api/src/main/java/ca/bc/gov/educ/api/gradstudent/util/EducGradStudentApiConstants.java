@@ -36,6 +36,7 @@ public class EducGradStudentApiConstants {
     public static final String GRADUATION_STATUS_BY_STUDENT_ID_FOR_ALGORITHM = "/studentid/{studentID}/algorithm";
     public static final String GRAD_STUDENT_UPDATE_BY_STUDENT_ID = "/gradstudent/studentid/{studentID}";
     public static final String GRADUATION_RECORD_BY_STUDENT_ID_PROJECTED_RUN = "/projected/studentid/{studentID}";
+    public static final String GRADUATION_RECORD_BY_STUDENT_ID_DISTRIBUTION_RUN = "/distribution/studentid/{studentID}";
 
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN = "/optionalprogram/studentid/{studentID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";
@@ -44,7 +45,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GRAD_STUDENT_PROJECTED_RUN = "/projected";
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
-    public static final String UNGRAD_STUDENT = "/ungradstudent/studentid/{studentID}";
+    public static final String UNGRAD_STUDENT = "/undocompletionstudent/studentid/{studentID}";
 
     public static final String GET_ALL_STUDENT_CAREER_MAPPING = "/studentcareerprogram/studentid/{studentID}";
     public static final String STUDENT_REPORT = "/studentreport";
@@ -119,10 +120,10 @@ public class EducGradStudentApiConstants {
     private String penStudentApiByStudentIdUrl;
 
     @Value("${endpoint.grad-student-graduation-api.save-student-ungrad-reason.url}")
-    private String saveStudentUngradReasonByStudentIdUrl;
+    private String saveStudentUndoCompletionReasonByStudentIdUrl;
 
     @Value("${endpoint.grad-student-graduation-api.ungrad-reason.ungrad-reason-by-reason-code.url}")
-    private String ungradReasonDetailsUrl;
+    private String undoCompletionReasonDetailsUrl;
 
     @Value("${endpoint.pen-student-api.search.url}")
     private String penStudentApiSearchUrl;
@@ -136,8 +137,12 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-graduation-report-api.delete-student-achievement.url}")
     private String deleteStudentAchievements;
 
+
     @Value("${endpoint.grad-graduation-report-api.student-certificates.url}")
     private String studentCertificates;
+
+    @Value("${endpoint.grad-graduation-report-api.archive-student-achievement.url}")
+    private String archiveStudentAchievements;
 
     @Value("${endpoint.educ-school-api.get-school-by-mincode.url}")
     private String schoolByMincodeSchoolApiUrl;

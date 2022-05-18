@@ -68,6 +68,10 @@ public class GraduationStudentRecordEntity extends BaseEntity {
     @Column(name = "CONSUMER_EDUC_REQT_MET", nullable = true)
     private String consumerEducationRequirementMet;
 
+    @Lob
+    @Column(name = "STUDENT_PROJECTED_GRAD_DATA", columnDefinition="CLOB")
+    private String studentProjectedGradData;
+
     @Transient
     private String legalFirstName;
 

@@ -164,7 +164,11 @@ public class GraduationStatusService {
             }
             if(hasDataChanged && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
-                deleteStudentAchievements(sourceObject.getStudentID(),accessToken);
+                if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
+                    archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
+                }else {
+                    deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
+                }
             }
             if (hasDataChanged) {
                 gradEntity.setRecalculateGradStatus("Y");
@@ -765,19 +769,19 @@ public class GraduationStatusService {
 
     @Transactional
     @Retry(name = "generalpostcall")
-    public Pair<GraduationStudentRecord, GradStatusEvent> ungradStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) throws JsonProcessingException {
+    public Pair<GraduationStudentRecord, GradStatusEvent> undoCompletionStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) throws JsonProcessingException {
         if(StringUtils.isNotBlank(ungradReasonCode)) {
-        	UngradReason ungradReasonObj = webClient.get().uri(String.format(constants.getUngradReasonDetailsUrl(),ungradReasonCode))
+        	UndoCompletionReason ungradReasonObj = webClient.get().uri(String.format(constants.getUndoCompletionReasonDetailsUrl(),ungradReasonCode))
               .headers(h -> {
                   h.setBearerAuth(accessToken);
                   h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
               })
-              .retrieve().bodyToMono(UngradReason.class).block();
+              .retrieve().bodyToMono(UndoCompletionReason.class).block();
     		if(ungradReasonObj != null) {
 		    	Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
 		        if (gradStatusOptional.isPresent()) {
 		            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-		            saveUngradReason(studentID,ungradReasonCode,ungradDesc,accessToken);
+		            saveUndoCompletionReason(studentID,ungradReasonCode,ungradDesc,accessToken);
 		            deleteStudentAchievements(studentID,accessToken);
                     gradEntity.setRecalculateGradStatus("Y");
                     gradEntity.setRecalculateProjectedGrad("Y");
@@ -815,18 +819,27 @@ public class GraduationStatusService {
           }).retrieve().bodyToMono(Integer.class).block();
 	}
 
-	public void saveUngradReason(UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
-        StudentUngradReason toBeSaved = new StudentUngradReason();
+    private void archiveStudentAchievements(UUID studentID,String accessToken) {
+        webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                }).retrieve().bodyToMono(Integer.class).block();
+    }
+
+
+	public void saveUndoCompletionReason(UUID studentID, String ungradReasonCode, String unGradDesc,String accessToken) {
+        StudentUndoCompletionReason toBeSaved = new StudentUndoCompletionReason();
         toBeSaved.setGraduationStudentRecordID(studentID);
-        toBeSaved.setUngradReasonCode(ungradReasonCode);
-        toBeSaved.setUngradReasonDescription(unGradDesc);
-        webClient.post().uri(String.format(constants.getSaveStudentUngradReasonByStudentIdUrl(),studentID))
+        toBeSaved.setUndoCompletionReasonCode(ungradReasonCode);
+        toBeSaved.setUndoCompletionReasonDescription(unGradDesc);
+        webClient.post().uri(String.format(constants.getSaveStudentUndoCompletionReasonByStudentIdUrl(),studentID))
             .headers(h -> {
                 h.setBearerAuth(accessToken);
                 h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
             })
             .body(BodyInserters.fromValue(toBeSaved))
-            .retrieve().bodyToMono(GradStudentUngradReasons.class).block();
+            .retrieve().bodyToMono(StudentUndoCompletionReason.class).block();
     }
 
     private GradStatusEvent createGradStatusEvent(String createUser, String updateUser,
@@ -872,13 +885,35 @@ public class GraduationStatusService {
         return false;
 	}
 
+
+
     @Retry(name = "generalpostcall")
-    public GraduationStudentRecord saveStudentRecordProjectedTVRRun(UUID studentID,Long batchId) {
+    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId,String activityCode) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
             gradEntity.setBatchId(batchId);
+            gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
+            historyService.createStudentHistory(gradEntity, activityCode);
+            return graduationStatusTransformer.transformToDTO(gradEntity);
+        }
+        return null;
+    }
+
+    @Retry(name = "generalpostcall")
+    public GraduationStudentRecord saveStudentRecordProjectedTVRRun(UUID studentID, Long batchId, ProjectedRunClob projectedRunClob) {
+        Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        String projectedClob = null;
+        try {
+            projectedClob = new ObjectMapper().writeValueAsString(projectedRunClob);
+        } catch (JsonProcessingException e) {
+            logger.debug("JSON error {}",e.getMessage());
+        }
+        if (gradStatusOptional.isPresent()) {
+            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            gradEntity.setBatchId(batchId);
             gradEntity.setRecalculateProjectedGrad(null);
+            gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, "GRADPROJECTED");
             return graduationStatusTransformer.transformToDTO(gradEntity);

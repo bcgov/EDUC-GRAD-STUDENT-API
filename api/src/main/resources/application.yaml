@@ -162,9 +162,9 @@ endpoint:
   grad-student-graduation-api:
     ungrad-reason: 
       ungrad-reason-by-reason-code: 
-        url: ${GRAD_STUDENT_GRADUATION_API}api/v1/ungrad/ungradreason/%s
+        url: ${GRAD_STUDENT_GRADUATION_API}api/v1/undocompletion/undocompletionreason/%s
     save-student-ungrad-reason:
-      url: ${GRAD_STUDENT_GRADUATION_API}api/v1/ungrad/studentungradreason/studentid/%s
+      url: ${GRAD_STUDENT_GRADUATION_API}api/v1/undocompletion/studentundocompletionreason/studentid/%s
   pen-student-api:
     by-studentid:
       url: ${PEN_API}api/v1/student/%s
@@ -179,6 +179,8 @@ endpoint:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentachievement/%s
     student-certificates:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentcertificates?studentID=%s
+    archive-student-achievement:
+      url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/archiveachievement/%s
   educ-school-api:
     url: ${EDUC_SCHOOL_API}api/v1/schools
     get-school-by-mincode:
