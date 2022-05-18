@@ -1296,19 +1296,52 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setSchoolOfRecord("12345678");
 
+        ProjectedRunClob projectedRunClob = ProjectedRunClob.builder().graduated(true).gradMessage("asdasd").nonGradReasons(new ArrayList<>()).requirementsMet(new ArrayList<>()).dualDogwood(false).build();
+        String projectedClob = null;
+        try {
+            projectedClob = new ObjectMapper().writeValueAsString(projectedRunClob);
+        } catch (JsonProcessingException e) {}
+
         GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
         graduationStatusEntity2.setStudentID(studentID);
         graduationStatusEntity2.setPen("12321321");
         graduationStatusEntity2.setStudentStatus("A");
         graduationStatusEntity2.setSchoolOfRecord("12345678");
         graduationStatusEntity2.setRecalculateProjectedGrad(null);
+        graduationStatusEntity2.setStudentProjectedGradData(projectedClob);
         graduationStatusEntity2.setBatchId(batchId);
 
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
 
-        graduationStatusService.saveStudentRecordProjectedTVRRun(studentID, batchId);
+        graduationStatusService.saveStudentRecordProjectedTVRRun(studentID, batchId, projectedRunClob);
+
+    }
+
+    @Test
+    public void testSaveStudentRecord_DistributionRun() {
+        UUID studentID = new UUID(1, 1);
+        Long batchId = null;
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+
+
+        GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
+        graduationStatusEntity2.setStudentID(studentID);
+        graduationStatusEntity2.setPen("12321321");
+        graduationStatusEntity2.setStudentStatus("A");
+        graduationStatusEntity2.setSchoolOfRecord("12345678");
+        graduationStatusEntity2.setBatchId(batchId);
+
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
+
+        graduationStatusService.saveStudentRecordDistributionRun(studentID, batchId, "ACTIVITYCODE");
 
     }
 

@@ -759,13 +759,35 @@ public class GraduationStatusService {
         return false;
 	}
 
+
+
     @Retry(name = "generalpostcall")
-    public GraduationStudentRecord saveStudentRecordProjectedTVRRun(UUID studentID,Long batchId) {
+    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId,String activityCode) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
             gradEntity.setBatchId(batchId);
+            gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
+            historyService.createStudentHistory(gradEntity, activityCode);
+            return graduationStatusTransformer.transformToDTO(gradEntity);
+        }
+        return null;
+    }
+
+    @Retry(name = "generalpostcall")
+    public GraduationStudentRecord saveStudentRecordProjectedTVRRun(UUID studentID, Long batchId, ProjectedRunClob projectedRunClob) {
+        Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        String projectedClob = null;
+        try {
+            projectedClob = new ObjectMapper().writeValueAsString(projectedRunClob);
+        } catch (JsonProcessingException e) {
+            logger.debug("JSON error {}",e.getMessage());
+        }
+        if (gradStatusOptional.isPresent()) {
+            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            gradEntity.setBatchId(batchId);
             gradEntity.setRecalculateProjectedGrad(null);
+            gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, "GRADPROJECTED");
             return graduationStatusTransformer.transformToDTO(gradEntity);
