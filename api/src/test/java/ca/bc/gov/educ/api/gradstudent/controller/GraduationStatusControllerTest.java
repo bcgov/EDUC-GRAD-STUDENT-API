@@ -428,10 +428,27 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setSchoolOfRecord("12345678");
         graduationStatus.setRecalculateGradStatus("Y");
+        ProjectedRunClob projectedRunClob = ProjectedRunClob.builder().graduated(true).gradMessage("asdasd").nonGradReasons(new ArrayList<>()).requirementsMet(new ArrayList<>()).dualDogwood(false).build();
 
-        Mockito.when(graduationStatusService.saveStudentRecordProjectedTVRRun(studentID,null)).thenReturn(graduationStatus);
-        graduationStatusController.saveStudentGradStatusProjectedRun(studentID.toString(),null);
-        Mockito.verify(graduationStatusService).saveStudentRecordProjectedTVRRun(studentID,null);
+        Mockito.when(graduationStatusService.saveStudentRecordProjectedTVRRun(studentID,null, projectedRunClob)).thenReturn(graduationStatus);
+        graduationStatusController.saveStudentGradStatusProjectedRun(studentID.toString(),null,projectedRunClob);
+        Mockito.verify(graduationStatusService).saveStudentRecordProjectedTVRRun(studentID,null, projectedRunClob);
+    }
+
+    @Test
+    public void testSaveStudentRecord_DsitributionRun() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setStudentStatus("A");
+        graduationStatus.setSchoolOfRecord("12345678");
+        graduationStatus.setRecalculateGradStatus("Y");
+
+        Mockito.when(graduationStatusService.saveStudentRecordDistributionRun(studentID,null,"ACTIVITYCODE")).thenReturn(graduationStatus);
+        graduationStatusController.saveStudentGradStatusDistributionRun(studentID.toString(),null,"ACTIVITYCODE");
+        Mockito.verify(graduationStatusService).saveStudentRecordDistributionRun(studentID,null,"ACTIVITYCODE");
     }
     
     @Test
