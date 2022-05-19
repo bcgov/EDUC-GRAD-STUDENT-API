@@ -165,6 +165,13 @@ public class GraduationStatusService {
             if(hasDataChanged && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
+                    sourceObject.setRecalculateGradStatus("Y");
+                    sourceObject.setRecalculateProjectedGrad("Y");
+                    sourceObject.setStudentGradData(null);
+                    sourceObject.setProgramCompletionDate(null);
+                    sourceObject.setHonoursStanding(null);
+                    sourceObject.setGpa(null);
+                    sourceObject.setSchoolAtGrad(null);
                     archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
                 }else {
                     deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
