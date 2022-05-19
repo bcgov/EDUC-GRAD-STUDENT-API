@@ -428,7 +428,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setSchoolOfRecord("12345678");
         graduationStatus.setRecalculateGradStatus("Y");
-        ProjectedRunClob projectedRunClob = ProjectedRunClob.builder().graduated(true).gradMessage("asdasd").nonGradReasons(new ArrayList<>()).requirementsMet(new ArrayList<>()).dualDogwood(false).build();
+        ProjectedRunClob projectedRunClob = ProjectedRunClob.builder().graduated(true).nonGradReasons(new ArrayList<>()).build();
 
         Mockito.when(graduationStatusService.saveStudentRecordProjectedTVRRun(studentID,null, projectedRunClob)).thenReturn(graduationStatus);
         graduationStatusController.saveStudentGradStatusProjectedRun(studentID.toString(),null,projectedRunClob);
