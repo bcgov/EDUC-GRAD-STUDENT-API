@@ -1296,7 +1296,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setSchoolOfRecord("12345678");
 
-        ProjectedRunClob projectedRunClob = ProjectedRunClob.builder().graduated(true).gradMessage("asdasd").nonGradReasons(new ArrayList<>()).requirementsMet(new ArrayList<>()).dualDogwood(false).build();
+        ProjectedRunClob projectedRunClob = ProjectedRunClob.builder().graduated(true).nonGradReasons(new ArrayList<>()).build();
         String projectedClob = null;
         try {
             projectedClob = new ObjectMapper().writeValueAsString(projectedRunClob);
