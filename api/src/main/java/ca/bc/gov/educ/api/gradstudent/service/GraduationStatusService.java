@@ -871,6 +871,7 @@ public class GraduationStatusService {
                 .eventStatus(DB_COMMITTED.toString())
                 .eventOutcome(eventOutcome.toString())
                 .activityCode(activityCode)
+                .sagaId(StringUtils.isNotBlank(ThreadLocalStateUtil.getCorrelationID())? UUID.fromString(ThreadLocalStateUtil.getCorrelationID()) : null)
                 .build();
     }
 
