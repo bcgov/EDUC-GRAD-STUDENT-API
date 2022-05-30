@@ -14,6 +14,7 @@ public class GraduationStudentRecordHistory extends BaseModel{
 
 	private UUID historyID;
 	private String activityCode;
+    private String activityCodeDescription;
     private String studentGradData;
     private String pen;
     private String program;

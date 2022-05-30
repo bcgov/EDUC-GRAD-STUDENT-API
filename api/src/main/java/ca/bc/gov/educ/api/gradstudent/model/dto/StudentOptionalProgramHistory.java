@@ -13,6 +13,7 @@ public class StudentOptionalProgramHistory extends BaseModel{
 
     private UUID historyId;
     private String activityCode;
+    private String activityCodeDescription;
 	private UUID studentOptionalProgramId;
     private String pen;
     private UUID optionalProgramID;
