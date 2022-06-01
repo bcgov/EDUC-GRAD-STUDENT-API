@@ -93,6 +93,7 @@ public class GraduationStatusTransformer {
                 distObj.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
                 distObj.setLegalLastName(existingData.getGradStudent().getLegalLastName());
                 distObj.setNonGradReasons(existingData.getNonGradReasons());
+                distObj.setStudentGrade(existingData.getGradStudent().getStudentGrade());
             }
         }
         return distObj;
