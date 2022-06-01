@@ -31,4 +31,7 @@ public class GraduationStudentRecord extends BaseModel{
     private Long batchId;
     private String consumerEducationRequirementMet;
     private String studentProjectedGradData;
+    private String legalFirstName;
+    private String legalMiddleNames;
+    private String legalLastName;
 }

@@ -28,22 +28,10 @@ public class GraduationStatusTransformer {
     @Autowired
     GradValidation validation;
 
-    private static ObjectMapper objectMapper;
-
-    static {
-        objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
-
     public GraduationStudentRecord transformToDTO (GraduationStudentRecordEntity gradStatusEntity) {
     	GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
     	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
     	return gradStatus;
-    }
-
-    public GraduationStudentRecord tToD (GraduationStudentRecordEntity gradStatusEntity) {
-        GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
-        gradStatus.setStudentGradData(null);
-        return gradStatus;
     }
 
     public GraduationStudentRecord transformToDTO ( Optional<GraduationStudentRecordEntity> gradStatusEntity ) {
@@ -60,7 +48,6 @@ public class GraduationStatusTransformer {
 		List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
         for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
-            gradStatus.setStudentGradData(null);
         	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
         	gradStatusList.add(gradStatus);
         }
