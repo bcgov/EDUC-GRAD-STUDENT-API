@@ -39,6 +39,7 @@ import java.util.UUID;
 public class GraduationStatusController {
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusController.class);
+    private static final String BEARER = "Bearer ";
 
     @Autowired
     GraduationStatusService gradStatusService;
@@ -61,7 +62,7 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "204", description = "NO CONTENT")})
     public ResponseEntity<GraduationStudentRecord> getStudentGradStatus(@PathVariable String studentID, @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Get Student Grad Status for studentID");
-        GraduationStudentRecord gradResponse = gradStatusService.getGraduationStatus(UUID.fromString(studentID),accessToken.replaceAll("Bearer ", ""));
+        GraduationStudentRecord gradResponse = gradStatusService.getGraduationStatus(UUID.fromString(studentID),accessToken.replace(BEARER, ""));
         if(gradResponse != null) {
             return response.GET(gradResponse);
         }else {
@@ -92,7 +93,7 @@ public class GraduationStatusController {
                                                                          @RequestParam(required = false) Long batchId,
                                                                          @RequestHeader(name="Authorization") String accessToken) throws JsonProcessingException {
         logger.debug("Save student Grad Status for Student ID");
-        var result = gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus,batchId,accessToken.replaceAll("Bearer ", ""));
+        var result = gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus,batchId,accessToken.replace(BEARER, ""));
         publishToJetStream(result.getRight());
         return response.GET(result.getLeft());
     }
@@ -110,7 +111,7 @@ public class GraduationStatusController {
             validation.stopOnErrors();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        var result = gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken.replaceAll("Bearer ", ""));
+        var result = gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken.replace(BEARER, ""));
         publishToJetStream(result.getRight());
         return response.GET(result.getLeft());
     }
@@ -122,7 +123,7 @@ public class GraduationStatusController {
     public ResponseEntity<List<StudentOptionalProgram>> getStudentGradOptionalPrograms(@PathVariable String studentID,
                                                                                        @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Get Student Grad Status for Student ID");
-        List<StudentOptionalProgram> gradResponse = gradStatusService.getStudentGradOptionalProgram(UUID.fromString(studentID),accessToken.replaceAll("Bearer ", ""));
+        List<StudentOptionalProgram> gradResponse = gradStatusService.getStudentGradOptionalProgram(UUID.fromString(studentID),accessToken.replace(BEARER, ""));
         if(!gradResponse.isEmpty()) {
             return response.GET(gradResponse);
         }else {
@@ -137,7 +138,7 @@ public class GraduationStatusController {
     public ResponseEntity<StudentOptionalProgram> getStudentGradOptionalProgram(@PathVariable String studentID,@PathVariable String optionalProgramID,
                                                                                 @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Get Student Grad Status for Student ID");
-        StudentOptionalProgram gradResponse = gradStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(UUID.fromString(studentID),optionalProgramID,accessToken.replaceAll("Bearer ", ""));
+        StudentOptionalProgram gradResponse = gradStatusService.getStudentGradOptionalProgramByProgramCodeAndOptionalProgramCode(UUID.fromString(studentID),optionalProgramID,accessToken.replace(BEARER, ""));
         if(gradResponse != null) {
             return response.GET(gradResponse);
         }else {
@@ -161,7 +162,7 @@ public class GraduationStatusController {
     public ResponseEntity<StudentOptionalProgram> updateStudentGradOptionalProgram(@RequestBody StudentOptionalProgramReq gradStudentOptionalProgramReq,
                                                                                    @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Update student Grad Status for PEN: ");
-        return response.GET(gradStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq,accessToken.replaceAll("Bearer ", "")));
+        return response.GET(gradStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq,accessToken.replace(BEARER, "")));
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_RECALCULATE)
@@ -177,9 +178,9 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Students For Batch Projected Algorithm", description = "Get Students For Batch Projected Algorithm", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForProjectedGraduation() {
+    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForProjectedGraduation(@RequestHeader(name="Authorization") String accessToken) {
         logger.debug("getStudentsForProjectedGraduation:");
-        return response.GET(gradStatusService.getStudentsForProjectedGraduation());
+        return response.GET(gradStatusService.getStudentsForProjectedGraduation(accessToken.replace(BEARER, "")));
     }
 
     @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_BY_LIST_CRITERIAS)
@@ -188,8 +189,7 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecordSearchResult> searchGraduationStudentRecords(@RequestBody StudentSearchRequest searchRequest,
                                                                                               @RequestHeader(name="Authorization") String accessToken) {
-        logger.debug("searchGraduationStudentRecords:{}", searchRequest.toJson());
-        return response.GET(gradStatusService.searchGraduationStudentRecords(searchRequest, accessToken.replaceAll("Bearer ", "")));
+        return response.GET(gradStatusService.searchGraduationStudentRecords(searchRequest, accessToken.replace(BEARER, "")));
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING)
@@ -214,7 +214,7 @@ public class GraduationStatusController {
             validation.stopOnErrors();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        var result = gradStatusService.undoCompletionStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken.replaceAll("Bearer ", ""));
+        var result = gradStatusService.undoCompletionStudent(UUID.fromString(studentID),ungradReasonCode,ungradReasonDesc,accessToken.replace(BEARER, ""));
         publishToJetStream(result.getRight());
         return response.GET(result.getLeft());
     }
@@ -250,7 +250,7 @@ public class GraduationStatusController {
     @Operation(summary = "Get Student Demographics by PEN", description = "Search for Student Demographics by PEN", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public StudentDemographic getStudentDemographics(@PathVariable String pen, @RequestHeader(name="Authorization") String accessToken) {
-        return gradStatusService.getStudentDemographics(pen,accessToken.replace("Bearer ", ""));
+        return gradStatusService.getStudentDemographics(pen,accessToken.replace(BEARER, ""));
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_HISTORY)
@@ -260,7 +260,7 @@ public class GraduationStatusController {
     public ResponseEntity<List<StudentOptionalProgramHistory>> getStudentOptionalProgramHistory(@PathVariable String studentID,
                                                                                                 @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("getStudentOptionalProgramEditHistory:");
-        List<StudentOptionalProgramHistory> histList = historyService.getStudentOptionalProgramEditHistory(UUID.fromString(studentID),accessToken.replaceAll("Bearer ", ""));
+        List<StudentOptionalProgramHistory> histList = historyService.getStudentOptionalProgramEditHistory(UUID.fromString(studentID),accessToken.replace(BEARER, ""));
         Collections.sort(histList, Comparator.comparing(StudentOptionalProgramHistory::getCreateDate));
         return response.GET(histList);
     }
@@ -282,7 +282,7 @@ public class GraduationStatusController {
     public ResponseEntity<StudentOptionalProgramHistory> getStudentOptionalProgramHistoryByID(@PathVariable String historyID,
                                                                                               @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("getStudentOptionalProgramEditHistory:");
-        StudentOptionalProgramHistory histObj = historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),accessToken.replaceAll("Bearer ", ""));
+        StudentOptionalProgramHistory histObj = historyService.getStudentOptionalProgramHistoryByID(UUID.fromString(historyID),accessToken.replace(BEARER, ""));
         return response.GET(histObj);
     }
 
@@ -291,7 +291,7 @@ public class GraduationStatusController {
     @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecord> saveStudentGradStatusProjectedRun(@PathVariable String studentID, @RequestParam(required = false) Long batchId, @RequestBody ProjectedRunClob projectedRunClob) {
-        logger.debug("Save student Grad Status for Student ID");
+        logger.debug("Save Projected student Grad Status for Student ID");
         GraduationStudentRecord gradRecord =  gradStatusService.saveStudentRecordProjectedTVRRun(UUID.fromString(studentID),batchId,projectedRunClob);
         return response.GET(gradRecord);
     }
@@ -304,7 +304,7 @@ public class GraduationStatusController {
             @PathVariable Long batchId, @RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize, @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("getStudentHistoryByBatchID:");
-        Page<GraduationStudentRecordHistoryEntity> historyList = historyService.getStudentHistoryByBatchID(batchId,pageNumber,pageSize,accessToken.replaceAll("Bearer ", ""));
+        Page<GraduationStudentRecordHistoryEntity> historyList = historyService.getStudentHistoryByBatchID(batchId,pageNumber,pageSize,accessToken.replace(BEARER, ""));
         return response.GET(historyList);
     }
 
@@ -315,7 +315,7 @@ public class GraduationStatusController {
     public ResponseEntity<List<GraduationStudentRecordEntity>> getStudentDetailsByStudentIDs(@RequestBody StudentList sList,
                                                                                              @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("getStudentDetailsByStudentIDs:");
-        List<GraduationStudentRecordEntity> studentList = gradStatusService.getStudentDataByStudentIDs(sList.getStudentids(),accessToken.replaceAll("Bearer ", ""));
+        List<GraduationStudentRecordEntity> studentList = gradStatusService.getStudentDataByStudentIDs(sList.getStudentids(),accessToken.replace(BEARER, ""));
         return response.GET(studentList);
     }
 
@@ -339,7 +339,7 @@ public class GraduationStatusController {
     @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecord> saveStudentGradStatusDistributionRun(@PathVariable String studentID, @RequestParam(required = false) Long batchId,@RequestParam(required = false) String activityCode) {
-        logger.debug("Save student Grad Status for Student ID");
+        logger.debug("Save Distribution student Grad Status for Student ID");
         GraduationStudentRecord gradRecord =  gradStatusService.saveStudentRecordDistributionRun(UUID.fromString(studentID),batchId,activityCode);
         return response.GET(gradRecord);
     }
