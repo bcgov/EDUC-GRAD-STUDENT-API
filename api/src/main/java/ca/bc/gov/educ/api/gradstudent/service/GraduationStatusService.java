@@ -293,6 +293,8 @@ public class GraduationStatusService {
                 .studentIds(studentIds)
                 .schoolOfRecords(searchRequest.getSchoolOfRecords())
                 .programs(searchRequest.getPrograms())
+                .gradDateFrom(searchRequest.getGradDateFrom())
+                .gradDateTo(searchRequest.getGradDateTo())
                 .build();
 
         Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);

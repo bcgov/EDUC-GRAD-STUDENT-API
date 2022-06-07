@@ -325,11 +325,16 @@ public class GraduationStatusControllerTest {
         List<String> programs = new ArrayList<>();
         programs.add("1950");
 
+        Date gradDateFrom = new Date(System.currentTimeMillis() - (1000L * 60 * 60 * 24 * 30 * 12 * 10));
+        Date gradDateTo = new Date(System.currentTimeMillis());
+
         StudentSearchRequest searchRequest = StudentSearchRequest.builder()
                 .pens(pens)
                 .schoolOfRecords(schoolOfRecords)
                 .districts(districts)
                 .programs(programs)
+                .gradDateFrom(gradDateFrom)
+                .gradDateTo(gradDateTo)
                 .build();
 
         Mockito.when(graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken")).thenReturn(searchResult);
