@@ -39,14 +39,6 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()),
                     curStatusOptional
             );
-//        } else if (searchCriteria.getDistricts() != null && !searchCriteria.getDistricts().isEmpty()) {
-//            Predicate curStatusOptional = criteriaBuilder.equal(root.get("studentStatus"), "CUR");
-//            if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
-//                curStatusOptional = criteriaBuilder.between(root.get("programCompletionDate").as(Date.class), searchCriteria.getGradDateFrom(), searchCriteria.getGradDateTo());
-//            }
-//            return criteriaBuilder.and(criteriaBuilder.substring(root.get("schoolOfRecord").as(String.class), 0, 3).in(searchCriteria.getDistricts()),
-//                    curStatusOptional
-//            );
         } else if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
             Predicate curStatusOptional = criteriaBuilder.equal(root.get("studentStatus"), "CUR");
             if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
