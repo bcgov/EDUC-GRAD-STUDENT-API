@@ -54,6 +54,17 @@ public class GraduationStatusTransformer {
         return gradStatusList;
     }
 
+    public List<GraduationStudentRecord> transformToDTORecalculate (Iterable<GraduationStudentRecordEntity> gradStatusEntities ) {
+        List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
+        for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
+            GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
+            gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
+            gradStatus.setStudentGradData(null);
+            gradStatusList.add(gradStatus);
+        }
+        return gradStatusList;
+    }
+
     public GraduationStudentRecordEntity transformToEntity(GraduationStudentRecord gradStatus) {
         GraduationStudentRecordEntity gradStatusEntity = modelMapper.map(gradStatus, GraduationStudentRecordEntity.class);
         Date programCompletionDate = null;

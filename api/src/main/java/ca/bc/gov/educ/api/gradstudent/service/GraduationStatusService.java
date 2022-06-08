@@ -704,7 +704,7 @@ public class GraduationStatusService {
     }
 
     public List<GraduationStudentRecord> getStudentsForGraduation() {
-        return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateGradStatus("Y"));
+        return graduationStatusTransformer.transformToDTORecalculate(graduationStatusRepository.findByRecalculateGradStatus("Y"));
     }
 
     public List<GraduationStudentRecord> getStudentsForProjectedGraduation(String accessToken) {
