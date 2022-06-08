@@ -731,6 +731,7 @@ public class GraduationStatusService {
                     }
                 }
                 ent.setStudentGradData(null);
+                ent.setStudentProjectedGradData(null);
             } catch (JsonProcessingException e) {
                 logger.debug("Error : {}",e.getMessage());
             }

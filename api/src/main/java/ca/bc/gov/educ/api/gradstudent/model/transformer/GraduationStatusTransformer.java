@@ -60,6 +60,7 @@ public class GraduationStatusTransformer {
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
             gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
             gradStatus.setStudentGradData(null);
+            gradStatus.setStudentProjectedGradData(null);
             gradStatusList.add(gradStatus);
         }
         return gradStatusList;
