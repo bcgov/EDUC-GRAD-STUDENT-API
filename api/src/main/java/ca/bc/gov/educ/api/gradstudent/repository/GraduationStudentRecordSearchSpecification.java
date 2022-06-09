@@ -10,6 +10,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.Date;
 import java.util.UUID;
 
 public class GraduationStudentRecordSearchSpecification implements Specification<GraduationStudentRecordEntity> {
@@ -31,16 +32,20 @@ public class GraduationStudentRecordSearchSpecification implements Specification
                     criteriaBuilder.notEqual(root.get("studentStatus"), "MER")
             );
         } else if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
+            Predicate curStatusOptional = criteriaBuilder.equal(root.get("studentStatus"), "CUR");
+            if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
+                curStatusOptional = criteriaBuilder.between(root.get("programCompletionDate").as(Date.class), searchCriteria.getGradDateFrom(), searchCriteria.getGradDateTo());
+            }
             return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()),
-                    criteriaBuilder.equal(root.get("studentStatus"), "CUR")
+                    curStatusOptional
             );
-//        } else if (searchCriteria.getDistricts() != null && !searchCriteria.getDistricts().isEmpty()) {
-//            return criteriaBuilder.and(criteriaBuilder.substring(root.get("schoolOfRecord").as(String.class), 0, 3).in(searchCriteria.getDistricts()),
-//                    criteriaBuilder.equal(root.get("studentStatus"), "CUR")
-//            );
         } else if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
+            Predicate curStatusOptional = criteriaBuilder.equal(root.get("studentStatus"), "CUR");
+            if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
+                curStatusOptional = criteriaBuilder.between(root.get("programCompletionDate").as(Date.class), searchCriteria.getGradDateFrom(), searchCriteria.getGradDateTo());
+            }
             return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
-                    criteriaBuilder.equal(root.get("studentStatus"), "CUR")
+                    curStatusOptional
             );
         }
         return criteriaBuilder.and();
