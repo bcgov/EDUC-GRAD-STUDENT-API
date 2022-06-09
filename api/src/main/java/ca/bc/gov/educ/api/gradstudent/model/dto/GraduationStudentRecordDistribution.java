@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -20,4 +21,6 @@ public class GraduationStudentRecordDistribution extends BaseModel{
     private String programCompletionDate;
     private String honoursStanding;
     private String program;
+    private String studentGrade;
+    private List<GradRequirement> nonGradReasons;
 }

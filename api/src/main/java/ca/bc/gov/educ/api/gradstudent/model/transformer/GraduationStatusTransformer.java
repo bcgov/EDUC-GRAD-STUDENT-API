@@ -28,22 +28,10 @@ public class GraduationStatusTransformer {
     @Autowired
     GradValidation validation;
 
-    private static ObjectMapper objectMapper;
-
-    static {
-        objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
-
     public GraduationStudentRecord transformToDTO (GraduationStudentRecordEntity gradStatusEntity) {
     	GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
     	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
     	return gradStatus;
-    }
-
-    public GraduationStudentRecord tToD (GraduationStudentRecordEntity gradStatusEntity) {
-        GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
-        gradStatus.setStudentGradData(null);
-        return gradStatus;
     }
 
     public GraduationStudentRecord transformToDTO ( Optional<GraduationStudentRecordEntity> gradStatusEntity ) {
@@ -60,9 +48,20 @@ public class GraduationStatusTransformer {
 		List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
         for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
-            gradStatus.setStudentGradData(null);
         	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
         	gradStatusList.add(gradStatus);
+        }
+        return gradStatusList;
+    }
+
+    public List<GraduationStudentRecord> transformToDTORecalculate (Iterable<GraduationStudentRecordEntity> gradStatusEntities ) {
+        List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
+        for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
+            GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
+            gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
+            gradStatus.setStudentGradData(null);
+            gradStatus.setStudentProjectedGradData(null);
+            gradStatusList.add(gradStatus);
         }
         return gradStatusList;
     }
@@ -91,7 +90,7 @@ public class GraduationStatusTransformer {
         distObj.setProgram(ent.getProgram());
         distObj.setHonoursStanding(ent.getHonoursStanding());
         distObj.setSchoolOfRecord(ent.getSchoolOfRecord());
-        distObj.setProgramCompletionDate(ent.getProgramCompletionDate());
+        distObj.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
         distObj.setStudentID(ent.getStudentID());
         if(ent.getStudentGradData() != null) {
             GraduationData existingData = null;
@@ -105,6 +104,8 @@ public class GraduationStatusTransformer {
                 distObj.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
                 distObj.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
                 distObj.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+                distObj.setNonGradReasons(existingData.getNonGradReasons());
+                distObj.setStudentGrade(existingData.getGradStudent().getStudentGrade());
             }
         }
         return distObj;
