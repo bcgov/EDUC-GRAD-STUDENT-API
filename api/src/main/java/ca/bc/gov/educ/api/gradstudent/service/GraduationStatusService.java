@@ -708,7 +708,7 @@ public class GraduationStatusService {
     }
 
     public List<GraduationStudentRecord> getStudentsForGraduation() {
-        return graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateGradStatus("Y"));
+        return graduationStatusTransformer.transformToDTORecalculate(graduationStatusRepository.findByRecalculateGradStatus("Y"));
     }
 
     public List<GraduationStudentRecord> getStudentsForProjectedGraduation(String accessToken) {
@@ -735,6 +735,7 @@ public class GraduationStatusService {
                     }
                 }
                 ent.setStudentGradData(null);
+                ent.setStudentProjectedGradData(null);
             } catch (JsonProcessingException e) {
                 logger.debug("Error : {}",e.getMessage());
             }
