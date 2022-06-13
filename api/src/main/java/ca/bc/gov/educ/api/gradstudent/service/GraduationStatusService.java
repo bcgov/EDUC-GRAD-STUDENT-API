@@ -318,7 +318,9 @@ public class GraduationStatusService {
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
         if(graduationStudentRecordEntityOptional.isPresent()) {
             GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
-            gradDate = simpleDateFormat.format(graduationStudentRecordEntity.getProgramCompletionDate());
+            if(graduationStudentRecordEntity.getProgramCompletionDate() != null) {
+                gradDate = simpleDateFormat.format(graduationStudentRecordEntity.getProgramCompletionDate());
+            }
             if("CUR".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
                 || "TER".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
             ) {
