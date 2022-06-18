@@ -1,9 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
@@ -203,7 +200,12 @@ public class CommonService {
 		GradStudentAlgorithmData data = new GradStudentAlgorithmData();
 		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID, accessToken);
 		GraduationStudentRecord gradStudentRecord = graduationStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID));
-		List<StudentCareerProgram> cpList = getAllGradStudentCareerProgramList(studentID,accessToken);
+		List<StudentCareerProgram>  cpList = new ArrayList<>();
+		try {
+			cpList = getAllGradStudentCareerProgramList(studentID, accessToken);
+		}catch (Exception e) {
+			logger.debug("TRAX-API-DOWN {}",e.getLocalizedMessage());
+		}
 		data.setGradStudent(gradStudent);
 		data.setGraduationStudentRecord(gradStudentRecord);
 		data.setStudentCareerProgramList(cpList);
