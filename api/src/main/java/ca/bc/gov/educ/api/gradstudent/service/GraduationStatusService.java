@@ -712,35 +712,7 @@ public class GraduationStatusService {
     }
 
     public List<GraduationStudentRecord> getStudentsForProjectedGraduation(String accessToken) {
-        List<GraduationStudentRecord> list = graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateProjectedGrad("Y"));
-        list.forEach(ent->{
-            try {
-                if(ent.getStudentGradData() != null) {
-                    GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-                    ent.setPen(existingData.getGradStudent().getPen());
-                    ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                    ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                    ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-                }else {
-                    Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
-                            .headers(h -> {
-                                h.setBearerAuth(accessToken);
-                                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                            }).retrieve().bodyToMono(Student.class).block();
-                    if(stuData != null) {
-                        ent.setPen(stuData.getPen());
-                        ent.setLegalFirstName(stuData.getLegalFirstName());
-                        ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
-                        ent.setLegalLastName(stuData.getLegalLastName());
-                    }
-                }
-                ent.setStudentGradData(null);
-                ent.setStudentProjectedGradData(null);
-            } catch (JsonProcessingException e) {
-                logger.debug("Error : {}",e.getMessage());
-            }
-        });
-        return list;
+       return graduationStatusTransformer.transformToDTORecalculate(graduationStatusRepository.findByRecalculateProjectedGrad("Y"));
     }
 
     @Retry(name = "generalgetcall")
@@ -970,5 +942,34 @@ public class GraduationStatusService {
         if(!studentLists.isEmpty())
             return studentLists.stream().map(GraduationStudentRecordEntity::getStudentID).collect(Collectors.toList());
         return  new ArrayList<>();
+    }
+
+    public GraduationStudentRecord getDataForBatch(UUID studentID,String accessToken) {
+        GraduationStudentRecord ent = graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByStudentID(studentID));
+        try {
+            if(ent.getStudentGradData() != null) {
+                GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
+
+                ent.setPen(existingData.getGradStudent().getPen());
+                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
+                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
+                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+            }else {
+                Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+                        .headers(h -> {
+                            h.setBearerAuth(accessToken);
+                            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                        }).retrieve().bodyToMono(Student.class).block();
+                if(stuData != null) {
+                    ent.setPen(stuData.getPen());
+                    ent.setLegalFirstName(stuData.getLegalFirstName());
+                    ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
+                    ent.setLegalLastName(stuData.getLegalLastName());
+                }
+            }
+        } catch (JsonProcessingException e) {
+            logger.debug("Parsing Error {}",e.getOriginalMessage());
+        }
+        return ent;
     }
 }
