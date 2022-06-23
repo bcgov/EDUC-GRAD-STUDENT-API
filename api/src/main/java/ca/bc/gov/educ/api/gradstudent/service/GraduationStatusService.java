@@ -328,9 +328,14 @@ public class GraduationStatusService {
             }
         }
 
-        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getMincode());
+        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getSchoolOfRecord());
         if(commonSchool == null) {
             validation.addErrorAndStop("Common School with mincode %s not found", gradSearchStudent.getMincode());
+        }
+
+        School school = getSchool(gradSearchStudent.getSchoolOfRecord(), accessToken);
+        if(school == null) {
+            validation.addErrorAndStop("School with mincode %s not found", gradSearchStudent.getMincode());
         }
 
         String englishCert = "";
@@ -361,6 +366,7 @@ public class GraduationStatusService {
             }
         }
         assert commonSchool != null;
+        assert school != null;
         return StudentDemographic.builder()
                 .studentID(gradSearchStudent.getStudentID())
                 .pen(pen)
@@ -389,9 +395,9 @@ public class GraduationStatusService {
                 .englishCert(englishCert)
                 .sccDate(sccDate)
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
-                .mincode(commonSchool.getDistNo() + commonSchool.getSchlNo())
+                .mincode(school.getMinCode())
                 .schoolCategory(commonSchool.getSchoolCategoryCode())
-                .schoolName(commonSchool.getSchoolName())
+                .schoolName(school.getSchoolName())
                 .formerStudent(formerStudent)
                 .build();
     }
