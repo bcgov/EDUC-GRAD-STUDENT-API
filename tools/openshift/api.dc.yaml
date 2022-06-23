@@ -100,11 +100,11 @@ objects:
                   name: metrics
               resources:
                 requests:
-                  cpu: "25m"
-                  memory: "50Mi"
+                  cpu: "250m"
+                  memory: "1024Mi"
                 limits:
-                  cpu: "50m"
-                  memory: "100Mi"
+                  cpu: "400m"
+                  memory: "2048Mi"
           volumes:
             - name: log-storage
               emptyDir: { }
