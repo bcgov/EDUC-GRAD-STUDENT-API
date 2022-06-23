@@ -711,7 +711,7 @@ public class GraduationStatusService {
         return graduationStatusTransformer.transformToDTORecalculate(graduationStatusRepository.findByRecalculateGradStatus("Y"));
     }
 
-    public List<GraduationStudentRecord> getStudentsForProjectedGraduation(String accessToken) {
+    public List<GraduationStudentRecord> getStudentsForProjectedGraduation() {
        return graduationStatusTransformer.transformToDTORecalculate(graduationStatusRepository.findByRecalculateProjectedGrad("Y"));
     }
 
@@ -909,30 +909,9 @@ public class GraduationStatusService {
     public List<GraduationStudentRecordEntity> getStudentDataByStudentIDs(List<UUID> studentIds,String accessToken) {
         List<GraduationStudentRecordEntity> list = graduationStatusRepository.findByStudentIDIn(studentIds);
         list.forEach(ent->{
-            try {
-                if(ent.getStudentGradData() != null) {
-                    GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-                    ent.setPen(existingData.getGradStudent().getPen());
-                    ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                    ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                    ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-                }else {
-                    Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
-                        .headers(h -> {
-                            h.setBearerAuth(accessToken);
-                            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                        }).retrieve().bodyToMono(Student.class).block();
-                    if(stuData != null) {
-                        ent.setPen(stuData.getPen());
-                        ent.setLegalFirstName(stuData.getLegalFirstName());
-                        ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
-                        ent.setLegalLastName(stuData.getLegalLastName());
-                    }
-                }
-                ent.setStudentGradData(null);
-            } catch (JsonProcessingException e) {
-                logger.debug("Error : {}",e.getMessage());
-            }
+            GraduationStudentRecord dto = graduationStatusTransformer.transformToDTO(ent);
+            processReceivedStudent(dto,accessToken);
+            graduationStatusTransformer.transformToEntity(dto);
         });
         return list;
     }
@@ -946,6 +925,10 @@ public class GraduationStatusService {
 
     public GraduationStudentRecord getDataForBatch(UUID studentID,String accessToken) {
         GraduationStudentRecord ent = graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByStudentID(studentID));
+        return  processReceivedStudent(ent,accessToken);
+    }
+
+    private GraduationStudentRecord processReceivedStudent(GraduationStudentRecord ent,String accessToken) {
         try {
             if(ent.getStudentGradData() != null) {
                 GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);

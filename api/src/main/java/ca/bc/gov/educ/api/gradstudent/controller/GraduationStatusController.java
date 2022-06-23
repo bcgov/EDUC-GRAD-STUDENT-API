@@ -178,9 +178,9 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Students For Batch Projected Algorithm", description = "Get Students For Batch Projected Algorithm", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForProjectedGraduation(@RequestHeader(name="Authorization") String accessToken) {
+    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForProjectedGraduation() {
         logger.debug("getStudentsForProjectedGraduation:");
-        return response.GET(gradStatusService.getStudentsForProjectedGraduation(accessToken.replace(BEARER, "")));
+        return response.GET(gradStatusService.getStudentsForProjectedGraduation());
     }
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_RECORD_STUDENT_ID_BATCH_RUN)

@@ -1095,9 +1095,8 @@ public class GraduationStatusServiceTest {
 
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setRecalculateProjectedGrad("Y");
-        String accessToken = "accessToken";
         when(graduationStatusRepository.findByRecalculateProjectedGrad(graduationStatusEntity.getRecalculateProjectedGrad())).thenReturn(List.of(graduationStatusEntity));
-        var result = graduationStatusService.getStudentsForProjectedGraduation(accessToken);
+        var result = graduationStatusService.getStudentsForProjectedGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
         GraduationStudentRecord responseGraduationStatus = result.get(0);
