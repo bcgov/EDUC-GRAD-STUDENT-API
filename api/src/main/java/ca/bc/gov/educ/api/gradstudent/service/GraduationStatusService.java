@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
@@ -798,19 +799,27 @@ public class GraduationStatusService {
     }
     
     private void deleteStudentAchievements(UUID studentID,String accessToken) {
-    	webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
-          .headers(h -> {
-              h.setBearerAuth(accessToken);
-              h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-          }).retrieve().bodyToMono(Integer.class).block();
+    	try {
+            webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
+        }catch (Exception e) {
+            logger.info(e.getLocalizedMessage());
+        }
 	}
 
     private void archiveStudentAchievements(UUID studentID,String accessToken) {
-        webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                }).retrieve().bodyToMono(Integer.class).block();
+        try {
+            webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
+        }catch (Exception e) {
+        logger.info(e.getLocalizedMessage());
+    }
     }
 
 
