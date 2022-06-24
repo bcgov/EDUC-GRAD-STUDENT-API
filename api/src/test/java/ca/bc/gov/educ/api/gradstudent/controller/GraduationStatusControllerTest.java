@@ -372,10 +372,9 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentStatus("CUR");
         graduationStatus.setSchoolOfRecord("12345678");
         graduationStatus.setRecalculateGradStatus("Y");
-        String accessToken = "accessToken";
-        Mockito.when(graduationStatusService.getStudentsForProjectedGraduation(accessToken)).thenReturn(List.of(graduationStatus));
-        graduationStatusController.getStudentsForProjectedGraduation(accessToken);
-        Mockito.verify(graduationStatusService).getStudentsForProjectedGraduation(accessToken);
+        Mockito.when(graduationStatusService.getStudentsForProjectedGraduation()).thenReturn(List.of(graduationStatus));
+        graduationStatusController.getStudentsForProjectedGraduation();
+        Mockito.verify(graduationStatusService).getStudentsForProjectedGraduation();
     }
 
     @Test
