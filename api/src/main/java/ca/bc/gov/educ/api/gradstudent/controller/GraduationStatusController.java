@@ -354,4 +354,13 @@ public class GraduationStatusController {
         GraduationStudentRecord gradRecord =  gradStatusService.saveStudentRecordDistributionRun(UUID.fromString(studentID),batchId,activityCode);
         return response.GET(gradRecord);
     }
+
+    @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_SCHOOL_REPORT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Students For School Report by mincode", description = "Get Students For School Report by mincode", tags = { "Batch Algorithm" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<GraduationStudentRecordEntity>> getStudentsForSchoolReport(@PathVariable String schoolOfRecord,@RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("getStudentsForSchoolReport:");
+        return response.GET(gradStatusService.getStudentsForSchoolReport(schoolOfRecord,accessToken.replace(BEARER, "")));
+    }
 }

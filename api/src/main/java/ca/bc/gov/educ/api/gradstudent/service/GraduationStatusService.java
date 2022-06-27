@@ -970,4 +970,14 @@ public class GraduationStatusService {
         }
         return ent;
     }
+
+    public List<GraduationStudentRecordEntity> getStudentsForSchoolReport(String schoolOfRecord,String accessToken) {
+        List<GraduationStudentRecordEntity> list = graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord);
+        list.forEach(ent->{
+            GraduationStudentRecord dto = graduationStatusTransformer.transformToDTO(ent);
+            processReceivedStudent(dto,accessToken);
+            graduationStatusTransformer.transformToEntity(dto);
+        });
+        return list;
+    }
 }
