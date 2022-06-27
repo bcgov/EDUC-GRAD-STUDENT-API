@@ -347,14 +347,7 @@ public class GraduationStatusControllerTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-
-        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
-        graduationStatus.setStudentID(studentID);
-        graduationStatus.setPen(pen);
-        graduationStatus.setStudentStatus("A");
-        graduationStatus.setSchoolOfRecord("12345678");
-        graduationStatus.setRecalculateGradStatus("Y");
-
+        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",new java.util.Date(),"12345678","12","CUR",studentID);
         Mockito.when(graduationStatusService.getStudentsForGraduation()).thenReturn(List.of(graduationStatus));
         graduationStatusController.getStudentsForGraduation();
         Mockito.verify(graduationStatusService).getStudentsForGraduation();
@@ -365,13 +358,7 @@ public class GraduationStatusControllerTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-
-        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
-        graduationStatus.setStudentID(studentID);
-        graduationStatus.setPen(pen);
-        graduationStatus.setStudentStatus("CUR");
-        graduationStatus.setSchoolOfRecord("12345678");
-        graduationStatus.setRecalculateGradStatus("Y");
+        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",new java.util.Date(),"12345678","12","CUR",studentID);
         Mockito.when(graduationStatusService.getStudentsForProjectedGraduation()).thenReturn(List.of(graduationStatus));
         graduationStatusController.getStudentsForProjectedGraduation();
         Mockito.verify(graduationStatusService).getStudentsForProjectedGraduation();

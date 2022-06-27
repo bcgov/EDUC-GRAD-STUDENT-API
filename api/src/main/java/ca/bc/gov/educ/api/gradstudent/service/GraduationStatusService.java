@@ -714,12 +714,12 @@ public class GraduationStatusService {
         }
     }
 
-    public List<GraduationStudentRecord> getStudentsForGraduation() {
-        return graduationStatusTransformer.transformToDTORecalculate(graduationStatusRepository.findByRecalculateGradStatus("Y"));
+    public List<BatchGraduationStudentRecord> getStudentsForGraduation() {
+        return graduationStatusRepository.findByRecalculateGradStatusForBatch("Y");
     }
 
-    public List<GraduationStudentRecord> getStudentsForProjectedGraduation() {
-       return graduationStatusTransformer.transformToDTORecalculate(graduationStatusRepository.findByRecalculateProjectedGrad("Y"));
+    public List<BatchGraduationStudentRecord> getStudentsForProjectedGraduation() {
+       return graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y");
     }
 
     @Retry(name = "generalgetcall")
