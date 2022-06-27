@@ -6,9 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordSearchRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -23,6 +21,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -62,7 +62,7 @@ public class GraduationStatusServiceTest {
     @MockBean Publisher publisher;
     @MockBean Subscriber subscriber;
 
-    @Autowired
+    @MockBean
     GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Before
@@ -923,21 +923,17 @@ public class GraduationStatusServiceTest {
 
     @Test
     public void testGetStudentsForGraduation() {
-        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
-        graduationStatusEntity.setStudentID(UUID.randomUUID());
-        graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setRecalculateGradStatus("Y");
-
-        when(graduationStatusRepository.findByRecalculateGradStatus(graduationStatusEntity.getRecalculateGradStatus())).thenReturn(List.of(graduationStatusEntity));
+        UUID studentID = UUID.randomUUID();
+        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",new java.util.Date(),"12345678","12","CUR",studentID);
+        when(graduationStatusRepository.findByRecalculateGradStatusForBatch("Y")).thenReturn(List.of(graduationStatus));
         var result = graduationStatusService.getStudentsForGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        GraduationStudentRecord responseGraduationStatus = result.get(0);
-        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
-        assertThat(responseGraduationStatus.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
+        BatchGraduationStudentRecord responseGraduationStatus = result.get(0);
+        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(studentID);
     }
 
-    /*@Test
+    @Test
     public void testSearchGraduationStudentRecords() {
 
         final UUID studentId = UUID.randomUUID();
@@ -999,29 +995,22 @@ public class GraduationStatusServiceTest {
                 .validateInput(false)
                 .build();
 
-//        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
-//        graduationStudentRecordEntity.setStudentID(studentId);
-//        graduationStudentRecordEntity.setProgram(programCode);
-//        graduationStudentRecordEntity.setSchoolOfRecord(schoolOfRecord);
-//        graduationStudentRecordEntity.setStudentStatus("CUR");
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentId);
+        graduationStudentRecordEntity.setProgram(programCode);
+        graduationStudentRecordEntity.setSchoolOfRecord(schoolOfRecord);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
 
-//        GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
-//                .studentIds(searchRequest.getPens())
-//                .schoolOfRecords(searchRequest.getSchoolOfRecords())
-//                .districts(searchRequest.getDistricts())
-//                .programs(searchRequest.getPrograms())
-//                .build();
-//        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
+        GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
+                .studentIds(searchRequest.getPens())
+                .schoolOfRecords(searchRequest.getSchoolOfRecords())
+                .districts(searchRequest.getDistricts())
+                .programs(searchRequest.getPrograms())
+                .build();
+        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
 
-//        when(graduationStudentRecordSearchRepository.findAll(Specification.where(spec))).thenReturn(List.of(graduationStudentRecordEntity));
+        when(graduationStudentRecordSearchRepository.findAll(Specification.where(spec))).thenReturn(List.of(graduationStudentRecordEntity));
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        // Mockito.whens() for your authorization object
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
@@ -1067,41 +1056,19 @@ public class GraduationStatusServiceTest {
         var result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
         assertThat(result).isNotNull();
 
-    }*/
+    }
 
 
     @Test
     public void testGetStudentsForProjectedGraduation() {
         UUID studentID = UUID.randomUUID();
-        GradSearchStudent gradStudent = new GradSearchStudent();
-        gradStudent.setStudentID(studentID.toString());
-        gradStudent.setPen("2312312123");
-        gradStudent.setLegalFirstName("ABCD");
-        gradStudent.setLegalMiddleNames("K");
-        gradStudent.setLegalLastName("EFGH");
-
-        GraduationData data = new GraduationData();
-        data.setGradStudent(gradStudent);
-
-        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
-        graduationStatusEntity.setStudentID(studentID);
-        graduationStatusEntity.setStudentStatus("CUR");
-        graduationStatusEntity.setProgram("2018-EN");
-        try {
-            graduationStatusEntity.setStudentGradData(new ObjectMapper().writeValueAsString(data));
-        } catch (JsonProcessingException e) {
-            e.getMessage();
-        }
-
-        graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setRecalculateProjectedGrad("Y");
-        when(graduationStatusRepository.findByRecalculateProjectedGrad(graduationStatusEntity.getRecalculateProjectedGrad())).thenReturn(List.of(graduationStatusEntity));
+        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",new java.util.Date(),"12345678","12","CUR",studentID);
+        when(graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y")).thenReturn(List.of(graduationStatus));
         var result = graduationStatusService.getStudentsForProjectedGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        GraduationStudentRecord responseGraduationStatus = result.get(0);
-        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
-        assertThat(responseGraduationStatus.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
+        BatchGraduationStudentRecord responseGraduationStatus = result.get(0);
+        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(studentID);
     }
 
     @Test

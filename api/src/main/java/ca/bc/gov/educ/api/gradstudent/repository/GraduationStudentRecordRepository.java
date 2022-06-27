@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.repository;
 import java.util.List;
 import java.util.UUID;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.BatchGraduationStudentRecord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,6 +19,13 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	List<GraduationStudentRecordEntity> findByRecalculateGradStatus(String recalulateFlag);
 	List<GraduationStudentRecordEntity> findByRecalculateProjectedGrad(String recalculateProjectedGrad);
+
+	@Query("select new ca.bc.gov.educ.api.gradstudent.model.dto.BatchGraduationStudentRecord(c.program,c.programCompletionDate,c.schoolOfRecord,c.studentGrade,c.studentStatus,c.studentID) from GraduationStudentRecordEntity c where c.recalculateGradStatus=:recalculateFlag")
+	List<BatchGraduationStudentRecord> findByRecalculateGradStatusForBatch(String recalculateFlag);
+
+	@Query("select new ca.bc.gov.educ.api.gradstudent.model.dto.BatchGraduationStudentRecord(c.program,c.programCompletionDate,c.schoolOfRecord,c.studentGrade,c.studentStatus,c.studentID) from GraduationStudentRecordEntity c where c.recalculateProjectedGrad=:recalculateProjectedGrad")
+	List<BatchGraduationStudentRecord> findByRecalculateProjectedGradForBatch(String recalculateProjectedGrad);
+
 	GraduationStudentRecordEntity findByStudentID(UUID studentID);
 
 	@Query("select c from GraduationStudentRecordEntity c where c.studentStatus=:statusCode")
