@@ -1363,7 +1363,7 @@ public class GraduationStatusServiceTest {
         histList.add(graduationStatusEntity);
 
         when(graduationStatusRepository.findByStudentIDIn(sList)).thenReturn(histList);
-        List<GraduationStudentRecordEntity> list = graduationStatusService.getStudentDataByStudentIDs(sList,null);
+        List<GraduationStudentRecord> list = graduationStatusService.getStudentDataByStudentIDs(sList);
         assertThat(list).isNotEmpty().hasSize(1);
     }
 

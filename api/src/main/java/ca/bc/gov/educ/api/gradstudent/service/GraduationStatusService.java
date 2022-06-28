@@ -921,14 +921,8 @@ public class GraduationStatusService {
         return null;
     }
 
-    public List<GraduationStudentRecordEntity> getStudentDataByStudentIDs(List<UUID> studentIds,String accessToken) {
-        List<GraduationStudentRecordEntity> list = graduationStatusRepository.findByStudentIDIn(studentIds);
-        list.forEach(ent->{
-            GraduationStudentRecord dto = graduationStatusTransformer.transformToDTO(ent);
-            processReceivedStudent(dto,accessToken);
-            graduationStatusTransformer.transformToEntity(dto);
-        });
-        return list;
+    public List<GraduationStudentRecord> getStudentDataByStudentIDs(List<UUID> studentIds) {
+        return graduationStatusTransformer.tToDForBatch(graduationStatusRepository.findByStudentIDIn(studentIds));
     }
 
     public List<UUID> getStudentsForYearlyDistribution() {
