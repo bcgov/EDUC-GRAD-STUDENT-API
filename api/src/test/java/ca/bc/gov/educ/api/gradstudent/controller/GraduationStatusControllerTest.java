@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
@@ -9,6 +10,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -555,5 +557,30 @@ public class GraduationStatusControllerTest {
         Mockito.when(graduationStatusService.getStudentsForYearlyDistribution()).thenReturn(histList);
         graduationStatusController.getStudentsForYearlyRun();
         Mockito.verify(graduationStatusService).getStudentsForYearlyDistribution();
+    }
+
+    @Test
+    public void testGetStudentsForSchoolReport() {
+        // ID
+        String mincode = "123456789";
+        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        graduationStatus.setStudentID(new UUID(1,1));
+        graduationStatus.setSchoolOfRecord(mincode);
+        GraduationData gradData = new GraduationData();
+        GradSearchStudent gS = new GradSearchStudent();
+        gS.setPen("123123123123");
+        gS.setLegalFirstName("sadas");
+        gS.setLegalMiddleNames("fdf");
+        gS.setLegalLastName("rrw");
+        gradData.setGradStudent(gS);
+        graduationStatus.setStudentStatus("CUR");
+        try {
+            graduationStatus.setStudentGradData(new ObjectMapper().writeValueAsString(gradData));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        Mockito.when(graduationStatusService.getStudentsForSchoolReport(mincode,"accessToken")).thenReturn(List.of(graduationStatus));
+        graduationStatusController.getStudentsForSchoolReport(mincode,"accessToken");
+        Mockito.verify(graduationStatusService).getStudentsForSchoolReport(mincode,"accessToken");
     }
 }

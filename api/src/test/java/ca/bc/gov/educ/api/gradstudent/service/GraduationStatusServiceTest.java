@@ -1213,7 +1213,7 @@ public class GraduationStatusServiceTest {
         when(this.responseMock.bodyToMono(StudentUndoCompletionReason.class)).thenReturn(Mono.just(responseStudentUndoCompletionReasons));
 
         graduationStatusService.saveUndoCompletionReason(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
-
+        assertThat(responseStudentUndoCompletionReasons.getUndoCompletionReasonCode()).isEqualTo("NM");
     }
 
     @Test
@@ -1241,7 +1241,8 @@ public class GraduationStatusServiceTest {
     	when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
     	when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
 
-    	graduationStatusService.restoreGradStudentRecord(studentID, false);
+    	boolean res = graduationStatusService.restoreGradStudentRecord(studentID, false);
+        assertThat(res).isTrue();
 
     }
 
@@ -1265,8 +1266,8 @@ public class GraduationStatusServiceTest {
     	when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
     	when(graduationStatusRepository.save(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
 
-    	graduationStatusService.restoreGradStudentRecord(studentID, true);
-
+    	boolean res = graduationStatusService.restoreGradStudentRecord(studentID, true);
+        assertThat(res).isTrue();
     }
 
     @Test
@@ -1298,8 +1299,8 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
 
-        graduationStatusService.saveStudentRecordProjectedTVRRun(studentID, batchId, projectedRunClob);
-
+        GraduationStudentRecord res = graduationStatusService.saveStudentRecordProjectedTVRRun(studentID, batchId, projectedRunClob);
+        assertThat(res).isNotNull();
     }
 
     @Test
@@ -1324,8 +1325,8 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
 
-        graduationStatusService.saveStudentRecordDistributionRun(studentID, batchId, "ACTIVITYCODE");
-
+        GraduationStudentRecord res =graduationStatusService.saveStudentRecordDistributionRun(studentID, batchId, "ACTIVITYCODE");
+        assertThat(res).isNotNull();
     }
 
     @Test
@@ -1363,8 +1364,7 @@ public class GraduationStatusServiceTest {
 
         when(graduationStatusRepository.findByStudentIDIn(sList)).thenReturn(histList);
         List<GraduationStudentRecordEntity> list = graduationStatusService.getStudentDataByStudentIDs(sList,null);
-        assertThat(list).isNotEmpty();
-        assertThat(list).hasSize(1);
+        assertThat(list).isNotEmpty().hasSize(1);
     }
 
     @Test
@@ -1388,7 +1388,32 @@ public class GraduationStatusServiceTest {
 
         when(graduationStatusRepository.findStudentsForYearlyDistribution()).thenReturn(histList);
         List<UUID> list = graduationStatusService.getStudentsForYearlyDistribution();
-        assertThat(list).isNotEmpty();
-        assertThat(list).hasSize(1);
+        assertThat(list).isNotEmpty().hasSize(1);
+    }
+
+    @Test
+    public void testGetStudentsForSchoolReport() {
+        String mincode = "123213123";
+        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        graduationStatus.setStudentID(new UUID(1,1));
+        graduationStatus.setSchoolOfRecord(mincode);
+        GraduationData gradData = new GraduationData();
+        GradSearchStudent gS = new GradSearchStudent();
+        gS.setPen("123123123123");
+        gS.setLegalFirstName("sadas");
+        gS.setLegalMiddleNames("fdf");
+        gS.setLegalLastName("rrw");
+        gradData.setGradStudent(gS);
+        graduationStatus.setStudentStatus("CUR");
+        try {
+            graduationStatus.setStudentGradData(new ObjectMapper().writeValueAsString(gradData));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStatus));
+        var result = graduationStatusService.getStudentsForSchoolReport(mincode,"accessToken");
+        assertThat(result).isNotNull().hasSize(1);
+        GraduationStudentRecordEntity responseGraduationStatus = result.get(0);
+        assertThat(responseGraduationStatus.getSchoolOfRecord()).isEqualTo(mincode);
     }
 }
