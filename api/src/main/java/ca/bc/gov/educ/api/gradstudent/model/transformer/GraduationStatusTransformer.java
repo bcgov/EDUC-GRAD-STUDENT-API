@@ -114,20 +114,24 @@ public class GraduationStatusTransformer {
         return distObj;
     }
 
-    public GraduationStudentRecord tToDForBatch(GraduationStudentRecordEntity gradStatusEntity) {
-        GraduationStudentRecord ent = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
-        ent.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
-        if(ent.getStudentGradData() != null) {
-            GraduationData existingData = null;
-            try {
-                existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-                ent.setPen(existingData.getGradStudent().getPen());
-                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-            } catch (JsonProcessingException e) {}
+    public List<GraduationStudentRecord> tToDForBatch(Iterable<GraduationStudentRecordEntity> gradStatusEntities) {
+        List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
+        for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
+            GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
+            gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
+            if(gradStatus.getStudentGradData() != null) {
+                GraduationData existingData = null;
+                try {
+                    existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(gradStatus.getStudentGradData(), GraduationData.class);
+                    gradStatus.setPen(existingData.getGradStudent().getPen());
+                    gradStatus.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
+                    gradStatus.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
+                    gradStatus.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+                } catch (JsonProcessingException e) {}
+            }
+            gradStatus.setStudentGradData(null);
+            gradStatusList.add(gradStatus);
         }
-        ent.setStudentGradData(null);
-        return ent;
+        return gradStatusList;
     }
 }

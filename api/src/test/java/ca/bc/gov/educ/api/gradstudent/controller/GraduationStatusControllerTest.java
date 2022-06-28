@@ -563,7 +563,7 @@ public class GraduationStatusControllerTest {
     public void testGetStudentsForSchoolReport() {
         // ID
         String mincode = "123456789";
-        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(new UUID(1,1));
         graduationStatus.setSchoolOfRecord(mincode);
         GraduationData gradData = new GraduationData();

@@ -359,7 +359,7 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Get Students For School Report by mincode", description = "Get Students For School Report by mincode", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GraduationStudentRecordEntity>> getStudentsForSchoolReport(@PathVariable String schoolOfRecord) {
+    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForSchoolReport(@PathVariable String schoolOfRecord) {
         logger.debug("getStudentsForSchoolReport:");
         return response.GET(gradStatusService.getStudentsForSchoolReport(schoolOfRecord));
     }
