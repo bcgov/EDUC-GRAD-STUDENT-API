@@ -3,7 +3,6 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
@@ -323,10 +322,9 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Get history for a Batch ID", description = "Get a history for a BatchId", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GraduationStudentRecordEntity>> getStudentDetailsByStudentIDs(@RequestBody StudentList sList,
-                                                                                             @RequestHeader(name="Authorization") String accessToken) {
+    public ResponseEntity<List<GraduationStudentRecord>> getStudentDetailsByStudentIDs(@RequestBody StudentList sList) {
         logger.debug("getStudentDetailsByStudentIDs:");
-        List<GraduationStudentRecordEntity> studentList = gradStatusService.getStudentDataByStudentIDs(sList.getStudentids(),accessToken.replace(BEARER, ""));
+        List<GraduationStudentRecord> studentList = gradStatusService.getStudentDataByStudentIDs(sList.getStudentids());
         return response.GET(studentList);
     }
 
@@ -359,8 +357,8 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Get Students For School Report by mincode", description = "Get Students For School Report by mincode", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GraduationStudentRecordEntity>> getStudentsForSchoolReport(@PathVariable String schoolOfRecord,@RequestHeader(name="Authorization") String accessToken) {
+    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForSchoolReport(@PathVariable String schoolOfRecord) {
         logger.debug("getStudentsForSchoolReport:");
-        return response.GET(gradStatusService.getStudentsForSchoolReport(schoolOfRecord,accessToken.replace(BEARER, "")));
+        return response.GET(gradStatusService.getStudentsForSchoolReport(schoolOfRecord));
     }
 }

@@ -563,7 +563,7 @@ public class GraduationStatusControllerTest {
     public void testGetStudentsForSchoolReport() {
         // ID
         String mincode = "123456789";
-        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(new UUID(1,1));
         graduationStatus.setSchoolOfRecord(mincode);
         GraduationData gradData = new GraduationData();
@@ -579,8 +579,8 @@ public class GraduationStatusControllerTest {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        Mockito.when(graduationStatusService.getStudentsForSchoolReport(mincode,"accessToken")).thenReturn(List.of(graduationStatus));
-        graduationStatusController.getStudentsForSchoolReport(mincode,"accessToken");
-        Mockito.verify(graduationStatusService).getStudentsForSchoolReport(mincode,"accessToken");
+        Mockito.when(graduationStatusService.getStudentsForSchoolReport(mincode)).thenReturn(List.of(graduationStatus));
+        graduationStatusController.getStudentsForSchoolReport(mincode);
+        Mockito.verify(graduationStatusService).getStudentsForSchoolReport(mincode);
     }
 }

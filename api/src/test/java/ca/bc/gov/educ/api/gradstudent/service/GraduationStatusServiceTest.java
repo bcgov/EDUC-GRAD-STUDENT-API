@@ -1363,7 +1363,7 @@ public class GraduationStatusServiceTest {
         histList.add(graduationStatusEntity);
 
         when(graduationStatusRepository.findByStudentIDIn(sList)).thenReturn(histList);
-        List<GraduationStudentRecordEntity> list = graduationStatusService.getStudentDataByStudentIDs(sList,null);
+        List<GraduationStudentRecord> list = graduationStatusService.getStudentDataByStudentIDs(sList);
         assertThat(list).isNotEmpty().hasSize(1);
     }
 
@@ -1411,9 +1411,9 @@ public class GraduationStatusServiceTest {
             e.printStackTrace();
         }
         when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStatus));
-        var result = graduationStatusService.getStudentsForSchoolReport(mincode,"accessToken");
+        var result = graduationStatusService.getStudentsForSchoolReport(mincode);
         assertThat(result).isNotNull().hasSize(1);
-        GraduationStudentRecordEntity responseGraduationStatus = result.get(0);
+        GraduationStudentRecord responseGraduationStatus = result.get(0);
         assertThat(responseGraduationStatus.getSchoolOfRecord()).isEqualTo(mincode);
     }
 }
