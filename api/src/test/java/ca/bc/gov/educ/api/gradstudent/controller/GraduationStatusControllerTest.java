@@ -579,8 +579,8 @@ public class GraduationStatusControllerTest {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        Mockito.when(graduationStatusService.getStudentsForSchoolReport(mincode,"accessToken")).thenReturn(List.of(graduationStatus));
-        graduationStatusController.getStudentsForSchoolReport(mincode,"accessToken");
-        Mockito.verify(graduationStatusService).getStudentsForSchoolReport(mincode,"accessToken");
+        Mockito.when(graduationStatusService.getStudentsForSchoolReport(mincode)).thenReturn(List.of(graduationStatus));
+        graduationStatusController.getStudentsForSchoolReport(mincode);
+        Mockito.verify(graduationStatusService).getStudentsForSchoolReport(mincode);
     }
 }

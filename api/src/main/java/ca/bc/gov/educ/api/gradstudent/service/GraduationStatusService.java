@@ -971,11 +971,10 @@ public class GraduationStatusService {
         return ent;
     }
 
-    public List<GraduationStudentRecordEntity> getStudentsForSchoolReport(String schoolOfRecord,String accessToken) {
+    public List<GraduationStudentRecordEntity> getStudentsForSchoolReport(String schoolOfRecord) {
         List<GraduationStudentRecordEntity> list = graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord);
         list.forEach(ent->{
-            GraduationStudentRecord dto = graduationStatusTransformer.transformToDTO(ent);
-            processReceivedStudent(dto,accessToken);
+            GraduationStudentRecord dto = graduationStatusTransformer.tToDForBatch(ent);
             graduationStatusTransformer.transformToEntity(dto);
         });
         return list;

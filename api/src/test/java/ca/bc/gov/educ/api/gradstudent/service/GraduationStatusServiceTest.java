@@ -1411,7 +1411,7 @@ public class GraduationStatusServiceTest {
             e.printStackTrace();
         }
         when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStatus));
-        var result = graduationStatusService.getStudentsForSchoolReport(mincode,"accessToken");
+        var result = graduationStatusService.getStudentsForSchoolReport(mincode);
         assertThat(result).isNotNull().hasSize(1);
         GraduationStudentRecordEntity responseGraduationStatus = result.get(0);
         assertThat(responseGraduationStatus.getSchoolOfRecord()).isEqualTo(mincode);
