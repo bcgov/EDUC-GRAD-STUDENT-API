@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
@@ -318,7 +319,9 @@ public class GraduationStatusService {
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
         if(graduationStudentRecordEntityOptional.isPresent()) {
             GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
-            gradDate = simpleDateFormat.format(graduationStudentRecordEntity.getProgramCompletionDate());
+            if(graduationStudentRecordEntity.getProgramCompletionDate() != null) {
+                gradDate = simpleDateFormat.format(graduationStudentRecordEntity.getProgramCompletionDate());
+            }
             if("CUR".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
                 || "TER".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
             ) {
@@ -326,9 +329,14 @@ public class GraduationStatusService {
             }
         }
 
-        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getMincode());
+        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getSchoolOfRecord());
         if(commonSchool == null) {
             validation.addErrorAndStop("Common School with mincode %s not found", gradSearchStudent.getMincode());
+        }
+
+        School school = getSchool(gradSearchStudent.getSchoolOfRecord(), accessToken);
+        if(school == null) {
+            validation.addErrorAndStop("School with mincode %s not found", gradSearchStudent.getMincode());
         }
 
         String englishCert = "";
@@ -359,6 +367,7 @@ public class GraduationStatusService {
             }
         }
         assert commonSchool != null;
+        assert school != null;
         return StudentDemographic.builder()
                 .studentID(gradSearchStudent.getStudentID())
                 .pen(pen)
@@ -375,7 +384,6 @@ public class GraduationStatusService {
                 .emailVerified(gradSearchStudent.getEmailVerified())
                 .deceasedDate(gradSearchStudent.getDeceasedDate())
                 .postalCode(gradSearchStudent.getPostalCode())
-                .mincode(gradSearchStudent.getMincode())
                 .gradeCode(gradSearchStudent.getGradeCode())
                 .gradeYear(gradSearchStudent.getGradeYear())
                 .demogCode(gradSearchStudent.getDemogCode())
@@ -388,8 +396,9 @@ public class GraduationStatusService {
                 .englishCert(englishCert)
                 .sccDate(sccDate)
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
+                .mincode(school.getMinCode())
                 .schoolCategory(commonSchool.getSchoolCategoryCode())
-                .schoolName(commonSchool.getSchoolName())
+                .schoolName(school.getSchoolName())
                 .formerStudent(formerStudent)
                 .build();
     }
@@ -487,7 +496,7 @@ public class GraduationStatusService {
             validation.addErrorAndStop("Student GRAD data cannot be updated for students with a status of 'M' merged");
         }
         if (studentStatus.equalsIgnoreCase("DEC")) {
-            validation.addErrorAndStop("This student is showing as deceased.  Confirm the students' status before re-activating by setting their status to 'A' if they are currently attending school");
+            validation.addWarning("This student is showing as deceased.  Confirm the students' status before re-activating by setting their status to 'A' if they are currently attending school");
         }
     }
 
@@ -705,40 +714,12 @@ public class GraduationStatusService {
         }
     }
 
-    public List<GraduationStudentRecord> getStudentsForGraduation() {
-        return graduationStatusTransformer.transformToDTORecalculate(graduationStatusRepository.findByRecalculateGradStatus("Y"));
+    public List<BatchGraduationStudentRecord> getStudentsForGraduation() {
+        return graduationStatusRepository.findByRecalculateGradStatusForBatch("Y");
     }
 
-    public List<GraduationStudentRecord> getStudentsForProjectedGraduation(String accessToken) {
-        List<GraduationStudentRecord> list = graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByRecalculateProjectedGrad("Y"));
-        list.forEach(ent->{
-            try {
-                if(ent.getStudentGradData() != null) {
-                    GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-                    ent.setPen(existingData.getGradStudent().getPen());
-                    ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                    ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                    ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-                }else {
-                    Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
-                            .headers(h -> {
-                                h.setBearerAuth(accessToken);
-                                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                            }).retrieve().bodyToMono(Student.class).block();
-                    if(stuData != null) {
-                        ent.setPen(stuData.getPen());
-                        ent.setLegalFirstName(stuData.getLegalFirstName());
-                        ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
-                        ent.setLegalLastName(stuData.getLegalLastName());
-                    }
-                }
-                ent.setStudentGradData(null);
-                ent.setStudentProjectedGradData(null);
-            } catch (JsonProcessingException e) {
-                logger.debug("Error : {}",e.getMessage());
-            }
-        });
-        return list;
+    public List<BatchGraduationStudentRecord> getStudentsForProjectedGraduation() {
+       return graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y");
     }
 
     @Retry(name = "generalgetcall")
@@ -818,19 +799,27 @@ public class GraduationStatusService {
     }
     
     private void deleteStudentAchievements(UUID studentID,String accessToken) {
-    	webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
-          .headers(h -> {
-              h.setBearerAuth(accessToken);
-              h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-          }).retrieve().bodyToMono(Integer.class).block();
+    	try {
+            webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
+        }catch (Exception e) {
+            logger.info(e.getLocalizedMessage());
+        }
 	}
 
     private void archiveStudentAchievements(UUID studentID,String accessToken) {
-        webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                }).retrieve().bodyToMono(Integer.class).block();
+        try {
+            webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
+        }catch (Exception e) {
+        logger.info(e.getLocalizedMessage());
+    }
     }
 
 
@@ -932,35 +921,8 @@ public class GraduationStatusService {
         return null;
     }
 
-    public List<GraduationStudentRecordEntity> getStudentDataByStudentIDs(List<UUID> studentIds,String accessToken) {
-        List<GraduationStudentRecordEntity> list = graduationStatusRepository.findByStudentIDIn(studentIds);
-        list.forEach(ent->{
-            try {
-                if(ent.getStudentGradData() != null) {
-                    GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-                    ent.setPen(existingData.getGradStudent().getPen());
-                    ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                    ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                    ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-                }else {
-                    Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
-                        .headers(h -> {
-                            h.setBearerAuth(accessToken);
-                            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                        }).retrieve().bodyToMono(Student.class).block();
-                    if(stuData != null) {
-                        ent.setPen(stuData.getPen());
-                        ent.setLegalFirstName(stuData.getLegalFirstName());
-                        ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
-                        ent.setLegalLastName(stuData.getLegalLastName());
-                    }
-                }
-                ent.setStudentGradData(null);
-            } catch (JsonProcessingException e) {
-                logger.debug("Error : {}",e.getMessage());
-            }
-        });
-        return list;
+    public List<GraduationStudentRecord> getStudentDataByStudentIDs(List<UUID> studentIds) {
+        return graduationStatusTransformer.tToDForBatch(graduationStatusRepository.findByStudentIDIn(studentIds));
     }
 
     public List<UUID> getStudentsForYearlyDistribution() {
@@ -968,5 +930,42 @@ public class GraduationStatusService {
         if(!studentLists.isEmpty())
             return studentLists.stream().map(GraduationStudentRecordEntity::getStudentID).collect(Collectors.toList());
         return  new ArrayList<>();
+    }
+
+    public GraduationStudentRecord getDataForBatch(UUID studentID,String accessToken) {
+        GraduationStudentRecord ent = graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByStudentID(studentID));
+        return  processReceivedStudent(ent,accessToken);
+    }
+
+    private GraduationStudentRecord processReceivedStudent(GraduationStudentRecord ent,String accessToken) {
+        try {
+            if(ent.getStudentGradData() != null) {
+                GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
+
+                ent.setPen(existingData.getGradStudent().getPen());
+                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
+                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
+                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+            }else {
+                Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+                        .headers(h -> {
+                            h.setBearerAuth(accessToken);
+                            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                        }).retrieve().bodyToMono(Student.class).block();
+                if(stuData != null) {
+                    ent.setPen(stuData.getPen());
+                    ent.setLegalFirstName(stuData.getLegalFirstName());
+                    ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
+                    ent.setLegalLastName(stuData.getLegalLastName());
+                }
+            }
+        } catch (JsonProcessingException e) {
+            logger.debug("Parsing Error {}",e.getOriginalMessage());
+        }
+        return ent;
+    }
+
+    public List<GraduationStudentRecord> getStudentsForSchoolReport(String schoolOfRecord) {
+        return graduationStatusTransformer.tToDForBatch(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord));
     }
 }
