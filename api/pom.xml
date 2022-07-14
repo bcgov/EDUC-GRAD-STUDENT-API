@@ -28,10 +28,10 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <org.mapstruct.version>1.3.1.Final</org.mapstruct.version>
-        <springdoc.version>1.4.3</springdoc.version>
-        <shedlock.version>4.20.0</shedlock.version>
+        <springdoc.version>1.6.9</springdoc.version>
+        <shedlock.version>4.37.0</shedlock.version>
         <nats.version>2.11.0</nats.version>
-        <resilience4j.version>1.7.0</resilience4j.version>
+        <resilience4j.version>1.7.1</resilience4j.version>
         <guava.version>30.1.1-jre</guava.version>
         <log4j.version>2.18.0</log4j.version>
     </properties>
@@ -201,7 +201,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>7.12.0</version>
+            <version>8.5.13</version>
         </dependency>
         <dependency>
             <groupId>io.github.resilience4j</groupId>
@@ -236,7 +236,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>3.6.0.1398</version>
+          <version>3.9.1.2184</version>
         </plugin>
         <plugin>
           <groupId>org.jacoco</groupId>
