@@ -496,7 +496,7 @@ public class GraduationStatusService {
             validation.addErrorAndStop("Student GRAD data cannot be updated for students with a status of 'M' merged");
         }
         if (studentStatus.equalsIgnoreCase("DEC")) {
-            validation.addErrorAndStop("This student is showing as deceased.  Confirm the students' status before re-activating by setting their status to 'A' if they are currently attending school");
+            validation.addWarning("This student is showing as deceased.  Confirm the students' status before re-activating by setting their status to 'A' if they are currently attending school");
         }
     }
 
