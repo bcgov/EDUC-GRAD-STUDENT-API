@@ -68,10 +68,10 @@ objects:
                     name: api-grad-student-db-secret
               resources: 
                 requests:
-                  cpu: "250m"
+                  cpu: "50m"
                   memory: "1024Mi"
                 limits:
-                  cpu: "400m"
+                  cpu: "250m"
                   memory: "2048Mi"
             - image: docker-remote.artifacts.developer.gov.bc.ca/fluent/fluent-bit:1.5.7
               name: "${REPO_NAME}-fluent-bit-sidecar"
