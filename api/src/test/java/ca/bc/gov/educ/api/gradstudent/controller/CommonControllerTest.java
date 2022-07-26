@@ -36,7 +36,6 @@ public class CommonControllerTest {
     @Test
     public void testGetStudentCareerProgram() {
         final String programCode = "2018-EN";
-
        Mockito.when(commonService.getStudentCareerProgram(programCode)).thenReturn(true);
        codeController.getStudentCareerProgram(programCode);
        Mockito.verify(commonService).getStudentCareerProgram(programCode);
