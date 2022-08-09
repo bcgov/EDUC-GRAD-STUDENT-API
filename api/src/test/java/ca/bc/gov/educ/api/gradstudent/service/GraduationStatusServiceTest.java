@@ -924,7 +924,7 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentsForGraduation() {
         UUID studentID = UUID.randomUUID();
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",new java.util.Date(),"12345678","12","CUR",studentID);
+        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
         when(graduationStatusRepository.findByRecalculateGradStatusForBatch("Y")).thenReturn(List.of(graduationStatus));
         var result = graduationStatusService.getStudentsForGraduation();
         assertThat(result).isNotNull();
@@ -1062,7 +1062,7 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentsForProjectedGraduation() {
         UUID studentID = UUID.randomUUID();
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",new java.util.Date(),"12345678","12","CUR",studentID);
+        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
         when(graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y")).thenReturn(List.of(graduationStatus));
         var result = graduationStatusService.getStudentsForProjectedGraduation();
         assertThat(result).isNotNull();

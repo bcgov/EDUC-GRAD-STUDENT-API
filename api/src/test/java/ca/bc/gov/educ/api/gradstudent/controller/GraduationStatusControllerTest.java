@@ -2,7 +2,6 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
@@ -349,7 +348,7 @@ public class GraduationStatusControllerTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",new java.util.Date(),"12345678","12","CUR",studentID);
+        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
         Mockito.when(graduationStatusService.getStudentsForGraduation()).thenReturn(List.of(graduationStatus));
         graduationStatusController.getStudentsForGraduation();
         Mockito.verify(graduationStatusService).getStudentsForGraduation();
@@ -360,7 +359,7 @@ public class GraduationStatusControllerTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",new java.util.Date(),"12345678","12","CUR",studentID);
+        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
         Mockito.when(graduationStatusService.getStudentsForProjectedGraduation()).thenReturn(List.of(graduationStatus));
         graduationStatusController.getStudentsForProjectedGraduation();
         Mockito.verify(graduationStatusService).getStudentsForProjectedGraduation();
