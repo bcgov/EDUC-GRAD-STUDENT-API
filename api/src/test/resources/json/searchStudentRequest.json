@@ -22,7 +22,7 @@
     "2018-EN",
     "SCCP"
   ],
-  "gradDateFrom": "2000/01/01",
-  "gradDateTo": "2022/12/31",
+  "gradDateFrom": "2000-01-01",
+  "gradDateTo": "2022-12-31",
   "validateInput": false
 }
