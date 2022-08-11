@@ -1421,7 +1421,10 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setSchoolOfRecord("12345678");
 
-        ProjectedRunClob projectedRunClob = ProjectedRunClob.builder().graduated(true).nonGradReasons(new ArrayList<>()).build();
+        ProjectedRunClob projectedRunClob = new ProjectedRunClob();
+        projectedRunClob.setGraduated(true);
+        projectedRunClob.setNonGradReasons(null);
+
         String projectedClob = null;
         try {
             projectedClob = new ObjectMapper().writeValueAsString(projectedRunClob);
@@ -1634,5 +1637,47 @@ public class GraduationStatusServiceTest {
 
         GraduationStudentRecord res = graduationStatusService.getDataForBatch(studentID,"accessToken");
         assertThat(res).isNotNull();
+    }
+
+    @Test
+    public void testGetStudentsForAmalgamatedSchoolReport() {
+        List<UUID> res = amalgamatedReports("TVRNONGRAD",false);
+        assertThat(res).isNotNull().hasSize(1);
+
+        res = amalgamatedReports("TVRGRAD",true);
+        assertThat(res).isNotNull().hasSize(1);
+
+        res = amalgamatedReports("GRAD",false);
+        assertThat(res).isNotNull().isEmpty();
+    }
+
+    private List<UUID> amalgamatedReports(String type,boolean isGraduated) {
+        String mincode = "21313121";
+
+        ProjectedRunClob projectedRunClob = new ProjectedRunClob();
+        projectedRunClob.setGraduated(isGraduated);
+        projectedRunClob.setNonGradReasons(null);
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(UUID.randomUUID());
+        graduationStatusEntity.setStudentStatus("A");
+        try {
+            graduationStatusEntity.setStudentProjectedGradData(new ObjectMapper().writeValueAsString(projectedRunClob));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setSchoolOfRecord("21313121");
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setBatchId(4000L);
+        graduationStatusEntity.setPen("123123");
+        graduationStatusEntity.setLegalFirstName("Asdad");
+        graduationStatusEntity.setLegalMiddleNames("Adad");
+        graduationStatusEntity.setLegalLastName("sadad");
+
+        Mockito.when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStatusEntity));
+
+        return graduationStatusService.getStudentsForAmalgamatedSchoolReport(mincode,type);
     }
 }

@@ -420,7 +420,9 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setSchoolOfRecord("12345678");
         graduationStatus.setRecalculateGradStatus("Y");
-        ProjectedRunClob projectedRunClob = ProjectedRunClob.builder().graduated(true).nonGradReasons(new ArrayList<>()).build();
+        ProjectedRunClob projectedRunClob = new ProjectedRunClob();
+        projectedRunClob.setGraduated(true);
+        projectedRunClob.setNonGradReasons(null);
 
         Mockito.when(graduationStatusService.saveStudentRecordProjectedTVRRun(studentID,null, projectedRunClob)).thenReturn(graduationStatus);
         graduationStatusController.saveStudentGradStatusProjectedRun(studentID.toString(),null,projectedRunClob);
@@ -581,5 +583,15 @@ public class GraduationStatusControllerTest {
         Mockito.when(graduationStatusService.getStudentsForSchoolReport(mincode)).thenReturn(List.of(graduationStatus));
         graduationStatusController.getStudentsForSchoolReport(mincode);
         Mockito.verify(graduationStatusService).getStudentsForSchoolReport(mincode);
+    }
+
+    @Test
+    public void testGetStudentsForAmalgamatedSchoolReport() {
+        // ID
+        String mincode = "123456789";
+        UUID studentID = UUID.randomUUID();
+        Mockito.when(graduationStatusService.getStudentsForAmalgamatedSchoolReport(mincode,"TVRNONGRAD")).thenReturn(List.of(studentID));
+        graduationStatusController.getStudentsForAmalgamatedSchoolReport(mincode,"TVRNONGRAD");
+        Mockito.verify(graduationStatusService).getStudentsForAmalgamatedSchoolReport(mincode,"TVRNONGRAD");
     }
 }
