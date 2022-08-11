@@ -975,4 +975,9 @@ public class GraduationStatusService {
     public List<GraduationStudentRecord> getStudentsForSchoolReport(String schoolOfRecord) {
         return graduationStatusTransformer.tToDForBatch(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord));
     }
+
+    public List<UUID> getStudentsForAmalgamatedSchoolReport(String schoolOfRecord,String type) {
+        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord),type);
+    }
+
 }
