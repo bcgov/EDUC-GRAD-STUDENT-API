@@ -343,7 +343,7 @@ public class GraduationStatusController {
         }
     }
 
-    @PostMapping (EducGradStudentApiConstants.GRADUATION_RECORD_BY_STUDENT_ID_DISTRIBUTION_RUN)
+    @GetMapping (EducGradStudentApiConstants.GRADUATION_RECORD_BY_STUDENT_ID_DISTRIBUTION_RUN)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
