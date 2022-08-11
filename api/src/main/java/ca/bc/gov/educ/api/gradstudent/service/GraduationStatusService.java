@@ -890,6 +890,7 @@ public class GraduationStatusService {
     @Retry(name = "generalpostcall")
     public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId,String activityCode) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        logger.info("after get {}  {}",gradStatusOptional.isPresent(),studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
             gradEntity.setUpdateUser(null);
