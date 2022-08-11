@@ -348,7 +348,7 @@ public class GraduationStatusController {
     @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecord> saveStudentGradStatusDistributionRun(@PathVariable String studentID, @RequestParam(name = "batchId",required = false) Long batchId,@RequestParam(name = "activityCode",required = false) String activityCode) {
-        logger.debug("Save Distribution student Grad Status for Student ID");
+        logger.info("Save Distribution student Grad Status for Student ID");
         GraduationStudentRecord gradRecord =  gradStatusService.saveStudentRecordDistributionRun(UUID.fromString(studentID),batchId,activityCode);
         return response.GET(gradRecord);
     }
