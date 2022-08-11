@@ -890,16 +890,13 @@ public class GraduationStatusService {
     @Retry(name = "generalpostcall")
     public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId,String activityCode) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
-        logger.info("after get {}  {}",gradStatusOptional.isPresent(),studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
             gradEntity.setUpdateUser(null);
             gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-            logger.info("after save");
             historyService.createStudentHistory(gradEntity, activityCode);
-            logger.info("after history save");
             return graduationStatusTransformer.transformToDTO(gradEntity);
         }
         return null;
