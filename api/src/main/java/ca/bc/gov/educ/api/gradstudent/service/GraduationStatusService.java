@@ -896,7 +896,9 @@ public class GraduationStatusService {
             gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
+            logger.info("after save");
             historyService.createStudentHistory(gradEntity, activityCode);
+            logger.info("after history save");
             return graduationStatusTransformer.transformToDTO(gradEntity);
         }
         return null;

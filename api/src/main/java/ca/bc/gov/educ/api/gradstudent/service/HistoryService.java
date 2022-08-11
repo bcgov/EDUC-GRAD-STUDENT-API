@@ -54,7 +54,7 @@ public class HistoryService {
     }
 
     public void createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
-    	logger.debug("Create Student History");
+    	logger.info("Create Student History");
     	final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
         BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
         graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
