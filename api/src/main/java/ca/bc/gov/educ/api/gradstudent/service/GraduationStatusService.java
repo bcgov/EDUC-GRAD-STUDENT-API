@@ -275,19 +275,26 @@ public class GraduationStatusService {
         }
 
         if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty()) {
+            logger.debug(String.format("Districts filter is not empty [%s]", searchRequest.getDistricts()));
             List<CommonSchool> schools = new ArrayList<>(getSchools(accessToken));
             for(Iterator<CommonSchool> it = schools.iterator(); it.hasNext();) {
                 CommonSchool school = it.next();
                 if(!searchRequest.getDistricts().contains(school.getDistNo())) {
+                    logger.debug(String.format("Remove not matching district %s", school.getDistNo()));
                     it.remove();
                 } else {
                     if(searchRequest.getSchoolCategoryCodes() != null && !searchRequest.getSchoolCategoryCodes().isEmpty()) {
+                        logger.debug(String.format("School categories filter is not empty [%s]", searchRequest.getSchoolCategoryCodes()));
                         if(!searchRequest.getSchoolCategoryCodes().contains(school.getSchoolCategoryCode())) {
+                            logger.debug(String.format("Remove not matching school category %s", school.getSchoolCategoryCode()));
                             it.remove();
                         } else {
+                            logger.debug(String.format("Add matching school %s", school.getDistNo() + "/" + school.getSchoolCategoryCode()));
                             searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
                         }
                     } else {
+                        logger.debug("School categories filter is empty");
+                        logger.debug(String.format("Add matching school %s", school.getDistNo() + "/" + school.getSchoolCategoryCode()));
                         searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
                     }
                 }
