@@ -207,9 +207,5 @@ public class CommonController {
         }
 
     }
-
-    private String getUserName() {
-        return ThreadLocalStateUtil.getCurrentUser();
-    }
    
 }
