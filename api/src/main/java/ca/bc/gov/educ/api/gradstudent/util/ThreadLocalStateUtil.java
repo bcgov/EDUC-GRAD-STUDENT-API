@@ -1,5 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
+import java.util.Objects;
+
 public class ThreadLocalStateUtil {
     private static ThreadLocal<String> transaction = new ThreadLocal<>();
     private static ThreadLocal<String> user = new ThreadLocal<>();
@@ -37,7 +39,7 @@ public class ThreadLocalStateUtil {
      * @return the username of the current user, or null if it is unknown.
      */
     public static String getCurrentUser() {
-        return user.get();
+        return Objects.requireNonNullElse(user.get(), "GRAD");
     }
 
     public static void clear() {
