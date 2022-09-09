@@ -32,9 +32,9 @@ public class StudentSearchRequest {
     List<String> pens;
     List<String> programs;
 
-    @JsonFormat(pattern = "yyyy/MM/dd")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     Date gradDateFrom;
-    @JsonFormat(pattern = "yyyy/MM/dd")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     Date gradDateTo;
 
     Boolean validateInput;

@@ -129,6 +129,10 @@ public class GraduationStatusService {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE,"recalculateProjectedGrad","programCompletionDate","consumerEducationRequirementMet");
             gradEntity.setRecalculateGradStatus(null);
+            if(batchId == null) {
+                gradEntity.setRecalculateGradStatus("Y");
+            }
+
             gradEntity.setBatchId(batchId);
             if(!gradEntity.getProgram().equalsIgnoreCase("SCCP") && !gradEntity.getProgram().equalsIgnoreCase("NOPROG")) {
                 gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
@@ -913,6 +917,9 @@ public class GraduationStatusService {
             gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
             gradEntity.setRecalculateProjectedGrad(null);
+            if(batchId == null) {
+                gradEntity.setRecalculateProjectedGrad("Y");
+            }
             gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, "GRADPROJECTED");
@@ -968,4 +975,9 @@ public class GraduationStatusService {
     public List<GraduationStudentRecord> getStudentsForSchoolReport(String schoolOfRecord) {
         return graduationStatusTransformer.tToDForBatch(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord));
     }
+
+    public List<UUID> getStudentsForAmalgamatedSchoolReport(String schoolOfRecord,String type) {
+        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord),type);
+    }
+
 }

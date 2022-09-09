@@ -26,7 +26,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -251,7 +250,7 @@ public class GraduationStatusController {
     public ResponseEntity<List<GraduationStudentRecordHistory>> getStudentHistory(@PathVariable String studentID) {
         logger.debug("getStudentEditHistory:");
         List<GraduationStudentRecordHistory> historyList =historyService.getStudentEditHistory(UUID.fromString(studentID));
-        Collections.sort(historyList, Comparator.comparing(GraduationStudentRecordHistory::getCreateDate));
+        historyList.sort(Comparator.comparing(GraduationStudentRecordHistory::getCreateDate));
         return response.GET(historyList);
     }
 
@@ -271,7 +270,7 @@ public class GraduationStatusController {
                                                                                                 @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("getStudentOptionalProgramEditHistory:");
         List<StudentOptionalProgramHistory> histList = historyService.getStudentOptionalProgramEditHistory(UUID.fromString(studentID),accessToken.replace(BEARER, ""));
-        Collections.sort(histList, Comparator.comparing(StudentOptionalProgramHistory::getCreateDate));
+        histList.sort(Comparator.comparing(StudentOptionalProgramHistory::getCreateDate));
         return response.GET(histList);
     }
 
@@ -360,5 +359,14 @@ public class GraduationStatusController {
     public ResponseEntity<List<GraduationStudentRecord>> getStudentsForSchoolReport(@PathVariable String schoolOfRecord) {
         logger.debug("getStudentsForSchoolReport:");
         return response.GET(gradStatusService.getStudentsForSchoolReport(schoolOfRecord));
+    }
+
+    @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_AMALGAMATED_SCHOOL_REPORT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Students For School Report by mincode", description = "Get Students For School Report by mincode", tags = { "Business" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<UUID>> getStudentsForAmalgamatedSchoolReport(@PathVariable String schoolOfRecord, @PathVariable String type) {
+        logger.debug("getStudentsForSchoolReport:");
+        return response.GET(gradStatusService.getStudentsForAmalgamatedSchoolReport(schoolOfRecord,type));
     }
 }

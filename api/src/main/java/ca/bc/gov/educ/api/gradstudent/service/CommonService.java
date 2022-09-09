@@ -1,14 +1,20 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import java.util.*;
-
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.HistoryActivityTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentNoteTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -18,17 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentNoteTransformer;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentStatusTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import java.util.*;
 
 @Service
 public class CommonService {
@@ -112,11 +110,15 @@ public class CommonService {
 	public StudentNote saveStudentNote(StudentNote studentNote) {
 		logger.debug("saveStudentNote");
 		StudentRecordNoteEntity toBeSaved = studentNoteTransformer.transformToEntity(studentNote);
+		String userName = ThreadLocalStateUtil.getCurrentUser();
+		toBeSaved.setCreateUser(userName);
+		toBeSaved.setUpdateUser(userName);
 		if(studentNote.getId() != null) {
 			Optional<StudentRecordNoteEntity> existingEnity = studentNoteRepository.findById(studentNote.getId());
 			if(existingEnity.isPresent()) {
 				StudentRecordNoteEntity gradEntity = existingEnity.get();
 				if(studentNote.getNote() != null) {
+					gradEntity.setUpdateUser(userName);
 					gradEntity.setNote(studentNote.getNote());
 				}
 				if(studentNote.getStudentID() != null) {
