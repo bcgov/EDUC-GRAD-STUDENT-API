@@ -1,17 +1,21 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.HistoryActivityTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentNoteTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,17 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentNoteTransformer;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentStatusTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import java.util.*;
 
 @Service
 public class CommonService {
@@ -87,7 +83,11 @@ public class CommonService {
 		logger.debug("getAllGradStudentCareerProgramList");
 		List<StudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
       	gradStudentCareerProgramList.forEach(sC -> {
-      		CareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CareerProgram.class).block();
+      		CareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode()))
+									.headers(h -> {
+										h.setBearerAuth(accessToken);
+										h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+									}).retrieve().bodyToMono(CareerProgram.class).block();
     		if(gradCareerProgram != null) {
     			sC.setCareerProgramCode(gradCareerProgram.getCode());
     			sC.setCareerProgramName(gradCareerProgram.getDescription());
@@ -110,11 +110,15 @@ public class CommonService {
 	public StudentNote saveStudentNote(StudentNote studentNote) {
 		logger.debug("saveStudentNote");
 		StudentRecordNoteEntity toBeSaved = studentNoteTransformer.transformToEntity(studentNote);
+		String userName = ThreadLocalStateUtil.getCurrentUser();
+		toBeSaved.setCreateUser(userName);
+		toBeSaved.setUpdateUser(userName);
 		if(studentNote.getId() != null) {
 			Optional<StudentRecordNoteEntity> existingEnity = studentNoteRepository.findById(studentNote.getId());
 			if(existingEnity.isPresent()) {
 				StudentRecordNoteEntity gradEntity = existingEnity.get();
 				if(studentNote.getNote() != null) {
+					gradEntity.setUpdateUser(userName);
 					gradEntity.setNote(studentNote.getNote());
 				}
 				if(studentNote.getStudentID() != null) {
@@ -198,7 +202,12 @@ public class CommonService {
 		GradStudentAlgorithmData data = new GradStudentAlgorithmData();
 		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID, accessToken);
 		GraduationStudentRecord gradStudentRecord = graduationStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID));
-		List<StudentCareerProgram> cpList = getAllGradStudentCareerProgramList(studentID,accessToken);
+		List<StudentCareerProgram>  cpList = new ArrayList<>();
+		try {
+			cpList = getAllGradStudentCareerProgramList(studentID, accessToken);
+		}catch (Exception e) {
+			logger.debug("TRAX-API-DOWN {}",e.getLocalizedMessage());
+		}
 		data.setGradStudent(gradStudent);
 		data.setGraduationStudentRecord(gradStudentRecord);
 		data.setStudentCareerProgramList(cpList);

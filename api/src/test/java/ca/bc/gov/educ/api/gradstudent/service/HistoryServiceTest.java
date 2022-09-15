@@ -5,8 +5,10 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -46,6 +48,7 @@ public class HistoryServiceTest {
     @Autowired HistoryService historyService;
     @MockBean CommonService commonService;
     @MockBean GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
+    @MockBean HistoryActivityRepository historyActivityRepository;
     @MockBean StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
     @MockBean WebClient webClient;
     @Mock WebClient.RequestHeadersSpec requestHeadersMock;
@@ -110,6 +113,9 @@ public class HistoryServiceTest {
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
+        HistoryActivityCodeEntity ent = new HistoryActivityCodeEntity();
+        ent.setCode("GRADALG");
+        ent.setDescription("aadsad");
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),gradStudentOptionalProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
@@ -117,6 +123,7 @@ public class HistoryServiceTest {
         when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
         when(studentOptionalProgramHistoryRepository.findByStudentID(studentID)).thenReturn(histList);
+        when(historyActivityRepository.findById("GRADALG")).thenReturn(Optional.of(ent));
         var result = historyService.getStudentOptionalProgramEditHistory(studentID,"accessToken");
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
@@ -160,6 +167,10 @@ public class HistoryServiceTest {
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
+        HistoryActivityCodeEntity ent = new HistoryActivityCodeEntity();
+        ent.setCode("GRADALG");
+        ent.setDescription("aadsad");
+
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),gradStudentOptionalProgramEntity.getOptionalProgramID()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
@@ -167,7 +178,7 @@ public class HistoryServiceTest {
         when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
         when(studentOptionalProgramHistoryRepository.findById(historyID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
-
+        when(historyActivityRepository.findById("GRADALG")).thenReturn(Optional.of(ent));
 
 
         var result = historyService.getStudentOptionalProgramHistoryByID(historyID,"accessToken");
@@ -181,6 +192,12 @@ public class HistoryServiceTest {
         UUID historyID = UUID.randomUUID();
         List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
 
+        Student std = new Student();
+        std.setPen("123123");
+        std.setLegalFirstName("Asdad");
+        std.setLegalMiddleNames("Adad");
+        std.setLegalLastName("sadad");
+
         GradSearchStudent serObj = new GradSearchStudent();
         serObj.setPen("123123");
         serObj.setLegalFirstName("Asdad");
@@ -188,6 +205,12 @@ public class HistoryServiceTest {
         serObj.setLegalLastName("sadad");
         GraduationData gd = new GraduationData();
         gd.setGradStudent(serObj);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByStudentIdUrl(),studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(std));
 
         GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -212,7 +235,7 @@ public class HistoryServiceTest {
         Pageable paging = PageRequest.of(0, 10);
         Page<GraduationStudentRecordHistoryEntity> hPage = new PageImpl(histList);
         when(graduationStudentRecordHistoryRepository.findByBatchId(4000L,paging)).thenReturn(hPage);
-        Page<GraduationStudentRecordHistoryEntity> list = historyService.getStudentHistoryByBatchID(4000L, 0, 10);
+        Page<GraduationStudentRecordHistoryEntity> list = historyService.getStudentHistoryByBatchID(4000L, 0, 10,null);
         assertThat(list).isNotEmpty();
         assertThat(list.getContent()).hasSize(1);
     }

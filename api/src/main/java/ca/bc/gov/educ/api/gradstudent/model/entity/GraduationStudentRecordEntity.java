@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -15,7 +14,7 @@ import java.util.UUID;
 public class GraduationStudentRecordEntity extends BaseEntity {
 
     public GraduationStudentRecordEntity(String gradProgram, String schoolOfRecord) {
-		this.program= gradProgram;
+		this.program = gradProgram;
 		this.schoolOfRecord = schoolOfRecord;
 	}
 
@@ -66,7 +65,19 @@ public class GraduationStudentRecordEntity extends BaseEntity {
     @Column(name = "BATCH_ID", nullable = true)
     private Long batchId;
 
-    @OneToMany
-    @JoinColumn(name = "GRADUATION_STUDENT_RECORD_ID", insertable = false, updatable = false)
-    private List<StudentCareerProgramEntity> careerPrograms;
+    @Column(name = "CONSUMER_EDUC_REQT_MET", nullable = true)
+    private String consumerEducationRequirementMet;
+
+    @Lob
+    @Column(name = "STUDENT_PROJECTED_GRAD_DATA", columnDefinition="CLOB")
+    private String studentProjectedGradData;
+
+    @Transient
+    private String legalFirstName;
+
+    @Transient
+    private String legalMiddleNames;
+
+    @Transient
+    private String legalLastName;
 }

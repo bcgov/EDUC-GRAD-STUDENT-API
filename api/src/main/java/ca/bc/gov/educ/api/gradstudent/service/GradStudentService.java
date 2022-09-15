@@ -1,16 +1,12 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,21 +15,19 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import javax.transaction.Transactional;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class GradStudentService {
@@ -110,7 +104,7 @@ public class GradStudentService {
 			return searchObj;
 			
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			logger.error(e.getMessage());
 		}
 		return null;
 	}
@@ -143,7 +137,10 @@ public class GradStudentService {
 					.queryParam(PAGE_SIZE, studList.size())
 					.queryParam(SEARCH_CRITERIA_LIST, encodedURL)
 				.build())
-				.headers(h -> h.setBearerAuth(accessToken))
+				.headers(h -> {
+					h.setBearerAuth(accessToken);
+					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+				})
 				.retrieve().bodyToMono(new ParameterizedTypeReference<RestResponsePage<Student>>() {}).block();
 			List<Student> studentList = response != null ?response.getContent():new ArrayList<>();
 			if (!studentList.isEmpty()) {
@@ -164,7 +161,7 @@ public class GradStudentService {
 			searchObj.setNumber(pagedResult.getNumber());
 			return searchObj;
 	    } catch (Exception e) {
-	    	logger.info(e.getMessage());
+	    	logger.error(e.getMessage());
 		}
 		
 	    return null;
@@ -189,7 +186,10 @@ public class GradStudentService {
 					.queryParam(PAGE_SIZE, "50000")
 					.queryParam(SEARCH_CRITERIA_LIST, encodedURL)
 				.build())
-				.headers(h -> h.setBearerAuth(accessToken))
+				.headers(h -> {
+					h.setBearerAuth(accessToken);
+					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+				})
 				.retrieve().bodyToMono(new ParameterizedTypeReference<RestResponsePage<Student>>() {}).block();
 			List<Student> studentLists = response != null ? response.getContent():new ArrayList<>();
 			if(studentLists.size() < 25000) {
@@ -203,7 +203,7 @@ public class GradStudentService {
 			return searchObj;
 			
 		} catch (Exception e) {
-			logger.info(e.getMessage());
+			logger.error(e.getMessage());
 		}
 		return null;
 	}
@@ -238,7 +238,12 @@ public class GradStudentService {
 	@Retry(name = "searchbypen")
     public List<GradSearchStudent> getStudentByPenFromStudentAPI(String pen, String accessToken) {
     	List<GradSearchStudent> gradStudentList = new ArrayList<>();
-    	List<Student> stuDataList = webClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
+    	List<Student> stuDataList = webClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen))
+				.headers(h -> {
+					h.setBearerAuth(accessToken);
+					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+				})
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
     	if (stuDataList != null && !stuDataList.isEmpty()) {
 			stuDataList.forEach(st -> {
 				GradSearchStudent gradStu = populateGradSearchStudent(st, accessToken);
@@ -285,11 +290,21 @@ public class GradStudentService {
 	private GradSearchStudent populateGradStudent(GraduationStudentRecordEntity gradRecord, String accessToken) {
 		GradSearchStudent gradStu = new GradSearchStudent();
 		BeanUtils.copyProperties(gradRecord, gradStu);
-		Student studentPen = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), gradRecord.getStudentID())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+		Student studentPen = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), gradRecord.getStudentID()))
+			.headers(h -> {
+				h.setBearerAuth(accessToken);
+				h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+			})
+		.retrieve().bodyToMono(Student.class).block();
 		if(studentPen != null) {
 			BeanUtils.copyProperties(studentPen, gradStu);
 		}
-		School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+		School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord()))
+			.headers(h -> {
+				h.setBearerAuth(accessToken);
+				h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+			})
+		.retrieve().bodyToMono(School.class).block();
 		if (school != null) {
 			gradStu.setSchoolOfRecordName(school.getSchoolName());
 			gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
@@ -308,8 +323,15 @@ public class GradStudentService {
 			gradStu.setStudentStatus(gradObj.getStudentStatus());
 			gradStu.setSchoolOfRecord(gradObj.getSchoolOfRecord());
 		
-			School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord())).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(School.class).block();
+			School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord()))
+				.headers(h -> {
+					h.setBearerAuth(accessToken);
+					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+				})
+				.retrieve().bodyToMono(School.class).block();
 			if (school != null) {
+				gradStu.setTranscriptEligibility(school.getTranscriptEligibility());
+				gradStu.setCertificateEligibility(school.getCertificateEligibility());
 				gradStu.setSchoolOfRecordName(school.getSchoolName());
 				gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
 			}
@@ -320,7 +342,12 @@ public class GradStudentService {
     @Transactional
 	@Retry(name = "searchbyid")
     public GradSearchStudent getStudentByStudentIDFromStudentAPI(String studentID, String accessToken) {
-    	Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), studentID)).headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+    	Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), studentID))
+				.headers(h -> {
+					h.setBearerAuth(accessToken);
+					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+				})
+				.retrieve().bodyToMono(Student.class).block();
     	GradSearchStudent gradStu = new GradSearchStudent();
     	if (stuData != null) {
 			gradStu = populateGradSearchStudent(stuData, accessToken);			
@@ -329,10 +356,20 @@ public class GradStudentService {
     }
 
 	@Transactional
+	@Retry(name = "searchbyid")
+	public GraduationStudentRecordDistribution getStudentByStudentIDFromGrad(String studentID) {
+		return graduationStatusTransformer.tToDForDistribution(graduationStatusRepository.findByStudentID(UUID.fromString(studentID)));
+	}
+
+
+	@Transactional
 	public Student addNewPenFromStudentAPI(StudentCreate student, String accessToken) {
 		return webClient.post()
 				.uri(constants.getPenStudentApiUrl())
-				.headers(h -> h.setBearerAuth(accessToken))
+				.headers(h -> {
+					h.setBearerAuth(accessToken);
+					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+				})
 				.body(BodyInserters.fromValue(student))
 				.retrieve().bodyToMono(Student.class).block();
 	}

@@ -3,7 +3,7 @@ pipeline{
         label 'maven'
     }
     environment{
-        OCP_PROJECT = '77c02f-dev'
+        OCP_PROJECT = '77c02f-test'
         IMAGE_PROJECT = '77c02f-tools'
         IMAGE_TAG = 'latest'
         APP_SUBDOMAIN_SUFFIX = '77c02f-test'
@@ -19,7 +19,7 @@ pipeline{
         buildDiscarder(logRotator(daysToKeepStr: '', numToKeepStr: '5'))
     }
     parameters {
-        choice( name: 'IMAGE_TAG', choices: ['latest', 'main', 'release-1.0.0', 'dev' ] )
+        choice( name: 'IMAGE_TAG', choices: ['latest', 'main', 'dev', 'test' ] )
     }
     stages{
         stage('Deploy to TEST') {
@@ -30,7 +30,7 @@ pipeline{
                             openshift.apply(
                                     openshift.process("-f", "${SOURCE_REPO_URL_RAW}/${BRANCH}/tools/openshift/api.dc.yaml",
                                             "REPO_NAME=${REPO_NAME}", "HOST_ROUTE=${REPO_NAME}-${APP_SUBDOMAIN_SUFFIX}.${APP_DOMAIN}",
-                                            "TAG_NAME=${params.IMAGE_TAG}")
+                                            "TAG_NAME=${params.IMAGE_TAG}", "IS_NAMESPACE=${IMAGE_PROJECT}")
                             )
                             openshift.selector("dc", "${REPO_NAME}-dc").rollout().latest()
                             timeout (time: 10, unit: 'MINUTES') {

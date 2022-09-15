@@ -1,18 +1,19 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -25,9 +26,7 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -47,6 +46,9 @@ public class GradStudentServiceTest {
 
     @Autowired
     GradStudentService gradStudentService;
+
+    @Autowired
+    GraduationStatusService graduationStatusService;
 
     @MockBean
     CommonService commonService;
@@ -374,9 +376,66 @@ public class GradStudentServiceTest {
     }
 
     @Test
+    public void testStudentDemographics() {
+        testGetStudentByPenFromStudentAPI();
+
+        final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
+        final String pen = "123456789";
+        final String firstName = "FirstName";
+        final String lastName = "LastName";
+        final String program = "2018-EN";
+        final String gradStatus = "A";
+        final String stdGrade = "12";
+        final String mincode = "12345678";
+        final String schoolName = "Test School";
+
+        // Graduation Status Entity
+        final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
+        graduationStatusEntity.setStudentStatus(gradStatus);
+        graduationStatusEntity.setStudentGrade(stdGrade);
+        graduationStatusEntity.setProgram(program);
+        graduationStatusEntity.setProgramCompletionDate(new Date());
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+
+        when(this.graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+
+        CommonSchool commonSchool = new CommonSchool();
+        commonSchool.setSchlNo(mincode);
+        commonSchool.setSchoolName(schoolName);
+        commonSchool.setSchoolCategoryCode("02");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(CommonSchool.class)).thenReturn(Mono.just(commonSchool));
+
+        GradStudentCertificates certificate = new GradStudentCertificates();
+        certificate.setStudentID(studentID);
+        certificate.setPen(pen);
+        certificate.setGradCertificateTypeCode("EI");
+        certificate.setDistributionDate(new Date());
+
+        final ParameterizedTypeReference<List<GradStudentCertificates>> certificatesType = new ParameterizedTypeReference<>() {
+        };
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getStudentCertificates(), studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(certificatesType)).thenReturn(Mono.just(List.of(certificate)));
+
+        var studentDemog = graduationStatusService.getStudentDemographics(pen, "accessToken");
+        assertThat(studentDemog).isNotNull();
+
+    }
+
+    @Test
     public void testGetStudentByPenFromStudentAPI() {
         // ID
-        final UUID studentID = UUID.randomUUID();
+        final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
         final String pen = "123456789";
         final String firstName = "FirstName";
         final String lastName = "LastName";
@@ -599,5 +658,28 @@ public class GradStudentServiceTest {
         var result = gradStudentService.addNewPenFromStudentAPI(student, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getPen()).isEqualTo(pen);
+    }
+
+    @Test
+    public void testGetStudentInfoFromGRAD() {
+        // ID
+        final UUID studentID = UUID.randomUUID();
+
+        // Grad Student
+        GraduationStudentRecordEntity rec = new GraduationStudentRecordEntity();
+        rec.setStudentID(studentID);
+        rec.setProgram("2018-EN");
+        rec.setSchoolOfRecord("31121121");
+        GraduationStudentRecordDistribution rec2 = new GraduationStudentRecordDistribution();
+        rec2.setStudentID(studentID);
+        rec2.setProgram("2018-EN");
+        rec2.setSchoolOfRecord("31121121");
+
+
+        Mockito.when(graduationStatusRepository.findByStudentID(UUID.fromString(studentID.toString()))).thenReturn(rec);
+        when(this.graduationStatusTransformer.tToDForDistribution(rec)).thenReturn(rec2);
+        var result = gradStudentService.getStudentByStudentIDFromGrad(studentID.toString());
+        assertThat(result).isNotNull();
+        assertThat(result.getProgram()).isEqualTo("2018-EN");
     }
 }

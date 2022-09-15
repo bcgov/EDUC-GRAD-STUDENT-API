@@ -14,10 +14,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -40,7 +36,6 @@ public class CommonControllerTest {
     @Test
     public void testGetStudentCareerProgram() {
         final String programCode = "2018-EN";
-
        Mockito.when(commonService.getStudentCareerProgram(programCode)).thenReturn(true);
        codeController.getStudentCareerProgram(programCode);
        Mockito.verify(commonService).getStudentCareerProgram(programCode);
@@ -70,16 +65,10 @@ public class CommonControllerTest {
         studentCareerProgram2.setCareerProgramCode(gradCareerProgram.getCode());
         gradStudentCareerProgramList.add(studentCareerProgram2);
 
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
 
-        Mockito.when(commonService.getAllGradStudentCareerProgramList(pen, null)).thenReturn(gradStudentCareerProgramList);
-        codeController.getAllStudentCareerProgramsList(pen);
-        Mockito.verify(commonService).getAllGradStudentCareerProgramList(pen, null);
+        Mockito.when(commonService.getAllGradStudentCareerProgramList(pen, "accessToken")).thenReturn(gradStudentCareerProgramList);
+        codeController.getAllStudentCareerProgramsList(pen, "accessToken");
+        Mockito.verify(commonService).getAllGradStudentCareerProgramList(pen, "accessToken");
     }
 
     @Test
@@ -221,12 +210,6 @@ public class CommonControllerTest {
 
         String studentID = new UUID(1,1).toString();
         String accessToken = "accessToken";
-        Authentication authentication = Mockito.mock(Authentication.class);
-        OAuth2AuthenticationDetails details = Mockito.mock(OAuth2AuthenticationDetails.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        Mockito.when(authentication.getDetails()).thenReturn(details);
-        SecurityContextHolder.setContext(securityContext);
 
         GradSearchStudent gs = new GradSearchStudent();
         gs.setStudentID(studentID);
@@ -240,9 +223,7 @@ public class CommonControllerTest {
         data.setGradStudent(gs);
         data.setGraduationStudentRecord(gsr);
 
-        Mockito.when(commonService.getGradStudentAlgorithmData(studentID,null)).thenReturn(data);
-        codeController.getStudentGradStatusForAlgorithm(studentID);
+        Mockito.when(commonService.getGradStudentAlgorithmData(studentID,"accessToken")).thenReturn(data);
+        codeController.getStudentGradStatusForAlgorithm(studentID, "accessToken");
     }
-
-
 }

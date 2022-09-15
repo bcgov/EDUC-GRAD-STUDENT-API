@@ -16,6 +16,7 @@ public class GraduationData {
     private GradSearchStudent gradStudent;
     private School school;
     private String gradMessage;
+    private List<GradRequirement> nonGradReasons;
     private boolean dualDogwood;
     private boolean isGraduated;
 }

@@ -1,20 +1,18 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
-import java.util.List;
-import java.util.UUID;
-
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordHistory;
 import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramHistory;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStudentRecordHistoryTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentOptionalProgramHistoryTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -25,11 +23,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordHistory;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStudentRecordHistoryTransformer;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class HistoryService {
@@ -43,15 +39,17 @@ public class HistoryService {
     final GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer;
     final StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
     final StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer;
+    final HistoryActivityRepository historyActivityRepository;
     final EducGradStudentApiConstants constants;
 
     @Autowired
-    public HistoryService(WebClient webClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants) {
+    public HistoryService(WebClient webClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants, HistoryActivityRepository historyActivityRepository) {
         this.webClient = webClient;
         this.graduationStudentRecordHistoryRepository = graduationStudentRecordHistoryRepository;
         this.graduationStudentRecordHistoryTransformer = graduationStudentRecordHistoryTransformer;
         this.studentOptionalProgramHistoryRepository = studentOptionalProgramHistoryRepository;
         this.studentOptionalProgramHistoryTransformer = studentOptionalProgramHistoryTransformer;
+        this.historyActivityRepository = historyActivityRepository;
         this.constants = constants;
     }
 
@@ -60,6 +58,7 @@ public class HistoryService {
     	final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
         BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
         graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
+        graduationStudentRecordHistoryEntity.setStudentGradData("{ EMPTY CLOB }");
         graduationStudentRecordHistoryRepository.save(graduationStudentRecordHistoryEntity);
     }
 
@@ -69,11 +68,17 @@ public class HistoryService {
         BeanUtils.copyProperties(curStudentOptionalProgramEntity, studentOptionalProgramHistoryEntity);
         studentOptionalProgramHistoryEntity.setStudentOptionalProgramID(curStudentOptionalProgramEntity.getId());
         studentOptionalProgramHistoryEntity.setActivityCode(historyActivityCode);
+        studentOptionalProgramHistoryEntity.setStudentOptionalProgramData("{ EMPTY CLOB }");
         studentOptionalProgramHistoryRepository.save(studentOptionalProgramHistoryEntity);
     }
     
     public List<GraduationStudentRecordHistory> getStudentEditHistory(UUID studentID) {
-        return graduationStudentRecordHistoryTransformer.transformToDTO(graduationStudentRecordHistoryRepository.findByStudentID(studentID));
+        List<GraduationStudentRecordHistory> histList = graduationStudentRecordHistoryTransformer.transformToDTO(graduationStudentRecordHistoryRepository.findByStudentID(studentID));
+        histList.forEach(gS->{
+            Optional<HistoryActivityCodeEntity> entOpt = historyActivityRepository.findById(gS.getActivityCode());
+            entOpt.ifPresent(historyActivityCodeEntity -> gS.setActivityCodeDescription(historyActivityCodeEntity.getDescription()));
+        });
+        return histList;
     }
 
     public List<StudentOptionalProgramHistory> getStudentOptionalProgramEditHistory(UUID studentID,String accessToken) {
@@ -81,7 +86,10 @@ public class HistoryService {
         histList.forEach(sP -> {
             OptionalProgram gradOptionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
-                    .headers(h -> h.setBearerAuth(accessToken))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    })
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
@@ -90,6 +98,9 @@ public class HistoryService {
                 sP.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
                 sP.setProgramCode(gradOptionalProgram.getGraduationProgramCode());
             }
+
+            Optional<HistoryActivityCodeEntity> entOpt = historyActivityRepository.findById(sP.getActivityCode());
+            entOpt.ifPresent(historyActivityCodeEntity -> sP.setActivityCodeDescription(historyActivityCodeEntity.getDescription()));
         });
         return histList;
     }
@@ -103,7 +114,10 @@ public class HistoryService {
         if(obj.getOptionalProgramID() != null) {
             OptionalProgram gradOptionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), obj.getOptionalProgramID()))
-                    .headers(h -> h.setBearerAuth(accessToken))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    })
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
@@ -116,21 +130,24 @@ public class HistoryService {
         return obj;
     }
 
-    public Page<GraduationStudentRecordHistoryEntity> getStudentHistoryByBatchID(Long batchId, Integer pageNumber, Integer pageSize) {
+    public Page<GraduationStudentRecordHistoryEntity> getStudentHistoryByBatchID(Long batchId, Integer pageNumber, Integer pageSize,String accessToken) {
         Pageable paging = PageRequest.of(pageNumber, pageSize);
         Page<GraduationStudentRecordHistoryEntity> pagedDate = graduationStudentRecordHistoryRepository.findByBatchId(batchId,paging);
         List<GraduationStudentRecordHistoryEntity> list = pagedDate.getContent();
         list.forEach(ent->{
-            try {
-                GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-                ent.setPen(existingData.getGradStudent().getPen());
-                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-                ent.setStudentGradData(null);
-            } catch (JsonProcessingException e) {
-                logger.debug("Error : {}",e.getMessage());
+            Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
+                .retrieve().bodyToMono(Student.class).block();
+            if(stuData != null) {
+                ent.setPen(stuData.getPen());
+                ent.setLegalFirstName(stuData.getLegalFirstName());
+                ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
+                ent.setLegalLastName(stuData.getLegalLastName());
             }
+            ent.setStudentGradData(null);
         });
         return pagedDate;
     }

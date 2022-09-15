@@ -1,10 +1,3 @@
-#Keycloak/OAuth properties
-security:
-  oauth2:
-    resource:
-      jwt:
-        key-value: ${KEYCLOAK_PUBLIC_KEY}
-
 #DB Properties
 spring:
   jmx:
@@ -37,6 +30,13 @@ spring:
     user: ${USERNAME}
     password: ${PASSWORD}
     locations: classpath:db/migration
+  #Keycloak/OAuth properties
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${TOKEN_ISSUER_URL}
+          jwk-set-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/certs
 
 #Logging properties
 logging:
@@ -147,7 +147,9 @@ resilience4j.retry:
 endpoint:
   grad-trax-api:
     school-by-min-code:
-      url: ${GRAD_TRAX_API}api/v1/school/%s
+      url: ${GRAD_TRAX_API}api/v1/trax/school/%s
+    district-by-district-code:
+      url: ${GRAD_TRAX_API}api/v1/trax/district/%s
   grad-program-api:
     optional_program_name_by_optional_program_id:
       url: ${GRAD_PROGRAM_API}api/v1/program/optionalprograms/id/%s
@@ -160,9 +162,9 @@ endpoint:
   grad-student-graduation-api:
     ungrad-reason: 
       ungrad-reason-by-reason-code: 
-        url: ${GRAD_STUDENT_GRADUATION_API}api/v1/ungrad/ungradreason/%s
+        url: ${GRAD_STUDENT_GRADUATION_API}api/v1/studentgraduation/undocompletion/undocompletionreason/%s
     save-student-ungrad-reason:
-      url: ${GRAD_STUDENT_GRADUATION_API}api/v1/ungrad/studentungradreason/studentid/%s
+      url: ${GRAD_STUDENT_GRADUATION_API}api/v1/studentgraduation/undocompletion/studentundocompletionreason/studentid/%s
   pen-student-api:
     by-studentid:
       url: ${PEN_API}api/v1/student/%s
@@ -175,3 +177,17 @@ endpoint:
   grad-graduation-report-api:
     delete-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentachievement/%s
+    student-certificates:
+      url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentcertificates?studentID=%s
+    archive-student-achievement:
+      url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/archiveachievement/%s
+  educ-school-api:
+    url: ${EDUC_SCHOOL_API}api/v1/schools
+    get-school-by-mincode:
+      url: ${EDUC_SCHOOL_API}api/v1/schools/%s
+
+#Splunk LogHelper
+splunk:
+  log-helper:
+    enabled: ${ENABLE_SPLUNK_LOG_HELPER}
+
