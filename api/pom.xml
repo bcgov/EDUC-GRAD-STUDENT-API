@@ -30,7 +30,7 @@
         <org.mapstruct.version>1.5.2.Final</org.mapstruct.version>
         <springdoc.version>1.6.9</springdoc.version>
         <shedlock.version>4.38.0</shedlock.version>
-        <nats.version>2.11.0</nats.version>
+        <nats.version>2.16.0</nats.version>
         <resilience4j.version>1.7.1</resilience4j.version>
         <guava.version>30.1.1-jre</guava.version>
         <log4j.version>2.18.0</log4j.version>
