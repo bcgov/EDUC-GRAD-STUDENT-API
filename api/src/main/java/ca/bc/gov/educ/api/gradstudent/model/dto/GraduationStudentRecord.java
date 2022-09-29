@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -34,4 +35,6 @@ public class GraduationStudentRecord extends BaseModel{
     private String legalFirstName;
     private String legalMiddleNames;
     private String legalLastName;
+
+    private List<StudentCareerProgram> careerPrograms;
 }
