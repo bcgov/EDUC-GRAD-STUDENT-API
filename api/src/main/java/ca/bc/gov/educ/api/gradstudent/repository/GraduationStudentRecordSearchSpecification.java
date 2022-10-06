@@ -16,7 +16,7 @@ import java.util.UUID;
 public class GraduationStudentRecordSearchSpecification implements Specification<GraduationStudentRecordEntity> {
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStudentRecordSearchSpecification.class);
-    private static final String programCompletionDate = "programCompletionDate";
+    private static final String PROGRAM_COMPLETION_DATE = "programCompletionDate";
 
     private final GraduationStudentRecordSearchCriteria searchCriteria;
 
@@ -36,8 +36,8 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             Predicate curStatusOptional = criteriaBuilder.equal(root.get("studentStatus"), "CUR");
             if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
                 curStatusOptional = criteriaBuilder.and(
-                        criteriaBuilder.greaterThanOrEqualTo(root.get(programCompletionDate).as(Date.class), searchCriteria.getGradDateFrom())
-                        ,criteriaBuilder.lessThanOrEqualTo(root.get(programCompletionDate).as(Date.class), searchCriteria.getGradDateTo())
+                        criteriaBuilder.greaterThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(Date.class), searchCriteria.getGradDateFrom())
+                        ,criteriaBuilder.lessThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(Date.class), searchCriteria.getGradDateTo())
                 );
             }
             return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()),
@@ -47,8 +47,8 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             Predicate curStatusOptional = criteriaBuilder.equal(root.get("studentStatus"), "CUR");
             if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
                 curStatusOptional = criteriaBuilder.and(
-                        criteriaBuilder.greaterThanOrEqualTo(root.get(programCompletionDate).as(Date.class), searchCriteria.getGradDateFrom())
-                        ,criteriaBuilder.lessThanOrEqualTo(root.get(programCompletionDate).as(Date.class), searchCriteria.getGradDateTo())
+                        criteriaBuilder.greaterThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(Date.class), searchCriteria.getGradDateFrom())
+                        ,criteriaBuilder.lessThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(Date.class), searchCriteria.getGradDateTo())
                 );
             }
             return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
