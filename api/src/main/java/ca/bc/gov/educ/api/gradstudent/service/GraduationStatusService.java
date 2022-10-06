@@ -293,7 +293,16 @@ public class GraduationStatusService {
                 }
             }
         }
-
+        if(!StringUtils.isBlank(searchRequest.getSchoolOfRecord())) {
+            if(!searchRequest.getSchoolOfRecords().contains(searchRequest.getSchoolOfRecord())) {
+                searchRequest.getSchoolOfRecords().add(searchRequest.getSchoolOfRecord());
+            }
+        }
+        if(!StringUtils.isBlank(searchRequest.getGradProgram())) {
+            if(!searchRequest.getPrograms().contains(searchRequest.getGradProgram())) {
+                searchRequest.getPrograms().add(searchRequest.getGradProgram());
+            }
+        }
         GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
                 .studentIds(studentIds)
                 .schoolOfRecords(searchRequest.getSchoolOfRecords())
