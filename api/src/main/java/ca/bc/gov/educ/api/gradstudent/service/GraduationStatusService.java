@@ -142,13 +142,17 @@ public class GraduationStatusService {
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                     savedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
-            gradStatusEventRepository.save(gradStatusEvent);
+            if (gradStatusEvent != null) {
+                gradStatusEventRepository.save(gradStatusEvent);
+            }
             return Pair.of(savedGraduationStatus, gradStatusEvent);
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(sourceObject);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreateUser(), sourceObject.getUpdateUser(), savedGraduationStatus, EventType.CREATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_CREATED, GRAD_ALG, accessToken);
-            gradStatusEventRepository.save(gradStatusEvent);
+            if (gradStatusEvent != null) {
+                gradStatusEventRepository.save(gradStatusEvent);
+            }
             return Pair.of(savedGraduationStatus, gradStatusEvent);
         }
     }
@@ -194,7 +198,9 @@ public class GraduationStatusService {
             final GraduationStudentRecord updatedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                     updatedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT, accessToken);
-            gradStatusEventRepository.save(gradStatusEvent);
+            if (gradStatusEvent != null) {
+                gradStatusEventRepository.save(gradStatusEvent);
+            }
             return Pair.of(updatedGraduationStatus, gradStatusEvent);
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
@@ -791,7 +797,9 @@ public class GraduationStatusService {
                     final GraduationStudentRecord graduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                             graduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, "USERUNDOCMPL", accessToken);
-                    gradStatusEventRepository.save(gradStatusEvent);
+                    if (gradStatusEvent != null) {
+                        gradStatusEventRepository.save(gradStatusEvent);
+                    }
                     return Pair.of(graduationStatus, gradStatusEvent);
 		        } else {
 		            validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
@@ -851,6 +859,9 @@ public class GraduationStatusService {
                                                   EventType eventType, EventOutcome eventOutcome,
                                                   String activityCode,
                                                   String accessToken) throws JsonProcessingException {
+        if (!constants.isTraxUpdateEnabled()) {
+            return null;
+        }
         if (StringUtils.isBlank(graduationStatus.getPen())) {
             GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(graduationStatus.getStudentID().toString(), accessToken);
             if (gradSearchStudent != null) {
