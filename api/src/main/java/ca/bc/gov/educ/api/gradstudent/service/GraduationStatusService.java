@@ -180,13 +180,14 @@ public class GraduationStatusService {
                     deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
                 }
             }
+            gradEntity.setRecalculateGradStatus(null);
+            gradEntity.setRecalculateProjectedGrad(null);
+
             if (hasDataChanged.hasDataChanged()) {
                 gradEntity.setRecalculateGradStatus(hasDataChanged.getRecalculateGradStatus());
                 gradEntity.setRecalculateProjectedGrad(hasDataChanged.getRecalculateProgectedGrad());
-            } else {
-                gradEntity.setRecalculateGradStatus(null);
-                gradEntity.setRecalculateProjectedGrad(null);
             }
+
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus", "recalculateProjectedGrad");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
