@@ -156,4 +156,8 @@ public class EducGradStudentApiConstants {
     // Splunk LogHelper Enabled
     @Value("${splunk.log-helper.enabled}")
     private boolean splunkLogHelperEnabled;
+
+    // Incremental Trax Update
+    @Value("${trax.update.enabled}")
+    private boolean traxUpdateEnabled;
 }

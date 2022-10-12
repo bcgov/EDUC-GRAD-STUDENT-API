@@ -191,3 +191,8 @@ splunk:
   log-helper:
     enabled: ${ENABLE_SPLUNK_LOG_HELPER}
 
+#Incremental Trax Update
+trax:
+  update:
+    enabled: ${ENABLE_TRAX_UPDATE}
+
