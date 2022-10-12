@@ -160,12 +160,12 @@ public class GraduationStatusService {
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            boolean hasDataChanged = validateData(sourceObject, gradEntity, accessToken);
+            ValidateDataResult hasDataChanged = validateData(sourceObject, gradEntity, accessToken);
             if (validation.hasErrors()) {
                 validation.stopOnErrors();
                 return Pair.of(new GraduationStudentRecord(), null);
             }
-            if(hasDataChanged && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
+            if(hasDataChanged.hasDataChanged() && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
                     sourceObject.setRecalculateGradStatus("Y");
@@ -176,13 +176,13 @@ public class GraduationStatusService {
                     sourceObject.setGpa(null);
                     sourceObject.setSchoolAtGrad(null);
                     archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
-                }else {
+                } else {
                     deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
                 }
             }
-            if (hasDataChanged) {
-                gradEntity.setRecalculateGradStatus("Y");
-                gradEntity.setRecalculateProjectedGrad("Y");
+            if (hasDataChanged.hasDataChanged()) {
+                gradEntity.setRecalculateGradStatus(hasDataChanged.getRecalculateGradStatus());
+                gradEntity.setRecalculateProjectedGrad(hasDataChanged.getRecalculateProgectedGrad());
             } else {
                 gradEntity.setRecalculateGradStatus(null);
                 gradEntity.setRecalculateProjectedGrad(null);
@@ -589,33 +589,44 @@ public class GraduationStatusService {
         
     }
 
-    private boolean validateData(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
-        boolean hasDataChanged = false;
+    private ValidateDataResult validateData(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
+        ValidateDataResult hasDataChanged = new ValidateDataResult();
         validateStudentStatus(existingEntity.getStudentStatus());
-        if (!sourceEntity.getProgram().equalsIgnoreCase(existingEntity.getProgram())) {
-            hasDataChanged = true;
+
+        if (sourceEntity.getProgram() != null && !sourceEntity.getProgram().equalsIgnoreCase(existingEntity.getProgram())) {
+            hasDataChanged.recalculateAll();
             validateProgram(sourceEntity, accessToken);
+        }
+
+        if (sourceEntity.getProgramCompletionDate() != null && !sourceEntity.getProgramCompletionDate().equals(existingEntity.getProgramCompletionDate())) {
+            hasDataChanged.recalculateAll();
         }
         
         if (sourceEntity.getSchoolOfRecord() != null && !sourceEntity.getSchoolOfRecord().equalsIgnoreCase(existingEntity.getSchoolOfRecord())) {
-            hasDataChanged = true;
+            hasDataChanged.recalculateAll();
             validateSchool(sourceEntity.getSchoolOfRecord(), accessToken);
         }        
         
         if (sourceEntity.getSchoolAtGrad() != null && !sourceEntity.getSchoolAtGrad().equalsIgnoreCase(existingEntity.getSchoolAtGrad())) {
-            hasDataChanged = true;
+            hasDataChanged.recalculateAll();
             validateSchool(sourceEntity.getSchoolAtGrad(), accessToken);
         }
         
-        if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))
-				|| (sourceEntity.getStudentStatus() != null && !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus()))) {
-            hasDataChanged = true;
+        if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))) {
+            hasDataChanged.setRecalculateProgectedGrad("Y");
             validateStudentGrade(sourceEntity,existingEntity,accessToken);
         }
+
+        if (sourceEntity.getStudentStatus() != null && !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus())) {
+            hasDataChanged.recalculateAll();
+            validateStudentGrade(sourceEntity,existingEntity,accessToken);
+        }
+
         if (sourceEntity.getGpa() != null && !sourceEntity.getGpa().equalsIgnoreCase(existingEntity.getGpa())) {
-            hasDataChanged = true;
+            hasDataChanged.recalculateAll();
             sourceEntity.setHonoursStanding(getHonoursFlag(sourceEntity.getGpa()));
         }
+
         return hasDataChanged;
     }
 
