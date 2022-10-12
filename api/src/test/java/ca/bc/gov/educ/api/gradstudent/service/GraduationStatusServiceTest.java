@@ -955,7 +955,7 @@ public class GraduationStatusServiceTest {
         final String programCode = "2018-EN";
 
         List<String> pens = new ArrayList<>();
-        //pens.add(pen);
+        pens.add(pen);
 
         Student student = new Student();
         student.setPen(pen);
@@ -1065,9 +1065,29 @@ public class GraduationStatusServiceTest {
 
         when(gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken")).thenReturn(List.of(gradSearchStudent));
 
-        var result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
+        GraduationStudentRecordSearchResult result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
         assertThat(result).isNotNull();
 
+        gradSearchStudent.setStudentStatus("ARC");
+        when(gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken")).thenReturn(List.of(gradSearchStudent));
+        result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
+        assertThat(result).isNotNull();
+        assertThat(result.getValidationErrors()).isNotNull();
+        assertThat(result.getValidationErrors().get(String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "ARC"))).isNotNull();
+
+        gradSearchStudent.setStudentStatus("TER");
+        when(gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken")).thenReturn(List.of(gradSearchStudent));
+        result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
+        assertThat(result).isNotNull();
+        assertThat(result.getValidationErrors()).isNotNull();
+        assertThat(result.getValidationErrors().get(String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "TER"))).isNotNull();
+
+        gradSearchStudent.setStudentStatus("DEC");
+        when(gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken")).thenReturn(List.of(gradSearchStudent));
+        result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
+        assertThat(result).isNotNull();
+        assertThat(result.getValidationErrors()).isNotNull();
+        assertThat(result.getValidationErrors().get(String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "DEC"))).isNotNull();
     }
 
     @Test
