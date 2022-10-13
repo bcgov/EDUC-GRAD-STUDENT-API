@@ -936,14 +936,32 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentsForGraduation() {
         UUID studentID = UUID.randomUUID();
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
-        when(graduationStatusRepository.findByRecalculateGradStatusForBatch("Y")).thenReturn(List.of(graduationStatus));
+        when(graduationStatusRepository.findByRecalculateGradStatusForBatch("Y")).thenReturn(List.of(studentID));
         var result = graduationStatusService.getStudentsForGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        BatchGraduationStudentRecord responseGraduationStatus = result.get(0);
-        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(studentID);
+        UUID responseStudentID = result.get(0);
+        assertThat(responseStudentID).isEqualTo(studentID);
     }
+
+    @Test
+    public void testGetStudentForBatch() {
+        UUID studentID = UUID.randomUUID();
+        BatchGraduationStudentRecord graduationStudentForBatch = new BatchGraduationStudentRecord("2018-EN",null,"12345678", studentID);
+        when(graduationStatusRepository.findByStudentIDForBatch(studentID)).thenReturn(Optional.of(graduationStudentForBatch));
+        var result = graduationStatusService.getStudentForBatch(studentID);
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(studentID);
+    }
+
+    @Test
+    public void testGetStudentForBatch_whenStudentIDisMismatched_returns_null() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findByStudentIDForBatch(studentID)).thenReturn(Optional.empty());
+        var result = graduationStatusService.getStudentForBatch(studentID);
+        assertThat(result).isNull();
+    }
+
 
     @Test
     public void testSearchGraduationStudentRecords() {
@@ -1223,13 +1241,12 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentsForProjectedGraduation() {
         UUID studentID = UUID.randomUUID();
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
-        when(graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y")).thenReturn(List.of(graduationStatus));
+        when(graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y")).thenReturn(List.of(studentID));
         var result = graduationStatusService.getStudentsForProjectedGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        BatchGraduationStudentRecord responseGraduationStatus = result.get(0);
-        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(studentID);
+        UUID responseStudentID = result.get(0);
+        assertThat(responseStudentID).isEqualTo(studentID);
     }
 
     @Test
@@ -1582,7 +1599,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testgetDataForBatch() {
+    public void testGetDataForBatch() {
         UUID studentID = UUID.randomUUID();
         GradSearchStudent serObj = new GradSearchStudent();
         serObj.setPen("123123");
@@ -1617,7 +1634,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testgetDataForBatch_else() {
+    public void testGetDataForBatch_else() {
         UUID studentID = UUID.randomUUID();
         GradSearchStudent serObj = new GradSearchStudent();
         serObj.setPen("123123");

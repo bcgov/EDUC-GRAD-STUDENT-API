@@ -741,12 +741,20 @@ public class GraduationStatusService {
         }
     }
 
-    public List<BatchGraduationStudentRecord> getStudentsForGraduation() {
+    public List<UUID> getStudentsForGraduation() {
         return graduationStatusRepository.findByRecalculateGradStatusForBatch("Y");
     }
 
-    public List<BatchGraduationStudentRecord> getStudentsForProjectedGraduation() {
+    public List<UUID> getStudentsForProjectedGraduation() {
        return graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y");
+    }
+
+    public BatchGraduationStudentRecord getStudentForBatch(UUID studentID) {
+        Optional<BatchGraduationStudentRecord> optional = graduationStatusRepository.findByStudentIDForBatch(studentID);
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        return null;
     }
 
     @Retry(name = "generalgetcall")
