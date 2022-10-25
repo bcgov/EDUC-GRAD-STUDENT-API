@@ -1016,4 +1016,44 @@ public class GraduationStatusService {
         return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord),type);
     }
 
+    public List<GraduationStudentRecord> updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
+        logger.debug("updateStudentFlagReadyForBatchJobByStudentIDs");
+        return studentIDs.stream()
+                .map(stid -> updateStudentFlagReadyForBatchJob(stid, batchJobType))
+                .filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    private GraduationStudentRecord updateStudentFlagReadyForBatchJob(UUID studentID, String batchJobType) {
+        logger.debug("updateStudentFlagReadyByJobType for studentID - {}", studentID);
+        GraduationStudentRecord result = null;
+        Optional<GraduationStudentRecordEntity> optional = graduationStatusRepository.findById(studentID);
+        if (optional.isPresent()) {
+            GraduationStudentRecordEntity entity = optional.get();
+            result = saveBatchFlagsOfGraduationStudentRecord(entity, batchJobType);
+        }
+        return result;
+    }
+
+    private GraduationStudentRecord saveBatchFlagsOfGraduationStudentRecord(GraduationStudentRecordEntity entity, String batchJobType) {
+        boolean isUpdated = false;
+        if (entity.getBatchId() != null) {
+            if (StringUtils.equals("REGALG", batchJobType)) {
+                if (entity.getRecalculateGradStatus() == null || StringUtils.equals("N", entity.getRecalculateGradStatus())) {
+                    entity.setRecalculateGradStatus("Y");
+                    isUpdated = true;
+                }
+            } else {
+                if (entity.getRecalculateProjectedGrad() == null || StringUtils.equals("N", entity.getRecalculateProjectedGrad())) {
+                    entity.setRecalculateProjectedGrad("Y");
+                    isUpdated = true;
+                }
+            }
+            if (isUpdated) {
+                graduationStatusRepository.save(entity);
+                return graduationStatusTransformer.transformToDTO(entity);
+            }
+        }
+        return null;
+    }
+
 }
