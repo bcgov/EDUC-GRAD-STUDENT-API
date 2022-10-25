@@ -1757,7 +1757,6 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
 
         val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("REGALG", studentIDs);
-        assertThat(results).isNotEmpty();
         assertThat(results).hasSize(1);
 
         // result is updated
@@ -1805,7 +1804,6 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
 
         val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
-        assertThat(results).isNotEmpty();
         assertThat(results).hasSize(1);
 
         // result is updated

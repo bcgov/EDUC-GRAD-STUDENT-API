@@ -1018,10 +1018,9 @@ public class GraduationStatusService {
 
     public List<GraduationStudentRecord> updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
         logger.debug("updateStudentFlagReadyForBatchJobByStudentIDs");
-        List<GraduationStudentRecord> results = studentIDs.stream()
+        return studentIDs.stream()
                 .map(stid -> updateStudentFlagReadyForBatchJob(stid, batchJobType))
                 .filter(Objects::nonNull).collect(Collectors.toList());
-        return results;
     }
 
     private GraduationStudentRecord updateStudentFlagReadyForBatchJob(UUID studentID, String batchJobType) {
