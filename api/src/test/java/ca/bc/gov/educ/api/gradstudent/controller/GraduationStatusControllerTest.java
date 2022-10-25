@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -600,5 +601,26 @@ public class GraduationStatusControllerTest {
         graduationStatusController.getStudentForBatch(studentID.toString());
         Mockito.verify(graduationStatusService).getStudentForBatch(studentID);
 
+    }
+
+    @Test
+    public void testUpdateStudentFlagReadyForBatchJobByStudentIDs() {
+        UUID studentID = UUID.randomUUID();
+        String batchJobType = "REGALG";
+        String mincode = "123456789";
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setStudentStatus("CUR");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+        Mockito.when(graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids())).thenReturn(Arrays.asList(graduationStatus));
+        graduationStatusController.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList);
+        Mockito.verify(graduationStatusService).updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids());
     }
 }

@@ -378,4 +378,15 @@ public class GraduationStatusController {
         logger.debug("getStudentsForSchoolReport:");
         return response.GET(gradStatusService.getStudentsForAmalgamatedSchoolReport(schoolOfRecord,type));
     }
+
+    @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
+    @Operation(summary = "Update Student Flag ready for batch by Batch Job Type and Student IDs", description = "Update Student Flag ready for batch by Batch Job Type and Student IDs", tags = { "Batch Algorithm" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<GraduationStudentRecord>> updateStudentFlagReadyForBatchJobByStudentIDs(@PathVariable String batchJobType, @RequestBody StudentList sList) {
+        logger.debug("Update Student Flag ready for batch by Student IDs and Batch Job Type - {}", batchJobType);
+        List<GraduationStudentRecord> gradRecords =  gradStatusService.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, sList.getStudentids());
+        return response.GET(gradRecords);
+    }
+
 }
