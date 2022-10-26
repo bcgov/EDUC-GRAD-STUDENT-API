@@ -1,6 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordDistribution;
+import ca.bc.gov.educ.api.gradstudent.model.dto.ProjectedRunClob;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -123,6 +126,7 @@ public class GraduationStatusTransformer {
                     gradStatus.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
                     gradStatus.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
                     gradStatus.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+                    gradStatus.setNonGradReasons(existingData.getNonGradReasons());
                 } catch (JsonProcessingException e) {e.getMessage();}
             }
             gradStatus.setStudentGradData(null);
