@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -347,9 +348,7 @@ public class GraduationStatusControllerTest {
     public void testGetStudentsForGraduation() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String pen = "123456789";
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
-        Mockito.when(graduationStatusService.getStudentsForGraduation()).thenReturn(List.of(graduationStatus));
+        Mockito.when(graduationStatusService.getStudentsForGraduation()).thenReturn(List.of(studentID));
         graduationStatusController.getStudentsForGraduation();
         Mockito.verify(graduationStatusService).getStudentsForGraduation();
     }
@@ -358,9 +357,7 @@ public class GraduationStatusControllerTest {
     public void testGetStudentsForProjectedGraduation() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String pen = "123456789";
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
-        Mockito.when(graduationStatusService.getStudentsForProjectedGraduation()).thenReturn(List.of(graduationStatus));
+        Mockito.when(graduationStatusService.getStudentsForProjectedGraduation()).thenReturn(List.of(studentID));
         graduationStatusController.getStudentsForProjectedGraduation();
         Mockito.verify(graduationStatusService).getStudentsForProjectedGraduation();
     }
@@ -593,5 +590,37 @@ public class GraduationStatusControllerTest {
         Mockito.when(graduationStatusService.getStudentsForAmalgamatedSchoolReport(mincode,"TVRNONGRAD")).thenReturn(List.of(studentID));
         graduationStatusController.getStudentsForAmalgamatedSchoolReport(mincode,"TVRNONGRAD");
         Mockito.verify(graduationStatusService).getStudentsForAmalgamatedSchoolReport(mincode,"TVRNONGRAD");
+    }
+
+    @Test
+    public void testGetStudentForBatch() {
+        String mincode = "123456789";
+        UUID studentID = UUID.randomUUID();
+        BatchGraduationStudentRecord batchGraduationStudentRecord = new BatchGraduationStudentRecord("2018-EN", null, mincode, studentID);
+        Mockito.when(graduationStatusService.getStudentForBatch(studentID)).thenReturn(batchGraduationStudentRecord);
+        graduationStatusController.getStudentForBatch(studentID.toString());
+        Mockito.verify(graduationStatusService).getStudentForBatch(studentID);
+
+    }
+
+    @Test
+    public void testUpdateStudentFlagReadyForBatchJobByStudentIDs() {
+        UUID studentID = UUID.randomUUID();
+        String batchJobType = "REGALG";
+        String mincode = "123456789";
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setStudentStatus("CUR");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+        Mockito.when(graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids())).thenReturn(Arrays.asList(graduationStatus));
+        graduationStatusController.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList);
+        Mockito.verify(graduationStatusService).updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids());
     }
 }
