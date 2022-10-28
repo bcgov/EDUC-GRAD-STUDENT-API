@@ -127,12 +127,7 @@ public class GraduationStatusService {
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE,"recalculateProjectedGrad","programCompletionDate");
-            gradEntity.setRecalculateGradStatus(null);
-            if(batchId == null) {
-                gradEntity.setRecalculateGradStatus("Y");
-            }
-
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "recalculateGradStatus", "recalculateProjectedGrad", "programCompletionDate");
             gradEntity.setBatchId(batchId);
             if(!gradEntity.getProgram().equalsIgnoreCase("SCCP") && !gradEntity.getProgram().equalsIgnoreCase("NOPROG")) {
                 gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
@@ -184,8 +179,6 @@ public class GraduationStatusService {
                     deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
                 }
             }
-            gradEntity.setRecalculateGradStatus(null);
-            gradEntity.setRecalculateProjectedGrad(null);
 
             if (hasDataChanged.hasDataChanged()) {
                 gradEntity.setRecalculateGradStatus(hasDataChanged.getRecalculateGradStatus());
@@ -620,18 +613,13 @@ public class GraduationStatusService {
         }
         
         if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))) {
-            hasDataChanged.setRecalculateProgectedGrad("Y");
+            hasDataChanged.recalculateAll();
             validateStudentGrade(sourceEntity,existingEntity,accessToken);
         }
 
         if (sourceEntity.getStudentStatus() != null && !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus())) {
             hasDataChanged.recalculateAll();
             validateStudentGrade(sourceEntity,existingEntity,accessToken);
-        }
-
-        if (sourceEntity.getGpa() != null && !sourceEntity.getGpa().equalsIgnoreCase(existingEntity.getGpa())) {
-            hasDataChanged.recalculateAll();
-            sourceEntity.setHonoursStanding(getHonoursFlag(sourceEntity.getGpa()));
         }
 
         return hasDataChanged;
