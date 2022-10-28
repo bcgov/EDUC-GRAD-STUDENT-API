@@ -37,6 +37,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_UPDATE_BY_STUDENT_ID = "/gradstudent/studentid/{studentID}";
     public static final String GRADUATION_RECORD_BY_STUDENT_ID_PROJECTED_RUN = "/projected/studentid/{studentID}";
     public static final String GRADUATION_RECORD_BY_STUDENT_ID_DISTRIBUTION_RUN = "/distribution/studentid/{studentID}";
+    public static final String UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS = "/multistudentids/batchflag/jobtype/{batchJobType}";
 
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN = "/optionalprogram/studentid/{studentID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";
@@ -44,6 +45,7 @@ public class EducGradStudentApiConstants {
     public static final String UPDATE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/gradstudent/optionalprogram";
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GRAD_STUDENT_PROJECTED_RUN = "/projected";
+    public static final String GRAD_STUDENT_BY_STUDENT_ID_FOR_BATCH_RUN = "/batch/gradstudent/studentid/{studentID}";
     public static final String STUDENT_LIST_FOR_SCHOOL_REPORT = "/batch/schoolreport/{schoolOfRecord}";
     public static final String STUDENT_LIST_FOR_AMALGAMATED_SCHOOL_REPORT = "/amalgamated/schoolreport/{schoolOfRecord}/type/{type}";
     public static final String STUDENT_RECORD_STUDENT_ID_BATCH_RUN = "/batch/{studentID}";
@@ -156,4 +158,8 @@ public class EducGradStudentApiConstants {
     // Splunk LogHelper Enabled
     @Value("${splunk.log-helper.enabled}")
     private boolean splunkLogHelperEnabled;
+
+    // Incremental Trax Update
+    @Value("${trax.update.enabled}")
+    private boolean traxUpdateEnabled;
 }

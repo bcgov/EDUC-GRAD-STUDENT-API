@@ -12,6 +12,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.val;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -936,14 +937,32 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentsForGraduation() {
         UUID studentID = UUID.randomUUID();
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
-        when(graduationStatusRepository.findByRecalculateGradStatusForBatch("Y")).thenReturn(List.of(graduationStatus));
+        when(graduationStatusRepository.findByRecalculateGradStatusForBatch("Y")).thenReturn(List.of(studentID));
         var result = graduationStatusService.getStudentsForGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        BatchGraduationStudentRecord responseGraduationStatus = result.get(0);
-        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(studentID);
+        UUID responseStudentID = result.get(0);
+        assertThat(responseStudentID).isEqualTo(studentID);
     }
+
+    @Test
+    public void testGetStudentForBatch() {
+        UUID studentID = UUID.randomUUID();
+        BatchGraduationStudentRecord graduationStudentForBatch = new BatchGraduationStudentRecord("2018-EN",null,"12345678", studentID);
+        when(graduationStatusRepository.findByStudentIDForBatch(studentID)).thenReturn(Optional.of(graduationStudentForBatch));
+        var result = graduationStatusService.getStudentForBatch(studentID);
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(studentID);
+    }
+
+    @Test
+    public void testGetStudentForBatch_whenStudentIDisMismatched_returns_null() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findByStudentIDForBatch(studentID)).thenReturn(Optional.empty());
+        var result = graduationStatusService.getStudentForBatch(studentID);
+        assertThat(result).isNull();
+    }
+
 
     @Test
     public void testSearchGraduationStudentRecords() {
@@ -1223,13 +1242,12 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentsForProjectedGraduation() {
         UUID studentID = UUID.randomUUID();
-        BatchGraduationStudentRecord graduationStatus = new BatchGraduationStudentRecord("2018-EN",null,"12345678","12","CUR",studentID);
-        when(graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y")).thenReturn(List.of(graduationStatus));
+        when(graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y")).thenReturn(List.of(studentID));
         var result = graduationStatusService.getStudentsForProjectedGraduation();
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        BatchGraduationStudentRecord responseGraduationStatus = result.get(0);
-        assertThat(responseGraduationStatus.getStudentID()).isEqualTo(studentID);
+        UUID responseStudentID = result.get(0);
+        assertThat(responseStudentID).isEqualTo(studentID);
     }
 
     @Test
@@ -1582,7 +1600,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testgetDataForBatch() {
+    public void testGetDataForBatch() {
         UUID studentID = UUID.randomUUID();
         GradSearchStudent serObj = new GradSearchStudent();
         serObj.setPen("123123");
@@ -1617,7 +1635,7 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
-    public void testgetDataForBatch_else() {
+    public void testGetDataForBatch_else() {
         UUID studentID = UUID.randomUUID();
         GradSearchStudent serObj = new GradSearchStudent();
         serObj.setPen("123123");
@@ -1699,5 +1717,138 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStatusEntity));
 
         return graduationStatusService.getStudentsForAmalgamatedSchoolReport(mincode,type);
+    }
+
+    @Test
+    public void testUpdateStudentFlagReadyForBatchJobByStudentIDs_when_relcalculateGradStatus_is_null() {
+        UUID studentID1 = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity1 = new GraduationStudentRecordEntity();
+        graduationStatusEntity1.setStudentID(studentID1);
+        graduationStatusEntity1.setStudentStatus("A");
+        graduationStatusEntity1.setRecalculateProjectedGrad("Y");
+        graduationStatusEntity1.setProgram("2018-en");
+        graduationStatusEntity1.setSchoolOfRecord("21313121");
+        graduationStatusEntity1.setGpa("4");
+        graduationStatusEntity1.setBatchId(4000L);
+        graduationStatusEntity1.setPen("123123");
+        graduationStatusEntity1.setLegalFirstName("Asdad");
+        graduationStatusEntity1.setLegalMiddleNames("Adad");
+        graduationStatusEntity1.setLegalLastName("sadad");
+
+        UUID studentID2 = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
+        graduationStatusEntity2.setStudentID(studentID2);
+        graduationStatusEntity2.setStudentStatus("A");
+        graduationStatusEntity2.setRecalculateGradStatus("Y");
+        graduationStatusEntity2.setProgram("2018-en");
+        graduationStatusEntity2.setSchoolOfRecord("21313121");
+        graduationStatusEntity2.setGpa("4");
+        graduationStatusEntity2.setBatchId(4000L);
+        graduationStatusEntity2.setPen("123456");
+        graduationStatusEntity2.setLegalFirstName("Test");
+        graduationStatusEntity2.setLegalMiddleNames("QA");
+        graduationStatusEntity2.setLegalLastName("Student");
+
+        List<UUID> studentIDs = new ArrayList<>();
+        studentIDs.add(studentID1);
+        studentIDs.add(studentID2);
+
+        Mockito.when(graduationStatusRepository.findById(studentID1)).thenReturn(Optional.of(graduationStatusEntity1));
+        Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
+
+        val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("REGALG", studentIDs);
+        assertThat(results).hasSize(1);
+
+        // result is updated
+        GraduationStudentRecord result = results.get(0);
+        assertThat(result.getStudentID()).isEqualTo(studentID1);
+        assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");
+        assertThat(result.getRecalculateProjectedGrad()).isEqualTo("Y");
+    }
+
+    @Test
+    public void testUpdateStudentFlagReadyForBatchJobByStudentIDs_when_relcalculateProjectedGrad_is_null() {
+        UUID studentID1 = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity1 = new GraduationStudentRecordEntity();
+        graduationStatusEntity1.setStudentID(studentID1);
+        graduationStatusEntity1.setStudentStatus("A");
+        graduationStatusEntity1.setRecalculateProjectedGrad("Y");
+        graduationStatusEntity1.setProgram("2018-en");
+        graduationStatusEntity1.setSchoolOfRecord("21313121");
+        graduationStatusEntity1.setGpa("4");
+        graduationStatusEntity1.setBatchId(4000L);
+        graduationStatusEntity1.setPen("123123");
+        graduationStatusEntity1.setLegalFirstName("Asdad");
+        graduationStatusEntity1.setLegalMiddleNames("Adad");
+        graduationStatusEntity1.setLegalLastName("sadad");
+
+        UUID studentID2 = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
+        graduationStatusEntity2.setStudentID(studentID2);
+        graduationStatusEntity2.setStudentStatus("A");
+        graduationStatusEntity2.setRecalculateGradStatus("Y");
+        graduationStatusEntity2.setProgram("2018-en");
+        graduationStatusEntity2.setSchoolOfRecord("21313121");
+        graduationStatusEntity2.setGpa("4");
+        graduationStatusEntity2.setBatchId(4000L);
+        graduationStatusEntity2.setPen("123456");
+        graduationStatusEntity2.setLegalFirstName("Test");
+        graduationStatusEntity2.setLegalMiddleNames("QA");
+        graduationStatusEntity2.setLegalLastName("Student");
+
+        List<UUID> studentIDs = new ArrayList<>();
+        studentIDs.add(studentID1);
+        studentIDs.add(studentID2);
+
+        Mockito.when(graduationStatusRepository.findById(studentID1)).thenReturn(Optional.of(graduationStatusEntity1));
+        Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
+
+        val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
+        assertThat(results).hasSize(1);
+
+        // result is updated
+        GraduationStudentRecord result = results.get(0);
+        assertThat(result.getStudentID()).isEqualTo(studentID2);
+        assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");
+        assertThat(result.getRecalculateProjectedGrad()).isEqualTo("Y");
+    }
+
+    @Test
+    public void testUpdateStudentFlagReadyForBatchJobByStudentIDs_when_batchID_is_null() {
+        UUID studentID1 = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity1 = new GraduationStudentRecordEntity();
+        graduationStatusEntity1.setStudentID(studentID1);
+        graduationStatusEntity1.setStudentStatus("A");
+        graduationStatusEntity1.setRecalculateProjectedGrad("Y");
+        graduationStatusEntity1.setProgram("2018-en");
+        graduationStatusEntity1.setSchoolOfRecord("21313121");
+        graduationStatusEntity1.setGpa("4");
+        graduationStatusEntity1.setPen("123123");
+        graduationStatusEntity1.setLegalFirstName("Asdad");
+        graduationStatusEntity1.setLegalMiddleNames("Adad");
+        graduationStatusEntity1.setLegalLastName("sadad");
+
+        UUID studentID2 = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
+        graduationStatusEntity2.setStudentID(studentID2);
+        graduationStatusEntity2.setStudentStatus("A");
+        graduationStatusEntity2.setRecalculateGradStatus("Y");
+        graduationStatusEntity2.setProgram("2018-en");
+        graduationStatusEntity2.setSchoolOfRecord("21313121");
+        graduationStatusEntity2.setGpa("4");
+        graduationStatusEntity2.setPen("123456");
+        graduationStatusEntity2.setLegalFirstName("Test");
+        graduationStatusEntity2.setLegalMiddleNames("QA");
+        graduationStatusEntity2.setLegalLastName("Student");
+
+        List<UUID> studentIDs = new ArrayList<>();
+        studentIDs.add(studentID1);
+        studentIDs.add(studentID2);
+
+        Mockito.when(graduationStatusRepository.findById(studentID1)).thenReturn(Optional.of(graduationStatusEntity1));
+        Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
+
+        val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
+        assertThat(results).isEmpty();
     }
 }
