@@ -133,8 +133,10 @@ public class GraduationStatusService {
                 gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             }
 
-            gradEntity.setRecalculateGradStatus(null);
-            gradEntity.setRecalculateProjectedGrad(null);
+            if(batchId != null) {
+                gradEntity.setRecalculateGradStatus(null);
+                gradEntity.setRecalculateProjectedGrad(null);
+            }
 
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, GRAD_ALG);
@@ -944,9 +946,9 @@ public class GraduationStatusService {
             gradEntity.setUpdateUser(null);
             gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
-            gradEntity.setRecalculateProjectedGrad(null);
-            if(batchId == null) {
-                gradEntity.setRecalculateProjectedGrad("Y");
+            if(batchId != null) {
+                gradEntity.setRecalculateGradStatus(null);
+                gradEntity.setRecalculateProjectedGrad(null);
             }
             gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
