@@ -1542,6 +1542,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setLegalFirstName("Asdad");
         graduationStatusEntity.setLegalMiddleNames("Adad");
         graduationStatusEntity.setLegalLastName("sadad");
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
         histList.add(graduationStatusEntity);
 
         when(graduationStatusRepository.findByStudentIDIn(sList)).thenReturn(histList);
