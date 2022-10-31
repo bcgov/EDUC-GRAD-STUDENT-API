@@ -132,6 +132,12 @@ public class GraduationStatusService {
             if(!gradEntity.getProgram().equalsIgnoreCase("SCCP") && !gradEntity.getProgram().equalsIgnoreCase("NOPROG")) {
                 gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             }
+
+            if(batchId != null) {
+                gradEntity.setRecalculateGradStatus(null);
+                gradEntity.setRecalculateProjectedGrad(null);
+            }
+
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, GRAD_ALG);
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
@@ -940,9 +946,9 @@ public class GraduationStatusService {
             gradEntity.setUpdateUser(null);
             gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
-            gradEntity.setRecalculateProjectedGrad(null);
-            if(batchId == null) {
-                gradEntity.setRecalculateProjectedGrad("Y");
+            if(batchId != null) {
+                gradEntity.setRecalculateGradStatus(null);
+                gradEntity.setRecalculateProjectedGrad(null);
             }
             gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
