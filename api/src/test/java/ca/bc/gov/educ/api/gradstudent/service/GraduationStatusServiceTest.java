@@ -1477,9 +1477,8 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity2.setStudentProjectedGradData(projectedClob);
         graduationStatusEntity2.setBatchId(batchId);
 
-
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(graduationStatusEntity);
 
         GraduationStudentRecord res = graduationStatusService.saveStudentRecordProjectedTVRRun(studentID, batchId, projectedRunClob);
         assertThat(res).isNotNull();
@@ -1542,6 +1541,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setLegalFirstName("Asdad");
         graduationStatusEntity.setLegalMiddleNames("Adad");
         graduationStatusEntity.setLegalLastName("sadad");
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
         histList.add(graduationStatusEntity);
 
         when(graduationStatusRepository.findByStudentIDIn(sList)).thenReturn(histList);

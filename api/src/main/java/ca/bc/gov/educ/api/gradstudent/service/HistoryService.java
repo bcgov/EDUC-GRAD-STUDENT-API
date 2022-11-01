@@ -54,12 +54,14 @@ public class HistoryService {
     }
 
     public void createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
-    	logger.debug("Create Student History");
-    	final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
-        BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
-        graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
-        graduationStudentRecordHistoryEntity.setStudentGradData("{ EMPTY CLOB }");
-        graduationStudentRecordHistoryRepository.save(graduationStudentRecordHistoryEntity);
+    	if(curStudentEntity != null) {
+            logger.debug("Create Student History");
+            final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
+            BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
+            graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
+            graduationStudentRecordHistoryEntity.setStudentGradData("{ EMPTY CLOB }");
+            graduationStudentRecordHistoryRepository.save(graduationStudentRecordHistoryEntity);
+        }
     }
 
     public void createStudentOptionalProgramHistory(StudentOptionalProgramEntity curStudentOptionalProgramEntity, String historyActivityCode) {
