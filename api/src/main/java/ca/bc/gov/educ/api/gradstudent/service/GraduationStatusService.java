@@ -127,28 +127,33 @@ public class GraduationStatusService {
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE,"recalculateProjectedGrad","programCompletionDate","consumerEducationRequirementMet");
-            gradEntity.setRecalculateGradStatus(null);
-            if(batchId == null) {
-                gradEntity.setRecalculateGradStatus("Y");
-            }
-
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "recalculateGradStatus", "recalculateProjectedGrad", "programCompletionDate");
             gradEntity.setBatchId(batchId);
             if(!gradEntity.getProgram().equalsIgnoreCase("SCCP") && !gradEntity.getProgram().equalsIgnoreCase("NOPROG")) {
                 gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             }
+
+            if(batchId != null) {
+                gradEntity.setRecalculateGradStatus(null);
+                gradEntity.setRecalculateProjectedGrad(null);
+            }
+
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, GRAD_ALG);
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                     savedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
-            gradStatusEventRepository.save(gradStatusEvent);
+            if (gradStatusEvent != null) {
+                gradStatusEventRepository.save(gradStatusEvent);
+            }
             return Pair.of(savedGraduationStatus, gradStatusEvent);
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
             final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(sourceObject);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreateUser(), sourceObject.getUpdateUser(), savedGraduationStatus, EventType.CREATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_CREATED, GRAD_ALG, accessToken);
-            gradStatusEventRepository.save(gradStatusEvent);
+            if (gradStatusEvent != null) {
+                gradStatusEventRepository.save(gradStatusEvent);
+            }
             return Pair.of(savedGraduationStatus, gradStatusEvent);
         }
     }
@@ -160,12 +165,12 @@ public class GraduationStatusService {
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            boolean hasDataChanged = validateData(sourceObject, gradEntity, accessToken);
+            ValidateDataResult hasDataChanged = validateData(sourceObject, gradEntity, accessToken);
             if (validation.hasErrors()) {
                 validation.stopOnErrors();
                 return Pair.of(new GraduationStudentRecord(), null);
             }
-            if(hasDataChanged && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
+            if(hasDataChanged.hasDataChanged() && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
                     sourceObject.setRecalculateGradStatus("Y");
@@ -176,25 +181,26 @@ public class GraduationStatusService {
                     sourceObject.setGpa(null);
                     sourceObject.setSchoolAtGrad(null);
                     archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
-                }else {
+                } else {
                     deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
                 }
             }
-            if (hasDataChanged) {
-                gradEntity.setRecalculateGradStatus("Y");
-                gradEntity.setRecalculateProjectedGrad("Y");
-            } else {
-                gradEntity.setRecalculateGradStatus(null);
-                gradEntity.setRecalculateProjectedGrad(null);
+
+            if (hasDataChanged.hasDataChanged()) {
+                gradEntity.setRecalculateGradStatus(hasDataChanged.getRecalculateGradStatus());
+                gradEntity.setRecalculateProjectedGrad(hasDataChanged.getRecalculateProgectedGrad());
             }
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus", "recalculateProjectedGrad","consumerEducationRequirementMet");
+
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus", "recalculateProjectedGrad");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
             final GraduationStudentRecord updatedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                     updatedGraduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT, accessToken);
-            gradStatusEventRepository.save(gradStatusEvent);
+            if (gradStatusEvent != null) {
+                gradStatusEventRepository.save(gradStatusEvent);
+            }
             return Pair.of(updatedGraduationStatus, gradStatusEvent);
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
@@ -293,7 +299,12 @@ public class GraduationStatusService {
                 }
             }
         }
-
+        if(!StringUtils.isBlank(searchRequest.getSchoolOfRecord()) && !searchRequest.getSchoolOfRecords().contains(searchRequest.getSchoolOfRecord())) {
+            searchRequest.getSchoolOfRecords().add(searchRequest.getSchoolOfRecord());
+        }
+        if(!StringUtils.isBlank(searchRequest.getGradProgram()) && !searchRequest.getPrograms().contains(searchRequest.getGradProgram())) {
+            searchRequest.getPrograms().add(searchRequest.getGradProgram());
+        }
         GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
                 .studentIds(studentIds)
                 .schoolOfRecords(searchRequest.getSchoolOfRecords())
@@ -584,33 +595,39 @@ public class GraduationStatusService {
         
     }
 
-    private boolean validateData(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
-        boolean hasDataChanged = false;
+    private ValidateDataResult validateData(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
+        ValidateDataResult hasDataChanged = new ValidateDataResult();
         validateStudentStatus(existingEntity.getStudentStatus());
-        if (!sourceEntity.getProgram().equalsIgnoreCase(existingEntity.getProgram())) {
-            hasDataChanged = true;
+
+        if (sourceEntity.getProgram() != null && !sourceEntity.getProgram().equalsIgnoreCase(existingEntity.getProgram())) {
+            hasDataChanged.recalculateAll();
             validateProgram(sourceEntity, accessToken);
+        }
+
+        if (sourceEntity.getProgramCompletionDate() != null && !sourceEntity.getProgramCompletionDate().equals(existingEntity.getProgramCompletionDate())) {
+            hasDataChanged.recalculateAll();
         }
         
         if (sourceEntity.getSchoolOfRecord() != null && !sourceEntity.getSchoolOfRecord().equalsIgnoreCase(existingEntity.getSchoolOfRecord())) {
-            hasDataChanged = true;
+            hasDataChanged.recalculateAll();
             validateSchool(sourceEntity.getSchoolOfRecord(), accessToken);
         }        
         
         if (sourceEntity.getSchoolAtGrad() != null && !sourceEntity.getSchoolAtGrad().equalsIgnoreCase(existingEntity.getSchoolAtGrad())) {
-            hasDataChanged = true;
+            hasDataChanged.recalculateAll();
             validateSchool(sourceEntity.getSchoolAtGrad(), accessToken);
         }
         
-        if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))
-				|| (sourceEntity.getStudentStatus() != null && !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus()))) {
-            hasDataChanged = true;
+        if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))) {
+            hasDataChanged.recalculateAll();
             validateStudentGrade(sourceEntity,existingEntity,accessToken);
         }
-        if (sourceEntity.getGpa() != null && !sourceEntity.getGpa().equalsIgnoreCase(existingEntity.getGpa())) {
-            hasDataChanged = true;
-            sourceEntity.setHonoursStanding(getHonoursFlag(sourceEntity.getGpa()));
+
+        if (sourceEntity.getStudentStatus() != null && !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus())) {
+            hasDataChanged.recalculateAll();
+            validateStudentGrade(sourceEntity,existingEntity,accessToken);
         }
+
         return hasDataChanged;
     }
 
@@ -718,12 +735,20 @@ public class GraduationStatusService {
         }
     }
 
-    public List<BatchGraduationStudentRecord> getStudentsForGraduation() {
+    public List<UUID> getStudentsForGraduation() {
         return graduationStatusRepository.findByRecalculateGradStatusForBatch("Y");
     }
 
-    public List<BatchGraduationStudentRecord> getStudentsForProjectedGraduation() {
+    public List<UUID> getStudentsForProjectedGraduation() {
        return graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y");
+    }
+
+    public BatchGraduationStudentRecord getStudentForBatch(UUID studentID) {
+        Optional<BatchGraduationStudentRecord> optional = graduationStatusRepository.findByStudentIDForBatch(studentID);
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        return null;
     }
 
     @Retry(name = "generalgetcall")
@@ -786,7 +811,9 @@ public class GraduationStatusService {
                     final GraduationStudentRecord graduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
                             graduationStatus, EventType.UPDATE_GRAD_STATUS, EventOutcome.GRAD_STATUS_UPDATED, "USERUNDOCMPL", accessToken);
-                    gradStatusEventRepository.save(gradStatusEvent);
+                    if (gradStatusEvent != null) {
+                        gradStatusEventRepository.save(gradStatusEvent);
+                    }
                     return Pair.of(graduationStatus, gradStatusEvent);
 		        } else {
 		            validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
@@ -846,6 +873,9 @@ public class GraduationStatusService {
                                                   EventType eventType, EventOutcome eventOutcome,
                                                   String activityCode,
                                                   String accessToken) throws JsonProcessingException {
+        if (!constants.isTraxUpdateEnabled()) {
+            return null;
+        }
         if (StringUtils.isBlank(graduationStatus.getPen())) {
             GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(graduationStatus.getStudentID().toString(), accessToken);
             if (gradSearchStudent != null) {
@@ -916,9 +946,9 @@ public class GraduationStatusService {
             gradEntity.setUpdateUser(null);
             gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
-            gradEntity.setRecalculateProjectedGrad(null);
-            if(batchId == null) {
-                gradEntity.setRecalculateProjectedGrad("Y");
+            if(batchId != null) {
+                gradEntity.setRecalculateGradStatus(null);
+                gradEntity.setRecalculateProjectedGrad(null);
             }
             gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
@@ -978,6 +1008,46 @@ public class GraduationStatusService {
 
     public List<UUID> getStudentsForAmalgamatedSchoolReport(String schoolOfRecord,String type) {
         return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord),type);
+    }
+
+    public List<GraduationStudentRecord> updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
+        logger.debug("updateStudentFlagReadyForBatchJobByStudentIDs");
+        return studentIDs.stream()
+                .map(stid -> updateStudentFlagReadyForBatchJob(stid, batchJobType))
+                .filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    private GraduationStudentRecord updateStudentFlagReadyForBatchJob(UUID studentID, String batchJobType) {
+        logger.debug("updateStudentFlagReadyByJobType for studentID - {}", studentID);
+        GraduationStudentRecord result = null;
+        Optional<GraduationStudentRecordEntity> optional = graduationStatusRepository.findById(studentID);
+        if (optional.isPresent()) {
+            GraduationStudentRecordEntity entity = optional.get();
+            result = saveBatchFlagsOfGraduationStudentRecord(entity, batchJobType);
+        }
+        return result;
+    }
+
+    private GraduationStudentRecord saveBatchFlagsOfGraduationStudentRecord(GraduationStudentRecordEntity entity, String batchJobType) {
+        boolean isUpdated = false;
+        if (entity.getBatchId() != null) {
+            if (StringUtils.equals("REGALG", batchJobType)) {
+                if (entity.getRecalculateGradStatus() == null || StringUtils.equals("N", entity.getRecalculateGradStatus())) {
+                    entity.setRecalculateGradStatus("Y");
+                    isUpdated = true;
+                }
+            } else {
+                if (entity.getRecalculateProjectedGrad() == null || StringUtils.equals("N", entity.getRecalculateProjectedGrad())) {
+                    entity.setRecalculateProjectedGrad("Y");
+                    isUpdated = true;
+                }
+            }
+            if (isUpdated) {
+                graduationStatusRepository.save(entity);
+                return graduationStatusTransformer.transformToDTO(entity);
+            }
+        }
+        return null;
     }
 
 }

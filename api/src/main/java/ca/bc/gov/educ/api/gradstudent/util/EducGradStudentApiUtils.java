@@ -25,6 +25,9 @@ public class EducGradStudentApiUtils {
     }
 
     public static String formatDate (Date date, String dateFormat) {
+	    if(date == null) {
+	        return null;
+        }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
         return simpleDateFormat.format(date);
     }

@@ -1,6 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordDistribution;
+import ca.bc.gov.educ.api.gradstudent.model.dto.ProjectedRunClob;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -8,6 +11,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +25,8 @@ import java.util.UUID;
 
 @Component
 public class GraduationStatusTransformer {
+
+    private static final Logger logger = LoggerFactory.getLogger(GraduationStatusTransformer.class);
 
     @Autowired
     ModelMapper modelMapper;
@@ -114,7 +121,9 @@ public class GraduationStatusTransformer {
         List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
         for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
-            gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
+            logger.debug("GraduationStudentRecordEntity {} with database program completion date {}", gradStatusEntity.getPen(), gradStatusEntity.getProgramCompletionDate());
+            gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStatusEntity.getProgramCompletionDate(), "yyyy/MM"));
+            logger.debug("GraduationStudentRecord {} with trax program completion date {}", gradStatus.getPen(), gradStatus.getProgramCompletionDate());
             if(gradStatus.getStudentGradData() != null) {
                 GraduationData existingData = null;
                 try {
@@ -123,6 +132,7 @@ public class GraduationStatusTransformer {
                     gradStatus.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
                     gradStatus.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
                     gradStatus.setLegalLastName(existingData.getGradStudent().getLegalLastName());
+                    gradStatus.setNonGradReasons(existingData.getNonGradReasons());
                 } catch (JsonProcessingException e) {e.getMessage();}
             }
             gradStatus.setStudentGradData(null);
