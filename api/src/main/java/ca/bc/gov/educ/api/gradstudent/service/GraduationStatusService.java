@@ -1007,7 +1007,7 @@ public class GraduationStatusService {
     }
 
     public List<UUID> getStudentsForAmalgamatedSchoolReport(String schoolOfRecord,String type) {
-        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord),type);
+        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecordAmalgamated(schoolOfRecord),type);
     }
 
     public List<GraduationStudentRecord> updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
