@@ -135,7 +135,6 @@ public class GraduationStatusService {
 
             if(batchId != null) {
                 gradEntity.setRecalculateGradStatus(null);
-                gradEntity.setRecalculateProjectedGrad(null);
             }
 
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
@@ -947,7 +946,6 @@ public class GraduationStatusService {
             gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
             if(batchId != null) {
-                gradEntity.setRecalculateGradStatus(null);
                 gradEntity.setRecalculateProjectedGrad(null);
             }
             gradEntity.setStudentProjectedGradData(projectedClob);
