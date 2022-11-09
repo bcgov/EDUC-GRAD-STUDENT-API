@@ -1714,7 +1714,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setLegalMiddleNames("Adad");
         graduationStatusEntity.setLegalLastName("sadad");
 
-        Mockito.when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStatusEntity));
+        Mockito.when(graduationStatusRepository.findBySchoolOfRecordAmalgamated(mincode)).thenReturn(List.of(graduationStatusEntity));
 
         return graduationStatusService.getStudentsForAmalgamatedSchoolReport(mincode,type);
     }
