@@ -313,7 +313,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setGpa("4");
 
         GraduationStudentRecordSearchResult searchResult = new GraduationStudentRecordSearchResult();
-        searchResult.setGraduationStudentRecords(List.of(graduationStatus));
+        searchResult.setStudentIDs(List.of(graduationStatus.getStudentID()));
 
         List<String> pens = new ArrayList<>();
 
