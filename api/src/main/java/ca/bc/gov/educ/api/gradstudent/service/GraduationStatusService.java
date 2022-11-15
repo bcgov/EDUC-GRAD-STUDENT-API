@@ -313,9 +313,12 @@ public class GraduationStatusService {
                 .build();
 
         Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
-        List<GraduationStudentRecord> students = graduationStatusTransformer.transformToDTO(graduationStudentRecordSearchRepository.findAll(Specification.where(spec)));
-        searchResult.setGraduationStudentRecords(students);
-
+        List<GraduationStudentRecordEntity> results = graduationStudentRecordSearchRepository.findAll(Specification.where(spec));
+        List<UUID> students = new ArrayList<>();
+        if (results != null && !results.isEmpty()) {
+            students = graduationStudentRecordSearchRepository.findAll(Specification.where(spec)).stream().map(GraduationStudentRecordEntity::getStudentID).collect(Collectors.toList());
+        }
+        searchResult.setStudentIDs(students);
         return searchResult;
     }
 
