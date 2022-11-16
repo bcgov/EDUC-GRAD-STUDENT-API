@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordSearchEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,7 +13,7 @@ import javax.persistence.criteria.Root;
 import java.util.Date;
 import java.util.UUID;
 
-public class GraduationStudentRecordSearchSpecification implements Specification<GraduationStudentRecordEntity> {
+public class GraduationStudentRecordSearchSpecification implements Specification<GraduationStudentRecordSearchEntity> {
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStudentRecordSearchSpecification.class);
     private static final String PROGRAM_COMPLETION_DATE = "programCompletionDate";
@@ -26,7 +26,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
 
     @Override
     @Nullable
-    public Predicate toPredicate(Root<GraduationStudentRecordEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+    public Predicate toPredicate(Root<GraduationStudentRecordSearchEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
         logger.debug("toPredicate()");
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
             return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
