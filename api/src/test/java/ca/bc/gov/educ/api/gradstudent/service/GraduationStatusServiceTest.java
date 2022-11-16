@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordSearchEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -1026,7 +1027,7 @@ public class GraduationStatusServiceTest {
                 .validateInput(false)
                 .build();
 
-        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        GraduationStudentRecordSearchEntity graduationStudentRecordEntity = new GraduationStudentRecordSearchEntity();
         graduationStudentRecordEntity.setStudentID(studentId);
         graduationStudentRecordEntity.setProgram(programCode);
         graduationStudentRecordEntity.setSchoolOfRecord(schoolOfRecord);
@@ -1038,7 +1039,7 @@ public class GraduationStatusServiceTest {
                 .districts(searchRequest.getDistricts())
                 .programs(searchRequest.getPrograms())
                 .build();
-        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
+        Specification<GraduationStudentRecordSearchEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
 
         when(graduationStudentRecordSearchRepository.findAll(Specification.where(spec))).thenReturn(List.of(graduationStudentRecordEntity));
 
@@ -1175,7 +1176,7 @@ public class GraduationStatusServiceTest {
                 .validateInput(true)
                 .build();
 
-        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        GraduationStudentRecordSearchEntity graduationStudentRecordEntity = new GraduationStudentRecordSearchEntity();
         graduationStudentRecordEntity.setStudentID(studentId);
         graduationStudentRecordEntity.setProgram(programCode);
         graduationStudentRecordEntity.setSchoolOfRecord(schoolOfRecord);
@@ -1187,7 +1188,7 @@ public class GraduationStatusServiceTest {
                 .districts(searchRequest.getDistricts())
                 .programs(searchRequest.getPrograms())
                 .build();
-        Specification<GraduationStudentRecordEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
+        Specification<GraduationStudentRecordSearchEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
 
         when(graduationStudentRecordSearchRepository.findAll(Specification.where(spec))).thenReturn(List.of(graduationStudentRecordEntity));
 

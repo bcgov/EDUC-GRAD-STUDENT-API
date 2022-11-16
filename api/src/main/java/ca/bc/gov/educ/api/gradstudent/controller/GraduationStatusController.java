@@ -203,7 +203,7 @@ public class GraduationStatusController {
 
     @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_BY_LIST_CRITERIAS)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
-    @Operation(summary = "Find Students by multiply criterias", description = "Find Students by multiply criterias", tags = { "Search Student Records" })
+    @Operation(summary = "Find Students by multiple criteria", description = "Find Students by multiple criteria", tags = { "Search Student Records" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecordSearchResult> searchGraduationStudentRecords(@RequestBody StudentSearchRequest searchRequest,
                                                                                               @RequestHeader(name="Authorization") String accessToken) {
