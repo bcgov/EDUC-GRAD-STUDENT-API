@@ -415,6 +415,7 @@ public class GraduationStatusService {
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
                 .mincode(school.getMinCode())
                 .schoolCategory(commonSchool.getSchoolCategoryCode())
+                .schoolType("02".equalsIgnoreCase(commonSchool.getSchoolCategoryCode()) ? "02" : "")
                 .schoolName(school.getSchoolName())
                 .formerStudent(formerStudent)
                 .build();
