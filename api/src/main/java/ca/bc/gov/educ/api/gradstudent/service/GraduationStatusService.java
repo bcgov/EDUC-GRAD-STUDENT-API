@@ -301,6 +301,14 @@ public class GraduationStatusService {
         if(!StringUtils.isBlank(searchRequest.getGradProgram()) && !searchRequest.getPrograms().contains(searchRequest.getGradProgram())) {
             searchRequest.getPrograms().add(searchRequest.getGradProgram());
         }
+        // validate the search criteria that has any values to avoid bringing up all students
+        if (studentIds.isEmpty()
+            && searchRequest.getSchoolOfRecords().isEmpty()
+            && searchRequest.getPrograms().isEmpty()
+            && searchRequest.getGradDateFrom() == null && searchRequest.getGradDateTo() == null) {
+            searchResult.setStudentIDs(new ArrayList<>());
+            return searchResult;
+        }
         GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
                 .studentIds(studentIds)
                 .schoolOfRecords(searchRequest.getSchoolOfRecords())
@@ -313,7 +321,7 @@ public class GraduationStatusService {
         List<GraduationStudentRecordSearchEntity> results = graduationStudentRecordSearchRepository.findAll(Specification.where(spec));
         List<UUID> students = new ArrayList<>();
         if (results != null && !results.isEmpty()) {
-            students = graduationStudentRecordSearchRepository.findAll(Specification.where(spec)).stream().map(GraduationStudentRecordSearchEntity::getStudentID).collect(Collectors.toList());
+            students = results.stream().map(GraduationStudentRecordSearchEntity::getStudentID).collect(Collectors.toList());
         }
         searchResult.setStudentIDs(students);
         return searchResult;
@@ -360,7 +368,7 @@ public class GraduationStatusService {
         List<GradStudentCertificates> gradStudentCertificates = getGradStudentCertificates(gradSearchStudent.getStudentID(), accessToken);
         for(GradStudentCertificates certificates: gradStudentCertificates) {
             String certificateTypeCode = certificates.getGradCertificateTypeCode();
-            dogwood = (!"SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && certificates.getDistributionDate() != null) ? "Y" : "N";
+            dogwood = (certificates.getDistributionDate() != null) ? "Y" : "N";
             sccDate = ("SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && certificates.getDistributionDate() != null) ? simpleDateFormat.format(certificates.getDistributionDate()) : null;
             switch(certificateTypeCode) {
                 case "E":
@@ -412,6 +420,7 @@ public class GraduationStatusService {
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
                 .mincode(school.getMinCode())
                 .schoolCategory(commonSchool.getSchoolCategoryCode())
+                .schoolType("02".equalsIgnoreCase(commonSchool.getSchoolCategoryCode()) ? "02" : "")
                 .schoolName(school.getSchoolName())
                 .formerStudent(formerStudent)
                 .build();

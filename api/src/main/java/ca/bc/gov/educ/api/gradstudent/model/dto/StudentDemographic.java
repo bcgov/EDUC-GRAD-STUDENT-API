@@ -18,6 +18,7 @@ public class StudentDemographic extends Student {
     String sccDate;
     String transcriptEligibility;
     String schoolCategory;
+    String schoolType;
     String schoolName;
     String formerStudent;
     @JsonIgnore
