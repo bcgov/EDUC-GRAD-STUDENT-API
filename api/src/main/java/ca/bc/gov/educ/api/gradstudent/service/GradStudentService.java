@@ -322,6 +322,7 @@ public class GradStudentService {
 			gradStu.setStudentGrade(gradObj.getStudentGrade());
 			gradStu.setStudentStatus(gradObj.getStudentStatus());
 			gradStu.setSchoolOfRecord(gradObj.getSchoolOfRecord());
+			gradStu.setStudentCitizenship(gradObj.getStudentCitizenship());
 		
 			School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord()))
 				.headers(h -> {
