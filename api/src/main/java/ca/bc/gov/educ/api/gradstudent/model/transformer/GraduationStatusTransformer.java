@@ -98,6 +98,7 @@ public class GraduationStatusTransformer {
         distObj.setSchoolOfRecord(ent.getSchoolOfRecord());
         distObj.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
         distObj.setStudentID(ent.getStudentID());
+        distObj.setStudentCitizenship(ent.getStudentCitizenship());
         if(ent.getStudentGradData() != null) {
             GraduationData existingData = null;
             try {
@@ -135,6 +136,7 @@ public class GraduationStatusTransformer {
                     gradStatus.setNonGradReasons(existingData.getNonGradReasons());
                 } catch (JsonProcessingException e) {e.getMessage();}
             }
+            gradStatus.setStudentCitizenship(gradStatusEntity.getStudentCitizenship());
             gradStatus.setStudentGradData(null);
             gradStatusList.add(gradStatus);
         }

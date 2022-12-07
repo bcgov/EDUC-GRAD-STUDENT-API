@@ -399,6 +399,7 @@ public class GraduationStatusService {
                 .dob(gradSearchStudent.getDob())
                 .sexCode(gradSearchStudent.getSexCode())
                 .genderCode(gradSearchStudent.getGenderCode())
+                .citizenship(gradSearchStudent.getStudentCitizenship())
                 .usualFirstName(gradSearchStudent.getUsualFirstName())
                 .usualMiddleNames(gradSearchStudent.getUsualMiddleNames())
                 .usualLastName(gradSearchStudent.getUsualLastName())
