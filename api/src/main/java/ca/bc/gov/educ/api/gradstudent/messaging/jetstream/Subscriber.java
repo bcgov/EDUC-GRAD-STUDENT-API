@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 
-import static ca.bc.gov.educ.api.gradstudent.constant.Topics.GRAD_STATUS_EVENTS_TOPIC;
+import static ca.bc.gov.educ.api.gradstudent.constant.Topics.GRAD_STATUS_EVENT_TOPIC;
 
 /**
  * The type Subscriber.
@@ -55,12 +55,12 @@ public class Subscriber {
    */
   @PostConstruct
   public void subscribe() throws IOException, JetStreamApiException {
-    val qName = "GRAD-STATUS-EVENTS-TOPIC-GRAD-STUDENT-API-QUEUE";
+    val qName = EducGradStudentApiConstants.API_NAME.concat("-QUEUE");
     val autoAck = false;
     PushSubscribeOptions options = PushSubscribeOptions.builder().stream(EducGradStudentApiConstants.STREAM_NAME)
-        .durable("GRAD-STATUS-EVENTS-TOPIC-GRAD-STUDENT-API-DURABLE")
+        .durable(EducGradStudentApiConstants.API_NAME.concat("-DURABLE"))
         .configuration(ConsumerConfiguration.builder().deliverPolicy(DeliverPolicy.New).build()).build();
-    this.natsConnection.jetStream().subscribe(GRAD_STATUS_EVENTS_TOPIC.toString(), qName, this.natsConnection.createDispatcher(), this::onGradStatusEventsTopicMessage,
+    this.natsConnection.jetStream().subscribe(GRAD_STATUS_EVENT_TOPIC.toString(), qName, this.natsConnection.createDispatcher(), this::onGradStatusEventsTopicMessage,
         autoAck, options);
   }
 

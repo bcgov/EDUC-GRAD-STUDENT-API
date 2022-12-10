@@ -1,5 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradStatusEventPayloadDTO;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -105,5 +107,19 @@ public class EducGradStudentApiUtils {
             logger.error("ERROR: {}", pe.getMessage());
          }
          return sDates;
+    }
+
+    public static GradStatusEventPayloadDTO transform(GraduationStudentRecord graduationStudentRecord) {
+        return GradStatusEventPayloadDTO.builder()
+                .pen(graduationStudentRecord.getPen())
+                .program(graduationStudentRecord.getProgram())
+                .schoolOfRecord(graduationStudentRecord.getSchoolOfRecord())
+                .schoolAtGrad(graduationStudentRecord.getSchoolAtGrad())
+                .programCompletionDate(graduationStudentRecord.getProgramCompletionDate())
+                .studentGrade(graduationStudentRecord.getStudentGrade())
+                .studentStatus(graduationStudentRecord.getStudentStatus())
+                .honoursStanding(graduationStudentRecord.getHonoursStanding())
+                .updateUser(graduationStudentRecord.getUpdateUser())
+                .build();
     }
 }
