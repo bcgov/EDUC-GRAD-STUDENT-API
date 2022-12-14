@@ -18,4 +18,5 @@ public interface StudentCareerProgramRepository extends JpaRepository<StudentCar
 	@Query("select c from StudentCareerProgramEntity c where c.careerProgramCode=:cpCode")
 	List<StudentCareerProgramEntity> existsByCareerProgramCode(String cpCode);
 
+	void deleteByStudentID(UUID studentID);
 }
