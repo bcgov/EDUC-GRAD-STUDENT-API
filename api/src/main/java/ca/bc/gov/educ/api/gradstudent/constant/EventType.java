@@ -6,6 +6,5 @@ package ca.bc.gov.educ.api.gradstudent.constant;
 public enum EventType {
   GRAD_STUDENT_GRADUATED,
   GRAD_STUDENT_UNDO_COMPLETION,
-  GRAD_STUDENT_UPDATED,
-  STUDENT_CERTIFICATE_DISTRIBUTED
+  GRAD_STUDENT_UPDATED
 }
