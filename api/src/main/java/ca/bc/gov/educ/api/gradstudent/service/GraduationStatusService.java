@@ -60,6 +60,7 @@ public class GraduationStatusService {
     final GraduationStatusTransformer graduationStatusTransformer;
     final StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     final GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer;
+    final StudentCareerProgramRepository gradStudentCareerProgramRepository;
     final GradStudentService gradStudentService;
     final HistoryService historyService;
     final GradValidation validation;
@@ -69,7 +70,7 @@ public class GraduationStatusService {
     GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
-    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentStatusRepository = studentStatusRepository;
@@ -77,6 +78,7 @@ public class GraduationStatusService {
         this.graduationStatusTransformer = graduationStatusTransformer;
         this.gradStudentOptionalProgramRepository = gradStudentOptionalProgramRepository;
         this.gradStudentOptionalProgramTransformer = gradStudentOptionalProgramTransformer;
+        this.gradStudentCareerProgramRepository = gradStudentCareerProgramRepository;
         this.gradStudentService = gradStudentService;
         this.historyService = historyService;
         this.validation = validation;
@@ -168,6 +170,7 @@ public class GraduationStatusService {
             }
             if(hasDataChanged.hasDataChanged() && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
+                deleteStudentCareerPrograms(sourceObject.getStudentID());
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
                     sourceObject.setRecalculateGradStatus("Y");
                     sourceObject.setRecalculateProjectedGrad("Y");
@@ -648,6 +651,10 @@ public class GraduationStatusService {
                 gradStudentOptionalProgramRepository.deleteById(studentOptionalProgramEntity.getId());
             }
         }
+    }
+
+    private void deleteStudentCareerPrograms(UUID studentID) {
+        gradStudentCareerProgramRepository.deleteByStudentID(studentID);
     }
 
     private String getHonoursFlag(String gPA) {

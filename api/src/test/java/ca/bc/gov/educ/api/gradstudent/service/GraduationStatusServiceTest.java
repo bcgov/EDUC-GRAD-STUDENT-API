@@ -52,6 +52,7 @@ public class GraduationStatusServiceTest {
     @MockBean GradStudentService gradStudentService;
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
+    @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
     @MockBean WebClient webClient;
