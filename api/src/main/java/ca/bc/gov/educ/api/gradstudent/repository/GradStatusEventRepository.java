@@ -34,5 +34,5 @@ public interface GradStatusEventRepository extends JpaRepository<GradStatusEvent
    * @param eventStatus the event status
    * @return the list
    */
-  List<GradStatusEvent> findByEventStatus(String eventStatus);
+  List<GradStatusEvent> findByEventStatusOrderByCreateDate(String eventStatus);
 }
