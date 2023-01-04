@@ -6,7 +6,7 @@
 
     <groupId>ca.bc.gov.educ</groupId>
 	<artifactId>educ-grad-student-api</artifactId>
-	<version>1.7.8</version>
+	<version>1.7.9</version>
 	<name>educ-grad-student-api</name>
 	<description>Student Demographics API for GRAD team</description>
    
@@ -16,7 +16,10 @@
         <sonar.exclusions>
             src/main/resources/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/config/**,
+            src/main/java/ca/bc/gov/educ/api/gradstudent/constant/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/model/**,
+            src/main/java/ca/bc/gov/educ/api/gradstudent/messaging/**,
+            src/main/java/ca/bc/gov/educ/api/gradstudent/scheduler/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/util/**
         </sonar.exclusions>
         <sonar.junit.exclusions>

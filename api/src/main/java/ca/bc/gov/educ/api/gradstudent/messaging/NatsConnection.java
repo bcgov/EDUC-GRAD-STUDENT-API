@@ -27,21 +27,21 @@ public class NatsConnection implements Closeable {
   /**
    * Instantiates a new Nats connection.
    *
-   * @param applicationProperties the application properties
+   * @param constants             the application properties
    * @throws IOException          the io exception
    * @throws InterruptedException the interrupted exception
    */
   @Autowired
-  public NatsConnection(final EducGradStudentApiConstants applicationProperties) throws IOException, InterruptedException {
-    this.natsCon = connectToNats(applicationProperties.getNatsUrl(), applicationProperties.getNatsMaxReconnect());
+  public NatsConnection(final EducGradStudentApiConstants constants) throws IOException, InterruptedException {
+    this.natsCon = connectToNats(constants.getNatsUrl(), constants.getNatsMaxReconnect(), constants.getConnectionName());
   }
 
-  private Connection connectToNats(String stanUrl, int maxReconnects) throws IOException, InterruptedException {
+  private Connection connectToNats(String stanUrl, int maxReconnects, String connectionName) throws IOException, InterruptedException {
     io.nats.client.Options natsOptions = new io.nats.client.Options.Builder()
         .connectionListener(this::connectionListener)
         .maxPingsOut(5)
         .pingInterval(Duration.ofSeconds(2))
-        .connectionName(EducGradStudentApiConstants.GRAD_STUDENT_API)
+        .connectionName(connectionName)
         .connectionTimeout(Duration.ofSeconds(5))
         .executor(new EnhancedQueueExecutor.Builder()
             .setThreadFactory(new ThreadFactoryBuilder().setNameFormat("core-nats-%d").build())
