@@ -344,10 +344,12 @@ public class GraduationStatusService {
             GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
             long sessionInterval = Integer.MAX_VALUE;
             GraduationData graduationData = null;
-            try {
-                graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(graduationStudentRecordEntity.getStudentGradData(), GraduationData.class);
-            } catch (JsonProcessingException e) {
-                logger.debug("Parsing Graduation Data Error {}", e.getOriginalMessage());
+            if(StringUtils.isNotBlank(graduationStudentRecordEntity.getStudentGradData())) {
+                try {
+                    graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(graduationStudentRecordEntity.getStudentGradData(), GraduationData.class);
+                } catch (JsonProcessingException e) {
+                    logger.debug("Parsing Graduation Data Error {}", e.getOriginalMessage());
+                }
             }
             if(graduationData != null) {
                 sessionInterval = graduationData.getSessionDateMonthsIntervalNow();
