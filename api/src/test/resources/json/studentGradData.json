@@ -408,5 +408,6 @@
   "gradMessage": "This student has been issued a School Completion Certificate, from the Ministry of Education, for meeting their individual educational program goals. This is not a Graduation credential. ",
   "dualDogwood": false,
   "exception": null,
-  "graduated": true
+  "graduated": true,
+  "latestSessionDate" : "2022-06-30"
 }

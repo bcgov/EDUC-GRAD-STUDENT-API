@@ -342,11 +342,22 @@ public class GraduationStatusService {
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
         if(graduationStudentRecordEntityOptional.isPresent()) {
             GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
+            long sessionInterval = Integer.MAX_VALUE;
+            GraduationData graduationData = null;
+            if(StringUtils.isNotBlank(graduationStudentRecordEntity.getStudentGradData())) {
+                try {
+                    graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(graduationStudentRecordEntity.getStudentGradData(), GraduationData.class);
+                } catch (JsonProcessingException e) {
+                    logger.debug("Parsing Graduation Data Error {}", e.getOriginalMessage());
+                }
+            }
+            if(graduationData != null) {
+                sessionInterval = graduationData.getSessionDateMonthsIntervalNow();
+            }
             if(graduationStudentRecordEntity.getProgramCompletionDate() != null) {
                 gradDate = simpleDateFormat.format(graduationStudentRecordEntity.getProgramCompletionDate());
             }
-            if("CUR".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
-                || "TER".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus())
+            if(sessionInterval <= 6 || ("CUR".equalsIgnoreCase(graduationStudentRecordEntity.getStudentStatus()))
             ) {
                 formerStudent = "C";
             }

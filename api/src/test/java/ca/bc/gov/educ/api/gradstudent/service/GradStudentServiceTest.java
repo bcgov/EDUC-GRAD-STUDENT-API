@@ -8,6 +8,9 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +29,10 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -389,6 +396,8 @@ public class GradStudentServiceTest {
         final String mincode = "12345678";
         final String schoolName = "Test School";
 
+        String graduationData = readFile("json/studentGradData.json");
+
         // Graduation Status Entity
         final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -398,6 +407,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setProgramCompletionDate(new Date());
         graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setStudentGradData(graduationData);
 
         when(this.graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
 
@@ -681,5 +691,30 @@ public class GradStudentServiceTest {
         var result = gradStudentService.getStudentByStudentIDFromGrad(studentID.toString());
         assertThat(result).isNotNull();
         assertThat(result.getProgram()).isEqualTo("2018-EN");
+    }
+
+
+    @SneakyThrows
+    protected Object createDataObjectFromJson(String jsonPath, Class<?> clazz) {
+        String json = readFile(jsonPath);
+        return new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).readValue(json, clazz);
+    }
+
+    @SneakyThrows
+    protected String readFile(String path) {
+        ClassLoader classLoader = getClass().getClassLoader();
+        InputStream inputStream = classLoader.getResourceAsStream(path);
+        return readInputStream(inputStream);
+    }
+
+    private String readInputStream(InputStream is) throws Exception {
+        StringBuffer sb = new StringBuffer();
+        InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
+        BufferedReader reader = new BufferedReader(streamReader);
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+        }
+        return sb.toString();
     }
 }
