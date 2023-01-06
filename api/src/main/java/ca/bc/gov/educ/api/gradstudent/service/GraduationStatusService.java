@@ -131,7 +131,7 @@ public class GraduationStatusService {
             }
 
             if(batchId != null) {
-                gradEntity.setRecalculateGradStatus(null);
+                resetBatchFlags(gradEntity, false);
             }
 
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
@@ -970,7 +970,7 @@ public class GraduationStatusService {
             gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
             if(batchId != null) {
-                gradEntity.setRecalculateProjectedGrad(null);
+                resetBatchFlags(gradEntity, true);
             }
             gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
@@ -1070,6 +1070,18 @@ public class GraduationStatusService {
             }
         }
         return null;
+    }
+
+    private void resetBatchFlags(GraduationStudentRecordEntity gradEntity, boolean projectedRun) {
+        String flag = null;
+        if (gradEntity.getProgram().equalsIgnoreCase("SCCP") && EducGradStudentApiUtils.isDateInFuture(gradEntity.getProgramCompletionDate())) {
+            flag = "Y";
+        }
+
+        if (projectedRun)
+            gradEntity.setRecalculateProjectedGrad(flag);
+        else
+            gradEntity.setRecalculateGradStatus(flag);
     }
 
 }
