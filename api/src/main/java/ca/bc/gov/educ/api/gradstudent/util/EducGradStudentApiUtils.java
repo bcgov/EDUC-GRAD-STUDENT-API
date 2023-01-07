@@ -122,4 +122,14 @@ public class EducGradStudentApiUtils {
                 .updateUser(graduationStudentRecord.getUpdateUser())
                 .build();
     }
+
+    public static boolean isDateInFuture(Date graduationDate) {
+	    if (graduationDate != null) {
+            Date current = new Date(System.currentTimeMillis());
+            if (graduationDate.after(current) || graduationDate.equals(current)) {
+                return true;
+            }
+        }
+	    return false;
+    }
 }
