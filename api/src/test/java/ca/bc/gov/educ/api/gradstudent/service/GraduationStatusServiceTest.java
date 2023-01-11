@@ -530,6 +530,53 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testSaveGraduationStatus_givenBatchId_whenProgramCompletionDate_isFuture_thenReturnSuccess_SCCP() throws JsonProcessingException {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String mincode = "12345678";
+        Long batchId = 1234L;
+        Date programCompletionDate = new Date(System.currentTimeMillis() + 86400000L);  // add one day as milliseconds
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("123456789");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("SCCP");
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setProgramCompletionDate(programCompletionDate);
+
+        GraduationStudentRecord input = new GraduationStudentRecord();
+        BeanUtils.copyProperties(graduationStatusEntity, input);
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(programCompletionDate, "yyyy/MM" ));
+
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
+        BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
+        savedGraduationStatus.setRecalculateGradStatus("Y");
+        savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+
+        var response = graduationStatusService.saveGraduationStatus(studentID, input, batchId, "accessToken");
+        assertThat(response).isNotNull();
+
+        var result = response.getLeft();
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
+        assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
+        assertThat(result.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
+        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
+
+        assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");
+        assertThat(result.getProgramCompletionDate()).isEqualTo(input.getProgramCompletionDate());
+    }
+
+    @Test
     public void testUpdateGraduationStatus_givenDifferentPrograms_when1950ProgramIsValidated_thenReturnErrorWithEmptyObject() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -1480,7 +1527,47 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity2.setBatchId(batchId);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(graduationStatusEntity);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(graduationStatusEntity2);
+
+        GraduationStudentRecord res = graduationStatusService.saveStudentRecordProjectedTVRRun(studentID, batchId, projectedRunClob);
+        assertThat(res).isNotNull();
+    }
+
+    @Test
+    public void testSaveStudentRecord_projectedRun_whenProgramCompletionDate_isFuture_thenReturnSuccess_SCCP() {
+        UUID studentID = new UUID(1, 1);
+        Long batchId = 1234L;
+        Date programCompletionDate = new Date(System.currentTimeMillis() + 86400000L);  // add one day as milliseconds
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+        graduationStatusEntity.setProgram("SCCP");
+        graduationStatusEntity.setProgramCompletionDate(programCompletionDate);
+
+        ProjectedRunClob projectedRunClob = new ProjectedRunClob();
+        projectedRunClob.setGraduated(true);
+        projectedRunClob.setNonGradReasons(null);
+
+        String projectedClob = null;
+        try {
+            projectedClob = new ObjectMapper().writeValueAsString(projectedRunClob);
+        } catch (JsonProcessingException e) {}
+
+        GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
+        graduationStatusEntity2.setStudentID(studentID);
+        graduationStatusEntity2.setPen("12321321");
+        graduationStatusEntity2.setStudentStatus("A");
+        graduationStatusEntity2.setSchoolOfRecord("12345678");
+        graduationStatusEntity2.setRecalculateProjectedGrad("Y");
+        graduationStatusEntity2.setStudentProjectedGradData(projectedClob);
+        graduationStatusEntity.setProgram("SCCP");
+        graduationStatusEntity.setProgramCompletionDate(programCompletionDate);
+        graduationStatusEntity2.setBatchId(batchId);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(graduationStatusEntity2);
 
         GraduationStudentRecord res = graduationStatusService.saveStudentRecordProjectedTVRRun(studentID, batchId, projectedRunClob);
         assertThat(res).isNotNull();

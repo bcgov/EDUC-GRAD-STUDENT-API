@@ -12,8 +12,8 @@ public class EducGradStudentApiConstants {
     /**
      * The constant GRAD_STATUS_API.
      */
-    public static final String GRAD_STUDENT_API = "GRAD-STUDENT-API";
-    public static final String STREAM_NAME="GRAD_STATUS_EVENTS";
+    public static final String API_NAME = "GRAD-STUDENT-API";
+    public static final String STREAM_NAME="GRAD_STATUS_EVENT_STREAM";
     public static final String CORRELATION_ID = "correlationID";
 
     //API end-point Mapping constants
@@ -101,6 +101,9 @@ public class EducGradStudentApiConstants {
 
     @Value("${nats.maxReconnect}")
     Integer natsMaxReconnect;
+
+    @Value("${nats.connectionName}")
+    private String connectionName;
 
     //Endpoints
     @Value("${endpoint.grad-trax-api.school-by-min-code.url}")
