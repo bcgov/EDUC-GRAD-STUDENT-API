@@ -94,6 +94,7 @@ public class EducGradStudentApiConstants {
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
+    public static final String PROGRAM_COMPLETION_DATE_FORMAT = "yyyy/MM";
 
     //NATS
     @Value("${nats.url}")
