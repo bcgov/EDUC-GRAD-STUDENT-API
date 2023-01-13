@@ -6,15 +6,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneId;
 import java.util.Date;
 
 public class EducGradStudentApiUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(EducGradStudentApiUtils.class);
+    private static final String ERROR_MSG = "Error : {}";
 
 	private EducGradStudentApiUtils() {}
 	
@@ -102,11 +105,54 @@ public class EducGradStudentApiUtils {
 		 String sDates = null;
          try {
             temp = EducGradStudentApiUtils.parseDate(actualSessionDate, "yyyy/MM/dd");
-            sDates = EducGradStudentApiUtils.formatDate(temp, "yyyy-MM-dd");
+            sDates = EducGradStudentApiUtils.formatDate(temp, EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
          } catch (ParseException pe) {
             logger.error("ERROR: {}", pe.getMessage());
          }
          return sDates;
+    }
+
+    public static Date parsingProgramCompletionDate(String sessionDate) {
+        String actualSessionDate = sessionDate + "/01";
+        Date temp;
+        Date sDate = null;
+        try {
+            temp = EducGradStudentApiUtils.parseDate(actualSessionDate, EducGradStudentApiConstants.DATE_FORMAT);
+            String sDates = EducGradStudentApiUtils.formatDate(temp, EducGradStudentApiConstants.DATE_FORMAT);
+            sDate = EducGradStudentApiUtils.parseDate(sDates, EducGradStudentApiConstants.DATE_FORMAT);
+        } catch (ParseException pe) {
+            logger.error(ERROR_MSG,pe.getMessage());
+        }
+        return sDate;
+    }
+
+    public static boolean isDateInFuture(Date programCompletionDate) {
+        if (programCompletionDate != null) {
+            String sessionDate = EducGradStudentApiUtils.formatDate(programCompletionDate, EducGradStudentApiConstants.PROGRAM_COMPLETION_DATE_FORMAT);
+            Date pCD = EducGradStudentApiUtils.parsingProgramCompletionDate(sessionDate);
+            int diff = EducGradStudentApiUtils.getDifferenceInDays(EducGradStudentApiUtils.getProgramCompletionDate(pCD), EducGradStudentApiUtils.getCurrentDate());
+            return diff < 0;
+        }
+        return false;
+    }
+
+    public static String getCurrentDate() {
+
+        Date gradDate = new Date();
+        DateFormat dateFormat = new SimpleDateFormat(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        return dateFormat.format(gradDate);
+    }
+
+    public static String getProgramCompletionDate(Date pcd) {
+        DateFormat dateFormat = new SimpleDateFormat(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        return dateFormat.format(pcd);
+    }
+
+    public static int getDifferenceInDays(String date1, String date2) {
+        Period diff = Period.between(
+                LocalDate.parse(date1),
+                LocalDate.parse(date2));
+        return diff.getDays() + diff.getMonths()*30;
     }
 
     public static GradStatusEventPayloadDTO transform(GraduationStudentRecord graduationStudentRecord) {
@@ -123,13 +169,4 @@ public class EducGradStudentApiUtils {
                 .build();
     }
 
-    public static boolean isDateInFuture(Date graduationDate) {
-	    if (graduationDate != null) {
-            Date current = new Date(System.currentTimeMillis());
-            if (graduationDate.after(current) || graduationDate.equals(current)) {
-                return true;
-            }
-        }
-	    return false;
-    }
 }
