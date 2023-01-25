@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component
-public class UngradReason extends BaseModel {
+public class UndoCompletionReason extends BaseModel {
 
 	private String code; 
 	private String description;

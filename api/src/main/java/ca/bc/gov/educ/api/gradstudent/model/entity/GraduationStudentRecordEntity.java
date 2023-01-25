@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -68,6 +69,13 @@ public class GraduationStudentRecordEntity extends BaseEntity {
     @Column(name = "CONSUMER_EDUC_REQT_MET", nullable = true)
     private String consumerEducationRequirementMet;
 
+    @Column(name = "STUDENT_CITIZENSHIP_CODE", nullable = true)
+    private String studentCitizenship;
+
+    @Lob
+    @Column(name = "STUDENT_PROJECTED_GRAD_DATA", columnDefinition="CLOB")
+    private String studentProjectedGradData;
+
     @Transient
     private String legalFirstName;
 
@@ -76,4 +84,8 @@ public class GraduationStudentRecordEntity extends BaseEntity {
 
     @Transient
     private String legalLastName;
+
+    @OneToMany
+    @JoinColumn(name = "GRADUATION_STUDENT_RECORD_ID", insertable = false, updatable = false)
+    private List<StudentCareerProgramEntity> careerPrograms;
 }

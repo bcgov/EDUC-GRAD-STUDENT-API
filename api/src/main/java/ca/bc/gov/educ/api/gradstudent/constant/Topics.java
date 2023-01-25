@@ -5,7 +5,7 @@ package ca.bc.gov.educ.api.gradstudent.constant;
  */
 public enum Topics {
   /**
-   * GradStatus events topic topics.
+   * GradStatus events topic.
    */
-  GRAD_STATUS_EVENTS_TOPIC
+  GRAD_STATUS_EVENT_TOPIC
 }

@@ -43,7 +43,7 @@ public class GraduationStudentRecordHistoryTransformer {
 		List<GraduationStudentRecordHistory> graduationStudentRecordHistoryList = new ArrayList<>();
         for (GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity : graduationStudentRecordHistoryEntities) {
             GraduationStudentRecordHistory graduationStudentRecordHistory = modelMapper.map(graduationStudentRecordHistoryEntity, GraduationStudentRecordHistory.class);
-        	graduationStudentRecordHistory.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(graduationStudentRecordHistoryEntity.getProgramCompletionDate() != null ? graduationStudentRecordHistoryEntity.getProgramCompletionDate().toString():null));
+        	graduationStudentRecordHistory.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStudentRecordHistoryEntity.getProgramCompletionDate(), "yyyy/MM"));
         	graduationStudentRecordHistoryList.add(graduationStudentRecordHistory);
         }
         return graduationStudentRecordHistoryList;

@@ -12,8 +12,8 @@ public class EducGradStudentApiConstants {
     /**
      * The constant GRAD_STATUS_API.
      */
-    public static final String GRAD_STUDENT_API = "GRAD-STUDENT-API";
-    public static final String STREAM_NAME="GRAD_STATUS_EVENTS";
+    public static final String API_NAME = "GRAD-STUDENT-API";
+    public static final String STREAM_NAME="GRAD_STATUS_EVENT_STREAM";
     public static final String CORRELATION_ID = "correlationID";
 
     //API end-point Mapping constants
@@ -22,6 +22,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_API_ROOT_MAPPING = "/api/" + API_VERSION + "/student" ;
     public static final String GRAD_STUDENT_BY_PEN = "/{pen}";
     public static final String GRAD_STUDENT_BY_PEN_STUDENT_API = "/pen/{pen}";
+    public static final String GRAD_STUDENT_DEMOG_BY_PEN = "/demog/pen/{pen}";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API = "/stdid/{studentID}";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_GRAD="/grad/{studentID}";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
@@ -35,6 +36,8 @@ public class EducGradStudentApiConstants {
     public static final String GRADUATION_STATUS_BY_STUDENT_ID_FOR_ALGORITHM = "/studentid/{studentID}/algorithm";
     public static final String GRAD_STUDENT_UPDATE_BY_STUDENT_ID = "/gradstudent/studentid/{studentID}";
     public static final String GRADUATION_RECORD_BY_STUDENT_ID_PROJECTED_RUN = "/projected/studentid/{studentID}";
+    public static final String GRADUATION_RECORD_BY_STUDENT_ID_DISTRIBUTION_RUN = "/distribution/studentid/{studentID}";
+    public static final String UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS = "/multistudentids/batchflag/jobtype/{batchJobType}";
 
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN = "/optionalprogram/studentid/{studentID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";
@@ -42,8 +45,12 @@ public class EducGradStudentApiConstants {
     public static final String UPDATE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/gradstudent/optionalprogram";
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GRAD_STUDENT_PROJECTED_RUN = "/projected";
+    public static final String GRAD_STUDENT_BY_STUDENT_ID_FOR_BATCH_RUN = "/batch/gradstudent/studentid/{studentID}";
+    public static final String STUDENT_LIST_FOR_SCHOOL_REPORT = "/batch/schoolreport/{schoolOfRecord}";
+    public static final String STUDENT_LIST_FOR_AMALGAMATED_SCHOOL_REPORT = "/amalgamated/schoolreport/{schoolOfRecord}/type/{type}";
+    public static final String STUDENT_RECORD_STUDENT_ID_BATCH_RUN = "/batch/{studentID}";
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
-    public static final String UNGRAD_STUDENT = "/ungradstudent/studentid/{studentID}";
+    public static final String UNGRAD_STUDENT = "/undocompletionstudent/studentid/{studentID}";
 
     public static final String GET_ALL_STUDENT_CAREER_MAPPING = "/studentcareerprogram/studentid/{studentID}";
     public static final String STUDENT_REPORT = "/studentreport";
@@ -87,6 +94,8 @@ public class EducGradStudentApiConstants {
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
+    public static final String PROGRAM_COMPLETION_DATE_FORMAT = "yyyy/MM";
+    public static final String DATE_FORMAT = "yyyy/MM/dd";
 
     //NATS
     @Value("${nats.url}")
@@ -94,6 +103,9 @@ public class EducGradStudentApiConstants {
 
     @Value("${nats.maxReconnect}")
     Integer natsMaxReconnect;
+
+    @Value("${nats.connectionName}")
+    private String connectionName;
 
     //Endpoints
     @Value("${endpoint.grad-trax-api.school-by-min-code.url}")
@@ -118,10 +130,10 @@ public class EducGradStudentApiConstants {
     private String penStudentApiByStudentIdUrl;
 
     @Value("${endpoint.grad-student-graduation-api.save-student-ungrad-reason.url}")
-    private String saveStudentUngradReasonByStudentIdUrl;
+    private String saveStudentUndoCompletionReasonByStudentIdUrl;
 
     @Value("${endpoint.grad-student-graduation-api.ungrad-reason.ungrad-reason-by-reason-code.url}")
-    private String ungradReasonDetailsUrl;
+    private String undoCompletionReasonDetailsUrl;
 
     @Value("${endpoint.pen-student-api.search.url}")
     private String penStudentApiSearchUrl;
@@ -135,6 +147,13 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-graduation-report-api.delete-student-achievement.url}")
     private String deleteStudentAchievements;
 
+
+    @Value("${endpoint.grad-graduation-report-api.student-certificates.url}")
+    private String studentCertificates;
+
+    @Value("${endpoint.grad-graduation-report-api.archive-student-achievement.url}")
+    private String archiveStudentAchievements;
+
     @Value("${endpoint.educ-school-api.get-school-by-mincode.url}")
     private String schoolByMincodeSchoolApiUrl;
 
@@ -144,4 +163,8 @@ public class EducGradStudentApiConstants {
     // Splunk LogHelper Enabled
     @Value("${splunk.log-helper.enabled}")
     private boolean splunkLogHelperEnabled;
+
+    // Incremental Trax Update
+    @Value("${trax.update.enabled}")
+    private boolean traxUpdateEnabled;
 }

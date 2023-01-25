@@ -1,12 +1,14 @@
 package ca.bc.gov.educ.api.gradstudent.config;
 
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import ca.bc.gov.educ.api.gradstudent.util.LogHelper;
+import ca.bc.gov.educ.api.gradstudent.util.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.AsyncHandlerInterceptor;
 
@@ -32,6 +34,23 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
 			request.setAttribute("startTime", startTime);
 		}
 		validation.clear();
+		// correlationID
+		val correlationID = request.getHeader(EducGradStudentApiConstants.CORRELATION_ID);
+		if (correlationID != null) {
+			ThreadLocalStateUtil.setCorrelationID(correlationID);
+		}
+
+		// username
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth instanceof JwtAuthenticationToken) {
+			JwtAuthenticationToken authenticationToken = (JwtAuthenticationToken) auth;
+			Jwt jwt = (Jwt) authenticationToken.getCredentials();
+			String username = JwtUtil.getName(jwt);
+			if (username != null) {
+				ThreadLocalStateUtil.setCurrentUser(username);
+			}
+		}
+		
 		return true;
 	}
 
@@ -50,5 +69,7 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
 		if (correlationID != null) {
 			response.setHeader(EducGradStudentApiConstants.CORRELATION_ID, request.getHeader(EducGradStudentApiConstants.CORRELATION_ID));
 		}
+		// clear
+		ThreadLocalStateUtil.clear();
 	}
 }

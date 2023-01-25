@@ -1,10 +1,12 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -29,6 +31,11 @@ public class StudentSearchRequest {
     List<String> schoolCategoryCodes;
     List<String> pens;
     List<String> programs;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    Date gradDateFrom;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    Date gradDateTo;
 
     Boolean validateInput;
 

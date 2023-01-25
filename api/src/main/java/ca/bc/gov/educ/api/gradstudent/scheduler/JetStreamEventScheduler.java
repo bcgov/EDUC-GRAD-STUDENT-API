@@ -41,18 +41,17 @@ public class JetStreamEventScheduler {
   @SchedulerLock(name = "PUBLISH_GRAD_STATUS_EVENTS_TO_JET_STREAM", lockAtLeastFor = "${cron.scheduled.process.events.stan.lockAtLeastFor}", lockAtMostFor = "${cron.scheduled.process.events.stan.lockAtMostFor}")
   public void findAndPublishGradStatusEventsToJetStream() {
     LockAssert.assertLocked();
-    var results = gradStatusEventRepository.findByEventStatus(DB_COMMITTED.toString());
+    var results = gradStatusEventRepository.findByEventStatusOrderByCreateDate(DB_COMMITTED.toString());
     if (!results.isEmpty()) {
-      results.forEach(el -> {
-        if (el.getUpdateDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
+      results.stream()
+        .filter(el -> el.getUpdateDate().isBefore(LocalDateTime.now().minusMinutes(5)))
+        .forEach(el -> {
           try {
             publisher.dispatchChoreographyEvent(el);
           } catch (final Exception ex) {
             log.error("Exception while trying to publish message", ex);
           }
-        }
-      });
+        });
     }
-
   }
 }

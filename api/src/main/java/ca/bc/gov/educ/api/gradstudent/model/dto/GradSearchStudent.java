@@ -19,6 +19,7 @@ public class GradSearchStudent {
 	private String dob;
 	private String sexCode;
 	private String genderCode;
+	private String studentCitizenship;
 	private String usualFirstName;
 	private String usualMiddleNames;
 	private String usualLastName;
@@ -40,6 +41,7 @@ public class GradSearchStudent {
 	private String schoolOfRecordindependentAffiliation;
 	private String studentGrade;
 	private String studentStatus;
-	  
-	  
+	private String transcriptEligibility;
+	private String certificateEligibility;
+
 }

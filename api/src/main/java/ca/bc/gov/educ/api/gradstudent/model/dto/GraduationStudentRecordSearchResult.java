@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -20,7 +17,7 @@ public class GraduationStudentRecordSearchResult {
     public static final String DISTRICT_VALIDATION_ERROR = "The following DISTRICTs not exist:";
     public static final String PROGRAM_VALIDATION_ERROR = "The following PROGRAMs not exist in GRAD:";
 
-    private List<GraduationStudentRecord> graduationStudentRecords;
+    private List<UUID> studentIDs;
     @JsonInclude(content = JsonInclude.Include.NON_EMPTY)
     private Map<String, List<String>> validationErrors = new HashMap<>();
 
