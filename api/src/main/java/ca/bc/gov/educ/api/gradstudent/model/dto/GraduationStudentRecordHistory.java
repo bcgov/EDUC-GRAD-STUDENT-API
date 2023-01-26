@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
-import java.util.Date;
+import java.sql.Date;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
