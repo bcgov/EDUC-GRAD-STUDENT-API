@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import java.util.Date;
 
 @Data
 @SuperBuilder
@@ -43,5 +44,6 @@ public class GradSearchStudent {
 	private String studentStatus;
 	private String transcriptEligibility;
 	private String certificateEligibility;
+	private Date adultStartDate;
 
 }
