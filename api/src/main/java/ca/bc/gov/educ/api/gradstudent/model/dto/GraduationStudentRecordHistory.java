@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import java.sql.Date;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -33,5 +34,5 @@ public class GraduationStudentRecordHistory extends BaseModel{
     private String consumerEducationRequirementMet;
     private String studentCitizenship;
     private String studentProjectedGradData;
-    private String adultStartDate;
+    private Date adultStartDate;
 }
