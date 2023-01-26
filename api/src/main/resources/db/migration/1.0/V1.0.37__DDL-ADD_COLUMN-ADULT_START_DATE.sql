@@ -1,0 +1,2 @@
+ALTER TABLE graduation_student_record ADD ADULT_START_DATE DATE;
+ALTER TABLE graduation_student_record_history ADD ADULT_START_DATE DATE;

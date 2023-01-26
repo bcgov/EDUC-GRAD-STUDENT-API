@@ -33,4 +33,5 @@ public class GraduationStudentRecordHistory extends BaseModel{
     private String consumerEducationRequirementMet;
     private String studentCitizenship;
     private String studentProjectedGradData;
+    private String adultStartDate;
 }
