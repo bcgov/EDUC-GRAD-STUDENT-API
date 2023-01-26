@@ -72,6 +72,9 @@ public class GraduationStudentRecordEntity extends BaseEntity {
     @Column(name = "STUDENT_CITIZENSHIP_CODE", nullable = true)
     private String studentCitizenship;
 
+    @Column(name = "ADULT_START_DATE", nullable = true)
+    private Date adultStartDate;
+
     @Lob
     @Column(name = "STUDENT_PROJECTED_GRAD_DATA", columnDefinition="CLOB")
     private String studentProjectedGradData;
