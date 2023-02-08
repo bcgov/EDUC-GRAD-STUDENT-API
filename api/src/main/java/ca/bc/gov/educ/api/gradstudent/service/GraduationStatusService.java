@@ -136,21 +136,21 @@ public class GraduationStatusService {
 
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, GRAD_ALG);
-            final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
-            final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                    savedGraduationStatus, EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
+            final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
+                    EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
+
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
             }
-            return Pair.of(savedGraduationStatus, gradStatusEvent);
+            return Pair.of(graduationStatusTransformer.transformToDTO(gradEntity), gradStatusEvent);
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
-            final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(sourceObject);
-            final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreateUser(), sourceObject.getUpdateUser(), savedGraduationStatus, EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
+            final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getUpdateUser(), sourceObject,
+                    EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
             }
-            return Pair.of(savedGraduationStatus, gradStatusEvent);
+            return Pair.of(graduationStatusTransformer.transformToDTO(sourceObject), gradStatusEvent);
         }
     }
 
@@ -192,13 +192,12 @@ public class GraduationStatusService {
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
-            final GraduationStudentRecord updatedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
-            final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                    updatedGraduationStatus, EventType.GRAD_STUDENT_UPDATED, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT, accessToken);
+            final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
+                    EventType.GRAD_STUDENT_UPDATED, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT, accessToken);
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
             }
-            return Pair.of(updatedGraduationStatus, gradStatusEvent);
+            return Pair.of(graduationStatusTransformer.transformToDTO(gradEntity), gradStatusEvent);
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
             return Pair.of(graduationStatus, null);
@@ -830,13 +829,12 @@ public class GraduationStatusService {
                     gradEntity.setSchoolAtGrad(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
                     historyService.createStudentHistory(gradEntity, USER_UNDO_CMPL);
-                    final GraduationStudentRecord graduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
-                    final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                            graduationStatus, EventType.GRAD_STUDENT_UNDO_COMPLETION, EventOutcome.GRAD_STATUS_UPDATED, USER_UNDO_CMPL, accessToken);
+                    final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
+                            EventType.GRAD_STUDENT_UNDO_COMPLETION, EventOutcome.GRAD_STATUS_UPDATED, USER_UNDO_CMPL, accessToken);
                     if (gradStatusEvent != null) {
                         gradStatusEventRepository.save(gradStatusEvent);
                     }
-                    return Pair.of(graduationStatus, gradStatusEvent);
+                    return Pair.of(graduationStatusTransformer.transformToDTO(gradEntity), gradStatusEvent);
 		        } else {
 		            validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
 		            return Pair.of(null, null);
@@ -890,26 +888,26 @@ public class GraduationStatusService {
             .retrieve().bodyToMono(StudentUndoCompletionReason.class).block();
     }
 
-    private GradStatusEvent createGradStatusEvent(String createUser, String updateUser,
-                                                  GraduationStudentRecord graduationStatus,
+    private GradStatusEvent createGradStatusEvent(String updateUser,
+                                                  GraduationStudentRecordEntity graduationStudentRecord,
                                                   EventType eventType, EventOutcome eventOutcome,
                                                   String activityCode,
                                                   String accessToken) throws JsonProcessingException {
         if (!constants.isTraxUpdateEnabled()) {
             return null;
         }
-        if (StringUtils.isBlank(graduationStatus.getPen())) {
-            GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(graduationStatus.getStudentID().toString(), accessToken);
+        if (StringUtils.isBlank(graduationStudentRecord.getPen())) {
+            GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(graduationStudentRecord.getStudentID().toString(), accessToken);
             if (gradSearchStudent != null) {
-                graduationStatus.setPen(gradSearchStudent.getPen());
+                graduationStudentRecord.setPen(gradSearchStudent.getPen());
             }
         }
-        GradStatusEventPayloadDTO eventPayload = EducGradStudentApiUtils.transform(graduationStatus);
+        GradStatusEventPayloadDTO eventPayload = EducGradStudentApiUtils.transform(graduationStudentRecord);
         String jsonString = JsonUtil.getJsonStringFromObject(eventPayload);
         return GradStatusEvent.builder()
                 .createDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
-                .createUser(StringUtils.isBlank(createUser)? EducGradStudentApiConstants.DEFAULT_CREATED_BY : createUser)
+                .createUser(StringUtils.isBlank(updateUser)? EducGradStudentApiConstants.DEFAULT_CREATED_BY : updateUser)
                 .updateUser(StringUtils.isBlank(updateUser)? EducGradStudentApiConstants.DEFAULT_UPDATED_BY : updateUser)
                 .eventPayload(jsonString)
                 .eventType(eventType.toString())
