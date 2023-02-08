@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradStatusEventPayloadDTO;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
