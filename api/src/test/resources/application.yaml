@@ -146,4 +146,4 @@ splunk:
 #Incremental Trax Update
 trax:
   update:
-    enabled: false
+    enabled: true
