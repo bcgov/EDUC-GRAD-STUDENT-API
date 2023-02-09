@@ -558,9 +558,21 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+        savedGraduationStatus.setPen(null);
+
+        GradSearchStudent gss = new GradSearchStudent();
+        gss.setPen("123456789");
+        gss.setMincode(mincode);
+        gss.setStudentID(studentID.toString());
+        gss.setStudentStatus("CUR");
+        gss.setStudentGrade("12");
+        gss.setLegalFirstName("Test");
+        gss.setLegalMiddleNames("Master");
+        gss.setLegalLastName("QA");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), "accessToken")).thenReturn(gss);
 
         var response = graduationStatusService.saveGraduationStatus(studentID, input, batchId, "accessToken");
         assertThat(response).isNotNull();
