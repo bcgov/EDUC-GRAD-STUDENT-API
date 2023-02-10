@@ -23,6 +23,10 @@ import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 @ExtendWith(MockitoExtension.class)
 public class CommonControllerTest {
 
+    /**
+     * test comment
+     */
+
     @Mock
     private CommonService commonService;
 
