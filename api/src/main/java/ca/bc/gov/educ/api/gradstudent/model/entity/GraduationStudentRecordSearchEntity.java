@@ -4,9 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Immutable;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Data
