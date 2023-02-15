@@ -14,6 +14,7 @@ import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.val;
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -535,7 +536,8 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
         Long batchId = 1234L;
-        Date programCompletionDate = new Date(System.currentTimeMillis() + 86400000L);  // add one day as milliseconds
+        java.util.Date futureDate = DateUtils.addMonths(new Date(System.currentTimeMillis()), 1);
+        Date programCompletionDate = new Date(futureDate.getTime());
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -556,9 +558,21 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+        savedGraduationStatus.setPen(null);
+
+        GradSearchStudent gss = new GradSearchStudent();
+        gss.setPen("123456789");
+        gss.setMincode(mincode);
+        gss.setStudentID(studentID.toString());
+        gss.setStudentStatus("CUR");
+        gss.setStudentGrade("12");
+        gss.setLegalFirstName("Test");
+        gss.setLegalMiddleNames("Master");
+        gss.setLegalLastName("QA");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), "accessToken")).thenReturn(gss);
 
         var response = graduationStatusService.saveGraduationStatus(studentID, input, batchId, "accessToken");
         assertThat(response).isNotNull();
