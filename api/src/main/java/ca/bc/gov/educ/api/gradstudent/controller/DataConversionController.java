@@ -9,7 +9,6 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.info.Info;

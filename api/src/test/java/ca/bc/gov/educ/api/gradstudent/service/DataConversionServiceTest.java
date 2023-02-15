@@ -99,7 +99,6 @@ public class DataConversionServiceTest {
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
         var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, false);
-        assertThat(result).isNotNull();
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -143,7 +142,6 @@ public class DataConversionServiceTest {
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         var result = dataConversionService.saveGraduationStudentRecord(studentID, input,false);
-        assertThat(result).isNotNull();
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -187,7 +185,6 @@ public class DataConversionServiceTest {
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true);
-        assertThat(result).isNotNull();
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());

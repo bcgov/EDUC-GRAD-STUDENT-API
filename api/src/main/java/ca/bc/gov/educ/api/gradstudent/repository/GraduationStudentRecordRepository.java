@@ -61,8 +61,7 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
             @Param("currentTime") LocalDateTime currentTime);
 
     @Modifying
-    @Query(value="update STUDENT_GUID_PEN_XREF\n"
-            + "set STUDENT_PEN = :pen, UPDATE_USER = :userName, UPDATE_DATE = :currentTime\n"
+    @Query(value="update STUDENT_GUID_PEN_XREF set STUDENT_PEN = :pen, UPDATE_USER = :userName, UPDATE_DATE = :currentTime\n"
             + "where STUDENT_GUID = :studentGuid", nativeQuery=true)
     void updateStudentGuidPenXrefRecord(
             @Param("studentGuid") UUID studentGuid,
