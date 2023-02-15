@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
+import ca.bc.gov.educ.api.gradstudent.service.GradStudentReportService;
 import ca.bc.gov.educ.api.gradstudent.util.*;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,6 +34,9 @@ public class CommonController {
 
     @Autowired
     CommonService commonService;
+
+    @Autowired
+    GradStudentReportService gradStudentReportService;
     
     @Autowired
 	GradValidation validation;
@@ -116,7 +120,6 @@ public class CommonController {
         } else {
             return response.NO_CONTENT();
         }
-
     }
 
     @PostMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_MAPPING)
@@ -205,7 +208,21 @@ public class CommonController {
         } else {
             return response.NO_CONTENT();
         }
-
     }
-   
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_REPORT_DATA_BY_MINCODE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find a Student Graduation Data by Mininstry Code",
+            description = "Find a Student Graduation Data by Mininstry Code", tags = {"Student Graduation Data for Reports"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<ReportGradStudentData>> getStudentReportData(@PathVariable String mincode) {
+        logger.debug("getStudentReportData : {}", mincode);
+        List<ReportGradStudentData> gradResponse = gradStudentReportService.getGradStudentDataByMincode(mincode);
+        if (gradResponse != null) {
+            return response.GET(gradResponse);
+        } else {
+            return response.NO_CONTENT();
+        }
+    }
 }

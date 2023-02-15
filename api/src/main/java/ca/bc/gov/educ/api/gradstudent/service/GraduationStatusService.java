@@ -388,6 +388,9 @@ public class GraduationStatusService {
                 case "EI":
                 case "A":
                 case "AI":
+                case "FN":
+                case "FNA":
+                case "SCFN":
                 case "O":
                     englishCert = "E";
                     break;
