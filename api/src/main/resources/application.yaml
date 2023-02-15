@@ -196,3 +196,8 @@ trax:
   update:
     enabled: ${ENABLE_TRAX_UPDATE}
 
+#Conversion option
+data-conversion:
+  student-guid-pen-xref:
+    enabled:  ${ENABLE_STUDENT_ID_PEN_XREF}
+
