@@ -88,6 +88,14 @@ public class EducGradStudentApiConstants {
 
     public static final String GET_STUDENTS_FOR_YEARLY_DISTRIBUTION = "/yearlydistribution";
 
+    // Data Conversion : Initial Student Load & Ongoing Update from TRAX to GRAD
+    public static final String CONV_GRADUATION_STATUS_BY_STUDENT_ID = "/conv/studentid/{studentID}";
+    public static final String CONV_STUDENT_OPTIONAL_PROGRAM = "/conv/studentoptionalprogram";
+    public static final String CONV_STUDENT_CAREER_PROGRAM = "/conv/studentcareerprogram";
+
+    public static final String CONV_STUDENT_OPTIONAL_PROGRAM_BY_STUDENT_ID = "/conv/studentoptionalprogram/{optionalProgramID}/{studentID}";
+    public static final String CONV_STUDENT_CAREER_PROGRAM_BY_STUDENT_ID = "/conv/studentcareerprogram/{careerProgramCode}/{studentID}";
+
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final String DEFAULT_UPDATED_BY = "API_GRAD_STUDENT";
@@ -167,4 +175,8 @@ public class EducGradStudentApiConstants {
     // Incremental Trax Update
     @Value("${trax.update.enabled}")
     private boolean traxUpdateEnabled;
+
+    // Data Conversion option
+    @Value("${data-conversion.student-guid-pen-xref.enabled}")
+    private boolean studentGuidPenXrefEnabled;
 }

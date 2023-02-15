@@ -147,3 +147,9 @@ splunk:
 trax:
   update:
     enabled: true
+
+#Conversion option
+data-conversion:
+  student-guid-pen-xref:
+    enabled:  true
+
