@@ -3,7 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.model.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;

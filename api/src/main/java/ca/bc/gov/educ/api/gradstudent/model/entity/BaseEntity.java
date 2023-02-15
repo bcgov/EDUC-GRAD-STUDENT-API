@@ -2,12 +2,12 @@ package ca.bc.gov.educ.api.gradstudent.model.entity;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.apache.commons.lang3.StringUtils;
