@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -114,12 +114,7 @@ public class CommonController {
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<StudentStatus> getSpecificStudentStatusCode(@PathVariable String statusCode) {
         logger.debug("getSpecificUngradReasonCode : ");
-        StudentStatus gradResponse = commonService.getSpecificStudentStatusCode(statusCode);
-        if (gradResponse != null) {
-            return response.GET(gradResponse);
-        } else {
-            return response.NO_CONTENT();
-        }
+        return response.GET(commonService.getSpecificStudentStatusCode(statusCode));
     }
 
     @PostMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_STATUS_MAPPING)
@@ -176,12 +171,7 @@ public class CommonController {
     public ResponseEntity<GradStudentAlgorithmData> getStudentGradStatusForAlgorithm(@PathVariable String studentID,
                                                                                      @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Get Student Grad Status for studentID");
-        GradStudentAlgorithmData gradResponse = commonService.getGradStudentAlgorithmData(studentID,accessToken.replaceAll("Bearer ", ""));
-        if(gradResponse != null) {
-    		return response.GET(gradResponse);
-    	}else {
-    		return response.NO_CONTENT();
-    	}
+        return response.GET(commonService.getGradStudentAlgorithmData(studentID,accessToken.replaceAll("Bearer ", "")));
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_HISTORY_ACTIVITY_MAPPING)
@@ -202,12 +192,7 @@ public class CommonController {
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<HistoryActivity> getSpecificHistoryActivityCode(@PathVariable String activityCode) {
         logger.debug("getSpecificHistoryActivityCode : ");
-        HistoryActivity gradResponse = commonService.getSpecificHistoryActivityCode(activityCode);
-        if (gradResponse != null) {
-            return response.GET(gradResponse);
-        } else {
-            return response.NO_CONTENT();
-        }
+        return response.GET(commonService.getSpecificHistoryActivityCode(activityCode));
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_REPORT_DATA_BY_MINCODE)
@@ -218,11 +203,6 @@ public class CommonController {
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportData(@PathVariable String mincode) {
         logger.debug("getStudentReportData : {}", mincode);
-        List<ReportGradStudentData> gradResponse = gradStudentReportService.getGradStudentDataByMincode(mincode);
-        if (gradResponse != null) {
-            return response.GET(gradResponse);
-        } else {
-            return response.NO_CONTENT();
-        }
+        return response.GET(gradStudentReportService.getGradStudentDataByMincode(mincode));
     }
 }
