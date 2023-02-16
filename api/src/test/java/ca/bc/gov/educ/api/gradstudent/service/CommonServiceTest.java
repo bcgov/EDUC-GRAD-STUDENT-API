@@ -1,24 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
-
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Consumer;
-
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,16 +20,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException;
 import reactor.core.publisher.Mono;
+
+import java.util.*;
+import java.util.function.Consumer;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -49,6 +37,8 @@ public class CommonServiceTest {
 
     @Autowired EducGradStudentApiConstants constants;
     @Autowired CommonService commonService;
+    @Autowired GradStudentReportService gradStudentReportService;
+    @MockBean  ReportGradStudentDataRepository reportGradStudentDataRepository;
 
     @MockBean GradStudentService gradStudentService;
     @MockBean GraduationStatusService graduationStatusService;
@@ -76,6 +66,21 @@ public class CommonServiceTest {
 
     @After
     public void tearDown() {
+
+    }
+
+    @Test
+    public void testGetReportGradStudentData() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        ReportGradStudentDataEntity reportGradStudentDataEntity = new ReportGradStudentDataEntity();
+        reportGradStudentDataEntity.setGraduationStudentRecordId(studentID);
+        reportGradStudentDataEntity.setFirstName("Jonh");
+
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderBySchoolNameAscLastNameAsc("005")).thenReturn(List.of(reportGradStudentDataEntity));
+        var result = gradStudentReportService.getGradStudentDataByMincode("005");
+        assertThat(result).isNotNull();
 
     }
 
