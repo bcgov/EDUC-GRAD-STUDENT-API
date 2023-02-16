@@ -51,6 +51,24 @@ public class CommonControllerTest {
     }
 
     @Test
+    public void testGetSpecificHistoryActivityCode() {
+        HistoryActivity activity = new HistoryActivity();
+        activity.setCode("01");
+        Mockito.when(commonService.getSpecificHistoryActivityCode(activity.getCode())).thenReturn(activity);
+        codeController.getSpecificHistoryActivityCode(activity.getCode());
+        Mockito.verify(commonService).getSpecificHistoryActivityCode(activity.getCode());
+    }
+
+    @Test
+    public void testGetAllHistoryActivityCode() {
+        HistoryActivity activity = new HistoryActivity();
+        activity.setCode("01");
+        Mockito.when(commonService.getAllHistoryActivityCodeList()).thenReturn(List.of(activity));
+        codeController.getAllHistoryActivityCodeList();
+        Mockito.verify(commonService).getAllHistoryActivityCodeList();
+    }
+
+    @Test
     public void testGetStudentCareerProgram() {
         final String programCode = "2018-EN";
        Mockito.when(commonService.getStudentCareerProgram(programCode)).thenReturn(true);
