@@ -213,7 +213,7 @@ public class CommonController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportData(@RequestBody List<UUID> studentIds) {
-        logger.debug("getStudentReportData : {}", studentIds);
+        logger.debug("getStudentReportData :");
         return response.GET(gradStudentReportService.getGradStudentDataByStudentGuids(studentIds));
     }
 }
