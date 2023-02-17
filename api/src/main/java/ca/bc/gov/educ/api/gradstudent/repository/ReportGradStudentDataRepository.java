@@ -10,4 +10,5 @@ public interface ReportGradStudentDataRepository extends JpaRepository<ReportGra
 
     List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByMincodeStartsWithOrderBySchoolNameAscLastNameAsc(String minCode);
 
+    List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderBySchoolNameAscLastNameAsc(List<UUID> graduationStudentRecordId);
 }

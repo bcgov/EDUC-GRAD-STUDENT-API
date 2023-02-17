@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class GradStudentReportService {
@@ -20,4 +21,7 @@ public class GradStudentReportService {
         return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderBySchoolNameAscLastNameAsc(mincode));
     }
 
+    public List<ReportGradStudentData> getGradStudentDataByStudentGuids(List<UUID> studentIds) {
+        return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderBySchoolNameAscLastNameAsc(studentIds));
+    }
 }
