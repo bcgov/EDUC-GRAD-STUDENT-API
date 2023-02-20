@@ -198,11 +198,22 @@ public class CommonController {
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_REPORT_DATA_BY_MINCODE)
     @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
     @Operation(summary = "Find a Student Graduation Data by Mininstry Code",
-            description = "Find a Student Graduation Data by Mininstry Code", tags = {"Student Graduation Data for Reports"})
+            description = "Find a Student Graduation Data by Mininstry Code", tags = {"Student Graduation Data for School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
-    public ResponseEntity<List<ReportGradStudentData>> getStudentReportData(@PathVariable String mincode) {
-        logger.debug("getStudentReportData : {}", mincode);
+    public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataByMincode(@PathVariable String mincode) {
+        logger.debug("getStudentReportDataByMincode : {}", mincode);
         return response.GET(gradStudentReportService.getGradStudentDataByMincode(mincode));
+    }
+
+    @PostMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_REPORT_DATA)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find a Student Graduation Data by List of GUIDs",
+            description = "Find a Student Graduation Data by List of GUIDs", tags = {"Student Graduation Data for School Reports"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<ReportGradStudentData>> getStudentReportData(@RequestBody List<UUID> studentIds) {
+        logger.debug("getStudentReportData :");
+        return response.GET(gradStudentReportService.getGradStudentDataByStudentGuids(studentIds));
     }
 }

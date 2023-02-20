@@ -70,7 +70,7 @@ public class CommonServiceTest {
     }
 
     @Test
-    public void testGetReportGradStudentData() {
+    public void testGetReportGradStudentDataByMincode() {
         // ID
         UUID studentID = UUID.randomUUID();
 
@@ -80,6 +80,21 @@ public class CommonServiceTest {
 
         when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderBySchoolNameAscLastNameAsc("005")).thenReturn(List.of(reportGradStudentDataEntity));
         var result = gradStudentReportService.getGradStudentDataByMincode("005");
+        assertThat(result).isNotNull();
+
+    }
+
+    @Test
+    public void testGetReportGradStudentData() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        ReportGradStudentDataEntity reportGradStudentDataEntity = new ReportGradStudentDataEntity();
+        reportGradStudentDataEntity.setGraduationStudentRecordId(studentID);
+        reportGradStudentDataEntity.setFirstName("Jonh");
+
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderBySchoolNameAscLastNameAsc(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentDataEntity));
+        var result = gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()));
         assertThat(result).isNotNull();
 
     }

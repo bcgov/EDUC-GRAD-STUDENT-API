@@ -36,7 +36,7 @@ public class CommonControllerTest {
     private CommonController codeController;
 
     @Test
-    public void testGetReportGradStudentData() {
+    public void testGetReportGradStudentDataByMincode() {
         // ID
         UUID studentID = UUID.randomUUID();
 
@@ -46,8 +46,23 @@ public class CommonControllerTest {
         reportGradStudentData.setMincode("005");
 
         Mockito.when(gradStudentReportService.getGradStudentDataByMincode(reportGradStudentData.getMincode())).thenReturn(List.of(reportGradStudentData));
-        codeController.getStudentReportData(reportGradStudentData.getMincode());
+        codeController.getStudentReportDataByMincode(reportGradStudentData.getMincode());
         Mockito.verify(gradStudentReportService).getGradStudentDataByMincode(reportGradStudentData.getMincode());
+    }
+
+    @Test
+    public void testGetReportGradStudentData() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        ReportGradStudentData reportGradStudentData = new ReportGradStudentData();
+        reportGradStudentData.setGraduationStudentRecordId(studentID);
+        reportGradStudentData.setFirstName("Jonh");
+        reportGradStudentData.setMincode("005");
+
+        Mockito.when(gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentData));
+        codeController.getStudentReportData(List.of(reportGradStudentData.getGraduationStudentRecordId()));
+        Mockito.verify(gradStudentReportService).getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()));
     }
 
     @Test
