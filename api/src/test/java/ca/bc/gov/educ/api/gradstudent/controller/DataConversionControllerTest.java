@@ -4,7 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramReq;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramRequestDTO;
 import ca.bc.gov.educ.api.gradstudent.service.DataConversionService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
@@ -82,7 +82,7 @@ public class DataConversionControllerTest {
         UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
-        StudentOptionalProgramReq gradStudentOptionalProgramReq = new StudentOptionalProgramReq();
+        StudentOptionalProgramRequestDTO gradStudentOptionalProgramReq = new StudentOptionalProgramRequestDTO();
         gradStudentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         gradStudentOptionalProgramReq.setStudentID(studentID);
         gradStudentOptionalProgramReq.setPen(pen);

@@ -12,7 +12,6 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -21,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -79,7 +79,6 @@ public class DataConversionService {
      * @param studentID
      * @param graduationStatus
      * @return
-     * @throws JsonProcessingException
      */
     @Transactional
     public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate) {
@@ -112,23 +111,36 @@ public class DataConversionService {
 
     @Transactional
     @Retry(name = "generalpostcall")
-    public StudentOptionalProgram saveStudentOptionalProgram(StudentOptionalProgramReq studentOptionalProgramReq, String accessToken) {
-        OptionalProgram gradOptionalProgram = webClient.get()
-                .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), studentOptionalProgramReq.getMainProgramCode(),studentOptionalProgramReq.getOptionalProgramCode()))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
-                .retrieve()
-                .bodyToMono(OptionalProgram.class)
-                .block();
-        if (gradOptionalProgram == null) {
-            return null;
+    public StudentOptionalProgram saveStudentOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, String accessToken) {
+        if (studentOptionalProgramReq.getOptionalProgramID() == null) {
+            OptionalProgram gradOptionalProgram = webClient.get()
+                    .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), studentOptionalProgramReq.getMainProgramCode(), studentOptionalProgramReq.getOptionalProgramCode()))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    })
+                    .retrieve()
+                    .bodyToMono(OptionalProgram.class)
+                    .block();
+            if (gradOptionalProgram == null) {
+                return null;
+            }
+            studentOptionalProgramReq.setOptionalProgramID(gradOptionalProgram.getOptionalProgramID());
         }
-        Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional = gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentOptionalProgramReq.getStudentID(), gradOptionalProgram.getOptionalProgramID());
+        Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional = gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentOptionalProgramReq.getStudentID(), studentOptionalProgramReq.getOptionalProgramID());
 
         if (gradStudentOptionalOptional.isPresent()) {  // if it exists, just touch the entity in data conversion
             StudentOptionalProgramEntity gradEntity = gradStudentOptionalOptional.get();
+            if (studentOptionalProgramReq.getStudentOptionalProgramData() != null) {
+                gradEntity.setStudentOptionalProgramData(studentOptionalProgramReq.getStudentOptionalProgramData());
+            }
+            if (studentOptionalProgramReq.getOptionalProgramCompletionDate() != null) {
+                if (studentOptionalProgramReq.getOptionalProgramCompletionDate().length() > 7) {
+                    gradEntity.setOptionalProgramCompletionDate(Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+                } else {
+                    gradEntity.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parsingProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+                }
+            }
             gradEntity.setUpdateDate(null);
             gradEntity.setUpdateUser(null);
             gradEntity = gradStudentOptionalProgramRepository.save(gradEntity);
@@ -137,8 +149,14 @@ public class DataConversionService {
             StudentOptionalProgramEntity sourceObject = new StudentOptionalProgramEntity();
             sourceObject.setId(studentOptionalProgramReq.getId());
             sourceObject.setStudentID(studentOptionalProgramReq.getStudentID());
-            sourceObject.setOptionalProgramID(gradOptionalProgram.getOptionalProgramID());
-            sourceObject.setOptionalProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate() != null ? EducGradStudentApiUtils.parsingProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate()) : null);
+            sourceObject.setOptionalProgramID(studentOptionalProgramReq.getOptionalProgramID());
+            if (studentOptionalProgramReq.getOptionalProgramCompletionDate() != null) {
+                if (studentOptionalProgramReq.getOptionalProgramCompletionDate().length() > 7) {
+                    sourceObject.setOptionalProgramCompletionDate(Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+                } else {
+                    sourceObject.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parsingProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+                }
+            }
             if (sourceObject.getId() == null) {
                 sourceObject.setId(UUID.randomUUID());
             }

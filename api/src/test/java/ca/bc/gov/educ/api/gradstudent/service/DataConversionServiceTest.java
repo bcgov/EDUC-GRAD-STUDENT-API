@@ -16,13 +16,10 @@ import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -217,7 +214,7 @@ public class DataConversionServiceTest {
         studentOptionalProgram.setOptionalProgramCode("FI");
         studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        StudentOptionalProgramReq studentOptionalProgramReq = new StudentOptionalProgramReq();
+        StudentOptionalProgramRequestDTO studentOptionalProgramReq = new StudentOptionalProgramRequestDTO();
         studentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         studentOptionalProgramReq.setStudentID(studentID);
         studentOptionalProgramReq.setPen(pen);
@@ -268,13 +265,13 @@ public class DataConversionServiceTest {
         studentOptionalProgram.setOptionalProgramCode("FI");
         studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        StudentOptionalProgramReq studentOptionalProgramReq = new StudentOptionalProgramReq();
+        StudentOptionalProgramRequestDTO studentOptionalProgramReq = new StudentOptionalProgramRequestDTO();
         studentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         studentOptionalProgramReq.setStudentID(studentID);
         studentOptionalProgramReq.setPen(pen);
         studentOptionalProgramReq.setMainProgramCode("2018-en");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
-        studentOptionalProgramReq.setOptionalProgramCompletionDate(studentOptionalProgram.getOptionalProgramCompletionDate());
+        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy/MM" ));
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);

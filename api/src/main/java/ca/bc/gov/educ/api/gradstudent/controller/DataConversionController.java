@@ -1,9 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramReq;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.DataConversionService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -58,7 +55,7 @@ public class DataConversionController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Update/Create Student Optional Program", description = "Update/Create Student Optional Program", tags = { "Data Conversion" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<StudentOptionalProgram> saveStudentOptionalProgram(@RequestBody StudentOptionalProgramReq gradStudentOptionalProgramReq,
+    public ResponseEntity<StudentOptionalProgram> saveStudentOptionalProgram(@RequestBody StudentOptionalProgramRequestDTO gradStudentOptionalProgramReq,
                                                                             @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Save Student Optional Program");
         return response.GET(dataConversionService.saveStudentOptionalProgram(gradStudentOptionalProgramReq,accessToken.replace(BEARER, "")));
