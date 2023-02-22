@@ -385,14 +385,10 @@ public class GraduationStatusService {
                 case "E":
                     englishCert = certificateTypeCode;
                     break;
-                case "EI":
-                case "A":
-                case "AI":
-                case "O":
+                case "EI","A","AI","FN","FNA","SCFN","O":
                     englishCert = "E";
                     break;
-                case "S":
-                case "F":
+                case "S","F":
                     frenchCert = certificateTypeCode;
                     break;
                 default:

@@ -1,11 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.service.CommonService;
+import ca.bc.gov.educ.api.gradstudent.service.GradStudentReportService;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -15,9 +14,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import ca.bc.gov.educ.api.gradstudent.service.CommonService;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @RunWith(MockitoJUnitRunner.class)
 @ExtendWith(MockitoExtension.class)
@@ -25,6 +25,8 @@ public class CommonControllerTest {
 
     @Mock
     private CommonService commonService;
+    @Mock
+    GradStudentReportService gradStudentReportService;
 
     @Mock ResponseHelper responseHelper;
 
@@ -32,6 +34,54 @@ public class CommonControllerTest {
 
     @InjectMocks
     private CommonController codeController;
+
+    @Test
+    public void testGetReportGradStudentDataByMincode() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        ReportGradStudentData reportGradStudentData = new ReportGradStudentData();
+        reportGradStudentData.setGraduationStudentRecordId(studentID);
+        reportGradStudentData.setFirstName("Jonh");
+        reportGradStudentData.setMincode("005");
+
+        Mockito.when(gradStudentReportService.getGradStudentDataByMincode(reportGradStudentData.getMincode())).thenReturn(List.of(reportGradStudentData));
+        codeController.getStudentReportDataByMincode(reportGradStudentData.getMincode());
+        Mockito.verify(gradStudentReportService).getGradStudentDataByMincode(reportGradStudentData.getMincode());
+    }
+
+    @Test
+    public void testGetReportGradStudentData() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        ReportGradStudentData reportGradStudentData = new ReportGradStudentData();
+        reportGradStudentData.setGraduationStudentRecordId(studentID);
+        reportGradStudentData.setFirstName("Jonh");
+        reportGradStudentData.setMincode("005");
+
+        Mockito.when(gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentData));
+        codeController.getStudentReportData(List.of(reportGradStudentData.getGraduationStudentRecordId()));
+        Mockito.verify(gradStudentReportService).getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()));
+    }
+
+    @Test
+    public void testGetSpecificHistoryActivityCode() {
+        HistoryActivity activity = new HistoryActivity();
+        activity.setCode("01");
+        Mockito.when(commonService.getSpecificHistoryActivityCode(activity.getCode())).thenReturn(activity);
+        codeController.getSpecificHistoryActivityCode(activity.getCode());
+        Mockito.verify(commonService).getSpecificHistoryActivityCode(activity.getCode());
+    }
+
+    @Test
+    public void testGetAllHistoryActivityCode() {
+        HistoryActivity activity = new HistoryActivity();
+        activity.setCode("01");
+        Mockito.when(commonService.getAllHistoryActivityCodeList()).thenReturn(List.of(activity));
+        codeController.getAllHistoryActivityCodeList();
+        Mockito.verify(commonService).getAllHistoryActivityCodeList();
+    }
 
     @Test
     public void testGetStudentCareerProgram() {
