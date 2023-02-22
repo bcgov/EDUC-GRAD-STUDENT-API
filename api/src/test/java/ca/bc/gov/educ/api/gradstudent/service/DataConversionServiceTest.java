@@ -14,6 +14,8 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.beans.BeanUtils;
@@ -196,8 +198,16 @@ public class DataConversionServiceTest {
         assertThat(result.getProgramCompletionDate()).isEqualTo(input.getProgramCompletionDate());
     }
 
-    @Test
-    public void testSaveStudentOptionalProgramAsNew() {
+    @ParameterizedTest
+    @CsvSource({
+            "yyyy/MM",
+            "yyyy-MM-dd"
+    })
+    public void testSaveStudentOptionalProgramAsNew(String dateFormat) {
+        saveStudentOptionalProgramAsNew(dateFormat);
+    }
+
+    private void saveStudentOptionalProgramAsNew(String dateFormat) {
         // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
@@ -221,7 +231,7 @@ public class DataConversionServiceTest {
         studentOptionalProgramReq.setPen(pen);
         studentOptionalProgramReq.setMainProgramCode("2018-en");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
-        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
+        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), dateFormat));
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
@@ -247,8 +257,16 @@ public class DataConversionServiceTest {
         assertThat(result.getOptionalProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentOptionalProgram.getOptionalProgramCompletionDate()));
     }
 
-    @Test
-    public void testSaveStudentOptionalProgramAsUpdate() {
+    @ParameterizedTest
+    @CsvSource({
+            "yyyy/MM",
+            "yyyy-MM-dd"
+    })
+    public void testSaveStudentOptionalProgramAsUpdate(String dateFormat) {
+        saveStudentOptionalProgramAsUpdate(dateFormat);
+    }
+
+    private void saveStudentOptionalProgramAsUpdate(String dateFormat) {
         // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
@@ -273,7 +291,7 @@ public class DataConversionServiceTest {
         studentOptionalProgramReq.setMainProgramCode("2018-en");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
         studentOptionalProgramReq.setStudentOptionalProgramData("{}");
-        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy/MM" ));
+        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), dateFormat));
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
