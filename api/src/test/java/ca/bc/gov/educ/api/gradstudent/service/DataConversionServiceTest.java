@@ -14,15 +14,14 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -140,6 +139,7 @@ public class DataConversionServiceTest {
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.countStudentGuidPenXrefRecord(studentID)).thenReturn(1L);
 
         var result = dataConversionService.saveGraduationStudentRecord(studentID, input,false);
 
@@ -198,8 +198,16 @@ public class DataConversionServiceTest {
         assertThat(result.getProgramCompletionDate()).isEqualTo(input.getProgramCompletionDate());
     }
 
-    @Test
-    public void testSaveStudentOptionalProgramAsNew() {
+    @ParameterizedTest
+    @CsvSource({
+            "yyyy/MM",
+            "yyyy-MM-dd"
+    })
+    void testSaveStudentOptionalProgramAsNew(String dateFormat) {
+        saveStudentOptionalProgramAsNew(dateFormat);
+    }
+
+    private void saveStudentOptionalProgramAsNew(String dateFormat) {
         // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
@@ -217,13 +225,13 @@ public class DataConversionServiceTest {
         studentOptionalProgram.setOptionalProgramCode("FI");
         studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        StudentOptionalProgramReq studentOptionalProgramReq = new StudentOptionalProgramReq();
+        StudentOptionalProgramRequestDTO studentOptionalProgramReq = new StudentOptionalProgramRequestDTO();
         studentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         studentOptionalProgramReq.setStudentID(studentID);
         studentOptionalProgramReq.setPen(pen);
         studentOptionalProgramReq.setMainProgramCode("2018-en");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
-        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy/MM" ));
+        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), dateFormat));
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
@@ -249,8 +257,16 @@ public class DataConversionServiceTest {
         assertThat(result.getOptionalProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentOptionalProgram.getOptionalProgramCompletionDate()));
     }
 
-    @Test
-    public void testSaveStudentOptionalProgramAsUpdate() {
+    @ParameterizedTest
+    @CsvSource({
+            "yyyy/MM",
+            "yyyy-MM-dd"
+    })
+    void testSaveStudentOptionalProgramAsUpdate(String dateFormat) {
+        saveStudentOptionalProgramAsUpdate(dateFormat);
+    }
+
+    private void saveStudentOptionalProgramAsUpdate(String dateFormat) {
         // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
@@ -268,13 +284,14 @@ public class DataConversionServiceTest {
         studentOptionalProgram.setOptionalProgramCode("FI");
         studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        StudentOptionalProgramReq studentOptionalProgramReq = new StudentOptionalProgramReq();
+        StudentOptionalProgramRequestDTO studentOptionalProgramReq = new StudentOptionalProgramRequestDTO();
         studentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         studentOptionalProgramReq.setStudentID(studentID);
         studentOptionalProgramReq.setPen(pen);
         studentOptionalProgramReq.setMainProgramCode("2018-en");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
-        studentOptionalProgramReq.setOptionalProgramCompletionDate(studentOptionalProgram.getOptionalProgramCompletionDate());
+        studentOptionalProgramReq.setStudentOptionalProgramData("{}");
+        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), dateFormat));
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);

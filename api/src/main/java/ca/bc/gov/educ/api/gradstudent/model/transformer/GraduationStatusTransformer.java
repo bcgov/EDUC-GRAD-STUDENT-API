@@ -36,7 +36,8 @@ public class GraduationStatusTransformer {
 
     public GraduationStudentRecord transformToDTO (GraduationStudentRecordEntity gradStatusEntity) {
     	GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
-    	gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
+        gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ?
+                EducGradStudentApiUtils.formatDate(gradStatusEntity.getProgramCompletionDate()) : null));
     	return gradStatus;
     }
 
