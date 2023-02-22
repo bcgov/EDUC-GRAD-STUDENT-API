@@ -203,7 +203,7 @@ public class DataConversionServiceTest {
             "yyyy/MM",
             "yyyy-MM-dd"
     })
-    public void testSaveStudentOptionalProgramAsNew(String dateFormat) {
+    void testSaveStudentOptionalProgramAsNew(String dateFormat) {
         saveStudentOptionalProgramAsNew(dateFormat);
     }
 
@@ -262,7 +262,7 @@ public class DataConversionServiceTest {
             "yyyy/MM",
             "yyyy-MM-dd"
     })
-    public void testSaveStudentOptionalProgramAsUpdate(String dateFormat) {
+    void testSaveStudentOptionalProgramAsUpdate(String dateFormat) {
         saveStudentOptionalProgramAsUpdate(dateFormat);
     }
 
