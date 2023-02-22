@@ -137,6 +137,7 @@ public class DataConversionServiceTest {
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.countStudentGuidPenXrefRecord(studentID)).thenReturn(1L);
 
         var result = dataConversionService.saveGraduationStudentRecord(studentID, input,false);
 
@@ -220,7 +221,7 @@ public class DataConversionServiceTest {
         studentOptionalProgramReq.setPen(pen);
         studentOptionalProgramReq.setMainProgramCode("2018-en");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
-        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy/MM" ));
+        studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
@@ -271,6 +272,7 @@ public class DataConversionServiceTest {
         studentOptionalProgramReq.setPen(pen);
         studentOptionalProgramReq.setMainProgramCode("2018-en");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
+        studentOptionalProgramReq.setStudentOptionalProgramData("{}");
         studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy/MM" ));
 
         OptionalProgram optionalProgram = new OptionalProgram();

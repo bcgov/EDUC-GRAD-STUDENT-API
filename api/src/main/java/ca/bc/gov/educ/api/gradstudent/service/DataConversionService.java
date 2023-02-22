@@ -113,15 +113,7 @@ public class DataConversionService {
     @Retry(name = "generalpostcall")
     public StudentOptionalProgram saveStudentOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, String accessToken) {
         if (studentOptionalProgramReq.getOptionalProgramID() == null) {
-            OptionalProgram gradOptionalProgram = webClient.get()
-                    .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), studentOptionalProgramReq.getMainProgramCode(), studentOptionalProgramReq.getOptionalProgramCode()))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    })
-                    .retrieve()
-                    .bodyToMono(OptionalProgram.class)
-                    .block();
+            OptionalProgram gradOptionalProgram = getOptionalProgram(studentOptionalProgramReq.getMainProgramCode(), studentOptionalProgramReq.getOptionalProgramCode(), accessToken);
             if (gradOptionalProgram == null) {
                 return null;
             }
@@ -164,6 +156,18 @@ public class DataConversionService {
             historyService.createStudentOptionalProgramHistory(sourceObject, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
             return gradStudentOptionalProgramTransformer.transformToDTO(sourceObject);
         }
+    }
+
+    private OptionalProgram getOptionalProgram(String mainProgramCode, String optionalProgramCode, String accessToken) {
+        return webClient.get()
+                .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), mainProgramCode, optionalProgramCode))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
+                .retrieve()
+                .bodyToMono(OptionalProgram.class)
+                .block();
     }
 
     @Transactional
