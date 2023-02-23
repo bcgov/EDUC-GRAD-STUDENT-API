@@ -379,8 +379,8 @@ public class GraduationStatusService {
         List<GradStudentCertificates> gradStudentCertificates = getGradStudentCertificates(gradSearchStudent.getStudentID(), accessToken);
         for(GradStudentCertificates certificates: gradStudentCertificates) {
             String certificateTypeCode = certificates.getGradCertificateTypeCode();
-            dogwood = (gradDate != null && "Y".equalsIgnoreCase(school.getCertificateEligibility())) ? "Y" : "N";
-            sccDate = "SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && "Y".equalsIgnoreCase(school.getCertificateEligibility()) ? gradDate : null;
+            dogwood = (gradDate != null && school != null && "Y".equalsIgnoreCase(school.getCertificateEligibility())) ? "Y" : "N";
+            sccDate = "SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && school != null && "Y".equalsIgnoreCase(school.getCertificateEligibility()) ? gradDate : null;
             switch(certificateTypeCode) {
                 case "E":
                     englishCert = certificateTypeCode;
