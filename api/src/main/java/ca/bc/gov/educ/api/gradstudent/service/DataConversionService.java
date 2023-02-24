@@ -14,6 +14,7 @@ import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,7 +92,7 @@ public class DataConversionService {
             if (ongoingUpdate) {
                 historyService.createStudentHistory(sourceObject, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
             }
-            if (constants.isStudentGuidPenXrefEnabled()) {
+            if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(graduationStatus.getPen())) {
                 saveStudentGuidPenXref(gradEntity.getStudentID(), graduationStatus.getPen());
             }
             return graduationStatusTransformer.transformToDTO(gradEntity);
