@@ -979,10 +979,7 @@ public class GraduationStatusService {
     }
 
     public List<UUID> getStudentsForYearlyDistribution() {
-        List<GraduationStudentRecordEntity> studentLists = graduationStatusRepository.findStudentsForYearlyDistribution();
-        if(!studentLists.isEmpty())
-            return studentLists.stream().map(GraduationStudentRecordEntity::getStudentID).collect(Collectors.toList());
-        return  new ArrayList<>();
+        return graduationStatusRepository.findStudentsForYearlyDistribution();
     }
 
     public GraduationStudentRecord getDataForBatch(UUID studentID,String accessToken) {
