@@ -853,7 +853,7 @@ public class GraduationStatusService {
                         h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
                     }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
-            logger.info(e.getLocalizedMessage());
+            logger.error(e.getLocalizedMessage());
         }
 	}
 
@@ -865,7 +865,7 @@ public class GraduationStatusService {
                         h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
                     }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
-        logger.info(e.getLocalizedMessage());
+        logger.error(e.getLocalizedMessage());
     }
     }
 
