@@ -379,8 +379,8 @@ public class GraduationStatusService {
         List<GradStudentCertificates> gradStudentCertificates = getGradStudentCertificates(gradSearchStudent.getStudentID(), accessToken);
         for(GradStudentCertificates certificates: gradStudentCertificates) {
             String certificateTypeCode = certificates.getGradCertificateTypeCode();
-            dogwood = (certificates.getDistributionDate() != null) ? "Y" : "N";
-            sccDate = ("SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && certificates.getDistributionDate() != null) ? simpleDateFormat.format(certificates.getDistributionDate()) : null;
+            dogwood = (gradDate != null && school != null && "Y".equalsIgnoreCase(school.getCertificateEligibility())) ? "Y" : "N";
+            sccDate = "SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && school != null && "Y".equalsIgnoreCase(school.getCertificateEligibility()) ? gradDate : null;
             switch(certificateTypeCode) {
                 case "E":
                     englishCert = certificateTypeCode;
@@ -853,7 +853,7 @@ public class GraduationStatusService {
                         h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
                     }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
-            logger.info(e.getLocalizedMessage());
+            logger.error(e.getLocalizedMessage());
         }
 	}
 
@@ -865,7 +865,7 @@ public class GraduationStatusService {
                         h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
                     }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
-        logger.info(e.getLocalizedMessage());
+        logger.error(e.getLocalizedMessage());
     }
     }
 
@@ -979,10 +979,7 @@ public class GraduationStatusService {
     }
 
     public List<UUID> getStudentsForYearlyDistribution() {
-        List<GraduationStudentRecordEntity> studentLists = graduationStatusRepository.findStudentsForYearlyDistribution();
-        if(!studentLists.isEmpty())
-            return studentLists.stream().map(GraduationStudentRecordEntity::getStudentID).collect(Collectors.toList());
-        return  new ArrayList<>();
+        return graduationStatusRepository.findStudentsForYearlyDistribution();
     }
 
     public GraduationStudentRecord getDataForBatch(UUID studentID,String accessToken) {

@@ -336,7 +336,6 @@ public class GraduationStatusController {
         return response.GET(studentList);
     }
 
-
     @GetMapping (EducGradStudentApiConstants.GET_STUDENTS_FOR_YEARLY_DISTRIBUTION)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Students for yearly run", description = "find students for yearly run", tags = { "Student Graduation Status" })

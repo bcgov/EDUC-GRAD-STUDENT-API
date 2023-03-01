@@ -1671,7 +1671,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setLegalLastName("sadad");
         histList.add(graduationStatusEntity);
 
-        when(graduationStatusRepository.findStudentsForYearlyDistribution()).thenReturn(histList);
+        when(graduationStatusRepository.findStudentsForYearlyDistribution()).thenReturn(List.of(graduationStatusEntity.getStudentID()));
         List<UUID> list = graduationStatusService.getStudentsForYearlyDistribution();
         assertThat(list).isNotEmpty().hasSize(1);
     }
