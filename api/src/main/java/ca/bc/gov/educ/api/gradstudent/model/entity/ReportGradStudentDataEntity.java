@@ -23,6 +23,9 @@ public class ReportGradStudentDataEntity implements Serializable {
     @Column(name = "MINCODE")
     private String mincode;
 
+    @Column(name = "MINCODE_AT_GRAD")
+    private String mincodeAtGrad;
+
     @Column(name = "PEN")
     private String pen;
 
@@ -40,6 +43,24 @@ public class ReportGradStudentDataEntity implements Serializable {
 
     @Column(name = "SCHOOL_NAME")
     private String schoolName;
+
+    @Column(name = "SCHOOL_ADDRESS1")
+    private String schoolAddress1;
+
+    @Column(name = "SCHOOL_ADDRESS2")
+    private String schoolAddress2;
+
+    @Column(name = "SCHOOL_CITY")
+    private String schoolCity;
+
+    @Column(name = "SCHOOL_PROVINCE")
+    private String schoolProvince;
+
+    @Column(name = "SCHOOL_COUNTRY")
+    private String schoolCountry;
+
+    @Column(name = "SCHOOL_POSTAL")
+    private String schoolPostal;
 
     @Column(name = "PROGRAM_CODE")
     private String programCode;
