@@ -35,7 +35,7 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
 		}
 		validation.clear();
 		// correlationID
-		val correlationID = request.getHeader(EducGradStudentApiConstants.CORRELATION_ID);
+		val correlationID = request.getHeader(constants.CORRELATION_ID);
 		if (correlationID != null) {
 			ThreadLocalStateUtil.setCorrelationID(correlationID);
 		}
