@@ -18,10 +18,10 @@ public class GradStudentReportService {
     ReportGradStudentTransformer reportGradStudentTransformer;
 
     public List<ReportGradStudentData> getGradStudentDataByMincode(String mincode) {
-        return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeSchoolNameAscLastNameAsc(mincode));
+        return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeAscSchoolNameAscLastNameAsc(mincode));
     }
 
     public List<ReportGradStudentData> getGradStudentDataByStudentGuids(List<UUID> studentIds) {
-        return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeSchoolNameAscLastNameAsc(studentIds));
+        return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(studentIds));
     }
 }

@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface ReportGradStudentDataRepository extends JpaRepository<ReportGradStudentDataEntity, UUID> {
 
-    List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeSchoolNameAscLastNameAsc(String minCode);
+    List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeAscSchoolNameAscLastNameAsc(String minCode);
 
-    List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeSchoolNameAscLastNameAsc(List<UUID> graduationStudentRecordId);
+    List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(List<UUID> graduationStudentRecordId);
 }
