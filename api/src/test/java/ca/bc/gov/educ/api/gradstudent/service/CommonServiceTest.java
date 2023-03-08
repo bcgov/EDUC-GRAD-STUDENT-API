@@ -78,7 +78,7 @@ public class CommonServiceTest {
         reportGradStudentDataEntity.setGraduationStudentRecordId(studentID);
         reportGradStudentDataEntity.setFirstName("Jonh");
 
-        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderBySchoolNameAscLastNameAsc("005")).thenReturn(List.of(reportGradStudentDataEntity));
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeSchoolNameAscLastNameAsc("005")).thenReturn(List.of(reportGradStudentDataEntity));
         var result = gradStudentReportService.getGradStudentDataByMincode("005");
         assertThat(result).isNotNull();
 
@@ -93,7 +93,7 @@ public class CommonServiceTest {
         reportGradStudentDataEntity.setGraduationStudentRecordId(studentID);
         reportGradStudentDataEntity.setFirstName("Jonh");
 
-        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderBySchoolNameAscLastNameAsc(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentDataEntity));
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeSchoolNameAscLastNameAsc(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentDataEntity));
         var result = gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()));
         assertThat(result).isNotNull();
 
