@@ -154,4 +154,17 @@ public class DataConversionControllerTest {
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
+
+    @Test
+    public void testDeleteAllStudentRelatedData() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        Mockito.doNothing().when(dataConversionService).deleteAll(studentID);
+        Mockito.when(responseHelper.DELETE(1)).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+        var result = dataConversionController.deleteAll(studentID.toString());
+        Mockito.verify(dataConversionService).deleteAll(studentID);
+        assertThat(result).isNotNull();
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
 }

@@ -227,34 +227,31 @@ public class DataConversionService {
 
     @Transactional
     public void deleteAll(UUID studentID) {
-        // student_record_note
         // student_career_program
         List<StudentCareerProgramEntity> careerProgramList = gradStudentCareerProgramRepository.findByStudentID(studentID);
         if (careerProgramList != null && !careerProgramList.isEmpty()) {
-            careerProgramList.forEach(ent -> gradStudentCareerProgramRepository.delete(ent));
+            careerProgramList.forEach(gradStudentCareerProgramRepository::delete);
         }
         // student_optional_program_history
         List<StudentOptionalProgramHistoryEntity> optionalProgramHistoryList = gradStudentOptionalProgramHistoryRepository.findByStudentID(studentID);
         if (optionalProgramHistoryList != null && !optionalProgramHistoryList.isEmpty()) {
-            optionalProgramHistoryList.forEach(ent -> gradStudentOptionalProgramHistoryRepository.delete(ent));
+            optionalProgramHistoryList.forEach(gradStudentOptionalProgramHistoryRepository::delete);
         }
         // student_optional_program
         List<StudentOptionalProgramEntity> optionalProgramList = gradStudentOptionalProgramRepository.findByStudentID(studentID);
         if (optionalProgramList != null && !optionalProgramList.isEmpty()) {
-            optionalProgramList.forEach(ent -> gradStudentOptionalProgramRepository.delete(ent));
+            optionalProgramList.forEach(gradStudentOptionalProgramRepository::delete);
         }
         // graduation_student_record_history
         List<GraduationStudentRecordHistoryEntity> gradStudentRecordHistoryList = gradStudentRecordHistoryRepository.findByStudentID(studentID);
         if (gradStudentRecordHistoryList != null && !gradStudentRecordHistoryList.isEmpty()) {
-            gradStudentRecordHistoryList.forEach(ent -> gradStudentRecordHistoryRepository.delete(ent));
+            gradStudentRecordHistoryList.forEach(gradStudentRecordHistoryRepository::delete);
         }
         // graduation_student_record
         Optional<GraduationStudentRecordEntity> graduationStudentRecordOptional = graduationStatusRepository.findById(studentID);
         if (graduationStudentRecordOptional.isPresent()) {
             graduationStatusRepository.delete(graduationStudentRecordOptional.get());
         }
-        // student_guid_pen_xref
-
     }
 
 }

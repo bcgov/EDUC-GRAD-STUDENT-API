@@ -4,12 +4,8 @@ import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -28,6 +24,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -55,6 +52,10 @@ public class DataConversionServiceTest {
     StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     @MockBean
     StudentCareerProgramRepository gradStudentCareerProgramRepository;
+    @MockBean
+    GraduationStudentRecordHistoryRepository graduationStatusHistoryRepository;
+    @MockBean
+    StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository;
 
     @MockBean
     GradValidation validation;
@@ -415,5 +416,68 @@ public class DataConversionServiceTest {
             isExceptionThrown = true;
         }
         assertThat(isExceptionThrown).isFalse();
+    }
+
+    @Test
+    public void testDeleteAll() {
+        // ID
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+        String pen = "123456789";
+        String mincode = "12345678";
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        GraduationStudentRecordHistoryEntity graduationStatusHistoryEntity = new GraduationStudentRecordHistoryEntity();
+        graduationStatusHistoryEntity.setStudentID(studentID);
+        graduationStatusHistoryEntity.setPen(pen);
+        graduationStatusHistoryEntity.setStudentStatus("A");
+        graduationStatusHistoryEntity.setProgram("2018-en");
+        graduationStatusHistoryEntity.setSchoolOfRecord(mincode);
+        graduationStatusHistoryEntity.setSchoolAtGrad(mincode);
+        graduationStatusHistoryEntity.setGpa("4");
+        graduationStatusHistoryEntity.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        StudentOptionalProgramHistoryEntity gradStudentOptionalProgramHistoryEntity = new StudentOptionalProgramHistoryEntity();
+        gradStudentOptionalProgramHistoryEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramHistoryEntity.setStudentID(studentID);
+        gradStudentOptionalProgramHistoryEntity.setHistoryId(UUID.randomUUID());
+        gradStudentOptionalProgramHistoryEntity.setActivityCode("NEW");
+
+        StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
+        gradStudentCareerProgramEntity.setId(UUID.randomUUID());
+        gradStudentCareerProgramEntity.setStudentID(studentID);
+        gradStudentCareerProgramEntity.setCareerProgramCode("XC");
+
+        when(gradStudentCareerProgramRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(gradStudentCareerProgramEntity));
+        when(gradStudentOptionalProgramHistoryRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(gradStudentOptionalProgramHistoryEntity));
+        when(gradStudentOptionalProgramRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(gradStudentOptionalProgramEntity));
+        when(graduationStatusHistoryRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(graduationStatusHistoryEntity));
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+
+        boolean isExceptionThrown = false;
+        try {
+            dataConversionService.deleteAll(studentID);
+        } catch (Exception e) {
+            isExceptionThrown = true;
+        }
+        assertThat(isExceptionThrown).isFalse();
+
     }
 }
