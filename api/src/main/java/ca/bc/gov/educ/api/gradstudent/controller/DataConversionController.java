@@ -92,4 +92,14 @@ public class DataConversionController {
         return response.DELETE(1);
     }
 
+    @DeleteMapping(EducGradStudentApiConstants.CONV_GRADUATION_STATUS_BY_STUDENT_ID)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
+    @Operation(summary = "Delete All Student Related Data", description = "Delete All Student Related Data", tags = { "Data Conversion" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<Void> deleteAll(@PathVariable String studentID) {
+        logger.debug("Delete All Student Related Data for Student ID [{}]", studentID);
+        dataConversionService.deleteAll(UUID.fromString(studentID));
+        return response.DELETE(1);
+    }
+
 }
