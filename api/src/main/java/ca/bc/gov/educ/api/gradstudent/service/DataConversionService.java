@@ -1,9 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
@@ -23,6 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,6 +50,8 @@ public class DataConversionService {
     final GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer;
     final StudentCareerProgramRepository gradStudentCareerProgramRepository;
     final GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
+    final StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository;
+    final GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository;
     final HistoryService historyService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
@@ -61,6 +62,8 @@ public class DataConversionService {
                                  GraduationStatusTransformer graduationStatusTransformer,
                                  StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer,
                                  StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,
+                                 StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository,
+                                 GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository,
                                  HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
@@ -69,6 +72,8 @@ public class DataConversionService {
         this.gradStudentOptionalProgramTransformer = gradStudentOptionalProgramTransformer;
         this.gradStudentCareerProgramRepository = gradStudentCareerProgramRepository;
         this.gradStudentCareerProgramTransformer = gradStudentCareerProgramTransformer;
+        this.gradStudentOptionalProgramHistoryRepository = gradStudentOptionalProgramHistoryRepository;
+        this.gradStudentRecordHistoryRepository = gradStudentRecordHistoryRepository;
         this.historyService = historyService;
         this.validation = validation;
         this.constants = constants;
@@ -218,6 +223,38 @@ public class DataConversionService {
         } else {
             graduationStatusRepository.createStudentGuidPenXrefRecord(studentId, pen, DEFAULT_CREATED_BY, LocalDateTime.now());
         }
+    }
+
+    @Transactional
+    public void deleteAll(UUID studentID) {
+        // student_record_note
+        // student_career_program
+        List<StudentCareerProgramEntity> careerProgramList = gradStudentCareerProgramRepository.findByStudentID(studentID);
+        if (careerProgramList != null && !careerProgramList.isEmpty()) {
+            careerProgramList.forEach(ent -> gradStudentCareerProgramRepository.delete(ent));
+        }
+        // student_optional_program_history
+        List<StudentOptionalProgramHistoryEntity> optionalProgramHistoryList = gradStudentOptionalProgramHistoryRepository.findByStudentID(studentID);
+        if (optionalProgramHistoryList != null && !optionalProgramHistoryList.isEmpty()) {
+            optionalProgramHistoryList.forEach(ent -> gradStudentOptionalProgramHistoryRepository.delete(ent));
+        }
+        // student_optional_program
+        List<StudentOptionalProgramEntity> optionalProgramList = gradStudentOptionalProgramRepository.findByStudentID(studentID);
+        if (optionalProgramList != null && !optionalProgramList.isEmpty()) {
+            optionalProgramList.forEach(ent -> gradStudentOptionalProgramRepository.delete(ent));
+        }
+        // graduation_student_record_history
+        List<GraduationStudentRecordHistoryEntity> gradStudentRecordHistoryList = gradStudentRecordHistoryRepository.findByStudentID(studentID);
+        if (gradStudentRecordHistoryList != null && !gradStudentRecordHistoryList.isEmpty()) {
+            gradStudentRecordHistoryList.forEach(ent -> gradStudentRecordHistoryRepository.delete(ent));
+        }
+        // graduation_student_record
+        Optional<GraduationStudentRecordEntity> graduationStudentRecordOptional = graduationStatusRepository.findById(studentID);
+        if (graduationStudentRecordOptional.isPresent()) {
+            graduationStatusRepository.delete(graduationStudentRecordOptional.get());
+        }
+        // student_guid_pen_xref
+
     }
 
 }
