@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentReportService;
+import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.*;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,6 +38,9 @@ public class CommonController {
 
     @Autowired
     GradStudentReportService gradStudentReportService;
+
+    @Autowired
+    GraduationStatusService graduationStatusService;
     
     @Autowired
 	GradValidation validation;
@@ -215,5 +219,17 @@ public class CommonController {
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportData(@RequestBody List<UUID> studentIds) {
         logger.debug("getStudentReportData :");
         return response.GET(gradStudentReportService.getGradStudentDataByStudentGuids(studentIds));
+    }
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_REPORT_DATA)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find a Student Graduation Data for Year End School Report",
+            description = "Find a Student Graduation Data for Year End School Report", tags = {"Student Graduation Data for School Reports"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataForYearEndNonGrad() {
+        logger.debug("getStudentReportDataForYearEndNonGrad :");
+        List<UUID> studentGuids = graduationStatusService.getStudentsForYearlyDistribution();
+        return response.GET(gradStudentReportService.getGradStudentDataByStudentGuids(studentGuids));
     }
 }
