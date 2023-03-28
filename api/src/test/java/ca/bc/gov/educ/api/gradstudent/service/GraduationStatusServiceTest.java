@@ -58,6 +58,7 @@ public class GraduationStatusServiceTest {
     EducGradStudentApiConstants constants;
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean GradStudentService gradStudentService;
+    @Autowired GradStudentReportService gradStudentReportService;
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
@@ -1850,6 +1851,9 @@ public class GraduationStatusServiceTest {
                 return null;
             }
         });
+
+        var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport();
+        assertThat(result).isNotEmpty().hasSize(1);
 
     }
 
