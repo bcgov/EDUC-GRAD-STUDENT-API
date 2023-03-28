@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -20,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +37,15 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
 @Service
 public class GraduationStatusService {
+
+    public static final int PAGE_SIZE = 5000;
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusService.class);
 
@@ -932,8 +938,6 @@ public class GraduationStatusService {
         return false;
 	}
 
-
-
     @Retry(name = "generalpostcall")
     public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId,String activityCode) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
@@ -979,12 +983,61 @@ public class GraduationStatusService {
     }
 
     public List<UUID> getStudentsForYearlyDistribution() {
-        return graduationStatusRepository.findStudentsForYearlyDistribution();
+        PageRequest nextPage = PageRequest.of(0, PAGE_SIZE);
+        Page<UUID> studentGuids = graduationStatusRepository.findStudentsForYearlyDistribution(nextPage);
+        return processStudentDataList(studentGuids);
     }
 
     public GraduationStudentRecord getDataForBatch(UUID studentID,String accessToken) {
         GraduationStudentRecord ent = graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByStudentID(studentID));
         return  processReceivedStudent(ent,accessToken);
+    }
+
+    @SneakyThrows
+    private List<UUID> processStudentDataList(Page<UUID> studentGuids) {
+        List<UUID> result = new ArrayList<>();
+        long startTime = System.currentTimeMillis();
+        if(studentGuids.hasContent()) {
+            PageRequest nextPage;
+            List<UUID> studentGuidsInBatch = studentGuids.getContent();
+            result.addAll(studentGuidsInBatch);
+            final int totalNumberOfPages = studentGuids.getTotalPages();
+            logger.debug("Total number of pages: {}, total rows count {}", totalNumberOfPages, studentGuids.getTotalElements());
+
+            List<Callable<Object>> tasks = new ArrayList<>();
+
+            for (int i = 1; i < totalNumberOfPages; i++) {
+                nextPage = PageRequest.of(i, PAGE_SIZE);
+                UUIDPageTask pageTask = new UUIDPageTask(nextPage);
+                tasks.add(pageTask);
+            }
+
+            processUUIDDataTasksAsync(tasks, result, totalNumberOfPages);
+        }
+        logger.debug("Completed in {} sec, total objects aquared {}", (System.currentTimeMillis() - startTime) / 1000, result.size());
+        return result;
+    }
+
+    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result, int totalNumberOfPages) throws ExecutionException, InterruptedException {
+        List<Future<Object>> executionResult;
+        ExecutorService executorService = Executors.newFixedThreadPool(totalNumberOfPages);
+        try {
+            executionResult = executorService.invokeAll(tasks);
+            for (Future<?> f : executionResult) {
+                Object o = f.get();
+                if(o instanceof Pair<?, ?>) {
+                    Pair<PageRequest, List<UUID>> taskResult = (Pair<PageRequest, List<UUID>>) o;
+                    result.addAll(taskResult.getRight());
+                    logger.debug("Page {} processed successfully", taskResult.getLeft().getPageNumber());
+                } else {
+                    logger.error("Error during the task execution: {}", f.get());
+                }
+            }
+        } catch (InterruptedException | ExecutionException ex) {
+            throw new InterruptedException(ex.toString());
+        } finally {
+            executorService.shutdown();
+        }
     }
 
     private GraduationStudentRecord processReceivedStudent(GraduationStudentRecord ent,String accessToken) {
@@ -1075,4 +1128,18 @@ public class GraduationStatusService {
             gradEntity.setRecalculateGradStatus(flag);
     }
 
+    class UUIDPageTask implements Callable<Object> {
+
+        private final PageRequest pageRequest;
+
+        public UUIDPageTask(PageRequest pageRequest) {
+            this.pageRequest = pageRequest;
+        }
+
+        @Override
+        public Object call() throws Exception {
+            Page<UUID> studentGuids = graduationStatusRepository.findStudentsForYearlyDistribution(pageRequest);
+            return Pair.of(pageRequest, studentGuids.getContent());
+        }
+    }
 }

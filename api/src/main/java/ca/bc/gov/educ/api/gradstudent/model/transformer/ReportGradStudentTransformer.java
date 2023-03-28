@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.CertificateType;
+import ca.bc.gov.educ.api.gradstudent.model.dto.NonGradReason;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ReportGradStudentData;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -46,6 +47,12 @@ public class ReportGradStudentTransformer {
                 List<CertificateType> types = objectMapper.readValue(entity.getCertificateTypeCodes(), typeFactory.constructCollectionType(List.class, CertificateType.class));
                 if(!types.isEmpty()) {
                     data.setCertificateTypes(types);
+                }
+            }
+            if(StringUtils.isNotBlank(entity.getNonGradReasons())) {
+                List<NonGradReason> reasons = objectMapper.readValue(entity.getNonGradReasons(), typeFactory.constructCollectionType(List.class, NonGradReason.class));
+                if(!reasons.isEmpty()) {
+                    data.setNonGradReasons(reasons);
                 }
             }
             result.add(data);
