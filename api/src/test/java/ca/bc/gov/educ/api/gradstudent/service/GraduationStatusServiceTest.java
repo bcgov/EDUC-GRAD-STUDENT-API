@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordSearchEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -60,6 +61,7 @@ public class GraduationStatusServiceTest {
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
+    @MockBean ReportGradStudentDataRepository reportGradStudentDataRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
     @MockBean WebClient webClient;
@@ -1762,6 +1764,93 @@ public class GraduationStatusServiceTest {
 
         List<UUID> list = graduationStatusService.getStudentsForYearlyDistribution();
         assertThat(list).isNotEmpty().hasSize(1);
+
+        ReportGradStudentDataEntity reportGradStudentData = new ReportGradStudentDataEntity();
+        reportGradStudentData.setGraduationStudentRecordId(graduationStatusEntity.getStudentID());
+
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+
+            @Override
+            public Iterator<ReportGradStudentDataEntity> iterator() {
+                return getContent().listIterator();
+            }
+
+            @Override
+            public int getNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getSize() {
+                return 1;
+            }
+
+            @Override
+            public int getNumberOfElements() {
+                return 1;
+            }
+
+            @Override
+            public List<ReportGradStudentDataEntity> getContent() {
+                return List.of(reportGradStudentData);
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !getContent().isEmpty();
+            }
+
+            @Override
+            public Sort getSort() {
+                return null;
+            }
+
+            @Override
+            public boolean isFirst() {
+                return false;
+            }
+
+            @Override
+            public boolean isLast() {
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return false;
+            }
+
+            @Override
+            public Pageable nextPageable() {
+                return null;
+            }
+
+            @Override
+            public Pageable previousPageable() {
+                return null;
+            }
+
+            @Override
+            public int getTotalPages() {
+                return getContent().size();
+            }
+
+            @Override
+            public long getTotalElements() {
+                return getContent().size();
+            }
+
+            @Override
+            public Page map(Function converter) {
+                return null;
+            }
+        });
+
     }
 
     @Test

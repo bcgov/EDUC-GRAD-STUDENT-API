@@ -67,10 +67,9 @@ public class CommonControllerTest {
         codeController.getStudentReportData(List.of(reportGradStudentData.getGraduationStudentRecordId()));
         Mockito.verify(gradStudentReportService).getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()));
 
-        Mockito.when(graduationStatusService.getStudentsForYearlyDistribution()).thenReturn(List.of(studentID));
-        Mockito.when(gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentData));
+        Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReport()).thenReturn(List.of(reportGradStudentData));
         codeController.getStudentReportDataForYearEndNonGrad();
-        Mockito.verify(graduationStatusService).getStudentsForYearlyDistribution();
+        Mockito.verify(gradStudentReportService).getGradStudentDataForNonGradYearEndReport();
     }
 
     @Test
