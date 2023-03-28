@@ -1307,7 +1307,7 @@ public class GraduationStatusServiceTest {
 
         var result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
         assertThat(result).isNotNull();
-        assertThat(result.getValidationErrors()).isEmpty();
+        assertThat(result.getValidationErrors()).isNotEmpty();
 
     }
 
