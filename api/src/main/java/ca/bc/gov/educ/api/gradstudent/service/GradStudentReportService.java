@@ -63,18 +63,14 @@ public class GradStudentReportService {
                 tasks.add(pageTask);
             }
 
-            try {
-                processReportGradStudentDataTasksAsync(tasks, result, totalNumberOfPages);
-            } catch (Exception ex) {
-                logger.error("Unable to process Student Data: {} ", ex.getLocalizedMessage());
-            }
+            processReportGradStudentDataTasksAsync(tasks, result, totalNumberOfPages);
         }
         logger.debug("Completed in {} sec, total objects acquired {}", (System.currentTimeMillis() - startTime) / 1000, result.size());
         return result;
     }
 
     @Generated
-    private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result, int numberOfThreads) throws Exception {
+    private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result, int numberOfThreads) {
         List<Future<Object>> executionResult;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         try {
@@ -90,7 +86,8 @@ public class GradStudentReportService {
                 }
             }
         } catch (InterruptedException | ExecutionException ex) {
-            throw new Exception(ex.toString());
+            logger.error("Unable to process Student Data: {} ", ex.getLocalizedMessage());
+            Thread.currentThread().interrupt();
         } finally {
             executorService.shutdown();
         }
