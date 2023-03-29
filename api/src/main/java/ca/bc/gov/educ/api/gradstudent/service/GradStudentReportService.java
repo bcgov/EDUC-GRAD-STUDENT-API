@@ -103,6 +103,7 @@ public class GradStudentReportService {
         }
 
         @Override
+        @Generated
         public Object call() throws Exception {
             Page<ReportGradStudentDataEntity> reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(pageRequest);
             return Pair.of(pageRequest, reportGradStudentTransformer.transformToDTO(reportGradStudentDataPage.getContent()));
