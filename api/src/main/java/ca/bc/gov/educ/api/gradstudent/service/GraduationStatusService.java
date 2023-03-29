@@ -1012,13 +1012,17 @@ public class GraduationStatusService {
                 tasks.add(pageTask);
             }
 
-            processUUIDDataTasksAsync(tasks, result, totalNumberOfPages);
+            try {
+                processUUIDDataTasksAsync(tasks, result, totalNumberOfPages);
+            } catch (InterruptedException ex) {
+                logger.error("Unable to process Student Data: {} ", ex.getLocalizedMessage());
+            }
         }
         logger.debug("Completed in {} sec, total objects aquared {}", (System.currentTimeMillis() - startTime) / 1000, result.size());
         return result;
     }
 
-    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result, int totalNumberOfPages) {
+    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result, int totalNumberOfPages) throws InterruptedException {
         List<Future<Object>> executionResult;
         ExecutorService executorService = Executors.newFixedThreadPool(totalNumberOfPages);
         try {
@@ -1034,7 +1038,7 @@ public class GraduationStatusService {
                 }
             }
         } catch (InterruptedException | ExecutionException ex) {
-            logger.error("Unable to process Student Data: {} ", ex.getLocalizedMessage());
+            throw new InterruptedException(ex.toString());
         } finally {
             executorService.shutdown();
         }
