@@ -74,7 +74,7 @@ public class GradStudentReportService {
     }
 
     @Generated
-    private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result, int numberOfThreads) throws InterruptedException {
+    private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result, int numberOfThreads) throws Exception {
         List<Future<Object>> executionResult;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         try {
@@ -90,7 +90,7 @@ public class GradStudentReportService {
                 }
             }
         } catch (InterruptedException | ExecutionException ex) {
-            throw new InterruptedException(ex.toString());
+            throw new Exception(ex.toString());
         } finally {
             executorService.shutdown();
         }

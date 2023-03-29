@@ -1022,7 +1022,7 @@ public class GraduationStatusService {
         return result;
     }
 
-    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result, int totalNumberOfPages) throws InterruptedException {
+    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result, int totalNumberOfPages) throws Exception {
         List<Future<Object>> executionResult;
         ExecutorService executorService = Executors.newFixedThreadPool(totalNumberOfPages);
         try {
@@ -1038,7 +1038,7 @@ public class GraduationStatusService {
                 }
             }
         } catch (InterruptedException | ExecutionException ex) {
-            throw new InterruptedException(ex.toString());
+            throw new Exception(ex.toString());
         } finally {
             executorService.shutdown();
         }
