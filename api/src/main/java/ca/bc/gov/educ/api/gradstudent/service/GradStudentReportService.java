@@ -65,7 +65,7 @@ public class GradStudentReportService {
 
             try {
                 processReportGradStudentDataTasksAsync(tasks, result, totalNumberOfPages);
-            } catch (InterruptedException ex) {
+            } catch (Exception ex) {
                 logger.error("Unable to process Student Data: {} ", ex.getLocalizedMessage());
             }
         }
