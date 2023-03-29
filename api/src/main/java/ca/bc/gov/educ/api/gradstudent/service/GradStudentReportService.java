@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.Generated;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ReportGradStudentData;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.ReportGradStudentTransformer;
@@ -70,6 +71,7 @@ public class GradStudentReportService {
         return result;
     }
 
+    @Generated
     private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result, int numberOfThreads) throws ExecutionException, InterruptedException {
         List<Future<Object>> executionResult;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
