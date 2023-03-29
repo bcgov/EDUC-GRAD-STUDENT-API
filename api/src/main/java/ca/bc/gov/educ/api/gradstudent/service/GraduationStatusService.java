@@ -14,7 +14,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -995,7 +994,6 @@ public class GraduationStatusService {
         return  processReceivedStudent(ent,accessToken);
     }
 
-    @SneakyThrows
     private List<UUID> processStudentDataList(Page<UUID> studentGuids) {
         List<UUID> result = new ArrayList<>();
         long startTime = System.currentTimeMillis();

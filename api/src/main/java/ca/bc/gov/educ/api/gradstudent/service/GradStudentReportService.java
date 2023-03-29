@@ -5,7 +5,6 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.ReportGradStudentData;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.ReportGradStudentTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +45,6 @@ public class GradStudentReportService {
         return processReportGradStudentDataList(reportGradStudentDataPage);
     }
 
-    @SneakyThrows
     private List<ReportGradStudentData> processReportGradStudentDataList(Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
         List<ReportGradStudentData> result = new ArrayList<>();
         long startTime = System.currentTimeMillis();
@@ -72,7 +70,7 @@ public class GradStudentReportService {
     }
 
     @Generated
-    private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result, int numberOfThreads) throws ExecutionException, InterruptedException {
+    private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result, int numberOfThreads) {
         List<Future<Object>> executionResult;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         try {
@@ -88,7 +86,7 @@ public class GradStudentReportService {
                 }
             }
         } catch (InterruptedException | ExecutionException ex) {
-            throw new InterruptedException(ex.toString());
+            logger.error("Unable to process Student Data: {} ", ex.getMessage());
         } finally {
             executorService.shutdown();
         }
