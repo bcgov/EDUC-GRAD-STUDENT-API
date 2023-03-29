@@ -1018,7 +1018,7 @@ public class GraduationStatusService {
         return result;
     }
 
-    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result, int totalNumberOfPages) throws ExecutionException, InterruptedException {
+    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result, int totalNumberOfPages) {
         List<Future<Object>> executionResult;
         ExecutorService executorService = Executors.newFixedThreadPool(totalNumberOfPages);
         try {
@@ -1034,7 +1034,7 @@ public class GraduationStatusService {
                 }
             }
         } catch (InterruptedException | ExecutionException ex) {
-            throw new InterruptedException(ex.toString());
+            logger.error("Unable to process Student Data: {} ", ex.getLocalizedMessage());
         } finally {
             executorService.shutdown();
         }
