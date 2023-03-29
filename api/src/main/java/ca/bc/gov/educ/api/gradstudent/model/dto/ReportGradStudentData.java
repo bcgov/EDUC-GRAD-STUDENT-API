@@ -18,6 +18,8 @@ public class ReportGradStudentData implements Serializable {
     private String firstName;
     private String middleName;
     private String lastName;
+    private String studentGrade;
+    private String studentStatus;
     private String districtName;
     private String schoolName;
     private String schoolAddress1;
@@ -29,8 +31,10 @@ public class ReportGradStudentData implements Serializable {
     private String programCode;
     private String programName;
     private String programCompletionDate;
+    private String honorsStanding;
     private String graduated;
     private String transcriptTypeCode;
     private List<CertificateType> certificateTypes;
+    private List<NonGradReason> nonGradReasons;
 
 }

@@ -221,7 +221,7 @@ public class CommonController {
         return response.GET(gradStudentReportService.getGradStudentDataByStudentGuids(studentIds));
     }
 
-    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_REPORT_DATA)
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NON_GRAD_REPORT_DATA)
     @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
     @Operation(summary = "Find a Student Graduation Data for Year End School Report",
             description = "Find a Student Graduation Data for Year End School Report", tags = {"Student Graduation Data for School Reports"})
@@ -229,7 +229,6 @@ public class CommonController {
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataForYearEndNonGrad() {
         logger.debug("getStudentReportDataForYearEndNonGrad :");
-        List<UUID> studentGuids = graduationStatusService.getStudentsForYearlyDistribution();
-        return response.GET(gradStudentReportService.getGradStudentDataByStudentGuids(studentGuids));
+        return response.GET(gradStudentReportService.getGradStudentDataForNonGradYearEndReport());
     }
 }
