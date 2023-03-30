@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService.PAGE_SIZE;
 
@@ -50,7 +49,7 @@ public class GradStudentReportService {
     }
 
     public List<String> getGradSchoolsForNonGradYearEndReport() {
-        return reportGradSchoolYearEndRepository.findAll().stream().map(s->s.getMincode()).collect(Collectors.toList());
+        return reportGradSchoolYearEndRepository.findAll().stream().map(s->s.getMincode()).toList();
     }
 
     private List<ReportGradStudentData> processReportGradStudentDataList(String mincode, Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
