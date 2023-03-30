@@ -38,6 +38,12 @@ public class ReportGradStudentDataEntity implements Serializable {
     @Column(name = "LAST_NAME")
     private String lastName;
 
+    @Column(name = "GRADE")
+    private String studentGrade;
+
+    @Column(name = "STATUS")
+    private String studentStatus;
+
     @Column(name = "DISTRICT_NAME")
     private String districtName;
 
@@ -71,6 +77,9 @@ public class ReportGradStudentDataEntity implements Serializable {
     @Column(name = "PROGRAM_COMPLETION_DATE")
     private String programCompletionDate;
 
+    @Column(name = "HONORS_STANDING")
+    private String honorsStanding;
+
     @Column(name = "IS_GRADUATED")
     private String graduated;
 
@@ -79,5 +88,8 @@ public class ReportGradStudentDataEntity implements Serializable {
 
     @Column(name = "CERTIFICATE_TYPE_CODES")
     private String certificateTypeCodes;
+
+    @Column(name = "NON_GRAD_REASONS")
+    private String nonGradReasons;
 
 }

@@ -230,22 +230,22 @@ public class DataConversionService {
         // student_career_program
         List<StudentCareerProgramEntity> careerProgramList = gradStudentCareerProgramRepository.findByStudentID(studentID);
         if (careerProgramList != null && !careerProgramList.isEmpty()) {
-            careerProgramList.forEach(gradStudentCareerProgramRepository::delete);
+            gradStudentCareerProgramRepository.deleteAllInBatch(careerProgramList);
         }
         // student_optional_program_history
         List<StudentOptionalProgramHistoryEntity> optionalProgramHistoryList = gradStudentOptionalProgramHistoryRepository.findByStudentID(studentID);
         if (optionalProgramHistoryList != null && !optionalProgramHistoryList.isEmpty()) {
-            optionalProgramHistoryList.forEach(gradStudentOptionalProgramHistoryRepository::delete);
+            gradStudentOptionalProgramHistoryRepository.deleteAllInBatch(optionalProgramHistoryList);
         }
         // student_optional_program
         List<StudentOptionalProgramEntity> optionalProgramList = gradStudentOptionalProgramRepository.findByStudentID(studentID);
         if (optionalProgramList != null && !optionalProgramList.isEmpty()) {
-            optionalProgramList.forEach(gradStudentOptionalProgramRepository::delete);
+            gradStudentOptionalProgramRepository.deleteAllInBatch(optionalProgramList);
         }
         // graduation_student_record_history
         List<GraduationStudentRecordHistoryEntity> gradStudentRecordHistoryList = gradStudentRecordHistoryRepository.findByStudentID(studentID);
         if (gradStudentRecordHistoryList != null && !gradStudentRecordHistoryList.isEmpty()) {
-            gradStudentRecordHistoryList.forEach(gradStudentRecordHistoryRepository::delete);
+            gradStudentRecordHistoryRepository.deleteAllInBatch(gradStudentRecordHistoryList);
         }
         // graduation_student_record
         Optional<GraduationStudentRecordEntity> graduationStudentRecordOptional = graduationStatusRepository.findById(studentID);

@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentReportService;
+import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import org.junit.Test;
@@ -27,6 +28,8 @@ public class CommonControllerTest {
     private CommonService commonService;
     @Mock
     GradStudentReportService gradStudentReportService;
+    @Mock
+    GraduationStatusService graduationStatusService;
 
     @Mock ResponseHelper responseHelper;
 
@@ -63,6 +66,10 @@ public class CommonControllerTest {
         Mockito.when(gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentData));
         codeController.getStudentReportData(List.of(reportGradStudentData.getGraduationStudentRecordId()));
         Mockito.verify(gradStudentReportService).getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()));
+
+        Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReport()).thenReturn(List.of(reportGradStudentData));
+        codeController.getStudentReportDataForYearEndNonGrad();
+        Mockito.verify(gradStudentReportService).getGradStudentDataForNonGradYearEndReport();
     }
 
     @Test
