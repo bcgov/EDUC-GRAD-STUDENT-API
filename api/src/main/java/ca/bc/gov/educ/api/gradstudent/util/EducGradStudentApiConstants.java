@@ -75,7 +75,8 @@ public class EducGradStudentApiConstants {
     public static final String STUDENT_ALGORITHM_DATA = "/algorithmdata/{studentID}";
     public static final String GET_ALL_STUDENT_REPORT_DATA_BY_MINCODE = "/studentschoolreportdata/{mincode}";
     public static final String GET_ALL_STUDENT_REPORT_DATA = "/studentschoolreportdata";
-    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA = "/studentnongradreportdata";
+    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA = "/studentnongradreportdata/{mincode}";
+    public static final String GET_ALL_SCHOOL_NON_GRAD_REPORT_DATA = "/schoolnongradreportdata";
     
     public static final String RETURN_TO_ORIGINAL_STATE = "/algorithmerror/{studentID}";
 

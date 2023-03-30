@@ -4,6 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.Generated;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ReportGradStudentData;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.ReportGradStudentTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.ReportGradSchoolYearEndRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -27,6 +28,8 @@ public class GradStudentReportService {
 
     @Autowired
     ReportGradStudentDataRepository reportGradStudentDataRepository;
+    @Autowired
+    ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
 
     @Autowired
     ReportGradStudentTransformer reportGradStudentTransformer;
@@ -39,13 +42,17 @@ public class GradStudentReportService {
         return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(studentIds));
     }
 
-    public List<ReportGradStudentData> getGradStudentDataForNonGradYearEndReport() {
+    public List<ReportGradStudentData> getGradStudentDataForNonGradYearEndReport(String mincode) {
         PageRequest nextPage = PageRequest.of(0, PAGE_SIZE);
-        Page<ReportGradStudentDataEntity> reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(nextPage);
-        return processReportGradStudentDataList(reportGradStudentDataPage);
+        Page<ReportGradStudentDataEntity> reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, nextPage);
+        return processReportGradStudentDataList(mincode, reportGradStudentDataPage);
     }
 
-    private List<ReportGradStudentData> processReportGradStudentDataList(Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
+    public List<String> getGradSchoolsForNonGradYearEndReport() {
+        return reportGradSchoolYearEndRepository.findAll().stream().map(s->s.getMincode()).toList();
+    }
+
+    private List<ReportGradStudentData> processReportGradStudentDataList(String mincode, Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
         List<ReportGradStudentData> result = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         if(reportGradStudentDataPage.hasContent()) {
@@ -59,7 +66,7 @@ public class GradStudentReportService {
 
             for (int i = 1; i < totalNumberOfPages; i++) {
                 nextPage = PageRequest.of(i, PAGE_SIZE);
-                ReportGradStudentDataPageTask pageTask = new ReportGradStudentDataPageTask(nextPage);
+                ReportGradStudentDataPageTask pageTask = new ReportGradStudentDataPageTask(mincode, nextPage);
                 tasks.add(pageTask);
             }
 
@@ -71,6 +78,7 @@ public class GradStudentReportService {
 
     @Generated
     private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result, int numberOfThreads) {
+        if(tasks.isEmpty()) return;
         List<Future<Object>> executionResult;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         try {
@@ -96,15 +104,17 @@ public class GradStudentReportService {
     class ReportGradStudentDataPageTask implements Callable<Object> {
 
         private final PageRequest pageRequest;
+        private final String mincode;
 
-        public ReportGradStudentDataPageTask(PageRequest pageRequest) {
+        public ReportGradStudentDataPageTask(String mincode, PageRequest pageRequest) {
             this.pageRequest = pageRequest;
+            this.mincode = mincode;
         }
 
         @Override
         @Generated
         public Object call() throws Exception {
-            Page<ReportGradStudentDataEntity> reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(pageRequest);
+            Page<ReportGradStudentDataEntity> reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
             return Pair.of(pageRequest, reportGradStudentTransformer.transformToDTO(reportGradStudentDataPage.getContent()));
         }
     }

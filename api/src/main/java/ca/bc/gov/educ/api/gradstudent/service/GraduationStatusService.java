@@ -1019,6 +1019,7 @@ public class GraduationStatusService {
     }
 
     private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result, int totalNumberOfPages) {
+        if(tasks.isEmpty()) return;
         List<Future<Object>> executionResult;
         ExecutorService executorService = Executors.newFixedThreadPool(totalNumberOfPages);
         try {
