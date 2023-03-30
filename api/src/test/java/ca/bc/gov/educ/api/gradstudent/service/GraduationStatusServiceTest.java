@@ -1770,7 +1770,7 @@ public class GraduationStatusServiceTest {
         ReportGradStudentDataEntity reportGradStudentData = new ReportGradStudentDataEntity();
         reportGradStudentData.setGraduationStudentRecordId(graduationStatusEntity.getStudentID());
 
-        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(graduationStatusEntity.getSchoolOfRecord(), PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
 
             @Override
             public Iterator<ReportGradStudentDataEntity> iterator() {
@@ -1853,7 +1853,7 @@ public class GraduationStatusServiceTest {
             }
         });
 
-        var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport();
+        var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
         assertThat(result).isNotEmpty().hasSize(1);
 
     }
