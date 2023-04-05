@@ -39,6 +39,7 @@ public class CommonServiceTest {
     @Autowired CommonService commonService;
     @Autowired GradStudentReportService gradStudentReportService;
     @MockBean  ReportGradStudentDataRepository reportGradStudentDataRepository;
+    @MockBean  ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
 
     @MockBean GradStudentService gradStudentService;
     @MockBean GraduationStatusService graduationStatusService;
@@ -81,6 +82,13 @@ public class CommonServiceTest {
         when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeAscSchoolNameAscLastNameAsc("005")).thenReturn(List.of(reportGradStudentDataEntity));
         var result = gradStudentReportService.getGradStudentDataByMincode("005");
         assertThat(result).isNotNull();
+
+        ReportGradSchoolYearEndEntity schoolYearEndEntity = new ReportGradSchoolYearEndEntity();
+        schoolYearEndEntity.setMincode(reportGradStudentDataEntity.getMincode());
+
+        when(reportGradSchoolYearEndRepository.findAll()).thenReturn(List.of(schoolYearEndEntity));
+        var minCodes = gradStudentReportService.getGradSchoolsForNonGradYearEndReport();
+        assertThat(minCodes).isNotNull();
 
     }
 
