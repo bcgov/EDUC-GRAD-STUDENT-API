@@ -45,6 +45,7 @@ import java.util.function.Function;
 
 import static ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService.PAGE_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -1856,8 +1857,8 @@ public class GraduationStatusServiceTest {
         var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
         assertThat(result).isNotEmpty().hasSize(1);
 
-        graduationStatusEntity.setSchoolAtGrad("001");
-
+        graduationStatusEntity.setSchoolOfRecord("001");
+        assertThat(graduationStatusEntity.getSchoolOfRecord()).hasSize(3);
         when(reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(graduationStatusEntity.getSchoolOfRecord(), PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
 
             @Override
@@ -1944,6 +1945,9 @@ public class GraduationStatusServiceTest {
         result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
         assertThat(result).isNotEmpty().hasSize(1);
 
+        assertThrows("Invalid mincode: null", IllegalArgumentException.class, () -> {
+            gradStudentReportService.getGradStudentDataForNonGradYearEndReport(null);
+        });
     }
 
     @Test
