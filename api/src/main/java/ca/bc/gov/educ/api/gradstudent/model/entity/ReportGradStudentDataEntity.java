@@ -27,6 +27,12 @@ public class ReportGradStudentDataEntity implements Serializable {
     @Column(name = "MINCODE_AT_GRAD")
     private String mincodeAtGrad;
 
+    @Column(name = "DISTRICT_CODE")
+    private String distcode;
+
+    @Column(name = "DISTRICT_CODE_AT_GRAD")
+    private String distcodeAtGrad;
+
     @Column(name = "PEN")
     private String pen;
 

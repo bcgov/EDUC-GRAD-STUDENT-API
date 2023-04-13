@@ -4,6 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.Generated;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ReportGradStudentData;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.ReportGradStudentTransformer;
+import ca.bc.gov.educ.api.gradstudent.repository.ReportGradDistrictYearEndRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradSchoolYearEndRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
 import org.apache.commons.lang3.tuple.Pair;
@@ -30,7 +31,8 @@ public class GradStudentReportService {
     ReportGradStudentDataRepository reportGradStudentDataRepository;
     @Autowired
     ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
-
+    @Autowired
+    ReportGradDistrictYearEndRepository reportGradDistrictYearEndRepository;
     @Autowired
     ReportGradStudentTransformer reportGradStudentTransformer;
 
@@ -44,12 +46,22 @@ public class GradStudentReportService {
 
     public List<ReportGradStudentData> getGradStudentDataForNonGradYearEndReport(String mincode) {
         PageRequest nextPage = PageRequest.of(0, PAGE_SIZE);
-        Page<ReportGradStudentDataEntity> reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, nextPage);
+        assert mincode != null;
+        Page<ReportGradStudentDataEntity> reportGradStudentDataPage;
+        if(mincode.length() == 3) {
+            reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, nextPage);
+        } else {
+            reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, nextPage);
+        }
         return processReportGradStudentDataList(mincode, reportGradStudentDataPage);
     }
 
     public List<String> getGradSchoolsForNonGradYearEndReport() {
         return reportGradSchoolYearEndRepository.findAll().stream().map(s->s.getMincode()).toList();
+    }
+
+    public List<String> getGradDistrictsForNonGradYearEndReport() {
+        return reportGradDistrictYearEndRepository.findAll().stream().map(s->s.getMincode()).toList();
     }
 
     private List<ReportGradStudentData> processReportGradStudentDataList(String mincode, Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
@@ -114,7 +126,13 @@ public class GradStudentReportService {
         @Override
         @Generated
         public Object call() throws Exception {
-            Page<ReportGradStudentDataEntity> reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+            assert mincode != null;
+            Page<ReportGradStudentDataEntity> reportGradStudentDataPage;
+            if(mincode.length() == 3) {
+                reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+            } else {
+                reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+            }
             return Pair.of(pageRequest, reportGradStudentTransformer.transformToDTO(reportGradStudentDataPage.getContent()));
         }
     }
