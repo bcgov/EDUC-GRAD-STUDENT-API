@@ -7,6 +7,7 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.ReportGradStudentTransfo
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradDistrictYearEndRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradSchoolYearEndRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,9 @@ public class GradStudentReportService {
 
     public List<ReportGradStudentData> getGradStudentDataForNonGradYearEndReport(String mincode) {
         PageRequest nextPage = PageRequest.of(0, PAGE_SIZE);
-        assert mincode != null;
+        if(StringUtils.isBlank(mincode)) {
+            throw new IllegalArgumentException("Invalid mincode: " + mincode);
+        }
         Page<ReportGradStudentDataEntity> reportGradStudentDataPage;
         if(mincode.length() == 3) {
             reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, nextPage);
