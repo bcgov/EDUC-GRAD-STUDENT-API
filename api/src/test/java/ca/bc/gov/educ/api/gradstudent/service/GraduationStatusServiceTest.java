@@ -45,6 +45,7 @@ import java.util.function.Function;
 
 import static ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService.PAGE_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -1770,7 +1771,7 @@ public class GraduationStatusServiceTest {
         ReportGradStudentDataEntity reportGradStudentData = new ReportGradStudentDataEntity();
         reportGradStudentData.setGraduationStudentRecordId(graduationStatusEntity.getStudentID());
 
-        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(graduationStatusEntity.getSchoolOfRecord(), PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(graduationStatusEntity.getSchoolOfRecord(), PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
 
             @Override
             public Iterator<ReportGradStudentDataEntity> iterator() {
@@ -1856,6 +1857,97 @@ public class GraduationStatusServiceTest {
         var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
         assertThat(result).isNotEmpty().hasSize(1);
 
+        graduationStatusEntity.setSchoolOfRecord("001");
+        assertThat(graduationStatusEntity.getSchoolOfRecord()).hasSize(3);
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(graduationStatusEntity.getSchoolOfRecord(), PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+
+            @Override
+            public Iterator<ReportGradStudentDataEntity> iterator() {
+                return getContent().listIterator();
+            }
+
+            @Override
+            public int getNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getSize() {
+                return 1;
+            }
+
+            @Override
+            public int getNumberOfElements() {
+                return 1;
+            }
+
+            @Override
+            public List<ReportGradStudentDataEntity> getContent() {
+                return List.of(reportGradStudentData);
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !getContent().isEmpty();
+            }
+
+            @Override
+            public Sort getSort() {
+                return null;
+            }
+
+            @Override
+            public boolean isFirst() {
+                return false;
+            }
+
+            @Override
+            public boolean isLast() {
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return false;
+            }
+
+            @Override
+            public Pageable nextPageable() {
+                return null;
+            }
+
+            @Override
+            public Pageable previousPageable() {
+                return null;
+            }
+
+            @Override
+            public int getTotalPages() {
+                return getContent().size();
+            }
+
+            @Override
+            public long getTotalElements() {
+                return getContent().size();
+            }
+
+            @Override
+            public Page map(Function converter) {
+                return null;
+            }
+        });
+
+        result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result).isNotEmpty().hasSize(1);
+
+        assertThrows("Invalid mincode: null", IllegalArgumentException.class, () -> {
+            gradStudentReportService.getGradStudentDataForNonGradYearEndReport(null);
+        });
     }
 
     @Test

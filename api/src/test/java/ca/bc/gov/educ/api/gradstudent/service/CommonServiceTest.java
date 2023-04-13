@@ -40,6 +40,7 @@ public class CommonServiceTest {
     @Autowired GradStudentReportService gradStudentReportService;
     @MockBean  ReportGradStudentDataRepository reportGradStudentDataRepository;
     @MockBean  ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
+    @MockBean ReportGradDistrictYearEndRepository reportGradDistrictYearEndRepository;
 
     @MockBean GradStudentService gradStudentService;
     @MockBean GraduationStatusService graduationStatusService;
@@ -80,7 +81,7 @@ public class CommonServiceTest {
         reportGradStudentDataEntity.setFirstName("Jonh");
 
         when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeAscSchoolNameAscLastNameAsc("005")).thenReturn(List.of(reportGradStudentDataEntity));
-        var result = gradStudentReportService.getGradStudentDataByMincode("005");
+        var result = gradStudentReportService.getGradStudentDataByMincode("03939000");
         assertThat(result).isNotNull();
 
         ReportGradSchoolYearEndEntity schoolYearEndEntity = new ReportGradSchoolYearEndEntity();
@@ -88,6 +89,18 @@ public class CommonServiceTest {
 
         when(reportGradSchoolYearEndRepository.findAll()).thenReturn(List.of(schoolYearEndEntity));
         var minCodes = gradStudentReportService.getGradSchoolsForNonGradYearEndReport();
+        assertThat(minCodes).isNotNull();
+
+    }
+
+    @Test
+    public void testGetReportGradStudentDataByDistcode() {
+
+        ReportGradDistrictYearEndEntity districtYearEndEntity = new ReportGradDistrictYearEndEntity();
+        districtYearEndEntity.setMincode("03939000");
+
+        when(reportGradDistrictYearEndRepository.findAll()).thenReturn(List.of(districtYearEndEntity));
+        var minCodes = gradStudentReportService.getGradDistrictsForNonGradYearEndReport();
         assertThat(minCodes).isNotNull();
 
     }

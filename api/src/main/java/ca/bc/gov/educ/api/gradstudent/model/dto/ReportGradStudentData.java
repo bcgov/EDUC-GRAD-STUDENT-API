@@ -16,6 +16,8 @@ public class ReportGradStudentData implements Serializable {
     private UUID graduationStudentRecordId;
     private String mincode;
     private String mincodeAtGrad;
+    private String distcode;
+    private String distcodeAtGrad;
     private String pen;
     private String firstName;
     private String middleName;
