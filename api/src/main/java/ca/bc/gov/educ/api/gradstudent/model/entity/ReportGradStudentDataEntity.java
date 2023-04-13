@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.UUID;
 
 @Data
@@ -91,5 +92,8 @@ public class ReportGradStudentDataEntity implements Serializable {
 
     @Column(name = "NON_GRAD_REASONS")
     private String nonGradReasons;
+
+    @Column(name = "UPDATE_DATE")
+    private Date updateDate;
 
 }
