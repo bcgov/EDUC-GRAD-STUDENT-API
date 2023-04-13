@@ -45,7 +45,7 @@ import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 @Service
 public class GraduationStatusService {
 
-    public static final int PAGE_SIZE = 5000;
+    public static final int PAGE_SIZE = 500;
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusService.class);
 

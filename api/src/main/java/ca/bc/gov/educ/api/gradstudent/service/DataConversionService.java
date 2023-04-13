@@ -230,22 +230,22 @@ public class DataConversionService {
         // student_career_program
         List<StudentCareerProgramEntity> careerProgramList = gradStudentCareerProgramRepository.findByStudentID(studentID);
         if (careerProgramList != null && !careerProgramList.isEmpty()) {
-            gradStudentCareerProgramRepository.deleteAllInBatch(careerProgramList);
+            gradStudentCareerProgramRepository.deleteAll(careerProgramList);
         }
         // student_optional_program_history
         List<StudentOptionalProgramHistoryEntity> optionalProgramHistoryList = gradStudentOptionalProgramHistoryRepository.findByStudentID(studentID);
         if (optionalProgramHistoryList != null && !optionalProgramHistoryList.isEmpty()) {
-            gradStudentOptionalProgramHistoryRepository.deleteAllInBatch(optionalProgramHistoryList);
+            gradStudentOptionalProgramHistoryRepository.deleteAll(optionalProgramHistoryList);
         }
         // student_optional_program
         List<StudentOptionalProgramEntity> optionalProgramList = gradStudentOptionalProgramRepository.findByStudentID(studentID);
         if (optionalProgramList != null && !optionalProgramList.isEmpty()) {
-            gradStudentOptionalProgramRepository.deleteAllInBatch(optionalProgramList);
+            gradStudentOptionalProgramRepository.deleteAll(optionalProgramList);
         }
         // graduation_student_record_history
         List<GraduationStudentRecordHistoryEntity> gradStudentRecordHistoryList = gradStudentRecordHistoryRepository.findByStudentID(studentID);
         if (gradStudentRecordHistoryList != null && !gradStudentRecordHistoryList.isEmpty()) {
-            gradStudentRecordHistoryRepository.deleteAllInBatch(gradStudentRecordHistoryList);
+            gradStudentRecordHistoryRepository.deleteAll(gradStudentRecordHistoryList);
         }
         // graduation_student_record
         Optional<GraduationStudentRecordEntity> graduationStudentRecordOptional = graduationStatusRepository.findById(studentID);

@@ -1,8 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +16,8 @@ public class ReportGradStudentData implements Serializable {
     private UUID graduationStudentRecordId;
     private String mincode;
     private String mincodeAtGrad;
+    private String distcode;
+    private String distcodeAtGrad;
     private String pen;
     private String firstName;
     private String middleName;
@@ -34,6 +38,8 @@ public class ReportGradStudentData implements Serializable {
     private String honorsStanding;
     private String graduated;
     private String transcriptTypeCode;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date updateDate;
     private List<CertificateType> certificateTypes;
     private List<NonGradReason> nonGradReasons;
 

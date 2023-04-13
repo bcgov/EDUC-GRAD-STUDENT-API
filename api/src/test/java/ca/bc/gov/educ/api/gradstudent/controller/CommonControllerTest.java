@@ -46,7 +46,7 @@ public class CommonControllerTest {
         ReportGradStudentData reportGradStudentData = new ReportGradStudentData();
         reportGradStudentData.setGraduationStudentRecordId(studentID);
         reportGradStudentData.setFirstName("Jonh");
-        reportGradStudentData.setMincode("005");
+        reportGradStudentData.setMincode("03939000");
 
         Mockito.when(gradStudentReportService.getGradStudentDataByMincode(reportGradStudentData.getMincode())).thenReturn(List.of(reportGradStudentData));
         codeController.getStudentReportDataByMincode(reportGradStudentData.getMincode());
@@ -56,6 +56,26 @@ public class CommonControllerTest {
         codeController.getSchoolReportDataForYearEndNonGrad();
         Mockito.verify(gradStudentReportService).getGradSchoolsForNonGradYearEndReport();
     }
+
+    @Test
+    public void testGetReportGradStudentDataByDistcode() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        ReportGradStudentData reportGradStudentData = new ReportGradStudentData();
+        reportGradStudentData.setGraduationStudentRecordId(studentID);
+        reportGradStudentData.setFirstName("Jonh");
+        reportGradStudentData.setMincode("005");
+
+        Mockito.when(gradStudentReportService.getGradStudentDataByMincode(reportGradStudentData.getMincode())).thenReturn(List.of(reportGradStudentData));
+        codeController.getStudentReportDataByMincode(reportGradStudentData.getMincode());
+        Mockito.verify(gradStudentReportService).getGradStudentDataByMincode(reportGradStudentData.getMincode());
+
+        Mockito.when(gradStudentReportService.getGradDistrictsForNonGradYearEndReport()).thenReturn(List.of(reportGradStudentData.getMincode()));
+        codeController.getDistrictReportDataForYearEndNonGrad();
+        Mockito.verify(gradStudentReportService).getGradDistrictsForNonGradYearEndReport();
+    }
+
 
     @Test
     public void testGetReportGradStudentData() {

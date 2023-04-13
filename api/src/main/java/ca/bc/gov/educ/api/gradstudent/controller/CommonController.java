@@ -242,4 +242,15 @@ public class CommonController {
         logger.debug("getSchoolReportDataForYearEndNonGrad :");
         return response.GET(gradStudentReportService.getGradSchoolsForNonGradYearEndReport());
     }
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_DISTRICT_NON_GRAD_REPORT_DATA)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find Schools for Year End School Report",
+            description = "Find Schools for Year End School Report", tags = {"Schools for Year End School Reports"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<String>> getDistrictReportDataForYearEndNonGrad() {
+        logger.debug("getSchoolReportDataForYearEndNonGrad :");
+        return response.GET(gradStudentReportService.getGradDistrictsForNonGradYearEndReport());
+    }
 }
