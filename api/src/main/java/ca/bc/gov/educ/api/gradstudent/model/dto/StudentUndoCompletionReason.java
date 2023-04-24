@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component
-public class StudentUndoCompletionReason extends BaseModel {
+public class StudentUndoCompletionReason {
 
     private UUID studentUndoCompletionReasonID;
     private UUID graduationStudentRecordID;
@@ -21,4 +21,6 @@ public class StudentUndoCompletionReason extends BaseModel {
     private Date createDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private Date updateDate;
+    private String createUser;
+    private String updateUser;
 }
