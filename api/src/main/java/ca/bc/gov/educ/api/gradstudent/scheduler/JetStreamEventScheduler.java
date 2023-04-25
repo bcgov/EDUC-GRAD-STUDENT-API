@@ -37,7 +37,7 @@ public class JetStreamEventScheduler {
   /**
    * Find and publish grad status events to stan.
    */
-  @Scheduled(cron = "${cron.scheduled.process.events.stan.run}") // every 5 minutes
+  @Scheduled(cron = "${cron.scheduled.process.events.stan.run}") // minimum = every 5 minutes
   @SchedulerLock(name = "PUBLISH_GRAD_STATUS_EVENTS_TO_JET_STREAM", lockAtLeastFor = "${cron.scheduled.process.events.stan.lockAtLeastFor}", lockAtMostFor = "${cron.scheduled.process.events.stan.lockAtMostFor}")
   public void findAndPublishGradStatusEventsToJetStream() {
     LockAssert.assertLocked();

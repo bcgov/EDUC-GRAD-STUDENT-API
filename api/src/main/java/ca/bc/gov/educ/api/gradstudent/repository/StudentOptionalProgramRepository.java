@@ -13,5 +13,5 @@ public interface StudentOptionalProgramRepository extends JpaRepository<StudentO
 
 	List<StudentOptionalProgramEntity> findByStudentID(UUID studentID);
 	Optional<StudentOptionalProgramEntity> findByStudentIDAndOptionalProgramID(UUID studentID,UUID optionalProgramID);
-
+	void deleteByStudentID(UUID studentID);
 }
