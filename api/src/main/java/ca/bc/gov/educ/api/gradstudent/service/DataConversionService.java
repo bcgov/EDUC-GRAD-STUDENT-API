@@ -228,30 +228,15 @@ public class DataConversionService {
     @Transactional
     public void deleteAll(UUID studentID) {
         // student_career_program
-        List<StudentCareerProgramEntity> careerProgramList = gradStudentCareerProgramRepository.findByStudentID(studentID);
-        if (careerProgramList != null && !careerProgramList.isEmpty()) {
-            gradStudentCareerProgramRepository.deleteAll(careerProgramList);
-        }
+        gradStudentCareerProgramRepository.deleteByStudentID(studentID);
         // student_optional_program_history
-        List<StudentOptionalProgramHistoryEntity> optionalProgramHistoryList = gradStudentOptionalProgramHistoryRepository.findByStudentID(studentID);
-        if (optionalProgramHistoryList != null && !optionalProgramHistoryList.isEmpty()) {
-            gradStudentOptionalProgramHistoryRepository.deleteAll(optionalProgramHistoryList);
-        }
+        gradStudentOptionalProgramHistoryRepository.deleteByStudentID(studentID);
         // student_optional_program
-        List<StudentOptionalProgramEntity> optionalProgramList = gradStudentOptionalProgramRepository.findByStudentID(studentID);
-        if (optionalProgramList != null && !optionalProgramList.isEmpty()) {
-            gradStudentOptionalProgramRepository.deleteAll(optionalProgramList);
-        }
+        gradStudentOptionalProgramRepository.deleteByStudentID(studentID);
         // graduation_student_record_history
-        List<GraduationStudentRecordHistoryEntity> gradStudentRecordHistoryList = gradStudentRecordHistoryRepository.findByStudentID(studentID);
-        if (gradStudentRecordHistoryList != null && !gradStudentRecordHistoryList.isEmpty()) {
-            gradStudentRecordHistoryRepository.deleteAll(gradStudentRecordHistoryList);
-        }
+        gradStudentRecordHistoryRepository.deleteByStudentID(studentID);
         // graduation_student_record
-        Optional<GraduationStudentRecordEntity> graduationStudentRecordOptional = graduationStatusRepository.findById(studentID);
-        if (graduationStudentRecordOptional.isPresent()) {
-            graduationStatusRepository.delete(graduationStudentRecordOptional.get());
-        }
+        graduationStatusRepository.deleteById(studentID);
     }
 
 }
