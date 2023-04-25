@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -38,7 +39,7 @@ public class ReportGradStudentData implements Serializable {
     private String honorsStanding;
     private String graduated;
     private String transcriptTypeCode;
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
     private Date updateDate;
     private List<CertificateType> certificateTypes;
     private List<NonGradReason> nonGradReasons;

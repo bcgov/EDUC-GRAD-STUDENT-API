@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,7 +39,7 @@ public class GraduationStudentRecord extends BaseModel{
     private String legalFirstName;
     private String legalMiddleNames;
     private String legalLastName;
-    @JsonFormat(pattern="yyyy-MM-dd")
+    @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
     private Date adultStartDate;
 
     private List<StudentCareerProgram> careerPrograms;

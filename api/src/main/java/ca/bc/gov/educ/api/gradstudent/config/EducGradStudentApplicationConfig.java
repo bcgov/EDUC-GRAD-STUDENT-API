@@ -2,16 +2,22 @@ package ca.bc.gov.educ.api.gradstudent.config;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import java.time.format.DateTimeFormatter;
+
+import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.DATETIME_FORMAT;
 
 @Configuration
 @EntityScan(basePackages = {"ca.bc.gov.educ.api.gradstudent.model.entity"} )
@@ -39,6 +45,12 @@ public class EducGradStudentApplicationConfig {
         return new JdbcTemplateLockProvider(jdbcTemplate, transactionManager, "STATUS_SHEDLOCK");
     }
 
-
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer jacksonObjectMapperCustomization() {
+        LocalDateTimeSerializer localDateTimeSerializer = new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DATETIME_FORMAT));
+        return jacksonObjectMapperBuilder ->
+                jacksonObjectMapperBuilder
+                        .serializers(localDateTimeSerializer);
+    }
 
 }
