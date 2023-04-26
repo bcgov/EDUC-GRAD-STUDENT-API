@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,6 +8,8 @@ import org.springframework.stereotype.Component;
 import java.sql.Date;
 import java.util.List;
 import java.util.UUID;
+
+import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.DEFAULT_DATE_FORMAT;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -39,7 +40,7 @@ public class GraduationStudentRecord extends BaseModel{
     private String legalFirstName;
     private String legalMiddleNames;
     private String legalLastName;
-    @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
+    @JsonFormat(pattern=DEFAULT_DATE_FORMAT)
     private Date adultStartDate;
 
     private List<StudentCareerProgram> careerPrograms;
