@@ -17,4 +17,5 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
     List<GraduationStudentRecordHistoryEntity> findAll();
 	List<GraduationStudentRecordHistoryEntity> findByStudentID(UUID studentID);
     Page<GraduationStudentRecordHistoryEntity> findByBatchId(Long batchId, Pageable paging);
+    void deleteByStudentID(UUID studentID);
 }

@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Generated;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
@@ -65,6 +66,8 @@ public class GraduationStatusService {
     final StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     final GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer;
     final StudentCareerProgramRepository gradStudentCareerProgramRepository;
+
+    final GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
     final GradStudentService gradStudentService;
     final HistoryService historyService;
     final GradValidation validation;
@@ -74,7 +77,7 @@ public class GraduationStatusService {
     GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
-    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,  GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentStatusRepository = studentStatusRepository;
@@ -83,6 +86,7 @@ public class GraduationStatusService {
         this.gradStudentOptionalProgramRepository = gradStudentOptionalProgramRepository;
         this.gradStudentOptionalProgramTransformer = gradStudentOptionalProgramTransformer;
         this.gradStudentCareerProgramRepository = gradStudentCareerProgramRepository;
+        this.gradStudentCareerProgramTransformer = gradStudentCareerProgramTransformer;
         this.gradStudentService = gradStudentService;
         this.historyService = historyService;
         this.validation = validation;
@@ -93,7 +97,12 @@ public class GraduationStatusService {
     public GraduationStudentRecord getGraduationStatusForAlgorithm(UUID studentID) {
         logger.debug("getGraduationStatusForAlgorithm");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
-        return responseOptional.map(graduationStatusTransformer::transformToDTO).orElse(null);
+        return responseOptional.map(gs -> {
+            GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTO(gs);
+            List<StudentCareerProgramEntity> studentCareerProgramEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
+            gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
+            return gradStatus;
+        }).orElse(null);
     }
 
     @Retry(name = "generalgetcall")
@@ -112,10 +121,11 @@ public class GraduationStatusService {
                 Optional<StudentStatusEntity> statusEntity = studentStatusRepository.findById(StringUtils.toRootUpperCase(gradStatus.getStudentStatus()));
                 statusEntity.ifPresent(studentStatusEntity -> gradStatus.setStudentStatusName(studentStatusEntity.getLabel()));
             }
-
             if (gradStatus.getSchoolAtGrad() != null)
                 gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolAtGrad(), accessToken));
 
+            List<StudentCareerProgramEntity> studentCareerProgramEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
+            gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
             return gradStatus;
         } else {
             return null;

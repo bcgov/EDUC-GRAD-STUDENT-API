@@ -39,4 +39,6 @@ public class EducGradStudentApplicationConfig {
         return new JdbcTemplateLockProvider(jdbcTemplate, transactionManager, "STATUS_SHEDLOCK");
     }
 
+
+
 }

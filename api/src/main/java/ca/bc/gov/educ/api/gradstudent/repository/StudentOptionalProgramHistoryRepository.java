@@ -12,4 +12,5 @@ public interface StudentOptionalProgramHistoryRepository extends JpaRepository<S
 
     List<StudentOptionalProgramHistoryEntity> findAll();
 	List<StudentOptionalProgramHistoryEntity> findByStudentID(UUID studentID);
+    void deleteByStudentID(UUID studentID);
 }
