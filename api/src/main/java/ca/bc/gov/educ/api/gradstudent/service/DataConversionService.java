@@ -21,7 +21,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -236,7 +235,9 @@ public class DataConversionService {
         // graduation_student_record_history
         gradStudentRecordHistoryRepository.deleteByStudentID(studentID);
         // graduation_student_record
-        graduationStatusRepository.deleteById(studentID);
+        if (graduationStatusRepository.existsById(studentID)) {
+            graduationStatusRepository.deleteById(studentID);
+        }
     }
 
 }
