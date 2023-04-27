@@ -25,7 +25,7 @@ spring:
     deserialization:
       fail-on-unknown-properties: false
     #date-format: "yyyy-MM-dd HH:mm:ss"
-    time-zone: ${JACKSON_TZ}
+    #time-zone: ${JACKSON_TZ}
   flyway:
     enabled: false
   #Keycloak/OAuth properties
