@@ -74,30 +74,14 @@ public class GradStudentReportService {
     }
 
     private List<ReportGradStudentData> processReportGradStudentDataList(Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
-        List<ReportGradStudentData> result = new ArrayList<>();
-        long startTime = System.currentTimeMillis();
-        if(reportGradStudentDataPage.hasContent()) {
-            PageRequest nextPage;
-            List<ReportGradStudentDataEntity> reportGradStudentDataInBatch = reportGradStudentDataPage.getContent();
-            result.addAll(reportGradStudentTransformer.transformToDTO(reportGradStudentDataInBatch));
-            final int totalNumberOfPages = reportGradStudentDataPage.getTotalPages();
-            logger.debug("Total number of pages: {}, total rows count {}", totalNumberOfPages, reportGradStudentDataPage.getTotalElements());
-
-            List<Callable<Object>> tasks = new ArrayList<>();
-
-            for (int i = 1; i < totalNumberOfPages; i++) {
-                nextPage = PageRequest.of(i, PAGE_SIZE);
-                ReportGradStudentDataPageTask pageTask = new ReportGradStudentDataPageTask(null, nextPage);
-                tasks.add(pageTask);
-            }
-
-            processReportGradStudentDataTasksAsync(tasks, result, totalNumberOfPages);
-        }
-        logger.debug("Completed in {} sec, total objects acquired {}", (System.currentTimeMillis() - startTime) / 1000, result.size());
-        return result;
+        return createAndExecuteReportGradStudentDataTasks(null, reportGradStudentDataPage);
     }
 
     private List<ReportGradStudentData> processReportGradStudentDataList(String mincode, Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
+        return createAndExecuteReportGradStudentDataTasks(mincode, reportGradStudentDataPage);
+    }
+
+    private List<ReportGradStudentData> createAndExecuteReportGradStudentDataTasks(String mincode, Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
         List<ReportGradStudentData> result = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         if(reportGradStudentDataPage.hasContent()) {
