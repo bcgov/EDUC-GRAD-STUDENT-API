@@ -94,6 +94,10 @@ public class CommonControllerTest {
         Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReport(reportGradStudentData.getMincode())).thenReturn(List.of(reportGradStudentData));
         codeController.getStudentReportDataForYearEndNonGrad(reportGradStudentData.getMincode());
         Mockito.verify(gradStudentReportService).getGradStudentDataForNonGradYearEndReport(reportGradStudentData.getMincode());
+
+        Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReport()).thenReturn(List.of(reportGradStudentData));
+        codeController.getStudentReportDataForYearEndNonGrad();
+        Mockito.verify(gradStudentReportService).getGradStudentDataForNonGradYearEndReport();
     }
 
     @Test

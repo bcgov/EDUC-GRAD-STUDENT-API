@@ -45,6 +45,12 @@ public class GradStudentReportService {
         return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(studentIds));
     }
 
+    public List<ReportGradStudentData> getGradStudentDataForNonGradYearEndReport() {
+        PageRequest nextPage = PageRequest.of(0, PAGE_SIZE);
+        Page<ReportGradStudentDataEntity> reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(nextPage);
+        return processReportGradStudentDataList(reportGradStudentDataPage);
+    }
+
     public List<ReportGradStudentData> getGradStudentDataForNonGradYearEndReport(String mincode) {
         PageRequest nextPage = PageRequest.of(0, PAGE_SIZE);
         if(StringUtils.isBlank(mincode)) {
@@ -65,6 +71,30 @@ public class GradStudentReportService {
 
     public List<String> getGradDistrictsForNonGradYearEndReport() {
         return reportGradDistrictYearEndRepository.findAll().stream().map(s->s.getMincode()).toList();
+    }
+
+    private List<ReportGradStudentData> processReportGradStudentDataList(Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
+        List<ReportGradStudentData> result = new ArrayList<>();
+        long startTime = System.currentTimeMillis();
+        if(reportGradStudentDataPage.hasContent()) {
+            PageRequest nextPage;
+            List<ReportGradStudentDataEntity> reportGradStudentDataInBatch = reportGradStudentDataPage.getContent();
+            result.addAll(reportGradStudentTransformer.transformToDTO(reportGradStudentDataInBatch));
+            final int totalNumberOfPages = reportGradStudentDataPage.getTotalPages();
+            logger.debug("Total number of pages: {}, total rows count {}", totalNumberOfPages, reportGradStudentDataPage.getTotalElements());
+
+            List<Callable<Object>> tasks = new ArrayList<>();
+
+            for (int i = 1; i < totalNumberOfPages; i++) {
+                nextPage = PageRequest.of(i, PAGE_SIZE);
+                ReportGradStudentDataPageTask pageTask = new ReportGradStudentDataPageTask(null, nextPage);
+                tasks.add(pageTask);
+            }
+
+            processReportGradStudentDataTasksAsync(tasks, result, totalNumberOfPages);
+        }
+        logger.debug("Completed in {} sec, total objects acquired {}", (System.currentTimeMillis() - startTime) / 1000, result.size());
+        return result;
     }
 
     private List<ReportGradStudentData> processReportGradStudentDataList(String mincode, Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
@@ -131,10 +161,14 @@ public class GradStudentReportService {
         public Object call() throws Exception {
             assert mincode != null;
             Page<ReportGradStudentDataEntity> reportGradStudentDataPage;
-            if(mincode.length() == 3) {
-                reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+            if(StringUtils.isNotBlank(mincode)) {
+                if (mincode.length() == 3) {
+                    reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+                } else {
+                    reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+                }
             } else {
-                reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+                reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(pageRequest);
             }
             return Pair.of(pageRequest, reportGradStudentTransformer.transformToDTO(reportGradStudentDataPage.getContent()));
         }

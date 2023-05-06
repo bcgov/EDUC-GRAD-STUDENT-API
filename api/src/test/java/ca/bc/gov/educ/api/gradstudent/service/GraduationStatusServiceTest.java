@@ -1771,6 +1771,92 @@ public class GraduationStatusServiceTest {
         ReportGradStudentDataEntity reportGradStudentData = new ReportGradStudentDataEntity();
         reportGradStudentData.setGraduationStudentRecordId(graduationStatusEntity.getStudentID());
 
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+
+            @Override
+            public Iterator<ReportGradStudentDataEntity> iterator() {
+                return getContent().listIterator();
+            }
+
+            @Override
+            public int getNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getSize() {
+                return 1;
+            }
+
+            @Override
+            public int getNumberOfElements() {
+                return 1;
+            }
+
+            @Override
+            public List<ReportGradStudentDataEntity> getContent() {
+                return List.of(reportGradStudentData);
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !getContent().isEmpty();
+            }
+
+            @Override
+            public Sort getSort() {
+                return null;
+            }
+
+            @Override
+            public boolean isFirst() {
+                return false;
+            }
+
+            @Override
+            public boolean isLast() {
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return false;
+            }
+
+            @Override
+            public Pageable nextPageable() {
+                return null;
+            }
+
+            @Override
+            public Pageable previousPageable() {
+                return null;
+            }
+
+            @Override
+            public int getTotalPages() {
+                return getContent().size();
+            }
+
+            @Override
+            public long getTotalElements() {
+                return getContent().size();
+            }
+
+            @Override
+            public Page map(Function converter) {
+                return null;
+            }
+        });
+
+        var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport();
+        assertThat(result).isNotEmpty().hasSize(1);
+
         when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(graduationStatusEntity.getSchoolOfRecord(), PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
 
             @Override
@@ -1854,7 +1940,7 @@ public class GraduationStatusServiceTest {
             }
         });
 
-        var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
+        result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
         assertThat(result).isNotEmpty().hasSize(1);
 
         graduationStatusEntity.setSchoolOfRecord("001");
