@@ -1,10 +1,12 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import java.sql.Date;
+
+import java.time.LocalDate;
 
 @Data
 @SuperBuilder
@@ -44,6 +46,7 @@ public class GradSearchStudent {
 	private String studentStatus;
 	private String transcriptEligibility;
 	private String certificateEligibility;
-	private Date adultStartDate;
+	@JsonFormat(pattern="yyyy-MM-dd")
+	private LocalDate adultStartDate;
 
 }
