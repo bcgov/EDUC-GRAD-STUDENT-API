@@ -22,6 +22,7 @@ public class GraduationStudentRecordDistribution extends BaseModel{
     private String honoursStanding;
     private String program;
     private String studentGrade;
+    private String studentStatus;
     private String studentCitizenship;
     private List<GradRequirement> nonGradReasons;
 }
