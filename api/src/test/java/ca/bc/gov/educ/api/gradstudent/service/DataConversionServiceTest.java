@@ -46,6 +46,9 @@ public class DataConversionServiceTest {
     HistoryService historyService;
 
     @MockBean
+    GraduationStatusService graduationStatusService;
+
+    @MockBean
     GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean
     StudentOptionalProgramRepository gradStudentOptionalProgramRepository;

@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -53,6 +52,8 @@ public class DataConversionService {
     final StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository;
     final GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository;
     final HistoryService historyService;
+
+    final GraduationStatusService graduationStatusService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
 
@@ -64,7 +65,7 @@ public class DataConversionService {
                                  StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,
                                  StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository,
                                  GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository,
-                                 HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+                                 HistoryService historyService, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
@@ -75,6 +76,7 @@ public class DataConversionService {
         this.gradStudentOptionalProgramHistoryRepository = gradStudentOptionalProgramHistoryRepository;
         this.gradStudentRecordHistoryRepository = gradStudentRecordHistoryRepository;
         this.historyService = historyService;
+        this.graduationStatusService = graduationStatusService;
         this.validation = validation;
         this.constants = constants;
     }
@@ -95,9 +97,9 @@ public class DataConversionService {
 
             if (!sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
-                    archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
+                    graduationStatusService.archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
                 } else {
-                    deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
+                    graduationStatusService.deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
                 }
             }
 
@@ -252,30 +254,6 @@ public class DataConversionService {
         gradStudentOptionalProgramRepository.deleteByStudentID(studentID);
         // graduation_student_record_history
         gradStudentRecordHistoryRepository.deleteByStudentID(studentID);
-    }
-
-    private void deleteStudentAchievements(UUID studentID,String accessToken) {
-        try {
-            webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
-        } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-        }
-    }
-
-    private void archiveStudentAchievements(UUID studentID,String accessToken) {
-        try {
-            webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
-    } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-        }
     }
 
 }
