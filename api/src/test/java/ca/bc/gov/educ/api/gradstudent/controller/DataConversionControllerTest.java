@@ -65,11 +65,11 @@ public class DataConversionControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Mockito.when(dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus,false)).thenReturn(graduationStatus);
+        Mockito.when(dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus,false, "accessToken")).thenReturn(graduationStatus);
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
         var result = dataConversionController
-                .saveStudentGradStatus(studentID.toString(), false, graduationStatus);
-        Mockito.verify(dataConversionService).saveGraduationStudentRecord(studentID, graduationStatus,false);
+                .saveStudentGradStatus(studentID.toString(), false, graduationStatus, "accessToken");
+        Mockito.verify(dataConversionService).saveGraduationStudentRecord(studentID, graduationStatus,false, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -160,10 +160,15 @@ public class DataConversionControllerTest {
         // ID
         UUID studentID = UUID.randomUUID();
 
-        Mockito.doNothing().when(dataConversionService).deleteAll(studentID);
+        Mockito.doNothing().when(dataConversionService).deleteAllDependencies(studentID);
+        Mockito.doNothing().when(dataConversionService).deleteGraduationStatus(studentID);
         Mockito.when(responseHelper.DELETE(1)).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+
         var result = dataConversionController.deleteAll(studentID.toString());
-        Mockito.verify(dataConversionService).deleteAll(studentID);
+
+        Mockito.verify(dataConversionService).deleteAllDependencies(studentID);
+        Mockito.verify(dataConversionService).deleteGraduationStatus(studentID);
+
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }

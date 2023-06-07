@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -86,11 +87,20 @@ public class DataConversionService {
      * @return
      */
     @Transactional
-    public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate) {
+    public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate, String accessToken) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+
+            if (!sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
+                if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
+                    archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
+                } else {
+                    deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
+                }
+            }
+
             BeanUtils.copyProperties(sourceObject, gradEntity,  CREATE_USER, CREATE_DATE);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             if (ongoingUpdate) {
@@ -225,7 +235,15 @@ public class DataConversionService {
     }
 
     @Transactional
-    public void deleteAll(UUID studentID) {
+    public void deleteGraduationStatus(UUID studentID) {
+        // graduation_student_record
+        if (graduationStatusRepository.existsById(studentID)) {
+            graduationStatusRepository.deleteById(studentID);
+        }
+    }
+
+    @Transactional
+    public void deleteAllDependencies(UUID studentID) {
         // student_career_program
         gradStudentCareerProgramRepository.deleteByStudentID(studentID);
         // student_optional_program_history
@@ -234,9 +252,29 @@ public class DataConversionService {
         gradStudentOptionalProgramRepository.deleteByStudentID(studentID);
         // graduation_student_record_history
         gradStudentRecordHistoryRepository.deleteByStudentID(studentID);
-        // graduation_student_record
-        if (graduationStatusRepository.existsById(studentID)) {
-            graduationStatusRepository.deleteById(studentID);
+    }
+
+    private void deleteStudentAchievements(UUID studentID,String accessToken) {
+        try {
+            webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage());
+        }
+    }
+
+    private void archiveStudentAchievements(UUID studentID,String accessToken) {
+        try {
+            webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
+    } catch (Exception e) {
+            log.error(e.getLocalizedMessage());
         }
     }
 
