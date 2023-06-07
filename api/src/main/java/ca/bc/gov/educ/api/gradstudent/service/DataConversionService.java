@@ -52,6 +52,8 @@ public class DataConversionService {
     final StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository;
     final GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository;
     final HistoryService historyService;
+
+    final GraduationStatusService graduationStatusService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
 
@@ -63,7 +65,7 @@ public class DataConversionService {
                                  StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,
                                  StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository,
                                  GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository,
-                                 HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+                                 HistoryService historyService, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
@@ -74,6 +76,7 @@ public class DataConversionService {
         this.gradStudentOptionalProgramHistoryRepository = gradStudentOptionalProgramHistoryRepository;
         this.gradStudentRecordHistoryRepository = gradStudentRecordHistoryRepository;
         this.historyService = historyService;
+        this.graduationStatusService = graduationStatusService;
         this.validation = validation;
         this.constants = constants;
     }
@@ -86,11 +89,20 @@ public class DataConversionService {
      * @return
      */
     @Transactional
-    public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate) {
+    public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate, String accessToken) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+
+            if (!sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
+                if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
+                    graduationStatusService.archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
+                } else {
+                    graduationStatusService.deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
+                }
+            }
+
             BeanUtils.copyProperties(sourceObject, gradEntity,  CREATE_USER, CREATE_DATE);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             if (ongoingUpdate) {
@@ -225,7 +237,15 @@ public class DataConversionService {
     }
 
     @Transactional
-    public void deleteAll(UUID studentID) {
+    public void deleteGraduationStatus(UUID studentID) {
+        // graduation_student_record
+        if (graduationStatusRepository.existsById(studentID)) {
+            graduationStatusRepository.deleteById(studentID);
+        }
+    }
+
+    @Transactional
+    public void deleteAllDependencies(UUID studentID) {
         // student_career_program
         gradStudentCareerProgramRepository.deleteByStudentID(studentID);
         // student_optional_program_history
@@ -234,10 +254,6 @@ public class DataConversionService {
         gradStudentOptionalProgramRepository.deleteByStudentID(studentID);
         // graduation_student_record_history
         gradStudentRecordHistoryRepository.deleteByStudentID(studentID);
-        // graduation_student_record
-        if (graduationStatusRepository.existsById(studentID)) {
-            graduationStatusRepository.deleteById(studentID);
-        }
     }
 
 }
