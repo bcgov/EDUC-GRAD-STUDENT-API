@@ -862,7 +862,7 @@ public class GraduationStatusService {
         }
     }
     
-    private void deleteStudentAchievements(UUID studentID,String accessToken) {
+    public void deleteStudentAchievements(UUID studentID,String accessToken) {
     	try {
             webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
                     .headers(h -> {
@@ -874,7 +874,7 @@ public class GraduationStatusService {
         }
 	}
 
-    private void archiveStudentAchievements(UUID studentID,String accessToken) {
+    public void archiveStudentAchievements(UUID studentID,String accessToken) {
         try {
             webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
                     .headers(h -> {
@@ -882,8 +882,8 @@ public class GraduationStatusService {
                         h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
                     }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
-        logger.error(e.getLocalizedMessage());
-    }
+            logger.error(e.getLocalizedMessage());
+        }
     }
 
 

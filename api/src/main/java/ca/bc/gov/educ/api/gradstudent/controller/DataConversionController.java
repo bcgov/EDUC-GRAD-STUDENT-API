@@ -45,9 +45,10 @@ public class DataConversionController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecord> saveStudentGradStatus(@PathVariable String studentID,
                                                                          @RequestParam(value = "ongoingUpdate", required = false, defaultValue = "false") boolean ongoingUpdate,
-                                                                         @RequestBody GraduationStudentRecord graduationStatus) {
+                                                                         @RequestBody GraduationStudentRecord graduationStatus,
+                                                                         @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Save Graduation Student Record for Student ID");
-        var result = dataConversionService.saveGraduationStudentRecord(UUID.fromString(studentID),graduationStatus, ongoingUpdate);
+        var result = dataConversionService.saveGraduationStudentRecord(UUID.fromString(studentID),graduationStatus, ongoingUpdate, accessToken.replace(BEARER, ""));
         return response.GET(result);
     }
 
@@ -98,7 +99,8 @@ public class DataConversionController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Void> deleteAll(@PathVariable String studentID) {
         logger.debug("Delete All Student Related Data for Student ID [{}]", studentID);
-        dataConversionService.deleteAll(UUID.fromString(studentID));
+        dataConversionService.deleteAllDependencies(UUID.fromString(studentID));
+        dataConversionService.deleteGraduationStatus(UUID.fromString(studentID));
         return response.DELETE(1);
     }
 
