@@ -21,8 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Initial Student Loads
@@ -97,6 +96,7 @@ public class DataConversionService {
 
             if (!sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
+                    sourceObject.setProgramCompletionDate(null);
                     graduationStatusService.archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
                 } else {
                     graduationStatusService.deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
