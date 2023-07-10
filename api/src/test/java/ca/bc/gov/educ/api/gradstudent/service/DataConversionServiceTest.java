@@ -540,7 +540,7 @@ public class DataConversionServiceTest {
 
     @Test
     public void testSaveStudentOptionalProgram_whenOptionalProgram_doesNotExist_returnsNull() {
-// ID
+        // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
         UUID optionalProgramID = UUID.randomUUID();
@@ -575,6 +575,48 @@ public class DataConversionServiceTest {
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.empty());
+
+        var result = dataConversionService.saveStudentOptionalProgram(studentOptionalProgramReq, "123");
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void testSaveStudentOptionalProgram_whenOptionalProgram_throwsException_returnsNull() {
+        // ID
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+        String pen = "123456789";
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+        studentOptionalProgram.setOptionalProgramCode("AD");
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode("SCCP");
+        optionalProgram.setOptProgramCode("AD");
+        optionalProgram.setOptionalProgramName("French Immersion");
+
+        StudentOptionalProgramRequestDTO studentOptionalProgramReq = new StudentOptionalProgramRequestDTO();
+        studentOptionalProgramReq.setId(gradStudentOptionalProgramID);
+        studentOptionalProgramReq.setStudentID(studentID);
+        studentOptionalProgramReq.setPen(pen);
+        studentOptionalProgramReq.setMainProgramCode("SCCP");
+        studentOptionalProgramReq.setOptionalProgramCode("AD");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(),optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenThrow(new RuntimeException("Program API is down!"));
 
         var result = dataConversionService.saveStudentOptionalProgram(studentOptionalProgramReq, "123");
         assertThat(result).isNull();
