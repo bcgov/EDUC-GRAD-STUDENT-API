@@ -21,8 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Initial Student Loads
@@ -97,6 +96,7 @@ public class DataConversionService {
 
             if (!sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
+                    sourceObject.setProgramCompletionDate(null);
                     graduationStatusService.archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
                 } else {
                     graduationStatusService.deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
@@ -176,15 +176,21 @@ public class DataConversionService {
     }
 
     private OptionalProgram getOptionalProgram(String mainProgramCode, String optionalProgramCode, String accessToken) {
-        return webClient.get()
-                .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), mainProgramCode, optionalProgramCode))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
-                .retrieve()
-                .bodyToMono(OptionalProgram.class)
-                .block();
+        OptionalProgram optionalProgram = null;
+        try {
+            optionalProgram = webClient.get()
+                    .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), mainProgramCode, optionalProgramCode))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    })
+                    .retrieve()
+                    .bodyToMono(OptionalProgram.class)
+                    .block();
+        } catch (Exception e) {
+            log.error("Program API is failed to find an optional program: [{}] / [{}]", mainProgramCode, optionalProgramCode);
+        }
+        return optionalProgram;
     }
 
     @Transactional
