@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,7 +39,7 @@ public class GraduationStudentRecord extends BaseModel{
     private String legalMiddleNames;
     private String legalLastName;
     @JsonFormat(pattern="yyyy-MM-dd")
-    private Date adultStartDate;
+    private LocalDate adultStartDate;
 
     private List<StudentCareerProgram> careerPrograms;
     private List<GradRequirement> nonGradReasons;

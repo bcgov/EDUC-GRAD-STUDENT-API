@@ -1,12 +1,12 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
-import java.sql.Date;
-import java.util.UUID;
-
-import org.springframework.stereotype.Component;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -34,5 +34,6 @@ public class GraduationStudentRecordHistory extends BaseModel{
     private String consumerEducationRequirementMet;
     private String studentCitizenship;
     private String studentProjectedGradData;
-    private Date adultStartDate;
+    @JsonFormat(pattern="yyyy-MM-dd")
+    private LocalDate adultStartDate;
 }

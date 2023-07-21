@@ -1,10 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.model.entity;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.GenericGenerator;
 
-import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.UUID;
 
@@ -73,7 +74,7 @@ public class GraduationStudentRecordHistoryEntity extends BaseEntity {
     private String studentCitizenship;
 
     @Column(name = "ADULT_START_DATE", nullable = true)
-    private Date adultStartDate;
+    private LocalDate adultStartDate;
 
     //@Lob
     //@Column(name = "STUDENT_PROJECTED_GRAD_DATA", columnDefinition="CLOB")

@@ -16,6 +16,8 @@ import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import java.util.*;
 
 @Service
@@ -201,7 +201,10 @@ public class CommonService {
 	public GradStudentAlgorithmData getGradStudentAlgorithmData(String studentID,String accessToken) {
 		GradStudentAlgorithmData data = new GradStudentAlgorithmData();
 		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID, accessToken);
+		assert gradStudent != null;
 		GraduationStudentRecord gradStudentRecord = graduationStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID));
+		assert gradStudentRecord != null;
+		gradStudent.setAdultStartDate(gradStudentRecord.getAdultStartDate());
 		List<StudentCareerProgram>  cpList = new ArrayList<>();
 		try {
 			cpList = getAllGradStudentCareerProgramList(studentID, accessToken);
