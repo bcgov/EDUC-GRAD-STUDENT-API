@@ -15,6 +15,10 @@ public interface ReportGradStudentDataRepository extends JpaRepository<ReportGra
 
     List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(List<UUID> graduationStudentRecordId);
 
+    @Query("select c from ReportGradStudentDataEntity c where c.graduationStudentRecordId in (" +
+            " select s.studentID from GraduationStudentRecordEntity s where s.programCompletionDate is null and s.studentStatus='CUR' and (s.studentGrade='AD' or s.studentGrade='12'))")
+    Page<ReportGradStudentDataEntity> findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(Pageable page);
+
     @Query("select c from ReportGradStudentDataEntity c where c.mincode = :minCode and c.graduationStudentRecordId in (" +
             " select s.studentID from GraduationStudentRecordEntity s where s.programCompletionDate is null and s.studentStatus='CUR' and (s.studentGrade='AD' or s.studentGrade='12'))")
     Page<ReportGradStudentDataEntity> findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(String minCode, Pageable page);

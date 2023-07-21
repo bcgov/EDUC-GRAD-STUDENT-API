@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,8 +38,8 @@ public class ReportGradStudentData implements Serializable {
     private String honorsStanding;
     private String graduated;
     private String transcriptTypeCode;
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date updateDate;
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updateDate;
     private List<CertificateType> certificateTypes;
     private List<NonGradReason> nonGradReasons;
 

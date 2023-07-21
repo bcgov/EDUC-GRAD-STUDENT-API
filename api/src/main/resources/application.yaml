@@ -24,6 +24,8 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: false
+    #date-format: "yyyy-MM-dd HH:mm:ss"
+    #time-zone: ${JACKSON_TZ}
   flyway:
     enabled: ${ENABLE_FLYWAY}
     baseline-on-migrate: false

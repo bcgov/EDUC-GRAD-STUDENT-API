@@ -45,6 +45,12 @@ public class GradStudentReportService {
         return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(studentIds));
     }
 
+    public List<ReportGradStudentData> getGradStudentDataForNonGradYearEndReport() {
+        PageRequest nextPage = PageRequest.of(0, PAGE_SIZE);
+        Page<ReportGradStudentDataEntity> reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(nextPage);
+        return processReportGradStudentDataList(reportGradStudentDataPage);
+    }
+
     public List<ReportGradStudentData> getGradStudentDataForNonGradYearEndReport(String mincode) {
         PageRequest nextPage = PageRequest.of(0, PAGE_SIZE);
         if(StringUtils.isBlank(mincode)) {
@@ -67,7 +73,15 @@ public class GradStudentReportService {
         return reportGradDistrictYearEndRepository.findAll().stream().map(s->s.getMincode()).toList();
     }
 
+    private List<ReportGradStudentData> processReportGradStudentDataList(Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
+        return createAndExecuteReportGradStudentDataTasks(null, reportGradStudentDataPage);
+    }
+
     private List<ReportGradStudentData> processReportGradStudentDataList(String mincode, Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
+        return createAndExecuteReportGradStudentDataTasks(mincode, reportGradStudentDataPage);
+    }
+
+    private List<ReportGradStudentData> createAndExecuteReportGradStudentDataTasks(String mincode, Page<ReportGradStudentDataEntity> reportGradStudentDataPage) {
         List<ReportGradStudentData> result = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         if(reportGradStudentDataPage.hasContent()) {
@@ -131,10 +145,14 @@ public class GradStudentReportService {
         public Object call() throws Exception {
             assert mincode != null;
             Page<ReportGradStudentDataEntity> reportGradStudentDataPage;
-            if(mincode.length() == 3) {
-                reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+            if(StringUtils.isNotBlank(mincode)) {
+                if (mincode.length() == 3) {
+                    reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+                } else {
+                    reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+                }
             } else {
-                reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(mincode, pageRequest);
+                reportGradStudentDataPage = reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(pageRequest);
             }
             return Pair.of(pageRequest, reportGradStudentTransformer.transformToDTO(reportGradStudentDataPage.getContent()));
         }

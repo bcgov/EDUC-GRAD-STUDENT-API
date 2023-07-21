@@ -227,6 +227,17 @@ public class CommonController {
             description = "Find a Student Graduation Data for Year End School Report", tags = {"Student Graduation Data for School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataForYearEndNonGrad() {
+        logger.debug("getStudentReportDataForYearEndNonGrad :");
+        return response.GET(gradStudentReportService.getGradStudentDataForNonGradYearEndReport());
+    }
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_MINCODE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find a Student Graduation Data for Year End School Report",
+            description = "Find a Student Graduation Data for Year End School Report", tags = {"Student Graduation Data for School Reports"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataForYearEndNonGrad(@PathVariable String mincode) {
         logger.debug("getStudentReportDataForYearEndNonGrad :");
         return response.GET(gradStudentReportService.getGradStudentDataForNonGradYearEndReport(mincode));
