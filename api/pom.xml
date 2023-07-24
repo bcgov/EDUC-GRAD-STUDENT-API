@@ -220,10 +220,10 @@
             <artifactId>log4j-to-slf4j</artifactId>
             <version>${log4j.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.nats</groupId>
-            <artifactId>jnats</artifactId>
-            <version>2.16.8</version>
+	    <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.15.2</version>
         </dependency>
     </dependencies>
 
