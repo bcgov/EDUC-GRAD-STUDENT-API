@@ -13,8 +13,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.*;
-
 public class GradLocalDateTimeDeserializer extends StdDeserializer<LocalDateTime> {
 
     public GradLocalDateTimeDeserializer() {
@@ -33,25 +31,31 @@ public class GradLocalDateTimeDeserializer extends StdDeserializer<LocalDateTime
                 dateAsString = dateAsString + "/01";
             }
             if(slashCount > 0) {
-                formatter = DateTimeFormatter.ofPattern(SECOND_DEFAULT_DATE_FORMAT);
+                formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
             }
             return LocalDateTime.parse(dateAsString, formatter);
         } else if(jsonParser.hasToken(JsonToken.VALUE_NUMBER_INT)) {
             long timestamp = jsonParser.getValueAsLong();
             return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
         } else if(StringUtils.isNotBlank(dateAsString) && dateAsString.length() == 10 && dateAsString.contains("-")) {
-            formatter = DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
+            formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDate localDate = LocalDate.parse(dateAsString, formatter);
             return localDate.atStartOfDay();
         } else if(StringUtils.isNotBlank(dateAsString) && dateAsString.length() == 10 && dateAsString.contains("/")) {
-            formatter = DateTimeFormatter.ofPattern(SECOND_DEFAULT_DATE_FORMAT);
+            formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
             LocalDate localDate = LocalDate.parse(dateAsString, formatter);
             return localDate.atStartOfDay();
         } else if(StringUtils.isNotBlank(dateAsString) && dateAsString.length() > 10 && dateAsString.contains("/") && dateAsString.contains(" ")) {
-            formatter = DateTimeFormatter.ofPattern(SECOND_DEFAULT_DATE_TIME_FORMAT);
+            formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
             return LocalDateTime.parse(dateAsString, formatter);
         } else if(StringUtils.isNotBlank(dateAsString) && dateAsString.length() > 10 && dateAsString.contains("-") && dateAsString.contains(" ")) {
-            formatter = DateTimeFormatter.ofPattern(DEFAULT_DATE_TIME_FORMAT);
+            formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            return LocalDateTime.parse(dateAsString, formatter);
+        } else if(StringUtils.isNotBlank(dateAsString) && dateAsString.length() > 10 && dateAsString.contains("/") && dateAsString.contains("T")) {
+            formatter = DateTimeFormatter.ofPattern("yyyy/MM/ddTHH:mm:ss.000+00:00");
+            return LocalDateTime.parse(dateAsString, formatter);
+        } else if(StringUtils.isNotBlank(dateAsString) && dateAsString.length() > 10 && dateAsString.contains("-") && dateAsString.contains("T")) {
+            formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
             return LocalDateTime.parse(dateAsString, formatter);
         } else if(StringUtils.isNotBlank(dateAsString)) {
             return LocalDateTime.parse(dateAsString, formatter);
