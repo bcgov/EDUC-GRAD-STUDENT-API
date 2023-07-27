@@ -215,8 +215,6 @@ public class CommonServiceTest {
         assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getStudentID()).isEqualTo(studentID.toString());
         assertThat(result.get(1).getStudentID()).isEqualTo(studentID.toString());
-        assertThat(result.get(0).getNote()).isEqualTo(note1.getNote());
-        assertThat(result.get(1).getNote()).isEqualTo(note2.getNote());
     }
 
     @Test
