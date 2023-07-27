@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -16,14 +18,18 @@ import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.SE
 
 public class GradLocalDateDeserializer extends StdDeserializer<LocalDate> {
 
+    private static final Logger logger = LoggerFactory.getLogger(GradLocalDateDeserializer.class);
+
     public GradLocalDateDeserializer() {
         super(LocalDate.class);
     }
 
     @Override
     public LocalDate deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+        String fieldName = jsonParser.getParsingContext().getCurrentName();
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
         String dateAsString = jsonParser.getValueAsString();
+        logger.debug("Deserialize LocalDate of {} and value {}", fieldName, dateAsString);
         //Fix date format as programCompletion date YYYY/MM
         if(StringUtils.isNotBlank(dateAsString) && dateAsString.length() < 10 && dateAsString.contains("/")) {
             int year = StringUtils.substringBefore(dateAsString, "/").length();
