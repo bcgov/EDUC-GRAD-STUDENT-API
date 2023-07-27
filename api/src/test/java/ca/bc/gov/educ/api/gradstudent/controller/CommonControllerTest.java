@@ -15,8 +15,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -167,14 +169,14 @@ public class CommonControllerTest {
         note1.setId(UUID.randomUUID());
         note1.setStudentID(studentID.toString());
         note1.setNote("Test1 Comments");
-        note1.setUpdateDate(new Date(System.currentTimeMillis()));
+        note1.setUpdateDate(LocalDateTime.now());
         allNotesList.add(note1);
 
         final StudentNote note2 = new StudentNote();
         note2.setId(UUID.randomUUID());
         note2.setStudentID(studentID.toString());
         note2.setNote("Test2 Comments");
-        note2.setUpdateDate(new Date(System.currentTimeMillis() + 100000L));
+        note2.setUpdateDate(LocalDateTime.now(Clock.offset(Clock.systemDefaultZone(), Duration.ofHours(3))));
         allNotesList.add(note2);
 
         Mockito.when(commonService.getAllStudentNotes(studentID)).thenReturn(allNotesList);
@@ -215,16 +217,16 @@ public class CommonControllerTest {
 		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date(System.currentTimeMillis()));
-		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		studentStatusList.add(obj);
 		obj = new StudentStatus();
 		obj.setCode("CC");
 		obj.setDescription("Courses not complete");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date(System.currentTimeMillis()));
-		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		studentStatusList.add(obj);
 		Mockito.when(commonService.getAllStudentStatusCodeList()).thenReturn(studentStatusList);
 		codeController.getAllStudentStatusCodeList();
@@ -239,8 +241,8 @@ public class CommonControllerTest {
 		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date(System.currentTimeMillis()));
-		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		Mockito.when(commonService.getSpecificStudentStatusCode(requirementType)).thenReturn(obj);
 		codeController.getSpecificStudentStatusCode(requirementType);
 		Mockito.verify(commonService).getSpecificStudentStatusCode(requirementType);
@@ -261,8 +263,8 @@ public class CommonControllerTest {
 		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date(System.currentTimeMillis()));
-		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		Mockito.when(commonService.createStudentStatus(obj)).thenReturn(obj);
 		codeController.createStudentStatus(obj);
 		Mockito.verify(commonService).createStudentStatus(obj);
@@ -275,8 +277,8 @@ public class CommonControllerTest {
 		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date(System.currentTimeMillis()));
-		obj.setUpdateDate(new Date(System.currentTimeMillis()));
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		Mockito.when(commonService.updateStudentStatus(obj)).thenReturn(obj);
 		codeController.updateStudentStatusCode(obj);
 		Mockito.verify(commonService).updateStudentStatus(obj);
