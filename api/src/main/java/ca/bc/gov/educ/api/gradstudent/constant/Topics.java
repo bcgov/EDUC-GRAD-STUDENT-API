@@ -7,5 +7,6 @@ public enum Topics {
   /**
    * GradStatus events topic.
    */
-  GRAD_STATUS_EVENT_TOPIC
+  GRAD_STATUS_EVENT_TOPIC,
+  FETCH_GRAD_STATUS
 }
