@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
@@ -46,7 +47,7 @@ import java.util.function.Function;
 
 import static ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService.PAGE_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -92,6 +93,25 @@ public class GraduationStatusServiceTest {
     @After
     public void tearDown() {
 
+    }
+
+    @Test
+    public void testHasStudentGraduated_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        boolean result = graduationStatusService.hasStudentGraduated(studentID);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testHasStudentGraduated_GivenNoProgramCompletionDate_ExpectFalse() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        boolean result = graduationStatusService.hasStudentGraduated(studentID);
+        assertFalse(result);
     }
 
     @Test
