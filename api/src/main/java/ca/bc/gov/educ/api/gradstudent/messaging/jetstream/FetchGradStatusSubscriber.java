@@ -18,7 +18,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
     private static final String TOPIC = "FETCH_GRAD_STATUS";
 
     @Autowired
-    public FetchGradStatusSubscriber(Connection natsConnection, GraduationStatusService graduationStatusService) {
+    public FetchGradStatusSubscriber(final Connection natsConnection, GraduationStatusService graduationStatusService) {
         this.natsConnection = natsConnection;
         this.graduationStatusService = graduationStatusService;
     }
