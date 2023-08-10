@@ -115,6 +115,15 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testHasStudentGraduated_GivenNotFound_ExpectEntityNotFoundException() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> {
+            graduationStatusService.hasStudentGraduated(studentID);
+        });
+    }
+
+    @Test
     public void testGetGraduationStatusForAlgorithm() {
         // ID
         UUID studentID = UUID.randomUUID();
