@@ -20,7 +20,8 @@
             src/main/java/ca/bc/gov/educ/api/gradstudent/model/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/messaging/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/scheduler/**,
-            src/main/java/ca/bc/gov/educ/api/gradstudent/util/**
+            src/main/java/ca/bc/gov/educ/api/gradstudent/util/**,
+            src/main/java/ca/bc/gov/educ/api/gradstudent/exception/**
         </sonar.exclusions>
         <sonar.junit.exclusions>
             src/main/java/ca/bc/gov/educ/api/gradstudent/messaging/**,

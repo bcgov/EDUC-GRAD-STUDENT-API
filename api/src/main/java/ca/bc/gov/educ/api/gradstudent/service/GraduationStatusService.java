@@ -4,6 +4,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Generated;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
@@ -103,6 +104,20 @@ public class GraduationStatusService {
             gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
             return gradStatus;
         }).orElse(null);
+    }
+
+    /**
+     * Returns true if student has a valid program completion date
+     * @param studentID
+     * @return
+     */
+    public boolean hasStudentGraduated(UUID studentID) throws EntityNotFoundException {
+        Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
+        if(responseOptional.isPresent()){
+            GraduationStudentRecordEntity graduationStudentRecord = responseOptional.get();
+            return graduationStudentRecord.getProgramCompletionDate() != null;
+        }
+        throw new EntityNotFoundException(String.format("Student with ID: {} not found", studentID));
     }
 
     @Retry(name = "generalgetcall")
