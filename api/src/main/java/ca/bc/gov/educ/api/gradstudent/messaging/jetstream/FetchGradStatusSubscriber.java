@@ -1,8 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
+import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
+import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import ca.bc.gov.educ.api.gradstudent.util.LogHelper;
 import io.nats.client.*;
 import lombok.val;
@@ -38,9 +41,11 @@ public class FetchGradStatusSubscriber implements MessageHandler {
     @Override
     public void onMessage(Message message) {
         val eventString = new String(message.getData());
+        LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());
         String response;
         try {
-            UUID stdId = UUID.fromString(eventString);
+            Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+            UUID stdId = UUID.fromString(event.getEventPayload());
             boolean hasStudentGraduated = graduationStatusService.hasStudentGraduated(stdId);
             response = String.valueOf(hasStudentGraduated);
         } catch (Exception e) {
