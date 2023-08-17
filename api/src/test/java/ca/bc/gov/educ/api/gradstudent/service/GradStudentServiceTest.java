@@ -697,6 +697,35 @@ public class GradStudentServiceTest {
         assertThat(result.getProgram()).isEqualTo("2018-EN");
     }
 
+    @Test
+    public void testGetStudentIDsByStatusCode_whenStatusCode_is_notProvided() {
+        // ID
+        final UUID studentID = UUID.randomUUID();
+        var result = gradStudentService.getStudentIDsByStatusCode(Arrays.asList(studentID), "");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentIDsByStatusCode_whenStudentIDs_are_notProvided() {
+        var result = gradStudentService.getStudentIDsByStatusCode(new ArrayList<>(), "DEC");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentIDsByStatusCode() {
+        // ID 1
+        final UUID studentID1 = UUID.randomUUID();
+        // ID 2
+        final UUID studentID2 = UUID.randomUUID();
+
+        Mockito.when(graduationStatusRepository.filterGivenStudentsByStatusCode(Arrays.asList(studentID1, studentID2), "DEC")).thenReturn(Arrays.asList(studentID1));
+
+        var result = gradStudentService.getStudentIDsByStatusCode(Arrays.asList(studentID1, studentID2), "DEC");
+        assertThat(result).isNotEmpty();
+        assertThat(result.get(0)).isEqualTo(studentID1);
+    }
+
+
 
     @SneakyThrows
     protected Object createDataObjectFromJson(String jsonPath, Class<?> clazz) {

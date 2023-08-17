@@ -229,4 +229,9 @@ public class CommonService {
 			return null;
 		}
 	}
+
+	@Transactional
+	public List<UUID> getDeceasedStudentIDs(List<UUID> studentIDs) {
+		return gradStudentService.getStudentIDsByStatusCode(studentIDs, "DEC");
+	}
 }

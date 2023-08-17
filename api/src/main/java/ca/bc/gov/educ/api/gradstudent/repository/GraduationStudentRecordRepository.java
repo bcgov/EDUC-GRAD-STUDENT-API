@@ -76,4 +76,7 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
     @Query(value="select STUDENT_GUID from STUDENT_GUID_PEN_XREF \n"
             + "where STUDENT_PEN = :pen", nativeQuery = true)
     byte[] findStudentID(@Param("pen") String pen);
+
+	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus = :statusCode and c.studentID in :studentIDList")
+	List<UUID> filterGivenStudentsByStatusCode(@Param("studentIDList") List<UUID> studentIDs, @Param("statusCode") String statusCode);
 }

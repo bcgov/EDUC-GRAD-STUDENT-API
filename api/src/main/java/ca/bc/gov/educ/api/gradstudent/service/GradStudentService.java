@@ -374,4 +374,12 @@ public class GradStudentService {
 				.body(BodyInserters.fromValue(student))
 				.retrieve().bodyToMono(Student.class).block();
 	}
+
+	@Transactional
+	public List<UUID> getStudentIDsByStatusCode(List<UUID> studentIDs, String statusCode) {
+		if (StringUtils.isBlank(statusCode) || studentIDs.isEmpty()) {
+			return new ArrayList<>();
+		}
+		return graduationStatusRepository.filterGivenStudentsByStatusCode(studentIDs, statusCode);
+	}
 }
