@@ -264,4 +264,16 @@ public class CommonController {
         logger.debug("getSchoolReportDataForYearEndNonGrad :");
         return response.GET(gradStudentReportService.getGradDistrictsForNonGradYearEndReport());
     }
+
+    @PostMapping(EducGradStudentApiConstants.GET_DECEASED_STUDENT_ID)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find Deceased Student IDs by List of GUIDs",
+            description = "Find Deceased Student IDs by List of GUIDs", tags = {"Student Graduation Data for School Reports"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<UUID>> getDeceasedStudentIDs(@RequestBody List<UUID> studentIds) {
+        logger.debug("getDeceasedStudentIDs :");
+        return response.GET(commonService.getDeceasedStudentIDs(studentIds));
+    }
+
 }

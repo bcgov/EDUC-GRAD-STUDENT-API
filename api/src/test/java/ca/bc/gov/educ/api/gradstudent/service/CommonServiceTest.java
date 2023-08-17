@@ -579,4 +579,15 @@ public class CommonServiceTest {
         GradStudentAlgorithmData data =  commonService.getGradStudentAlgorithmData(studentID.toString(),null);
         assertThat(data).isNotNull();
     }
+
+    @Test
+    public void testGetDeceasedStudentIDs() {
+        UUID studentID1 = UUID.randomUUID();
+        UUID studentID2 = UUID.randomUUID();
+
+        when(gradStudentService.getStudentIDsByStatusCode(Arrays.asList(studentID1, studentID2), "DEC")).thenReturn(Arrays.asList(studentID1, studentID2));
+        List<UUID> results = commonService.getDeceasedStudentIDs(Arrays.asList(studentID1, studentID2));
+
+        assertThat(results).isNotEmpty();
+    }
 }
