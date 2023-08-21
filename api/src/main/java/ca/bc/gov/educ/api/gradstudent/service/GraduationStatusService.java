@@ -1022,16 +1022,16 @@ public class GraduationStatusService {
                 tasks.add(pageTask);
             }
 
-            processUUIDDataTasksAsync(tasks, result, totalNumberOfPages);
+            processUUIDDataTasksAsync(tasks, result);
         }
         logger.debug("Completed in {} sec, total objects aquared {}", (System.currentTimeMillis() - startTime) / 1000, result.size());
         return result;
     }
 
-    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result, int totalNumberOfPages) {
+    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result) {
         if(tasks.isEmpty()) return;
         List<Future<Object>> executionResult;
-        ExecutorService executorService = Executors.newFixedThreadPool(totalNumberOfPages);
+        ExecutorService executorService = Executors.newWorkStealingPool();
         try {
             executionResult = executorService.invokeAll(tasks);
             for (Future<?> f : executionResult) {

@@ -99,17 +99,17 @@ public class GradStudentReportService {
                 tasks.add(pageTask);
             }
 
-            processReportGradStudentDataTasksAsync(tasks, result, totalNumberOfPages);
+            processReportGradStudentDataTasksAsync(tasks, result);
         }
         logger.debug("Completed in {} sec, total objects acquired {}", (System.currentTimeMillis() - startTime) / 1000, result.size());
         return result;
     }
 
     @Generated
-    private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result, int numberOfThreads) {
+    private void processReportGradStudentDataTasksAsync(List<Callable<Object>> tasks, List<ReportGradStudentData> result) {
         if(tasks.isEmpty()) return;
         List<Future<Object>> executionResult;
-        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+        ExecutorService executorService = Executors.newWorkStealingPool();
         try {
             executionResult = executorService.invokeAll(tasks);
             for (Future<?> f : executionResult) {
