@@ -40,6 +40,7 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -650,6 +651,15 @@ public class GradStudentServiceTest {
 
         GradTraxStudent result = gradStudentService.getTraxStudentMasterDataByPen(pen, "accessToken");
         assertNotNull(result);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of()));
+
+        result = gradStudentService.getTraxStudentMasterDataByPen(pen, "accessToken");
+        assertNull(result);
     }
 
     @Test
