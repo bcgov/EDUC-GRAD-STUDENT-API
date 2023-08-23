@@ -141,13 +141,12 @@ public class GraduationStatusTransformer {
             gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
             populatePenAndLegalNamesAndNonGradReasons(gradStatus);
             if(gradStatus.getStudentProjectedGradData() != null) {
-                ProjectedRunClob existingData = null;
                 try {
-                    existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(gradStatus.getStudentProjectedGradData(), ProjectedRunClob.class);
+                    ProjectedRunClob existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(gradStatus.getStudentProjectedGradData(), ProjectedRunClob.class);
                     if((!existingData.isGraduated() && type.equalsIgnoreCase("TVRNONGRAD")) || (existingData.isGraduated() && type.equalsIgnoreCase("TVRGRAD"))) {
                         results.add(gradStatus);
                     }
-                } catch (JsonProcessingException e) {e.getMessage();}
+                } catch (JsonProcessingException e) {e.printStackTrace();}
             }
 
         }
@@ -167,12 +166,16 @@ public class GraduationStatusTransformer {
             GraduationData existingData = null;
             try {
                 existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(gradStatus.getStudentGradData(), GraduationData.class);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            if (existingData != null) {
                 gradStatus.setPen(existingData.getGradStudent().getPen());
                 gradStatus.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
                 gradStatus.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
                 gradStatus.setLegalLastName(existingData.getGradStudent().getLegalLastName());
                 gradStatus.setNonGradReasons(existingData.getNonGradReasons());
-            } catch (JsonProcessingException e) {e.getMessage();}
+            }
         }
     }
 }
