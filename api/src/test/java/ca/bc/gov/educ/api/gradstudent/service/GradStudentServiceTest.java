@@ -39,6 +39,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -629,6 +630,26 @@ public class GradStudentServiceTest {
         assertThat(result.getStatusCode()).isEqualTo(student.getStatusCode());
         assertThat(result.getEmail()).isEqualTo(student.getEmail());
         assertThat(result.getEmailVerified()).isEqualTo(student.getEmailVerified());
+    }
+
+    @Test
+    public void testGetTraxStudentMasterDataByPen() {
+
+        String pen = "128385861";
+        GradTraxStudent sObj = new GradTraxStudent();
+        sObj.setPen(pen);
+
+        final ParameterizedTypeReference<List<GradTraxStudent>> responseType = new ParameterizedTypeReference<>() {
+        };
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of(sObj)));
+
+        GradTraxStudent result = gradStudentService.getTraxStudentMasterDataByPen(pen, "accessToken");
+        assertNotNull(result);
     }
 
     @Test
