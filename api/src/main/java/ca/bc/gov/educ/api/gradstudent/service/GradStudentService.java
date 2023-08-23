@@ -368,7 +368,7 @@ public class GradStudentService {
 					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
 				})
 				.retrieve().bodyToMono(responseType).block();
-		if(!result.isEmpty()) {
+		if(result != null && !result.isEmpty()) {
 			return result.get(0);
 		}
 		return null;
