@@ -124,17 +124,7 @@ public class GraduationStatusTransformer {
             logger.debug("GraduationStudentRecordEntity {} with database program completion date {}", gradStatusEntity.getPen(), gradStatusEntity.getProgramCompletionDate());
             gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStatusEntity.getProgramCompletionDate(), "yyyy/MM"));
             logger.debug("GraduationStudentRecord {} with trax program completion date {}", gradStatus.getPen(), gradStatus.getProgramCompletionDate());
-            if(gradStatus.getStudentGradData() != null) {
-                GraduationData existingData = null;
-                try {
-                    existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(gradStatus.getStudentGradData(), GraduationData.class);
-                    gradStatus.setPen(existingData.getGradStudent().getPen());
-                    gradStatus.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                    gradStatus.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                    gradStatus.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-                    gradStatus.setNonGradReasons(existingData.getNonGradReasons());
-                } catch (JsonProcessingException e) {e.getMessage();}
-            }
+            populatePenAndLegalNamesAndNonGradReasons(gradStatus);
             gradStatus.setStudentCitizenship(gradStatusEntity.getStudentCitizenship());
             gradStatus.setStudentGradData(null);
             gradStatus.setCreateDate(DateUtils.toLocalDateTime(gradStatusEntity.getCreateDate()));
