@@ -327,7 +327,8 @@ public class CommonServiceTest {
 		obj.setUpdateDate(new Date());
 		gradStudentStatusList.add(obj);
 		Mockito.when(studentStatusRepository.findAll()).thenReturn(gradStudentStatusList);
-		commonService.getAllStudentStatusCodeList();
+        List<StudentStatus> result = commonService.getAllStudentStatusCodeList();
+        assertThat(result).isNotNull();
 	}
 	
 	@Test
@@ -349,14 +350,16 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(reasonCode)).thenReturn(ent);
-		commonService.getSpecificStudentStatusCode(reasonCode);
+        StudentStatus result = commonService.getSpecificStudentStatusCode(reasonCode);
+        assertThat(result).isNotNull();
 	}
 	
 	@Test
 	public void testGetSpecificStudentStatusCodeReturnsNull() {
 		String reasonCode = "DC";
 		Mockito.when(studentStatusRepository.findById(reasonCode)).thenReturn(Optional.empty());
-		commonService.getSpecificStudentStatusCode(reasonCode);
+        StudentStatus result = commonService.getSpecificStudentStatusCode(reasonCode);
+        assertThat(result).isNull();
 	}
 	
 	@Test
@@ -377,7 +380,8 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(Optional.empty());
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
-		commonService.createStudentStatus(obj);
+        StudentStatus result = commonService.createStudentStatus(obj);
+        assertThat(result).isNotNull();
 		
 	}
 	
@@ -399,7 +403,8 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
-		commonService.createStudentStatus(obj);
+		StudentStatus result = commonService.createStudentStatus(obj);
+        assertThat(result).isNotNull();
 		
 	}
 	
@@ -422,8 +427,8 @@ public class CommonServiceTest {
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
-		commonService.updateStudentStatus(obj);
-		
+        StudentStatus result = commonService.updateStudentStatus(obj);
+        assertThat(result).isNotNull();
 	}
 	
 	@Test
@@ -443,8 +448,8 @@ public class CommonServiceTest {
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
-		commonService.updateStudentStatus(obj);
-		
+        StudentStatus result = commonService.updateStudentStatus(obj);
+        assertThat(result).isNotNull();
 	}
 	
 	@Test(expected = GradBusinessRuleException.class)
@@ -464,8 +469,8 @@ public class CommonServiceTest {
 		objEntity.setCreateDate(new Date());
 		objEntity.setUpdateDate(new Date());
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(Optional.empty());
-		commonService.updateStudentStatus(obj);
-		
+        StudentStatus result = commonService.updateStudentStatus(obj);
+        assertThat(result).isNotNull();
 	}
 
     @Test
