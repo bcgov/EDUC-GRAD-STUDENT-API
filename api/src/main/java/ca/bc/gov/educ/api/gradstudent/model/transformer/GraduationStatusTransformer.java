@@ -26,6 +26,8 @@ public class GraduationStatusTransformer {
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusTransformer.class);
 
+    private static final String JSON_PARSING_ERROR = "Parsing Error: {}";
+
     @Autowired
     ModelMapper modelMapper;
     
@@ -103,7 +105,7 @@ public class GraduationStatusTransformer {
             try {
                 existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                logger.error(JSON_PARSING_ERROR, e.getMessage());
             }
             if(existingData != null) {
                 distObj.setPen(existingData.getGradStudent().getPen());
@@ -146,7 +148,9 @@ public class GraduationStatusTransformer {
                     if((!existingData.isGraduated() && type.equalsIgnoreCase("TVRNONGRAD")) || (existingData.isGraduated() && type.equalsIgnoreCase("TVRGRAD"))) {
                         results.add(gradStatus);
                     }
-                } catch (JsonProcessingException e) {e.printStackTrace();}
+                } catch (JsonProcessingException e) {
+                    logger.error(JSON_PARSING_ERROR ,e.getMessage());
+                }
             }
 
         }
@@ -167,7 +171,7 @@ public class GraduationStatusTransformer {
             try {
                 existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(gradStatus.getStudentGradData(), GraduationData.class);
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                logger.error(JSON_PARSING_ERROR, e.getMessage());
             }
             if (existingData != null) {
                 gradStatus.setPen(existingData.getGradStudent().getPen());
