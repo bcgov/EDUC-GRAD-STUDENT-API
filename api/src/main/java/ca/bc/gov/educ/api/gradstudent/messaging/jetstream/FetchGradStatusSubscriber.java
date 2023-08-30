@@ -1,8 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
+import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
-import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -23,7 +23,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
     private final GraduationStatusService graduationStatusService;
 
     private final EducGradStudentApiConstants constants;
-    private static final String TOPIC = "FETCH_GRAD_STATUS";
+    private static final String TOPIC = Topics.GRAD_STUDENT_API_FETCH_GRAD_STATUS_TOPIC.toString();
 
     @Autowired
     public FetchGradStatusSubscriber(final Connection natsConnection, GraduationStatusService graduationStatusService, EducGradStudentApiConstants constants) {
