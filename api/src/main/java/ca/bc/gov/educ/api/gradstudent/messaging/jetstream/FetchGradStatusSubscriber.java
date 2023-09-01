@@ -3,10 +3,13 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStatusPayload;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import ca.bc.gov.educ.api.gradstudent.util.LogHelper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.*;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,13 +49,33 @@ public class FetchGradStatusSubscriber implements MessageHandler {
         try {
             Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
             UUID stdId = UUID.fromString(event.getEventPayload());
-            boolean hasStudentGraduated = graduationStatusService.hasStudentGraduated(stdId);
-            response = String.valueOf(hasStudentGraduated);
+            GraduationStudentRecord graduationStatus = graduationStatusService.getGraduationStatus(stdId);
+            response = getResponse(graduationStatus);
         } catch (Exception e) {
-            response = (e instanceof EntityNotFoundException) ? "not found" : "error";
+            response = getErrorResponse(e);
             LogHelper.logMessagingEventDetails("NATS message exception at FetchGradStatusSubscriber: " + response + " when processing: " + eventString, constants.isSplunkLogHelperEnabled());
         }
         this.natsConnection.publish(message.getReplyTo(), response.getBytes());
+    }
+
+    private String getResponse(GraduationStudentRecord graduationStudentRecord) throws JsonProcessingException {
+        GradStatusPayload gradStatusPayload = GradStatusPayload.builder()
+                .program(graduationStudentRecord.getProgram())
+                .programCompletionDate(graduationStudentRecord.getProgramCompletionDate())
+                .build();
+        return JsonUtil.getJsonStringFromObject(gradStatusPayload);
+    }
+
+    private String getErrorResponse(Exception e) {
+        String ex = (e instanceof EntityNotFoundException) ? "not found" : "error";
+        GradStatusPayload gradStatusPayload = GradStatusPayload.builder()
+                .exception(ex)
+                .build();
+        try {
+            return JsonUtil.getJsonStringFromObject(gradStatusPayload);
+        } catch (JsonProcessingException exc) {
+            return "{\"program\": \"\", \"programCompletionDate\": \"\", \"exception\": \"JSON Parsing exception\"}";
+        }
     }
 
 }
