@@ -34,14 +34,21 @@ public class GraduationStatusTransformer {
     @Autowired
     GradValidation validation;
 
-    public GraduationStudentRecord transformToDTO (GraduationStudentRecordEntity gradStatusEntity) {
+    public GraduationStudentRecord transformToDTOWithModifiedProgramCompletionDate(GraduationStudentRecordEntity gradStatusEntity) {
         GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
         gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ?
                 EducGradStudentApiUtils.formatDate(gradStatusEntity.getProgramCompletionDate()) : null));
         return gradStatus;
     }
 
-    public GraduationStudentRecord transformToDTO ( Optional<GraduationStudentRecordEntity> gradStatusEntity ) {
+    public GraduationStudentRecord transformToDTO(GraduationStudentRecordEntity gradStatusEntity) {
+        GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
+        gradStatus.setProgramCompletionDate(gradStatusEntity.getProgramCompletionDate() != null ?
+                EducGradStudentApiUtils.formatDate(gradStatusEntity.getProgramCompletionDate()) : null);
+        return gradStatus;
+    }
+
+    public GraduationStudentRecord transformToDTOWithModifiedProgramCompletionDate(Optional<GraduationStudentRecordEntity> gradStatusEntity ) {
         GraduationStudentRecordEntity cae = new GraduationStudentRecordEntity();
         if (gradStatusEntity.isPresent())
             cae = gradStatusEntity.get();
@@ -51,7 +58,7 @@ public class GraduationStatusTransformer {
         return gradStatus;
     }
 
-    public List<GraduationStudentRecord> transformToDTO (Iterable<GraduationStudentRecordEntity> gradStatusEntities ) {
+    public List<GraduationStudentRecord> transformToDTOWithModifiedProgramCompletionDate(Iterable<GraduationStudentRecordEntity> gradStatusEntities ) {
         List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
         for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);

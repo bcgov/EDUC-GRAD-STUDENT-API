@@ -147,7 +147,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
@@ -242,7 +242,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         org.springframework.data.domain.Page<GraduationStudentRecordEntity> pagedResult = new PageImpl<>(List.of(graduationStatusEntity));
         when(this.graduationStatusRepository.findAll(any(), any(Pageable.class))).thenReturn(pagedResult);
@@ -343,7 +343,7 @@ public class GradStudentServiceTest {
 
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
         when(this.graduationStatusRepository.findByStudentIDIn(studentSubList)).thenReturn(List.of(graduationStatusEntity));
         RestResponsePage<Student> response = new RestResponsePage<>(List.of(student));
         final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<>() {
@@ -503,7 +503,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
@@ -595,7 +595,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // School
         final School school = new School();

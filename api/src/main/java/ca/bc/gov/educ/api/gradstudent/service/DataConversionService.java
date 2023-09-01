@@ -111,7 +111,7 @@ public class DataConversionService {
             if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(graduationStatus.getPen())) {
                 saveStudentGuidPenXref(gradEntity.getStudentID(), graduationStatus.getPen());
             }
-            return graduationStatusTransformer.transformToDTO(gradEntity);
+            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
             if (ongoingUpdate) {
@@ -122,7 +122,7 @@ public class DataConversionService {
             if (constants.isStudentGuidPenXrefEnabled()) {
                 saveStudentGuidPenXref(sourceObject.getStudentID(), graduationStatus.getPen());
             }
-            return graduationStatusTransformer.transformToDTO(sourceObject);
+            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject);
         }
     }
 

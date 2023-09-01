@@ -5,7 +5,6 @@ import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Generated;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.model.dc.GradStatusPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
@@ -100,7 +99,7 @@ public class GraduationStatusService {
         logger.debug("getGraduationStatusForAlgorithm");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
         return responseOptional.map(gs -> {
-            GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTO(gs);
+            GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gs);
             List<StudentCareerProgramEntity> studentCareerProgramEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
             gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
             return gradStatus;
@@ -134,7 +133,7 @@ public class GraduationStatusService {
         logger.debug("getGraduationStatus");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
         if (responseOptional.isPresent()) {
-            GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTO(responseOptional.get());
+            GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(responseOptional.get());
             if (gradStatus.getProgram() != null) {
                 gradStatus.setProgramName(getProgramName(gradStatus.getProgram(), accessToken));
             }
@@ -182,7 +181,7 @@ public class GraduationStatusService {
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
             }
-            return Pair.of(graduationStatusTransformer.transformToDTO(gradEntity), gradStatusEvent);
+            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), gradStatusEvent);
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getUpdateUser(), sourceObject,
@@ -190,7 +189,7 @@ public class GraduationStatusService {
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
             }
-            return Pair.of(graduationStatusTransformer.transformToDTO(sourceObject), gradStatusEvent);
+            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject), gradStatusEvent);
         }
     }
 
@@ -238,7 +237,7 @@ public class GraduationStatusService {
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
             }
-            return Pair.of(graduationStatusTransformer.transformToDTO(gradEntity), gradStatusEvent);
+            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), gradStatusEvent);
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
             return Pair.of(graduationStatus, null);
@@ -872,7 +871,7 @@ public class GraduationStatusService {
                     if (gradStatusEvent != null) {
                         gradStatusEventRepository.save(gradStatusEvent);
                     }
-                    return Pair.of(graduationStatusTransformer.transformToDTO(gradEntity), gradStatusEvent);
+                    return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), gradStatusEvent);
 		        } else {
 		            validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
 		            return Pair.of(null, null);
@@ -984,7 +983,7 @@ public class GraduationStatusService {
             gradEntity.setBatchId(batchId);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, activityCode);
-            return graduationStatusTransformer.transformToDTO(gradEntity);
+            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
     }
@@ -1009,7 +1008,7 @@ public class GraduationStatusService {
             gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, "GRADPROJECTED");
-            return graduationStatusTransformer.transformToDTO(gradEntity);
+            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
     }
@@ -1025,7 +1024,7 @@ public class GraduationStatusService {
     }
 
     public GraduationStudentRecord getDataForBatch(UUID studentID,String accessToken) {
-        GraduationStudentRecord ent = graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByStudentID(studentID));
+        GraduationStudentRecord ent = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusRepository.findByStudentID(studentID));
         return  processReceivedStudent(ent,accessToken);
     }
 
@@ -1147,7 +1146,7 @@ public class GraduationStatusService {
             }
             if (isUpdated) {
                 graduationStatusRepository.save(entity);
-                return graduationStatusTransformer.transformToDTO(entity);
+                return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(entity);
             }
         }
         return null;
