@@ -16,6 +16,8 @@ import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CommonService {
@@ -202,11 +205,11 @@ public class CommonService {
 		GradStudentAlgorithmData data = new GradStudentAlgorithmData();
 		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID, accessToken);
 		GraduationStudentRecord gradStudentRecord = graduationStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID));
-		List<StudentCareerProgram>  cpList = new ArrayList<>();
-		try {
-			cpList = getAllGradStudentCareerProgramList(studentID, accessToken);
-		}catch (Exception e) {
-			logger.debug("TRAX-API-DOWN {}",e.getLocalizedMessage());
+		List<StudentCareerProgram> cpList = getAllGradStudentCareerProgramList(studentID, accessToken);
+		GradTraxStudent gradTraxStudent = gradStudentService.getTraxStudentMasterDataByPen(gradStudent.getPen(), accessToken);
+		if(gradTraxStudent != null) {
+			gradStudent.setStudentCitizenship(gradTraxStudent.getStudentCitizenship());
+			gradStudentRecord.setStudentCitizenship(gradTraxStudent.getStudentCitizenship());
 		}
 		data.setGradStudent(gradStudent);
 		data.setGraduationStudentRecord(gradStudentRecord);
