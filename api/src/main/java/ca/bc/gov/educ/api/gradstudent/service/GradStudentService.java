@@ -398,6 +398,18 @@ public class GradStudentService {
 		if (StringUtils.isBlank(statusCode) || studentIDs.isEmpty()) {
 			return new ArrayList<>();
 		}
-		return graduationStatusRepository.filterGivenStudentsByStatusCode(studentIDs, statusCode);
+		List<UUID> results = new ArrayList<>();
+		int pageSize = 1000;
+		int pageNum = studentIDs.size() / pageSize + 1;
+		for (int i = 0; i < pageNum; i++) {
+			int startIndex = i * pageSize;
+			int endIndex = Math.min(startIndex + pageSize, studentIDs.size());
+			List<UUID> inputIDs = studentIDs.subList(startIndex, endIndex);
+			List<UUID> responseIDs = graduationStatusRepository.filterGivenStudentsByStatusCode(inputIDs, statusCode);
+			if (responseIDs != null && !responseIDs.isEmpty()) {
+				results.addAll(responseIDs);
+			}
+		}
+		return results;
 	}
 }
