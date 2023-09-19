@@ -103,6 +103,8 @@ public class EducGradStudentApiConstants {
     public static final String CONV_STUDENT_OPTIONAL_PROGRAM_BY_STUDENT_ID = "/conv/studentoptionalprogram/{optionalProgramID}/{studentID}";
     public static final String CONV_STUDENT_CAREER_PROGRAM_BY_STUDENT_ID = "/conv/studentcareerprogram/{careerProgramCode}/{studentID}";
 
+    public static final String EDW_GRADUATION_STATUS_SNAPSHOT = "/edw/snapshot";
+
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final String DEFAULT_UPDATED_BY = "API_GRAD_STUDENT";
@@ -131,6 +133,9 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.grad-trax-api.district-by-district-code.url}")
     private String districtByDistrictCodeUrl;
+
+    @Value("${endpoint.grad-trax-api.get-student-master-data.url}")
+    private String traxStudentMasterDataByPenUrl;
 
     @Value("${endpoint.grad-program-api.career_program-by-career-code.url}")
     private String careerProgramByCodeUrl;
@@ -189,4 +194,17 @@ public class EducGradStudentApiConstants {
     // Data Conversion option
     @Value("${data-conversion.student-guid-pen-xref.enabled}")
     private boolean studentGuidPenXrefEnabled;
+
+    // Scheduler: ongoing updates from GRAD to TRAX
+    @Value("${cron.scheduled.process.events.stan.run}")
+    private String gradToTraxCronRun;
+
+    @Value("${cron.scheduled.process.events.stan.lockAtLeastFor}")
+    private String gradToTraxLockAtLeastFor;
+
+    @Value("${cron.scheduled.process.events.stan.lockAtMostFor}")
+    private String gradToTraxLockAtMostFor;
+
+    @Value("${cron.scheduled.process.events.stan.threshold}")
+    private int gradToTraxProcessingThreshold;
 }
