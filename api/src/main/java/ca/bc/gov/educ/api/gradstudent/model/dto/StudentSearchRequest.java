@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.gson.Gson;
 import lombok.Builder;
@@ -32,9 +33,9 @@ public class StudentSearchRequest {
     List<String> pens;
     List<String> programs;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
     Date gradDateFrom;
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
     Date gradDateTo;
 
     Boolean validateInput;

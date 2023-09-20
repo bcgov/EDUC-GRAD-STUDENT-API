@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -14,6 +15,8 @@ public interface StudentCareerProgramRepository extends JpaRepository<StudentCar
     List<StudentCareerProgramEntity> findAll();
 
 	List<StudentCareerProgramEntity> findByStudentID(UUID studentId);
+
+	Optional<StudentCareerProgramEntity> findByStudentIDAndCareerProgramCode(UUID studentId, String careerProgramCode);
 
 	@Query("select c from StudentCareerProgramEntity c where c.careerProgramCode=:cpCode")
 	List<StudentCareerProgramEntity> existsByCareerProgramCode(String cpCode);

@@ -136,18 +136,18 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
-    public void testUpdateStudentGradStatus() throws JsonProcessingException {
-        // ID
-        UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
+        public void testUpdateStudentGradStatus() throws JsonProcessingException {
+            // ID
+            UUID studentID = UUID.randomUUID();
+            String mincode = "12345678";
 
-        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
-        graduationStatus.setStudentID(studentID);
-        graduationStatus.setPen("123456789");
-        graduationStatus.setStudentStatus("A");
-        graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
-        graduationStatus.setSchoolOfRecord(mincode);
+            GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+            graduationStatus.setStudentID(studentID);
+            graduationStatus.setPen("123456789");
+            graduationStatus.setStudentStatus("A");
+            graduationStatus.setRecalculateGradStatus("Y");
+            graduationStatus.setProgram("2018-en");
+            graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));

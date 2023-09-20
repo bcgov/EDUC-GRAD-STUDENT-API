@@ -14,11 +14,11 @@ env:
   APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
   NAMESPACE: ${{ secrets.GRAD_NAMESPACE }}
   TAG: "latest"
-
+  #GRAD2-1947 Resource optmization
   MIN_CPU: "20m"
   MAX_CPU: "250m"
-  MIN_MEM: "250Mi"
-  MAX_MEM: "1024Mi"
+  MIN_MEM: "500Mi"
+  MAX_MEM: "2Gi"
   MIN_REPLICAS: "3"
   MAX_REPLICAS: "5"
 
@@ -31,7 +31,7 @@ jobs:
   deploy-to-openshift-prod:
     name: Deploy to OpenShift PROD
     # ubuntu-20.04 can also be used.
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     environment: prod
 
     outputs:

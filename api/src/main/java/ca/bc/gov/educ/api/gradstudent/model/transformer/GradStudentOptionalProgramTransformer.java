@@ -21,7 +21,8 @@ public class GradStudentOptionalProgramTransformer {
 
     public StudentOptionalProgram transformToDTO (StudentOptionalProgramEntity gradStudentOptionalProgramEntity) {
     	StudentOptionalProgram gradStudentOptionalProgram = modelMapper.map(gradStudentOptionalProgramEntity, StudentOptionalProgram.class);
-    	gradStudentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStudentOptionalProgram.getOptionalProgramCompletionDate() != null ? gradStudentOptionalProgram.getOptionalProgramCompletionDate():null));
+    	gradStudentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate() != null ?
+                EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate()) : null));
     	return gradStudentOptionalProgram;
     }
 
@@ -39,8 +40,9 @@ public class GradStudentOptionalProgramTransformer {
 		List<StudentOptionalProgram> gradStudentOptionalProgramList = new ArrayList<>();
         for (StudentOptionalProgramEntity gradStudentOptionalProgramEntity : gradStudentOptionalProgramEntities) {
         	StudentOptionalProgram gradStudentOptionalProgram = modelMapper.map(gradStudentOptionalProgramEntity, StudentOptionalProgram.class);
-        	gradStudentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStudentOptionalProgram.getOptionalProgramCompletionDate() != null ? gradStudentOptionalProgram.getOptionalProgramCompletionDate():null));
-        	gradStudentOptionalProgramList.add(gradStudentOptionalProgram);
+            gradStudentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate() != null ?
+                    EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate()) : null));
+            gradStudentOptionalProgramList.add(gradStudentOptionalProgram);
         }
         return gradStudentOptionalProgramList;
     }

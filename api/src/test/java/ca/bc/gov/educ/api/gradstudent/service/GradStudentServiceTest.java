@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
@@ -38,6 +39,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -62,6 +65,9 @@ public class GradStudentServiceTest {
 
     @MockBean
     WebClient webClient;
+
+    @MockBean
+    FetchGradStatusSubscriber fetchGradStatusSubscriber;
 
     @MockBean
     GraduationStudentRecordRepository graduationStatusRepository;
@@ -143,7 +149,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
@@ -238,7 +244,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         org.springframework.data.domain.Page<GraduationStudentRecordEntity> pagedResult = new PageImpl<>(List.of(graduationStatusEntity));
         when(this.graduationStatusRepository.findAll(any(), any(Pageable.class))).thenReturn(pagedResult);
@@ -339,7 +345,7 @@ public class GradStudentServiceTest {
 
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
         when(this.graduationStatusRepository.findByStudentIDIn(studentSubList)).thenReturn(List.of(graduationStatusEntity));
         RestResponsePage<Student> response = new RestResponsePage<>(List.of(student));
         final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<>() {
@@ -499,7 +505,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
@@ -591,7 +597,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
@@ -625,6 +631,35 @@ public class GradStudentServiceTest {
         assertThat(result.getStatusCode()).isEqualTo(student.getStatusCode());
         assertThat(result.getEmail()).isEqualTo(student.getEmail());
         assertThat(result.getEmailVerified()).isEqualTo(student.getEmailVerified());
+    }
+
+    @Test
+    public void testGetTraxStudentMasterDataByPen() {
+
+        String pen = "128385861";
+        GradTraxStudent sObj = new GradTraxStudent();
+        sObj.setPen(pen);
+
+        final ParameterizedTypeReference<List<GradTraxStudent>> responseType = new ParameterizedTypeReference<>() {
+        };
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of(sObj)));
+
+        GradTraxStudent result = gradStudentService.getTraxStudentMasterDataByPen(pen, "accessToken");
+        assertNotNull(result);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of()));
+
+        result = gradStudentService.getTraxStudentMasterDataByPen(pen, "accessToken");
+        assertNull(result);
     }
 
     @Test
@@ -692,6 +727,35 @@ public class GradStudentServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getProgram()).isEqualTo("2018-EN");
     }
+
+    @Test
+    public void testGetStudentIDsByStatusCode_whenStatusCode_is_notProvided() {
+        // ID
+        final UUID studentID = UUID.randomUUID();
+        var result = gradStudentService.getStudentIDsByStatusCode(Arrays.asList(studentID), "");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentIDsByStatusCode_whenStudentIDs_are_notProvided() {
+        var result = gradStudentService.getStudentIDsByStatusCode(new ArrayList<>(), "DEC");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentIDsByStatusCode() {
+        // ID 1
+        final UUID studentID1 = UUID.randomUUID();
+        // ID 2
+        final UUID studentID2 = UUID.randomUUID();
+
+        Mockito.when(graduationStatusRepository.filterGivenStudentsByStatusCode(Arrays.asList(studentID1, studentID2), "DEC")).thenReturn(Arrays.asList(studentID1));
+
+        var result = gradStudentService.getStudentIDsByStatusCode(Arrays.asList(studentID1, studentID2), "DEC");
+        assertThat(result).isNotEmpty();
+        assertThat(result.get(0)).isEqualTo(studentID1);
+    }
+
 
 
     @SneakyThrows

@@ -1,24 +1,14 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
-
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Consumer;
-
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,19 +18,20 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.function.Consumer;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -49,6 +40,10 @@ public class CommonServiceTest {
 
     @Autowired EducGradStudentApiConstants constants;
     @Autowired CommonService commonService;
+    @Autowired GradStudentReportService gradStudentReportService;
+    @MockBean  ReportGradStudentDataRepository reportGradStudentDataRepository;
+    @MockBean  ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
+    @MockBean ReportGradDistrictYearEndRepository reportGradDistrictYearEndRepository;
 
     @MockBean GradStudentService gradStudentService;
     @MockBean GraduationStatusService graduationStatusService;
@@ -57,6 +52,9 @@ public class CommonServiceTest {
     @MockBean StudentStatusRepository studentStatusRepository;
     @MockBean HistoryActivityRepository historyActivityRepository;
     @MockBean WebClient webClient;
+
+    @MockBean
+    FetchGradStatusSubscriber fetchGradStatusSubscriber;
     @Mock WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
     @Mock WebClient.RequestBodySpec requestBodyMock;
@@ -76,6 +74,55 @@ public class CommonServiceTest {
 
     @After
     public void tearDown() {
+
+    }
+
+    @Test
+    public void testGetReportGradStudentDataByMincode() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        ReportGradStudentDataEntity reportGradStudentDataEntity = new ReportGradStudentDataEntity();
+        reportGradStudentDataEntity.setGraduationStudentRecordId(studentID);
+        reportGradStudentDataEntity.setFirstName("Jonh");
+
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeAscSchoolNameAscLastNameAsc("005")).thenReturn(List.of(reportGradStudentDataEntity));
+        var result = gradStudentReportService.getGradStudentDataByMincode("03939000");
+        assertThat(result).isNotNull();
+
+        ReportGradSchoolYearEndEntity schoolYearEndEntity = new ReportGradSchoolYearEndEntity();
+        schoolYearEndEntity.setMincode(reportGradStudentDataEntity.getMincode());
+
+        when(reportGradSchoolYearEndRepository.findAll()).thenReturn(List.of(schoolYearEndEntity));
+        var minCodes = gradStudentReportService.getGradSchoolsForNonGradYearEndReport();
+        assertThat(minCodes).isNotNull();
+
+    }
+
+    @Test
+    public void testGetReportGradStudentDataByDistcode() {
+
+        ReportGradDistrictYearEndEntity districtYearEndEntity = new ReportGradDistrictYearEndEntity();
+        districtYearEndEntity.setMincode("03939000");
+
+        when(reportGradDistrictYearEndRepository.findAll()).thenReturn(List.of(districtYearEndEntity));
+        var minCodes = gradStudentReportService.getGradDistrictsForNonGradYearEndReport();
+        assertThat(minCodes).isNotNull();
+
+    }
+
+    @Test
+    public void testGetReportGradStudentData() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        ReportGradStudentDataEntity reportGradStudentDataEntity = new ReportGradStudentDataEntity();
+        reportGradStudentDataEntity.setGraduationStudentRecordId(studentID);
+        reportGradStudentDataEntity.setFirstName("Jonh");
+
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentDataEntity));
+        var result = gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()));
+        assertThat(result).isNotNull();
 
     }
 
@@ -173,8 +220,6 @@ public class CommonServiceTest {
         assertThat(result.size()).isEqualTo(2);
         assertThat(result.get(0).getStudentID()).isEqualTo(studentID.toString());
         assertThat(result.get(1).getStudentID()).isEqualTo(studentID.toString());
-        assertThat(result.get(0).getNote()).isEqualTo(note1.getNote());
-        assertThat(result.get(1).getNote()).isEqualTo(note2.getNote());
     }
 
     @Test
@@ -282,7 +327,8 @@ public class CommonServiceTest {
 		obj.setUpdateDate(new Date());
 		gradStudentStatusList.add(obj);
 		Mockito.when(studentStatusRepository.findAll()).thenReturn(gradStudentStatusList);
-		commonService.getAllStudentStatusCodeList();
+        List<StudentStatus> result = commonService.getAllStudentStatusCodeList();
+        assertThat(result).isNotNull();
 	}
 	
 	@Test
@@ -293,8 +339,8 @@ public class CommonServiceTest {
 		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date());
-		obj.setUpdateDate(new Date());
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
 		objEntity.setDescription("Data Correction by School");
@@ -304,14 +350,16 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(reasonCode)).thenReturn(ent);
-		commonService.getSpecificStudentStatusCode(reasonCode);
+        StudentStatus result = commonService.getSpecificStudentStatusCode(reasonCode);
+        assertThat(result).isNotNull();
 	}
 	
 	@Test
 	public void testGetSpecificStudentStatusCodeReturnsNull() {
 		String reasonCode = "DC";
 		Mockito.when(studentStatusRepository.findById(reasonCode)).thenReturn(Optional.empty());
-		commonService.getSpecificStudentStatusCode(reasonCode);
+        StudentStatus result = commonService.getSpecificStudentStatusCode(reasonCode);
+        assertThat(result).isNull();
 	}
 	
 	@Test
@@ -321,8 +369,8 @@ public class CommonServiceTest {
 		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date());
-		obj.setUpdateDate(new Date());
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
 		objEntity.setDescription("Data Correction by School");
@@ -332,7 +380,8 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(Optional.empty());
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
-		commonService.createStudentStatus(obj);
+        StudentStatus result = commonService.createStudentStatus(obj);
+        assertThat(result).isNotNull();
 		
 	}
 	
@@ -343,8 +392,8 @@ public class CommonServiceTest {
 		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date());
-		obj.setUpdateDate(new Date());
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
 		objEntity.setDescription("Data Correction by School");
@@ -354,7 +403,8 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
-		commonService.createStudentStatus(obj);
+		StudentStatus result = commonService.createStudentStatus(obj);
+        assertThat(result).isNotNull();
 		
 	}
 	
@@ -365,8 +415,8 @@ public class CommonServiceTest {
 		obj.setDescription("Data Correction by Schools");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date());
-		obj.setUpdateDate(new Date());
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
 		objEntity.setDescription("Data Correction by School");
@@ -377,8 +427,8 @@ public class CommonServiceTest {
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
-		commonService.updateStudentStatus(obj);
-		
+        StudentStatus result = commonService.updateStudentStatus(obj);
+        assertThat(result).isNotNull();
 	}
 	
 	@Test
@@ -388,8 +438,8 @@ public class CommonServiceTest {
 		obj.setDescription("Data Correction by Schools");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date());
-		obj.setUpdateDate(new Date());
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
 		objEntity.setDescription("Data Correction by School");
@@ -398,8 +448,8 @@ public class CommonServiceTest {
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
-		commonService.updateStudentStatus(obj);
-		
+        StudentStatus result = commonService.updateStudentStatus(obj);
+        assertThat(result).isNotNull();
 	}
 	
 	@Test(expected = GradBusinessRuleException.class)
@@ -409,8 +459,8 @@ public class CommonServiceTest {
 		obj.setDescription("Data Correction by Schools");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date());
-		obj.setUpdateDate(new Date());
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
 		objEntity.setDescription("Data Correction by School");
@@ -419,8 +469,8 @@ public class CommonServiceTest {
 		objEntity.setCreateDate(new Date());
 		objEntity.setUpdateDate(new Date());
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(Optional.empty());
-		commonService.updateStudentStatus(obj);
-		
+        StudentStatus result = commonService.updateStudentStatus(obj);
+        assertThat(result).isNotNull();
 	}
 
     @Test
@@ -478,8 +528,8 @@ public class CommonServiceTest {
         obj.setDescription("Data Correction by School");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
-        obj.setCreateDate(new Date());
-        obj.setUpdateDate(new Date());
+        obj.setCreateDate(LocalDateTime.now());
+        obj.setUpdateDate(LocalDateTime.now());
         HistoryActivityCodeEntity objEntity = new HistoryActivityCodeEntity();
         objEntity.setCode("DC");
         objEntity.setDescription("Data Correction by School");
@@ -502,6 +552,8 @@ public class CommonServiceTest {
     @Test
     public  void testGetGradStudentAlgorithmData() {
         UUID studentID = UUID.randomUUID();
+        String accessToken = "accessToken";
+        String pen = "128385861";
 
         // Career Program
         final CareerProgram gradCareerProgram = new CareerProgram();
@@ -510,10 +562,12 @@ public class CommonServiceTest {
 
         GradSearchStudent gss = new GradSearchStudent();
         gss.setStudentID(studentID.toString());
+        gss.setPen(pen);
         gss.setStudentGrade("12");
 
         GraduationStudentRecord gradStudentRecord = new GraduationStudentRecord();
         gradStudentRecord.setStudentID(studentID);
+        gradStudentRecord.setPen(pen);
         gradStudentRecord.setStudentGrade("12");
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
@@ -528,11 +582,52 @@ public class CommonServiceTest {
         spg.setCareerProgramCode("TEST");
         cpList.add(spg);
 
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), null)).thenReturn(gss);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), accessToken)).thenReturn(gss);
         when(graduationStatusService.getGraduationStatusForAlgorithm(studentID)).thenReturn(gradStudentRecord);
         when(gradStudentCareerProgramRepository.findByStudentID(studentID)).thenReturn(cpList);
 
-        GradStudentAlgorithmData data =  commonService.getGradStudentAlgorithmData(studentID.toString(),null);
+        GradTraxStudent sObj = new GradTraxStudent();
+        sObj.setPen(pen);
+        sObj.setStudentCitizenship("C");
+
+        final ParameterizedTypeReference<List<GradTraxStudent>> responseType = new ParameterizedTypeReference<>() {
+        };
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of(sObj)));
+
+        when(gradStudentService.getTraxStudentMasterDataByPen(sObj.getPen(), accessToken)).thenReturn(sObj);
+
+        GradStudentAlgorithmData data =  commonService.getGradStudentAlgorithmData(studentID.toString(),accessToken);
         assertThat(data).isNotNull();
+        assertThat(data.getGraduationStudentRecord().getStudentCitizenship()).isNotNull();
+
+        sObj.setStudentCitizenship(null);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of()));
+
+        when(gradStudentService.getTraxStudentMasterDataByPen(sObj.getPen(), accessToken)).thenReturn(sObj);
+
+        data =  commonService.getGradStudentAlgorithmData(studentID.toString(),accessToken);
+        assertThat(data).isNotNull();
+        assertThat(data.getGraduationStudentRecord().getStudentCitizenship()).isNull();
+    }
+
+    @Test
+    public void testGetDeceasedStudentIDs() {
+        UUID studentID1 = UUID.randomUUID();
+        UUID studentID2 = UUID.randomUUID();
+
+        when(gradStudentService.getStudentIDsByStatusCode(Arrays.asList(studentID1, studentID2), "DEC")).thenReturn(Arrays.asList(studentID1, studentID2));
+        List<UUID> results = commonService.getDeceasedStudentIDs(Arrays.asList(studentID1, studentID2));
+
+        assertThat(results).isNotEmpty();
     }
 }

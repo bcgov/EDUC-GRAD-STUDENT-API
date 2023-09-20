@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.Topics.GRAD_STATUS_EVENT_TOPIC;
@@ -72,7 +72,7 @@ public class Subscriber {
    * @param message the string representation of {@link ChoreographedEvent} if it not type of event then it will throw exception and will be ignored.
    */
   public void onGradStatusEventsTopicMessage(final Message message) {
-    log.info("Received message Subject:: {} , SID :: {} , sequence :: {}, pending :: {} ", message.getSubject(), message.getSID(), message.metaData().consumerSequence(), message.metaData().pendingCount());
+    log.debug("Received message Subject:: {} , SID :: {} , sequence :: {}, pending :: {} ", message.getSubject(), message.getSID(), message.metaData().consumerSequence(), message.metaData().pendingCount());
     try {
       val eventString = new String(message.getData());
       LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());

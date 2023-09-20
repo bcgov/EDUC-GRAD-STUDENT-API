@@ -5,8 +5,10 @@ spring:
   datasource:
     hikari:
       pool-name: educ-grad-student-api-cp
-      maximum-pool-size: ${MAXIMUM_POOL_SIZE}
       connection-timeout: ${CONNECTION_TIMEOUT}
+      maximum-pool-size: ${MAXIMUM_POOL_SIZE}
+      minimum-idle: ${MIN_IDLE}
+      idle-timeout: ${IDLE_TIMEOUT}
       max-lifetime: ${MAX_LIFETIME}
     url: ${CONNECTION_STRING}
     username: ${USERNAME}
@@ -22,6 +24,8 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: false
+    #date-format: "yyyy-MM-dd HH:mm:ss"
+    #time-zone: ${JACKSON_TZ}
   flyway:
     enabled: ${ENABLE_FLYWAY}
     baseline-on-migrate: false
@@ -103,6 +107,7 @@ cron:
           run: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN}
           lockAtLeastFor: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_LOCK_AT_LEAST_FOR}
           lockAtMostFor: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_LOCK_AT_MOST_FOR}
+          threshold: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_THRESHOLD}
 
 #Resilience
 resilience4j.retry:
@@ -146,6 +151,8 @@ resilience4j.retry:
 #Endpoint properties
 endpoint:
   grad-trax-api:
+    get-student-master-data:
+      url: ${GRAD_TRAX_API}api/v1/trax/common/student-master/%s
     school-by-min-code:
       url: ${GRAD_TRAX_API}api/v1/trax/school/%s
     district-by-district-code:
@@ -195,4 +202,9 @@ splunk:
 trax:
   update:
     enabled: ${ENABLE_TRAX_UPDATE}
+
+#Conversion option
+data-conversion:
+  student-guid-pen-xref:
+    enabled:  ${ENABLE_STUDENT_ID_PEN_XREF}
 

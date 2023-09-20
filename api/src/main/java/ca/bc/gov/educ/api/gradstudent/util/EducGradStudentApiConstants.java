@@ -73,6 +73,13 @@ public class EducGradStudentApiConstants {
     public static final String GET_ALL_STUDENT_STATUS_MAPPING = "/studentstatus";
     public static final String GET_ALL_STUDENT_STATUS_BY_CODE_MAPPING = "/studentstatus/{statusCode}";
     public static final String STUDENT_ALGORITHM_DATA = "/algorithmdata/{studentID}";
+    public static final String GET_ALL_STUDENT_REPORT_DATA_BY_MINCODE = "/studentschoolreportdata/{mincode}";
+    public static final String GET_ALL_STUDENT_REPORT_DATA = "/studentschoolreportdata";
+    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA = "/studentnongradreportdata";
+    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_MINCODE = "/studentnongradreportdata/{mincode}";
+    public static final String GET_ALL_SCHOOL_NON_GRAD_REPORT_DATA = "/schoolnongradreportdata";
+    public static final String GET_ALL_DISTRICT_NON_GRAD_REPORT_DATA = "/districtnongradreportdata";
+    public static final String GET_DECEASED_STUDENT_ID = "/deceasedstudentid";
     
     public static final String RETURN_TO_ORIGINAL_STATE = "/algorithmerror/{studentID}";
 
@@ -88,11 +95,24 @@ public class EducGradStudentApiConstants {
 
     public static final String GET_STUDENTS_FOR_YEARLY_DISTRIBUTION = "/yearlydistribution";
 
+    // Data Conversion : Initial Student Load & Ongoing Update from TRAX to GRAD
+    public static final String CONV_GRADUATION_STATUS_BY_STUDENT_ID = "/conv/studentid/{studentID}";
+    public static final String CONV_STUDENT_OPTIONAL_PROGRAM = "/conv/studentoptionalprogram";
+    public static final String CONV_STUDENT_CAREER_PROGRAM = "/conv/studentcareerprogram";
+
+    public static final String CONV_STUDENT_OPTIONAL_PROGRAM_BY_STUDENT_ID = "/conv/studentoptionalprogram/{optionalProgramID}/{studentID}";
+    public static final String CONV_STUDENT_CAREER_PROGRAM_BY_STUDENT_ID = "/conv/studentcareerprogram/{careerProgramCode}/{studentID}";
+
+    public static final String EDW_GRADUATION_STATUS_SNAPSHOT = "/edw/snapshot";
+
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final String DEFAULT_UPDATED_BY = "API_GRAD_STUDENT";
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String SECOND_DEFAULT_DATE_FORMAT = "yyyy/MM/dd";
+    public static final String SECOND_DEFAULT_DATE_TIME_FORMAT = "yyyy/MM/dd HH:mm:ss";
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
     public static final String PROGRAM_COMPLETION_DATE_FORMAT = "yyyy/MM";
     public static final String DATE_FORMAT = "yyyy/MM/dd";
@@ -113,6 +133,9 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.grad-trax-api.district-by-district-code.url}")
     private String districtByDistrictCodeUrl;
+
+    @Value("${endpoint.grad-trax-api.get-student-master-data.url}")
+    private String traxStudentMasterDataByPenUrl;
 
     @Value("${endpoint.grad-program-api.career_program-by-career-code.url}")
     private String careerProgramByCodeUrl;
@@ -167,4 +190,21 @@ public class EducGradStudentApiConstants {
     // Incremental Trax Update
     @Value("${trax.update.enabled}")
     private boolean traxUpdateEnabled;
+
+    // Data Conversion option
+    @Value("${data-conversion.student-guid-pen-xref.enabled}")
+    private boolean studentGuidPenXrefEnabled;
+
+    // Scheduler: ongoing updates from GRAD to TRAX
+    @Value("${cron.scheduled.process.events.stan.run}")
+    private String gradToTraxCronRun;
+
+    @Value("${cron.scheduled.process.events.stan.lockAtLeastFor}")
+    private String gradToTraxLockAtLeastFor;
+
+    @Value("${cron.scheduled.process.events.stan.lockAtMostFor}")
+    private String gradToTraxLockAtMostFor;
+
+    @Value("${cron.scheduled.process.events.stan.threshold}")
+    private int gradToTraxProcessingThreshold;
 }

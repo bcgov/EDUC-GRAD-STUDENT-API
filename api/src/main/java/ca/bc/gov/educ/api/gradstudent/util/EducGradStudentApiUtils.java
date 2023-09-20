@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradStatusEventPayloadDTO;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -137,7 +137,6 @@ public class EducGradStudentApiUtils {
     }
 
     public static String getCurrentDate() {
-
         Date gradDate = new Date();
         DateFormat dateFormat = new SimpleDateFormat(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
         return dateFormat.format(gradDate);
@@ -155,13 +154,14 @@ public class EducGradStudentApiUtils {
         return diff.getDays() + diff.getMonths()*30;
     }
 
-    public static GradStatusEventPayloadDTO transform(GraduationStudentRecord graduationStudentRecord) {
+    public static GradStatusEventPayloadDTO transform(GraduationStudentRecordEntity graduationStudentRecord) {
         return GradStatusEventPayloadDTO.builder()
                 .pen(graduationStudentRecord.getPen())
                 .program(graduationStudentRecord.getProgram())
                 .schoolOfRecord(graduationStudentRecord.getSchoolOfRecord())
                 .schoolAtGrad(graduationStudentRecord.getSchoolAtGrad())
-                .programCompletionDate(graduationStudentRecord.getProgramCompletionDate())
+                .programCompletionDate(graduationStudentRecord.getProgramCompletionDate() != null?
+                        EducGradStudentApiUtils.getProgramCompletionDate(graduationStudentRecord.getProgramCompletionDate()) : null)
                 .studentGrade(graduationStudentRecord.getStudentGrade())
                 .studentStatus(graduationStudentRecord.getStudentStatus())
                 .honoursStanding(graduationStudentRecord.getHonoursStanding())

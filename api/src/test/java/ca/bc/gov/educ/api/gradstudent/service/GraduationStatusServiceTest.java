@@ -1,11 +1,14 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordSearchEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -14,6 +17,7 @@ import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.val;
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -35,8 +43,11 @@ import reactor.core.publisher.Mono;
 import java.sql.Date;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import static ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService.PAGE_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -50,12 +61,17 @@ public class GraduationStatusServiceTest {
     EducGradStudentApiConstants constants;
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean GradStudentService gradStudentService;
+    @Autowired GradStudentReportService gradStudentReportService;
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
+    @MockBean ReportGradStudentDataRepository reportGradStudentDataRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
     @MockBean WebClient webClient;
+
+    @MockBean
+    FetchGradStatusSubscriber fetchGradStatusSubscriber;
     @Mock WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
     @Mock WebClient.RequestBodySpec requestBodyMock;
@@ -77,6 +93,53 @@ public class GraduationStatusServiceTest {
     @After
     public void tearDown() {
 
+    }
+
+    @Test
+    public void testHasStudentGraduated_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        boolean result = graduationStatusService.hasStudentGraduated(studentID);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testHasStudentGraduated_GivenNoProgramCompletionDate_ExpectFalse() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        boolean result = graduationStatusService.hasStudentGraduated(studentID);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testHasStudentGraduated_GivenNotFound_ExpectEntityNotFoundException() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> {
+            graduationStatusService.hasStudentGraduated(studentID);
+        });
+    }
+
+    @Test
+    public void testGetGraduationStatus_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        GraduationStudentRecord result = graduationStatusService.getGraduationStatus(studentID);
+        assertTrue(result != null);
+    }
+
+    @Test
+    public void testGetGraduationStatus_givenNotFound_ExpectEntityNotFoundExcetpion() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> {
+            graduationStatusService.getGraduationStatus(studentID);
+        });
     }
 
     @Test
@@ -535,7 +598,8 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
         Long batchId = 1234L;
-        Date programCompletionDate = new Date(System.currentTimeMillis() + 86400000L);  // add one day as milliseconds
+        java.util.Date futureDate = DateUtils.addMonths(new Date(System.currentTimeMillis()), 1);
+        Date programCompletionDate = new Date(futureDate.getTime());
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -556,9 +620,21 @@ public class GraduationStatusServiceTest {
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+        savedGraduationStatus.setPen(null);
+
+        GradSearchStudent gss = new GradSearchStudent();
+        gss.setPen("123456789");
+        gss.setMincode(mincode);
+        gss.setStudentID(studentID.toString());
+        gss.setStudentStatus("CUR");
+        gss.setStudentGrade("12");
+        gss.setLegalFirstName("Test");
+        gss.setLegalMiddleNames("Master");
+        gss.setLegalLastName("QA");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), "accessToken")).thenReturn(gss);
 
         var response = graduationStatusService.saveGraduationStatus(studentID, input, batchId, "accessToken");
         assertThat(response).isNotNull();
@@ -1284,6 +1360,7 @@ public class GraduationStatusServiceTest {
 
         var result = graduationStatusService.searchGraduationStudentRecords(searchRequest, "accessToken");
         assertThat(result).isNotNull();
+        assertThat(result.getValidationErrors()).isNotEmpty();
 
     }
 
@@ -1657,9 +1734,358 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setLegalLastName("sadad");
         histList.add(graduationStatusEntity);
 
-        when(graduationStatusRepository.findStudentsForYearlyDistribution()).thenReturn(histList);
+        when(graduationStatusRepository.findStudentsForYearlyDistribution(PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+
+            @Override
+            public Iterator<UUID> iterator() {
+                return getContent().listIterator();
+            }
+
+            @Override
+            public int getNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getSize() {
+                return 1;
+            }
+
+            @Override
+            public int getNumberOfElements() {
+                return 1;
+            }
+
+            @Override
+            public List<UUID> getContent() {
+                return List.of(graduationStatusEntity.getStudentID());
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !getContent().isEmpty();
+            }
+
+            @Override
+            public Sort getSort() {
+                return null;
+            }
+
+            @Override
+            public boolean isFirst() {
+                return false;
+            }
+
+            @Override
+            public boolean isLast() {
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return false;
+            }
+
+            @Override
+            public Pageable nextPageable() {
+                return null;
+            }
+
+            @Override
+            public Pageable previousPageable() {
+                return null;
+            }
+
+            @Override
+            public int getTotalPages() {
+                return getContent().size();
+            }
+
+            @Override
+            public long getTotalElements() {
+                return getContent().size();
+            }
+
+            @Override
+            public Page map(Function converter) {
+                return null;
+            }
+        });
+
         List<UUID> list = graduationStatusService.getStudentsForYearlyDistribution();
         assertThat(list).isNotEmpty().hasSize(1);
+
+        ReportGradStudentDataEntity reportGradStudentData = new ReportGradStudentDataEntity();
+        reportGradStudentData.setGraduationStudentRecordId(graduationStatusEntity.getStudentID());
+
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+
+            @Override
+            public Iterator<ReportGradStudentDataEntity> iterator() {
+                return getContent().listIterator();
+            }
+
+            @Override
+            public int getNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getSize() {
+                return 1;
+            }
+
+            @Override
+            public int getNumberOfElements() {
+                return 1;
+            }
+
+            @Override
+            public List<ReportGradStudentDataEntity> getContent() {
+                return List.of(reportGradStudentData);
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !getContent().isEmpty();
+            }
+
+            @Override
+            public Sort getSort() {
+                return null;
+            }
+
+            @Override
+            public boolean isFirst() {
+                return false;
+            }
+
+            @Override
+            public boolean isLast() {
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return false;
+            }
+
+            @Override
+            public Pageable nextPageable() {
+                return null;
+            }
+
+            @Override
+            public Pageable previousPageable() {
+                return null;
+            }
+
+            @Override
+            public int getTotalPages() {
+                return getContent().size();
+            }
+
+            @Override
+            public long getTotalElements() {
+                return getContent().size();
+            }
+
+            @Override
+            public Page map(Function converter) {
+                return null;
+            }
+        });
+
+        var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport();
+        assertThat(result).isNotEmpty().hasSize(1);
+
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(graduationStatusEntity.getSchoolOfRecord(), PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+
+            @Override
+            public Iterator<ReportGradStudentDataEntity> iterator() {
+                return getContent().listIterator();
+            }
+
+            @Override
+            public int getNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getSize() {
+                return 1;
+            }
+
+            @Override
+            public int getNumberOfElements() {
+                return 1;
+            }
+
+            @Override
+            public List<ReportGradStudentDataEntity> getContent() {
+                return List.of(reportGradStudentData);
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !getContent().isEmpty();
+            }
+
+            @Override
+            public Sort getSort() {
+                return null;
+            }
+
+            @Override
+            public boolean isFirst() {
+                return false;
+            }
+
+            @Override
+            public boolean isLast() {
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return false;
+            }
+
+            @Override
+            public Pageable nextPageable() {
+                return null;
+            }
+
+            @Override
+            public Pageable previousPageable() {
+                return null;
+            }
+
+            @Override
+            public int getTotalPages() {
+                return getContent().size();
+            }
+
+            @Override
+            public long getTotalElements() {
+                return getContent().size();
+            }
+
+            @Override
+            public Page map(Function converter) {
+                return null;
+            }
+        });
+
+        result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result).isNotEmpty().hasSize(1);
+
+        graduationStatusEntity.setSchoolOfRecord("001");
+        assertThat(graduationStatusEntity.getSchoolOfRecord()).hasSize(3);
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(graduationStatusEntity.getSchoolOfRecord(), PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+
+            @Override
+            public Iterator<ReportGradStudentDataEntity> iterator() {
+                return getContent().listIterator();
+            }
+
+            @Override
+            public int getNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getSize() {
+                return 1;
+            }
+
+            @Override
+            public int getNumberOfElements() {
+                return 1;
+            }
+
+            @Override
+            public List<ReportGradStudentDataEntity> getContent() {
+                return List.of(reportGradStudentData);
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !getContent().isEmpty();
+            }
+
+            @Override
+            public Sort getSort() {
+                return null;
+            }
+
+            @Override
+            public boolean isFirst() {
+                return false;
+            }
+
+            @Override
+            public boolean isLast() {
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return false;
+            }
+
+            @Override
+            public Pageable nextPageable() {
+                return null;
+            }
+
+            @Override
+            public Pageable previousPageable() {
+                return null;
+            }
+
+            @Override
+            public int getTotalPages() {
+                return getContent().size();
+            }
+
+            @Override
+            public long getTotalElements() {
+                return getContent().size();
+            }
+
+            @Override
+            public Page map(Function converter) {
+                return null;
+            }
+        });
+
+        result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result).isNotEmpty().hasSize(1);
+
+        assertThrows("Invalid mincode: null", IllegalArgumentException.class, () -> {
+            gradStudentReportService.getGradStudentDataForNonGradYearEndReport(null);
+        });
     }
 
     @Test

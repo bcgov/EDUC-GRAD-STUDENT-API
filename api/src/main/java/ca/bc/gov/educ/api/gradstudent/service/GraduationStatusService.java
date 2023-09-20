@@ -3,8 +3,11 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
+import ca.bc.gov.educ.api.gradstudent.constant.Generated;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
@@ -20,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +39,15 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
 @Service
 public class GraduationStatusService {
+
+    public static final int PAGE_SIZE = 500;
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusService.class);
 
@@ -59,6 +67,8 @@ public class GraduationStatusService {
     final StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     final GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer;
     final StudentCareerProgramRepository gradStudentCareerProgramRepository;
+
+    final GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
     final GradStudentService gradStudentService;
     final HistoryService historyService;
     final GradValidation validation;
@@ -68,7 +78,7 @@ public class GraduationStatusService {
     GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
-    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,  GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentStatusRepository = studentStatusRepository;
@@ -77,6 +87,7 @@ public class GraduationStatusService {
         this.gradStudentOptionalProgramRepository = gradStudentOptionalProgramRepository;
         this.gradStudentOptionalProgramTransformer = gradStudentOptionalProgramTransformer;
         this.gradStudentCareerProgramRepository = gradStudentCareerProgramRepository;
+        this.gradStudentCareerProgramTransformer = gradStudentCareerProgramTransformer;
         this.gradStudentService = gradStudentService;
         this.historyService = historyService;
         this.validation = validation;
@@ -87,7 +98,34 @@ public class GraduationStatusService {
     public GraduationStudentRecord getGraduationStatusForAlgorithm(UUID studentID) {
         logger.debug("getGraduationStatusForAlgorithm");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
-        return responseOptional.map(graduationStatusTransformer::transformToDTO).orElse(null);
+        return responseOptional.map(gs -> {
+            GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gs);
+            List<StudentCareerProgramEntity> studentCareerProgramEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
+            gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
+            return gradStatus;
+        }).orElse(null);
+    }
+
+    /**
+     * Returns true if student has a valid program completion date
+     * @param studentID
+     * @return
+     */
+    public boolean hasStudentGraduated(UUID studentID) throws EntityNotFoundException {
+        Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
+        if(responseOptional.isPresent()){
+            GraduationStudentRecordEntity graduationStudentRecord = responseOptional.get();
+            return graduationStudentRecord.getProgramCompletionDate() != null;
+        }
+        throw new EntityNotFoundException(String.format("Student with ID: {} not found", studentID));
+    }
+
+    public GraduationStudentRecord getGraduationStatus(UUID studentID) throws EntityNotFoundException {
+        Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
+        if (responseOptional.isPresent()) {
+            return graduationStatusTransformer.transformToDTO(responseOptional.get());
+        }
+        throw new EntityNotFoundException(String.format("Student with ID: {} not found", studentID));
     }
 
     @Retry(name = "generalgetcall")
@@ -95,7 +133,7 @@ public class GraduationStatusService {
         logger.debug("getGraduationStatus");
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
         if (responseOptional.isPresent()) {
-            GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTO(responseOptional.get());
+            GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(responseOptional.get());
             if (gradStatus.getProgram() != null) {
                 gradStatus.setProgramName(getProgramName(gradStatus.getProgram(), accessToken));
             }
@@ -106,10 +144,11 @@ public class GraduationStatusService {
                 Optional<StudentStatusEntity> statusEntity = studentStatusRepository.findById(StringUtils.toRootUpperCase(gradStatus.getStudentStatus()));
                 statusEntity.ifPresent(studentStatusEntity -> gradStatus.setStudentStatusName(studentStatusEntity.getLabel()));
             }
-
             if (gradStatus.getSchoolAtGrad() != null)
                 gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolAtGrad(), accessToken));
 
+            List<StudentCareerProgramEntity> studentCareerProgramEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
+            gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
             return gradStatus;
         } else {
             return null;
@@ -136,21 +175,21 @@ public class GraduationStatusService {
 
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, GRAD_ALG);
-            final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
-            final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                    savedGraduationStatus, EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
+            final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
+                    EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
+
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
             }
-            return Pair.of(savedGraduationStatus, gradStatusEvent);
+            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), gradStatusEvent);
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
-            final GraduationStudentRecord savedGraduationStatus = graduationStatusTransformer.transformToDTO(sourceObject);
-            final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getCreateUser(), sourceObject.getUpdateUser(), savedGraduationStatus, EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
+            final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getUpdateUser(), sourceObject,
+                    EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
             }
-            return Pair.of(savedGraduationStatus, gradStatusEvent);
+            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject), gradStatusEvent);
         }
     }
 
@@ -190,21 +229,22 @@ public class GraduationStatusService {
 
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "recalculateGradStatus", "recalculateProjectedGrad");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
+            gradEntity.setUpdateUser("");
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
-            final GraduationStudentRecord updatedGraduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
-            final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                    updatedGraduationStatus, EventType.GRAD_STUDENT_UPDATED, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT, accessToken);
+            final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
+                    EventType.GRAD_STUDENT_UPDATED, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT, accessToken);
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
             }
-            return Pair.of(updatedGraduationStatus, gradStatusEvent);
+            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), gradStatusEvent);
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
             return Pair.of(graduationStatus, null);
         }
     }
 
+    @Generated
     @Transactional
     public GraduationStudentRecordSearchResult searchGraduationStudentRecords(final StudentSearchRequest searchRequest, final String accessToken) {
         final GraduationStudentRecordSearchResult searchResult = new GraduationStudentRecordSearchResult();
@@ -380,20 +420,16 @@ public class GraduationStatusService {
         List<GradStudentCertificates> gradStudentCertificates = getGradStudentCertificates(gradSearchStudent.getStudentID(), accessToken);
         for(GradStudentCertificates certificates: gradStudentCertificates) {
             String certificateTypeCode = certificates.getGradCertificateTypeCode();
-            dogwood = (certificates.getDistributionDate() != null) ? "Y" : "N";
-            sccDate = ("SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && certificates.getDistributionDate() != null) ? simpleDateFormat.format(certificates.getDistributionDate()) : null;
+            dogwood = (gradDate != null && school != null && "Y".equalsIgnoreCase(school.getCertificateEligibility())) ? "Y" : "N";
+            sccDate = "SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && school != null && "Y".equalsIgnoreCase(school.getCertificateEligibility()) ? gradDate : null;
             switch(certificateTypeCode) {
                 case "E":
                     englishCert = certificateTypeCode;
                     break;
-                case "EI":
-                case "A":
-                case "AI":
-                case "O":
+                case "EI","A","AI","FN","FNA","SCFN","O":
                     englishCert = "E";
                     break;
-                case "S":
-                case "F":
+                case "S","F":
                     frenchCert = certificateTypeCode;
                     break;
                 default:
@@ -830,13 +866,12 @@ public class GraduationStatusService {
                     gradEntity.setSchoolAtGrad(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
                     historyService.createStudentHistory(gradEntity, USER_UNDO_CMPL);
-                    final GraduationStudentRecord graduationStatus = graduationStatusTransformer.transformToDTO(gradEntity);
-                    final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(),
-                            graduationStatus, EventType.GRAD_STUDENT_UNDO_COMPLETION, EventOutcome.GRAD_STATUS_UPDATED, USER_UNDO_CMPL, accessToken);
+                    final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
+                            EventType.GRAD_STUDENT_UNDO_COMPLETION, EventOutcome.GRAD_STATUS_UPDATED, USER_UNDO_CMPL, accessToken);
                     if (gradStatusEvent != null) {
                         gradStatusEventRepository.save(gradStatusEvent);
                     }
-                    return Pair.of(graduationStatus, gradStatusEvent);
+                    return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), gradStatusEvent);
 		        } else {
 		            validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
 		            return Pair.of(null, null);
@@ -851,7 +886,7 @@ public class GraduationStatusService {
         }
     }
     
-    private void deleteStudentAchievements(UUID studentID,String accessToken) {
+    public void deleteStudentAchievements(UUID studentID,String accessToken) {
     	try {
             webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
                     .headers(h -> {
@@ -859,11 +894,11 @@ public class GraduationStatusService {
                         h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
                     }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
-            logger.info(e.getLocalizedMessage());
+            logger.error(e.getLocalizedMessage());
         }
 	}
 
-    private void archiveStudentAchievements(UUID studentID,String accessToken) {
+    public void archiveStudentAchievements(UUID studentID,String accessToken) {
         try {
             webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
                     .headers(h -> {
@@ -871,8 +906,8 @@ public class GraduationStatusService {
                         h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
                     }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
-        logger.info(e.getLocalizedMessage());
-    }
+            logger.error(e.getLocalizedMessage());
+        }
     }
 
 
@@ -890,26 +925,26 @@ public class GraduationStatusService {
             .retrieve().bodyToMono(StudentUndoCompletionReason.class).block();
     }
 
-    private GradStatusEvent createGradStatusEvent(String createUser, String updateUser,
-                                                  GraduationStudentRecord graduationStatus,
+    private GradStatusEvent createGradStatusEvent(String updateUser,
+                                                  GraduationStudentRecordEntity graduationStudentRecord,
                                                   EventType eventType, EventOutcome eventOutcome,
                                                   String activityCode,
                                                   String accessToken) throws JsonProcessingException {
         if (!constants.isTraxUpdateEnabled()) {
             return null;
         }
-        if (StringUtils.isBlank(graduationStatus.getPen())) {
-            GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(graduationStatus.getStudentID().toString(), accessToken);
+        if (StringUtils.isBlank(graduationStudentRecord.getPen())) {
+            GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(graduationStudentRecord.getStudentID().toString(), accessToken);
             if (gradSearchStudent != null) {
-                graduationStatus.setPen(gradSearchStudent.getPen());
+                graduationStudentRecord.setPen(gradSearchStudent.getPen());
             }
         }
-        GradStatusEventPayloadDTO eventPayload = EducGradStudentApiUtils.transform(graduationStatus);
+        GradStatusEventPayloadDTO eventPayload = EducGradStudentApiUtils.transform(graduationStudentRecord);
         String jsonString = JsonUtil.getJsonStringFromObject(eventPayload);
         return GradStatusEvent.builder()
                 .createDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
-                .createUser(StringUtils.isBlank(createUser)? EducGradStudentApiConstants.DEFAULT_CREATED_BY : createUser)
+                .createUser(StringUtils.isBlank(updateUser)? EducGradStudentApiConstants.DEFAULT_CREATED_BY : updateUser)
                 .updateUser(StringUtils.isBlank(updateUser)? EducGradStudentApiConstants.DEFAULT_UPDATED_BY : updateUser)
                 .eventPayload(jsonString)
                 .eventType(eventType.toString())
@@ -938,8 +973,6 @@ public class GraduationStatusService {
         return false;
 	}
 
-
-
     @Retry(name = "generalpostcall")
     public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId,String activityCode) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
@@ -950,7 +983,7 @@ public class GraduationStatusService {
             gradEntity.setBatchId(batchId);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, activityCode);
-            return graduationStatusTransformer.transformToDTO(gradEntity);
+            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
     }
@@ -975,7 +1008,7 @@ public class GraduationStatusService {
             gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, "GRADPROJECTED");
-            return graduationStatusTransformer.transformToDTO(gradEntity);
+            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
     }
@@ -985,15 +1018,62 @@ public class GraduationStatusService {
     }
 
     public List<UUID> getStudentsForYearlyDistribution() {
-        List<GraduationStudentRecordEntity> studentLists = graduationStatusRepository.findStudentsForYearlyDistribution();
-        if(!studentLists.isEmpty())
-            return studentLists.stream().map(GraduationStudentRecordEntity::getStudentID).collect(Collectors.toList());
-        return  new ArrayList<>();
+        PageRequest nextPage = PageRequest.of(0, PAGE_SIZE);
+        Page<UUID> studentGuids = graduationStatusRepository.findStudentsForYearlyDistribution(nextPage);
+        return processStudentDataList(studentGuids);
     }
 
     public GraduationStudentRecord getDataForBatch(UUID studentID,String accessToken) {
-        GraduationStudentRecord ent = graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByStudentID(studentID));
+        GraduationStudentRecord ent = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusRepository.findByStudentID(studentID));
         return  processReceivedStudent(ent,accessToken);
+    }
+
+    private List<UUID> processStudentDataList(Page<UUID> studentGuids) {
+        List<UUID> result = new ArrayList<>();
+        long startTime = System.currentTimeMillis();
+        if(studentGuids.hasContent()) {
+            PageRequest nextPage;
+            List<UUID> studentGuidsInBatch = studentGuids.getContent();
+            result.addAll(studentGuidsInBatch);
+            final int totalNumberOfPages = studentGuids.getTotalPages();
+            logger.debug("Total number of pages: {}, total rows count {}", totalNumberOfPages, studentGuids.getTotalElements());
+
+            List<Callable<Object>> tasks = new ArrayList<>();
+
+            for (int i = 1; i < totalNumberOfPages; i++) {
+                nextPage = PageRequest.of(i, PAGE_SIZE);
+                UUIDPageTask pageTask = new UUIDPageTask(nextPage);
+                tasks.add(pageTask);
+            }
+
+            processUUIDDataTasksAsync(tasks, result);
+        }
+        logger.debug("Completed in {} sec, total objects aquared {}", (System.currentTimeMillis() - startTime) / 1000, result.size());
+        return result;
+    }
+
+    private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result) {
+        if(tasks.isEmpty()) return;
+        List<Future<Object>> executionResult;
+        ExecutorService executorService = Executors.newWorkStealingPool();
+        try {
+            executionResult = executorService.invokeAll(tasks);
+            for (Future<?> f : executionResult) {
+                Object o = f.get();
+                if(o instanceof Pair<?, ?>) {
+                    Pair<PageRequest, List<UUID>> taskResult = (Pair<PageRequest, List<UUID>>) o;
+                    result.addAll(taskResult.getRight());
+                    logger.debug("Page {} processed successfully", taskResult.getLeft().getPageNumber());
+                } else {
+                    logger.error("Error during the task execution: {}", f.get());
+                }
+            }
+        } catch (InterruptedException | ExecutionException ex) {
+            logger.error("Unable to process Student Data: {} ", ex.getLocalizedMessage());
+            Thread.currentThread().interrupt();
+        } finally {
+            executorService.shutdown();
+        }
     }
 
     private GraduationStudentRecord processReceivedStudent(GraduationStudentRecord ent,String accessToken) {
@@ -1066,7 +1146,7 @@ public class GraduationStatusService {
             }
             if (isUpdated) {
                 graduationStatusRepository.save(entity);
-                return graduationStatusTransformer.transformToDTO(entity);
+                return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(entity);
             }
         }
         return null;
@@ -1084,4 +1164,18 @@ public class GraduationStatusService {
             gradEntity.setRecalculateGradStatus(flag);
     }
 
+    class UUIDPageTask implements Callable<Object> {
+
+        private final PageRequest pageRequest;
+
+        public UUIDPageTask(PageRequest pageRequest) {
+            this.pageRequest = pageRequest;
+        }
+
+        @Override
+        public Object call() throws Exception {
+            Page<UUID> studentGuids = graduationStatusRepository.findStudentsForYearlyDistribution(pageRequest);
+            return Pair.of(pageRequest, studentGuids.getContent());
+        }
+    }
 }
