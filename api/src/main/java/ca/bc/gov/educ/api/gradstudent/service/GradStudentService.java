@@ -8,6 +8,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
+import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import jakarta.transaction.Transactional;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -357,6 +357,24 @@ public class GradStudentService {
     }
 
 	@Transactional
+	@Retry(name = "rt-getTraxStudent")
+	public GradTraxStudent getTraxStudentMasterDataByPen(String pen, String accessToken) {
+		final ParameterizedTypeReference<List<GradTraxStudent>> responseType = new ParameterizedTypeReference<>() {
+		};
+		List<GradTraxStudent> result = this.webClient.get()
+				.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(), pen))
+				.headers(h -> {
+					h.setBearerAuth(accessToken);
+					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+				})
+				.retrieve().bodyToMono(responseType).block();
+		if(result != null && !result.isEmpty()) {
+			return result.get(0);
+		}
+		return null;
+	}
+
+	@Transactional
 	@Retry(name = "searchbyid")
 	public GraduationStudentRecordDistribution getStudentByStudentIDFromGrad(String studentID) {
 		return graduationStatusTransformer.tToDForDistribution(graduationStatusRepository.findByStudentID(UUID.fromString(studentID)));
@@ -380,6 +398,18 @@ public class GradStudentService {
 		if (StringUtils.isBlank(statusCode) || studentIDs.isEmpty()) {
 			return new ArrayList<>();
 		}
-		return graduationStatusRepository.filterGivenStudentsByStatusCode(studentIDs, statusCode);
+		List<UUID> results = new ArrayList<>();
+		int pageSize = 1000;
+		int pageNum = studentIDs.size() / pageSize + 1;
+		for (int i = 0; i < pageNum; i++) {
+			int startIndex = i * pageSize;
+			int endIndex = Math.min(startIndex + pageSize, studentIDs.size());
+			List<UUID> inputIDs = studentIDs.subList(startIndex, endIndex);
+			List<UUID> responseIDs = graduationStatusRepository.filterGivenStudentsByStatusCode(inputIDs, statusCode);
+			if (responseIDs != null && !responseIDs.isEmpty()) {
+				results.addAll(responseIDs);
+			}
+		}
+		return results;
 	}
 }

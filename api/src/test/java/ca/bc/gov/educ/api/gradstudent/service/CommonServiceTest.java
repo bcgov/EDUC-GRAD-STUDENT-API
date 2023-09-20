@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -326,7 +327,8 @@ public class CommonServiceTest {
 		obj.setUpdateDate(new Date());
 		gradStudentStatusList.add(obj);
 		Mockito.when(studentStatusRepository.findAll()).thenReturn(gradStudentStatusList);
-		commonService.getAllStudentStatusCodeList();
+        List<StudentStatus> result = commonService.getAllStudentStatusCodeList();
+        assertThat(result).isNotNull();
 	}
 	
 	@Test
@@ -348,14 +350,16 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(reasonCode)).thenReturn(ent);
-		commonService.getSpecificStudentStatusCode(reasonCode);
+        StudentStatus result = commonService.getSpecificStudentStatusCode(reasonCode);
+        assertThat(result).isNotNull();
 	}
 	
 	@Test
 	public void testGetSpecificStudentStatusCodeReturnsNull() {
 		String reasonCode = "DC";
 		Mockito.when(studentStatusRepository.findById(reasonCode)).thenReturn(Optional.empty());
-		commonService.getSpecificStudentStatusCode(reasonCode);
+        StudentStatus result = commonService.getSpecificStudentStatusCode(reasonCode);
+        assertThat(result).isNull();
 	}
 	
 	@Test
@@ -376,7 +380,8 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(Optional.empty());
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
-		commonService.createStudentStatus(obj);
+        StudentStatus result = commonService.createStudentStatus(obj);
+        assertThat(result).isNotNull();
 		
 	}
 	
@@ -398,7 +403,8 @@ public class CommonServiceTest {
 		objEntity.setUpdateDate(new Date());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
-		commonService.createStudentStatus(obj);
+		StudentStatus result = commonService.createStudentStatus(obj);
+        assertThat(result).isNotNull();
 		
 	}
 	
@@ -421,8 +427,8 @@ public class CommonServiceTest {
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
-		commonService.updateStudentStatus(obj);
-		
+        StudentStatus result = commonService.updateStudentStatus(obj);
+        assertThat(result).isNotNull();
 	}
 	
 	@Test
@@ -442,8 +448,8 @@ public class CommonServiceTest {
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
-		commonService.updateStudentStatus(obj);
-		
+        StudentStatus result = commonService.updateStudentStatus(obj);
+        assertThat(result).isNotNull();
 	}
 	
 	@Test(expected = GradBusinessRuleException.class)
@@ -463,8 +469,8 @@ public class CommonServiceTest {
 		objEntity.setCreateDate(new Date());
 		objEntity.setUpdateDate(new Date());
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(Optional.empty());
-		commonService.updateStudentStatus(obj);
-		
+        StudentStatus result = commonService.updateStudentStatus(obj);
+        assertThat(result).isNotNull();
 	}
 
     @Test
@@ -546,6 +552,8 @@ public class CommonServiceTest {
     @Test
     public  void testGetGradStudentAlgorithmData() {
         UUID studentID = UUID.randomUUID();
+        String accessToken = "accessToken";
+        String pen = "128385861";
 
         // Career Program
         final CareerProgram gradCareerProgram = new CareerProgram();
@@ -554,10 +562,12 @@ public class CommonServiceTest {
 
         GradSearchStudent gss = new GradSearchStudent();
         gss.setStudentID(studentID.toString());
+        gss.setPen(pen);
         gss.setStudentGrade("12");
 
         GraduationStudentRecord gradStudentRecord = new GraduationStudentRecord();
         gradStudentRecord.setStudentID(studentID);
+        gradStudentRecord.setPen(pen);
         gradStudentRecord.setStudentGrade("12");
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
@@ -572,12 +582,42 @@ public class CommonServiceTest {
         spg.setCareerProgramCode("TEST");
         cpList.add(spg);
 
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), null)).thenReturn(gss);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), accessToken)).thenReturn(gss);
         when(graduationStatusService.getGraduationStatusForAlgorithm(studentID)).thenReturn(gradStudentRecord);
         when(gradStudentCareerProgramRepository.findByStudentID(studentID)).thenReturn(cpList);
 
-        GradStudentAlgorithmData data =  commonService.getGradStudentAlgorithmData(studentID.toString(),null);
+        GradTraxStudent sObj = new GradTraxStudent();
+        sObj.setPen(pen);
+        sObj.setStudentCitizenship("C");
+
+        final ParameterizedTypeReference<List<GradTraxStudent>> responseType = new ParameterizedTypeReference<>() {
+        };
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of(sObj)));
+
+        when(gradStudentService.getTraxStudentMasterDataByPen(sObj.getPen(), accessToken)).thenReturn(sObj);
+
+        GradStudentAlgorithmData data =  commonService.getGradStudentAlgorithmData(studentID.toString(),accessToken);
         assertThat(data).isNotNull();
+        assertThat(data.getGraduationStudentRecord().getStudentCitizenship()).isNotNull();
+
+        sObj.setStudentCitizenship(null);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of()));
+
+        when(gradStudentService.getTraxStudentMasterDataByPen(sObj.getPen(), accessToken)).thenReturn(sObj);
+
+        data =  commonService.getGradStudentAlgorithmData(studentID.toString(),accessToken);
+        assertThat(data).isNotNull();
+        assertThat(data.getGraduationStudentRecord().getStudentCitizenship()).isNull();
     }
 
     @Test
