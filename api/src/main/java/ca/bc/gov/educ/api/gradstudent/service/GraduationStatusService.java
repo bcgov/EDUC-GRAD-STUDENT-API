@@ -800,6 +800,10 @@ public class GraduationStatusService {
         return graduationStatusRepository.findByRecalculateGradStatusForBatch("Y");
     }
 
+    public List<UUID> getStudentsForArchive() {
+        return graduationStatusRepository.findByStudentStatus("CUR");
+    }
+
     public List<UUID> getStudentsForProjectedGraduation() {
        return graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y");
     }

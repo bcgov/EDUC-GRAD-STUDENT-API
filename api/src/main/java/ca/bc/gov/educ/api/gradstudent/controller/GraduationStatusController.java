@@ -181,6 +181,15 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.getStudentsForProjectedGraduation());
     }
 
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_ARCHIVE)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Find Students For Archive", description = "Get Students For Archive", tags = { "Archive" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<UUID>> getStudentsForArchive() {
+        logger.debug("getStudentsForArchive:");
+        return response.GET(gradStatusService.getStudentsForArchive());
+    }
+
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_FOR_BATCH_RUN)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
     @Operation(summary = "Find Student Grad Status by Student ID for Batch Input Record", description = "Get Student Grad Status by Student ID for Batch", tags = { "Batch Algorithm" })

@@ -23,6 +23,9 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.recalculateGradStatus=:recalculateFlag")
 	List<UUID> findByRecalculateGradStatusForBatch(String recalculateFlag);
 
+	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
+	List<UUID> findByStudentStatus(String studentStatus);
+
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.recalculateProjectedGrad=:recalculateProjectedGrad")
 	List<UUID> findByRecalculateProjectedGradForBatch(String recalculateProjectedGrad);
 
