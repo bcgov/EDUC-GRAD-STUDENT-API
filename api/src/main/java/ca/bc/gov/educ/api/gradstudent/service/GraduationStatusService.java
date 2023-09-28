@@ -10,6 +10,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentNonGradReasonTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -67,8 +68,10 @@ public class GraduationStatusService {
     final StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     final GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer;
     final StudentCareerProgramRepository gradStudentCareerProgramRepository;
-
     final GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer;
+    final StudentNonGradReasonRepository studentNonGradReasonRepository;
+    final StudentNonGradReasonTransformer studentNonGradReasonTransformer;
+
     final GradStudentService gradStudentService;
     final HistoryService historyService;
     final GradValidation validation;
@@ -78,7 +81,7 @@ public class GraduationStatusService {
     GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
-    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,  GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentStatusRepository = studentStatusRepository;
@@ -88,6 +91,9 @@ public class GraduationStatusService {
         this.gradStudentOptionalProgramTransformer = gradStudentOptionalProgramTransformer;
         this.gradStudentCareerProgramRepository = gradStudentCareerProgramRepository;
         this.gradStudentCareerProgramTransformer = gradStudentCareerProgramTransformer;
+        this.studentNonGradReasonRepository = studentNonGradReasonRepository;
+        this.studentNonGradReasonTransformer = studentNonGradReasonTransformer;
+
         this.gradStudentService = gradStudentService;
         this.historyService = historyService;
         this.validation = validation;
@@ -1018,6 +1024,14 @@ public class GraduationStatusService {
     public GraduationStudentRecord getDataForBatch(UUID studentID,String accessToken) {
         GraduationStudentRecord ent = graduationStatusTransformer.transformToDTO(graduationStatusRepository.findByStudentID(studentID));
         return  processReceivedStudent(ent,accessToken);
+    }
+
+    public StudentNonGradReason getNonGradReason(String pen) {
+        List<StudentNonGradReasonEntity> results = studentNonGradReasonRepository.findByPen(pen);
+        if (results != null && !results.isEmpty()) {
+            return studentNonGradReasonTransformer.transformToDTO(results.get(0));
+        }
+        return null;
     }
 
     private List<UUID> processStudentDataList(Page<UUID> studentGuids) {

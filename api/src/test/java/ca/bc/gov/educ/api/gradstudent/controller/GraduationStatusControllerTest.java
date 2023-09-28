@@ -623,4 +623,19 @@ public class GraduationStatusControllerTest {
         graduationStatusController.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList);
         Mockito.verify(graduationStatusService).updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids());
     }
+
+    @Test
+    public void testGetStudentNonGradReasonByPen() {
+        String pen = "123456789";
+
+        StudentNonGradReason nonGradReason = new StudentNonGradReason();
+        nonGradReason.setPen(pen);
+        nonGradReason.setGradRule1("Rule1");
+        nonGradReason.setTranscriptRule1("Tr1");
+        nonGradReason.setDescription1("Test Rule1 Description");
+
+        Mockito.when(graduationStatusService.getNonGradReason(pen)).thenReturn(nonGradReason);
+        graduationStatusController.getStudentNonGradReasonByPen(pen);
+        Mockito.verify(graduationStatusService).getNonGradReason(pen);
+    }
 }
