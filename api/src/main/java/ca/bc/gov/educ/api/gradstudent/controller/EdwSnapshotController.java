@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 public class EdwSnapshotController {
 
     private static final Logger logger = LoggerFactory.getLogger(EdwSnapshotController.class);
-    private static final String BEARER = "Bearer ";
 
     @Autowired
     EdwSnapshotService edwSnapshotService;
@@ -36,7 +35,7 @@ public class EdwSnapshotController {
 
     @Autowired
     ResponseHelper response;
-    
+
     @PostMapping(EducGradStudentApiConstants.EDW_GRADUATION_STATUS_SNAPSHOT)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Graduation Status Snapshot for EDW", description = "Save Graduation Status Snapshot for EDW", tags = { "EDW Snapshot" })

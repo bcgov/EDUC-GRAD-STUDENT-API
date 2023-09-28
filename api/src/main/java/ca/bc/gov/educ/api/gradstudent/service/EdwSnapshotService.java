@@ -9,8 +9,6 @@ import ca.bc.gov.educ.api.gradstudent.repository.StudentNonGradReasonRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -26,8 +24,6 @@ import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.SE
 
 @Service
 public class EdwSnapshotService {
-
-    private static final Logger logger = LoggerFactory.getLogger(EdwSnapshotService.class);
 
     final EdwGraduationSnapshotRepository edwGraduationSnapshotRepository;
 
