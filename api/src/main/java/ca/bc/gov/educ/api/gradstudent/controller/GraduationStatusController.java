@@ -388,4 +388,14 @@ public class GraduationStatusController {
         return response.GET(gradRecords);
     }
 
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_NON_GRAD_REASON_BY_PEN)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Student NonGrad Reason by Student ID", description = "Get Student NonGrad Reason by Student ID", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "404", description = "Not Found")})
+    public ResponseEntity<StudentNonGradReason> getStudentNonGradReasonByPen(@PathVariable String pen) {
+        logger.debug("Get Student NonGrad Reason by Pen");
+        StudentNonGradReason gradResponse = gradStatusService.getNonGradReason(pen);
+        return response.GET(gradResponse);
+    }
+
 }
