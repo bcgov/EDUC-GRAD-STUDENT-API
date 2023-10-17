@@ -43,6 +43,5 @@ public class EdwGraduationSnapshot {
     @JsonFormat(pattern=DEFAULT_DATE_FORMAT)
     private LocalDate sessionDate;
 
-    private String frenchDogwood;
-    private String francophoneDogwood;
+    private String schoolOfRecord;
 }
