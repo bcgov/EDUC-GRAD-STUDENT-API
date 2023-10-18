@@ -57,9 +57,7 @@ public class EdwGraduationSnapshotEntity {
     private LocalDate runDate;
     @Column(name = "SESSION_DATE", nullable = true)
     private LocalDate sessionDate;
-    @Column(name = "PRINT_FRENCH_DOG", nullable = true)
-    private String frenchDogwood;
-    @Column(name = "PRINT_FRANCOPHONE", nullable = true)
-    private String francophoneDogwood;
+    @Column(name = "SCHOOL_OF_RECORD", nullable = true)
+    private String schoolOfRecord;
 
 }
