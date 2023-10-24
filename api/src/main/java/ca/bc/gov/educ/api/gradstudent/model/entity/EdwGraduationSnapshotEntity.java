@@ -28,31 +28,6 @@ public class EdwGraduationSnapshotEntity {
     @Column(name = "GRAD_DATE", nullable = true)
     private LocalDate graduatedDate;
 
-    @Column(name = "NOT_GRAD_REASON_1", nullable = true)
-    private String nonGradReason1;
-    @Column(name = "NOT_GRAD_REASON_2", nullable = true)
-    private String nonGradReason2;
-    @Column(name = "NOT_GRAD_REASON_3", nullable = true)
-    private String nonGradReason3;
-    @Column(name = "NOT_GRAD_REASON_4", nullable = true)
-    private String nonGradReason4;
-    @Column(name = "NOT_GRAD_REASON_5", nullable = true)
-    private String nonGradReason5;
-    @Column(name = "NOT_GRAD_REASON_6", nullable = true)
-    private String nonGradReason6;
-    @Column(name = "NOT_GRAD_REASON_7", nullable = true)
-    private String nonGradReason7;
-    @Column(name = "NOT_GRAD_REASON_8", nullable = true)
-    private String nonGradReason8;
-    @Column(name = "NOT_GRAD_REASON_9", nullable = true)
-    private String nonGradReason9;
-    @Column(name = "NOT_GRAD_REASON_10", nullable = true)
-    private String nonGradReason10;
-    @Column(name = "NOT_GRAD_REASON_11", nullable = true)
-    private String nonGradReason11;
-    @Column(name = "NOT_GRAD_REASON_12", nullable = true)
-    private String nonGradReason12;
-
     @Column(name = "RUN_DATE", nullable = true)
     private LocalDate runDate;
     @Column(name = "SESSION_DATE", nullable = true)
