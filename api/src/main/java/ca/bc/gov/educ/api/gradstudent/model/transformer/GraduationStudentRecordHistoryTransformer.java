@@ -2,7 +2,6 @@ package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordHistory;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
-import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.modelmapper.ModelMapper;
@@ -45,8 +44,8 @@ public class GraduationStudentRecordHistoryTransformer {
         for (GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity : graduationStudentRecordHistoryEntities) {
             GraduationStudentRecordHistory graduationStudentRecordHistory = modelMapper.map(graduationStudentRecordHistoryEntity, GraduationStudentRecordHistory.class);
         	graduationStudentRecordHistory.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStudentRecordHistoryEntity.getProgramCompletionDate(), "yyyy/MM"));
-            graduationStudentRecordHistory.setCreateDate(DateUtils.toLocalDateTime(graduationStudentRecordHistoryEntity.getCreateDate()));
-            graduationStudentRecordHistory.setUpdateDate(DateUtils.toLocalDateTime(graduationStudentRecordHistoryEntity.getUpdateDate()));
+            graduationStudentRecordHistory.setCreateDate((graduationStudentRecordHistoryEntity.getCreateDate()));
+            graduationStudentRecordHistory.setUpdateDate((graduationStudentRecordHistoryEntity.getUpdateDate()));
         	graduationStudentRecordHistoryList.add(graduationStudentRecordHistory);
         }
         return graduationStudentRecordHistoryList;
