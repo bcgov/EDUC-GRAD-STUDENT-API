@@ -229,7 +229,7 @@ public class GraduationStatusService {
 
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
-            gradEntity.setUpdateUser("");
+            gradEntity.setUpdateUser(null);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
@@ -864,6 +864,7 @@ public class GraduationStatusService {
                     gradEntity.setHonoursStanding(null);
                     gradEntity.setGpa(null);
                     gradEntity.setSchoolAtGrad(null);
+                    gradEntity.setUpdateUser(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
                     historyService.createStudentHistory(gradEntity, USER_UNDO_CMPL);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
