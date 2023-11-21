@@ -104,9 +104,11 @@ public class DataConversionService {
             }
 
             BeanUtils.copyProperties(sourceObject, gradEntity,  CREATE_USER, CREATE_DATE);
+            gradEntity.setUpdateDate(null);
+            gradEntity.setUpdateUser(null);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             if (ongoingUpdate) {
-                historyService.createStudentHistory(sourceObject, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
+                historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
             }
             if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(graduationStatus.getPen())) {
                 saveStudentGuidPenXref(gradEntity.getStudentID(), graduationStatus.getPen());
