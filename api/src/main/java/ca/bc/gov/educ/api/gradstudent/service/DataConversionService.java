@@ -40,7 +40,7 @@ public class DataConversionService {
     private static final String ADD_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXADD";
     private static final String UPDATE_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXUPDATE";
     private static final String DELETE_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXDELETE";
-    private static final String ONGOING_UPDATE_FIELD_STR = " ==> {} for old value = {}";
+    private static final String ONGOING_UPDATE_FIELD_STR = " ==> {} for old value={}";
     final WebClient webClient;
     final GraduationStudentRecordRepository graduationStatusRepository;
     final GraduationStatusTransformer graduationStatusTransformer;
