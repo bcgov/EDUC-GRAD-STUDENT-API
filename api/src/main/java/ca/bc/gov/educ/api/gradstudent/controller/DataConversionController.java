@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.DataConversionService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -46,11 +45,20 @@ public class DataConversionController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecord> saveStudentGradStatus(@PathVariable String studentID,
                                                                          @RequestParam(value = "ongoingUpdate", required = false, defaultValue = "false") boolean ongoingUpdate,
-                                                                         @RequestParam(value = "eventType", required = false) TraxEventType eventType,
-                                                                         @RequestBody GraduationStudentRecord graduationStatus,
-                                                                         @RequestHeader(name="Authorization") String accessToken) {
+                                                                         @RequestBody GraduationStudentRecord graduationStatus) {
         logger.debug("Save Graduation Student Record for Student ID");
-        var result = dataConversionService.saveGraduationStudentRecord(UUID.fromString(studentID),graduationStatus, ongoingUpdate, eventType, accessToken.replace(BEARER, ""));
+        var result = dataConversionService.saveGraduationStudentRecord(UUID.fromString(studentID),graduationStatus, ongoingUpdate);
+        return response.GET(result);
+    }
+
+    @PostMapping(EducGradStudentApiConstants.CONV_GRADUATION_STATUS_FOR_ONGOING_UPDATES)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
+    @Operation(summary = "Update Graduation Status At Field Level for Ongoing Updates", description = "Update Graduation Status At Field Level for Ongoing Updates", tags = { "Data Conversion" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<GraduationStudentRecord> updateGraduationStatusForOngoingUpdates(@RequestBody OngoingUpdateRequestDTO requestDTO,
+                                                                                           @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Save Graduation Student Record for Student ID");
+        var result = dataConversionService.updateGraduationStatusByFields(requestDTO, accessToken.replace(BEARER, ""));
         return response.GET(result);
     }
 

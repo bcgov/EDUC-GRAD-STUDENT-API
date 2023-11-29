@@ -1,5 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.FieldName;
+import ca.bc.gov.educ.api.gradstudent.constant.FieldType;
 import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
@@ -106,7 +108,7 @@ public class DataConversionServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, false, null,"accessToken");
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, false);
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -150,7 +152,7 @@ public class DataConversionServiceTest {
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
         when(graduationStatusRepository.countStudentGuidPenXrefRecord(studentID)).thenReturn(1L);
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,false, null, "accessToken");
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, input, false);
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -168,13 +170,14 @@ public class DataConversionServiceTest {
     public void testGraduationStudentRecordAsOngoingUpdate() {
         // ID
         UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
         String mincode = "12345678";
         String oldProgram = "2018-EN";
         String newProgram = "2018-PF";
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
-        graduationStatusEntity.setPen("123456789");
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram(oldProgram);
@@ -183,10 +186,20 @@ public class DataConversionServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStudentRecord input = new GraduationStudentRecord();
-        BeanUtils.copyProperties(graduationStatusEntity, input);
-        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
-        input.setProgram(newProgram);
+        OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
+        requestDTO.setPen(pen);
+        requestDTO.setStudentID(studentID.toString());
+        requestDTO.setEventType(TraxEventType.UPD_GRAD);
+
+        OngoingUpdateFieldDTO field1 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.DATE).name(FieldName.SLP_DATE).value(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM"))
+                .build();
+        requestDTO.getUpdateFields().add(field1);
+
+        OngoingUpdateFieldDTO field2 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.GRAD_PROGRAM).value(newProgram)
+                .build();
+        requestDTO.getUpdateFields().add(field2);
 
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -203,7 +216,7 @@ public class DataConversionServiceTest {
         when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true, TraxEventType.UPD_GRAD, "accessToken");
+        var result = dataConversionService.updateGraduationStatusByFields(requestDTO, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -214,20 +227,21 @@ public class DataConversionServiceTest {
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getRecalculateGradStatus()).isNull();
-        assertThat(result.getProgramCompletionDate()).isEqualTo(input.getProgramCompletionDate());
+        assertThat(result.getProgramCompletionDate()).isEqualTo(field1.getValue());
     }
 
     @Test
     public void testGraduationStudentRecordAsOngoingUpdateForStudentStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
         String mincode = "12345678";
         String oldStatus = "ARC";
         String newStatus = "CUR";
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
-        graduationStatusEntity.setPen("123456789");
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus(oldStatus);
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
@@ -236,9 +250,15 @@ public class DataConversionServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStudentRecord input = new GraduationStudentRecord();
-        BeanUtils.copyProperties(graduationStatusEntity, input);
-        input.setStudentStatus(newStatus);
+        OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
+        requestDTO.setPen(pen);
+        requestDTO.setStudentID(studentID.toString());
+        requestDTO.setEventType(TraxEventType.UPD_STD_STATUS);
+
+        OngoingUpdateFieldDTO field = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.STUDENT_STATUS).value(newStatus)
+                .build();
+        requestDTO.getUpdateFields().add(field);
 
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -254,7 +274,7 @@ public class DataConversionServiceTest {
         when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true, TraxEventType.UPD_STD_STATUS, "accessToken");
+        var result = dataConversionService.updateGraduationStatusByFields(requestDTO, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -270,13 +290,14 @@ public class DataConversionServiceTest {
     public void testGraduationStudentRecordAsOngoingUpdateWhenSCCPStudent_isChangedTo_2018EN() {
         // ID
         UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
         String mincode = "12345678";
         String oldProgram = "SCCP";
         String newProgram = "2018-EN";
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
-        graduationStatusEntity.setPen("123456789");
+        graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram(oldProgram);
@@ -285,10 +306,20 @@ public class DataConversionServiceTest {
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
-        GraduationStudentRecord input = new GraduationStudentRecord();
-        BeanUtils.copyProperties(graduationStatusEntity, input);
-        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
-        input.setProgram(newProgram);
+        OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
+        requestDTO.setPen(pen);
+        requestDTO.setStudentID(studentID.toString());
+        requestDTO.setEventType(TraxEventType.UPD_GRAD);
+
+        OngoingUpdateFieldDTO field1 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.DATE).name(FieldName.SLP_DATE).value(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM"))
+                .build();
+        requestDTO.getUpdateFields().add(field1);
+
+        OngoingUpdateFieldDTO field2 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.GRAD_PROGRAM).value(newProgram)
+                .build();
+        requestDTO.getUpdateFields().add(field2);
 
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
@@ -305,7 +336,7 @@ public class DataConversionServiceTest {
         when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true, TraxEventType.UPD_GRAD, "accessToken");
+        var result = dataConversionService.updateGraduationStatusByFields(requestDTO, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -316,7 +347,7 @@ public class DataConversionServiceTest {
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getRecalculateGradStatus()).isNull();
-        assertThat(result.getProgramCompletionDate()).isEqualTo(input.getProgramCompletionDate());
+        assertThat(result.getProgramCompletionDate()).isEqualTo(field1.getValue());
     }
 
     @Test
@@ -342,7 +373,7 @@ public class DataConversionServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, true, TraxEventType.NEWSTUDENT, "accessToken");
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, true);
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());

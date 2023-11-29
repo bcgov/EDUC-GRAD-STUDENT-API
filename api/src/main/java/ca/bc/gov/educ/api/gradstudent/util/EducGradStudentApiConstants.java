@@ -100,6 +100,7 @@ public class EducGradStudentApiConstants {
     public static final String CONV_GRADUATION_STATUS_BY_STUDENT_ID = "/conv/studentid/{studentID}";
     public static final String CONV_STUDENT_OPTIONAL_PROGRAM = "/conv/studentoptionalprogram";
     public static final String CONV_STUDENT_CAREER_PROGRAM = "/conv/studentcareerprogram";
+    public static final String CONV_GRADUATION_STATUS_FOR_ONGOING_UPDATES = "/conv/ongoingupdate/gradstatus";
 
     public static final String CONV_STUDENT_OPTIONAL_PROGRAM_BY_STUDENT_ID = "/conv/studentoptionalprogram/{optionalProgramID}/{studentID}";
     public static final String CONV_STUDENT_CAREER_PROGRAM_BY_STUDENT_ID = "/conv/studentcareerprogram/{careerProgramCode}/{studentID}";

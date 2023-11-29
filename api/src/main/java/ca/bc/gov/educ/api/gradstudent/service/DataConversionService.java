@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.FieldName;
 import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -40,8 +40,7 @@ public class DataConversionService {
     private static final String ADD_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXADD";
     private static final String UPDATE_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXUPDATE";
     private static final String DELETE_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXDELETE";
-    public static final String STUDENT_STATUS_MERGED = "MER";
-
+    private static final String ONGOING_UPDATE_FIELD_STR = " ==> {} for old value = {}";
     final WebClient webClient;
     final GraduationStudentRecordRepository graduationStatusRepository;
     final GraduationStatusTransformer graduationStatusTransformer;
@@ -83,23 +82,43 @@ public class DataConversionService {
 
     /**
      * Create or Update a GraduationStudentRecord
-     *
-     * @param studentID
-     * @param graduationStatus
-     * @return
      */
     @Transactional
-    public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate, TraxEventType eventType, String accessToken) {
+    public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            gradEntity = handleExistingGraduationStatus(sourceObject, gradEntity, graduationStatus.getPen(), true, eventType, accessToken);
+            gradEntity = handleExistingGraduationStatus(sourceObject, gradEntity, graduationStatus.getPen(), ongoingUpdate);
             return graduationStatusTransformer.transformToDTO(gradEntity);
         } else {
             sourceObject = handleNewGraduationStatus(sourceObject, graduationStatus.getPen(), ongoingUpdate);
             return graduationStatusTransformer.transformToDTO(sourceObject);
         }
+    }
+
+    /**
+     * Update Graduation Status at field level for Ongoing Updates
+     */
+    @Transactional
+    public GraduationStudentRecord updateGraduationStatusByFields(OngoingUpdateRequestDTO requestDTO, String accessToken) {
+        UUID studentID = UUID.fromString(requestDTO.getStudentID());
+        TraxEventType eventType = requestDTO.getEventType();
+        log.info("Perform ongoing update event [{}] for studentID = {}", eventType, studentID);
+        Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        if (gradStatusOptional.isPresent()) {
+            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            populateOngoingUpdateFields(requestDTO.getUpdateFields(), gradEntity, accessToken);
+            gradEntity.setUpdateDate(null);
+            gradEntity.setUpdateUser(null);
+            gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
+            historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
+            if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(requestDTO.getPen())) {
+                saveStudentGuidPenXref(gradEntity.getStudentID(), requestDTO.getPen());
+            }
+            return graduationStatusTransformer.transformToDTO(gradEntity);
+        }
+        return null;
     }
 
     @Transactional
@@ -215,21 +234,8 @@ public class DataConversionService {
         gradStudentRecordHistoryRepository.deleteByStudentID(studentID);
     }
 
-    private GraduationStudentRecordEntity handleExistingGraduationStatus(GraduationStudentRecordEntity sourceObject, GraduationStudentRecordEntity targetObject, String pen, boolean ongoingUpdate, TraxEventType eventType, String accessToken) {
-        if (ongoingUpdate && !sourceObject.getProgram().equalsIgnoreCase(targetObject.getProgram())) {
-            if(targetObject.getProgram().equalsIgnoreCase("SCCP")) {
-                sourceObject.setProgramCompletionDate(null);
-                graduationStatusService.archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
-            } else {
-                graduationStatusService.deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
-            }
-        }
-
-        if (ongoingUpdate && eventType != null) {
-            populateOngoingUpdateFields(sourceObject, targetObject, eventType);
-        } else {
-            BeanUtils.copyProperties(sourceObject, targetObject, CREATE_USER, CREATE_DATE);
-        }
+    private GraduationStudentRecordEntity handleExistingGraduationStatus(GraduationStudentRecordEntity sourceObject, GraduationStudentRecordEntity targetObject, String pen, boolean ongoingUpdate) {
+        BeanUtils.copyProperties(sourceObject, targetObject, CREATE_USER, CREATE_DATE);
         targetObject.setUpdateDate(null);
         targetObject.setUpdateUser(null);
         targetObject = graduationStatusRepository.saveAndFlush(targetObject);
@@ -255,28 +261,75 @@ public class DataConversionService {
         return newObject;
     }
 
-    private void populateOngoingUpdateFields(GraduationStudentRecordEntity sourceObject, GraduationStudentRecordEntity targetObject, TraxEventType eventType) {
-        if (eventType == TraxEventType.UPD_GRAD) {
-            // School of Record
-            targetObject.setSchoolOfRecord(sourceObject.getSchoolOfRecord());
-            // GRAD Program
-            targetObject.setProgram(sourceObject.getProgram());
-            // Adult Start Date
-            targetObject.setAdultStartDate(sourceObject.getAdultStartDate());
-            // SLP Date
-            targetObject.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
-            // Student Grade
-            targetObject.setStudentGrade(sourceObject.getStudentGrade());
-            // Citizenship
-            targetObject.setStudentCitizenship(sourceObject.getStudentCitizenship());
+    private void populateOngoingUpdateFields(List<OngoingUpdateFieldDTO> fields, GraduationStudentRecordEntity targetObject, String accessToken) {
+        fields.forEach(f -> {
+            if (f.getName() == FieldName.GRAD_PROGRAM) {
+                String newProgram = (String) f.getValue();
+                String currentProgram = targetObject.getProgram();
+                if (!StringUtils.equalsIgnoreCase(currentProgram, newProgram)) {
+                    if("SCCP".equalsIgnoreCase(currentProgram)) {
+                        log.info(" {} ==> {}: Archive Student Achievements and SLP_DATE is set to null.", currentProgram, newProgram);
+                        targetObject.setProgramCompletionDate(null);
+                        graduationStatusService.archiveStudentAchievements(targetObject.getStudentID(),accessToken);
+                    } else {
+                        log.info(" {} ==> {}: Delete Student Achievements.", currentProgram, newProgram);
+                        graduationStatusService.deleteStudentAchievements(targetObject.getStudentID(), accessToken);
+                    }
+                }
+            }
+            populate(f, targetObject);
+        });
+    }
+
+    private void populate(OngoingUpdateFieldDTO field, GraduationStudentRecordEntity targetObject) {
+        switch (field.getName()) {
+            case SCHOOL_OF_RECORD -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getSchoolOfRecord());
+                targetObject.setSchoolOfRecord(getStringValue(field.getValue()));
+            }
+            case GRAD_PROGRAM -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getProgram());
+                targetObject.setProgram(getStringValue(field.getValue()));
+            }
+            case ADULT_START_DATE -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, EducGradStudentApiUtils.formatDate(targetObject.getAdultStartDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT));
+                // date format: yyyy-MM-dd
+                Date adultStartDate = EducGradStudentApiUtils.parseDate((String) field.getValue());
+                targetObject.setAdultStartDate(adultStartDate);
+            }
+            case SLP_DATE -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, EducGradStudentApiUtils.formatDate(targetObject.getProgramCompletionDate(), EducGradStudentApiConstants.PROGRAM_COMPLETION_DATE_FORMAT));
+                // date format: yyyy/MM
+                Date programCompletionDate = EducGradStudentApiUtils.parsingProgramCompletionDate((String) field.getValue());
+                targetObject.setProgramCompletionDate(programCompletionDate);
+            }
+            case STUDENT_GRADE -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getStudentGrade());
+                targetObject.setStudentGrade(getStringValue(field.getValue()));
+            }
+            case CITIZENSHIP -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getStudentCitizenship());
+                targetObject.setStudentCitizenship(getStringValue(field.getValue()));
+            }
+            case STUDENT_STATUS -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getStudentStatus());
+                targetObject.setStudentStatus(getStringValue(field.getValue()));
+            }
+            case RECALC_GRAD_ALG -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getRecalculateGradStatus());
+                targetObject.setRecalculateGradStatus(getStringValue(field.getValue()));
+            }
+            case RECALC_TVR -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getRecalculateProjectedGrad());
+                targetObject.setRecalculateProjectedGrad(getStringValue(field.getValue()));
+            }
         }
-        if (eventType == TraxEventType.UPD_STD_STATUS) {
-            // Student Status
-            targetObject.setStudentStatus(sourceObject.getStudentStatus());
-        }
-        // Others - common batch flags
-        targetObject.setRecalculateGradStatus(sourceObject.getRecalculateGradStatus());
-        targetObject.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
+    }
+
+    private String getStringValue(Object value) {
+        if (value == null)
+            return null;
+        return (String) value;
     }
 
     private StudentOptionalProgramEntity handleExistingOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, StudentOptionalProgramEntity gradEntity) {
@@ -285,7 +338,7 @@ public class DataConversionService {
         }
         if (studentOptionalProgramReq.getOptionalProgramCompletionDate() != null) {
             if (studentOptionalProgramReq.getOptionalProgramCompletionDate().length() > 7) {
-                gradEntity.setOptionalProgramCompletionDate(Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+                gradEntity.setOptionalProgramCompletionDate(java.sql.Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
             } else {
                 gradEntity.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parsingProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
             }
@@ -299,7 +352,7 @@ public class DataConversionService {
     private StudentOptionalProgramEntity handleNewOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, StudentOptionalProgramEntity sourceObject) {
         if (studentOptionalProgramReq.getOptionalProgramCompletionDate() != null) {
             if (studentOptionalProgramReq.getOptionalProgramCompletionDate().length() > 7) {
-                sourceObject.setOptionalProgramCompletionDate(Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+                sourceObject.setOptionalProgramCompletionDate(java.sql.Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
             } else {
                 sourceObject.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parsingProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
             }
