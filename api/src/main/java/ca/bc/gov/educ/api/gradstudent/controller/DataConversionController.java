@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
+import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.DataConversionService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -45,10 +46,11 @@ public class DataConversionController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecord> saveStudentGradStatus(@PathVariable String studentID,
                                                                          @RequestParam(value = "ongoingUpdate", required = false, defaultValue = "false") boolean ongoingUpdate,
+                                                                         @RequestParam(value = "eventType", required = false) TraxEventType eventType,
                                                                          @RequestBody GraduationStudentRecord graduationStatus,
                                                                          @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Save Graduation Student Record for Student ID");
-        var result = dataConversionService.saveGraduationStudentRecord(UUID.fromString(studentID),graduationStatus, ongoingUpdate, accessToken.replace(BEARER, ""));
+        var result = dataConversionService.saveGraduationStudentRecord(UUID.fromString(studentID),graduationStatus, ongoingUpdate, eventType, accessToken.replace(BEARER, ""));
         return response.GET(result);
     }
 

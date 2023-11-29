@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
@@ -105,7 +106,7 @@ public class DataConversionServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, false, "accessToken");
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, false, null,"accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -149,7 +150,7 @@ public class DataConversionServiceTest {
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
         when(graduationStatusRepository.countStudentGuidPenXrefRecord(studentID)).thenReturn(1L);
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true, "accessToken");
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,false, null, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -202,7 +203,7 @@ public class DataConversionServiceTest {
         when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true, "accessToken");
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true, TraxEventType.UPD_GRAD, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -214,6 +215,55 @@ public class DataConversionServiceTest {
 
         assertThat(result.getRecalculateGradStatus()).isNull();
         assertThat(result.getProgramCompletionDate()).isEqualTo(input.getProgramCompletionDate());
+    }
+
+    @Test
+    public void testGraduationStudentRecordAsOngoingUpdateForStudentStatus() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String mincode = "12345678";
+        String oldStatus = "ARC";
+        String newStatus = "CUR";
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("123456789");
+        graduationStatusEntity.setStudentStatus(oldStatus);
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("2018-EN");
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        GraduationStudentRecord input = new GraduationStudentRecord();
+        BeanUtils.copyProperties(graduationStatusEntity, input);
+        input.setStudentStatus(newStatus);
+
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
+        BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
+        savedGraduationStatus.setRecalculateGradStatus(null);
+        savedGraduationStatus.setStudentStatus(newStatus);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+
+        when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
+        when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
+
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true, TraxEventType.UPD_STD_STATUS, "accessToken");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
+        assertThat(result.getStudentStatus()).isEqualTo(newStatus);
+        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
+
+        assertThat(result.getRecalculateGradStatus()).isNull();
     }
 
     @Test
@@ -255,7 +305,7 @@ public class DataConversionServiceTest {
         when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true, "accessToken");
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, input,true, TraxEventType.UPD_GRAD, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -292,7 +342,7 @@ public class DataConversionServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, true, "accessToken");
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, true, TraxEventType.NEWSTUDENT, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());

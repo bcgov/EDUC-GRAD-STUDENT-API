@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
+import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
@@ -65,11 +66,11 @@ public class DataConversionControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Mockito.when(dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus,false, "accessToken")).thenReturn(graduationStatus);
+        Mockito.when(dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus,false, null, "accessToken")).thenReturn(graduationStatus);
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
         var result = dataConversionController
-                .saveStudentGradStatus(studentID.toString(), false, graduationStatus, "accessToken");
-        Mockito.verify(dataConversionService).saveGraduationStudentRecord(studentID, graduationStatus,false, "accessToken");
+                .saveStudentGradStatus(studentID.toString(), false, null, graduationStatus, "accessToken");
+        Mockito.verify(dataConversionService).saveGraduationStudentRecord(studentID, graduationStatus,false, null, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }

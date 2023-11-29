@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
@@ -88,42 +89,15 @@ public class DataConversionService {
      * @return
      */
     @Transactional
-    public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate, String accessToken) {
+    public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate, TraxEventType eventType, String accessToken) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-
-            if (!sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
-                if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
-                    sourceObject.setProgramCompletionDate(null);
-                    graduationStatusService.archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
-                } else {
-                    graduationStatusService.deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
-                }
-            }
-
-            BeanUtils.copyProperties(sourceObject, gradEntity,  CREATE_USER, CREATE_DATE);
-            gradEntity.setUpdateDate(null);
-            gradEntity.setUpdateUser(null);
-            gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-            if (ongoingUpdate) {
-                historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
-            }
-            if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(graduationStatus.getPen())) {
-                saveStudentGuidPenXref(gradEntity.getStudentID(), graduationStatus.getPen());
-            }
+            gradEntity = handleExistingGraduationStatus(sourceObject, gradEntity, graduationStatus.getPen(), true, eventType, accessToken);
             return graduationStatusTransformer.transformToDTO(gradEntity);
         } else {
-            sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
-            if (ongoingUpdate) {
-                historyService.createStudentHistory(sourceObject, ADD_ONGOING_HISTORY_ACTIVITY_CODE);
-            } else {
-                historyService.createStudentHistory(sourceObject, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
-            }
-            if (constants.isStudentGuidPenXrefEnabled()) {
-                saveStudentGuidPenXref(sourceObject.getStudentID(), graduationStatus.getPen());
-            }
+            sourceObject = handleNewGraduationStatus(sourceObject, graduationStatus.getPen(), ongoingUpdate);
             return graduationStatusTransformer.transformToDTO(sourceObject);
         }
     }
@@ -142,37 +116,14 @@ public class DataConversionService {
 
         if (gradStudentOptionalOptional.isPresent()) {  // if it exists, just touch the entity in data conversion
             StudentOptionalProgramEntity gradEntity = gradStudentOptionalOptional.get();
-            if (studentOptionalProgramReq.getStudentOptionalProgramData() != null) {
-                gradEntity.setStudentOptionalProgramData(studentOptionalProgramReq.getStudentOptionalProgramData());
-            }
-            if (studentOptionalProgramReq.getOptionalProgramCompletionDate() != null) {
-                if (studentOptionalProgramReq.getOptionalProgramCompletionDate().length() > 7) {
-                    gradEntity.setOptionalProgramCompletionDate(Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
-                } else {
-                    gradEntity.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parsingProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
-                }
-            }
-            gradEntity.setUpdateDate(null);
-            gradEntity.setUpdateUser(null);
-            gradEntity = gradStudentOptionalProgramRepository.save(gradEntity);
+            gradEntity = handleExistingOptionalProgram(studentOptionalProgramReq, gradEntity);
             return gradStudentOptionalProgramTransformer.transformToDTO(gradEntity);
         } else {
             StudentOptionalProgramEntity sourceObject = new StudentOptionalProgramEntity();
             sourceObject.setId(studentOptionalProgramReq.getId());
             sourceObject.setStudentID(studentOptionalProgramReq.getStudentID());
             sourceObject.setOptionalProgramID(studentOptionalProgramReq.getOptionalProgramID());
-            if (studentOptionalProgramReq.getOptionalProgramCompletionDate() != null) {
-                if (studentOptionalProgramReq.getOptionalProgramCompletionDate().length() > 7) {
-                    sourceObject.setOptionalProgramCompletionDate(Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
-                } else {
-                    sourceObject.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parsingProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
-                }
-            }
-            if (sourceObject.getId() == null) {
-                sourceObject.setId(UUID.randomUUID());
-            }
-            sourceObject = gradStudentOptionalProgramRepository.save(sourceObject);
-            historyService.createStudentOptionalProgramHistory(sourceObject, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
+            sourceObject = handleNewOptionalProgram(studentOptionalProgramReq, sourceObject);
             return gradStudentOptionalProgramTransformer.transformToDTO(sourceObject);
         }
     }
@@ -262,6 +213,103 @@ public class DataConversionService {
         gradStudentOptionalProgramRepository.deleteByStudentID(studentID);
         // graduation_student_record_history
         gradStudentRecordHistoryRepository.deleteByStudentID(studentID);
+    }
+
+    private GraduationStudentRecordEntity handleExistingGraduationStatus(GraduationStudentRecordEntity sourceObject, GraduationStudentRecordEntity targetObject, String pen, boolean ongoingUpdate, TraxEventType eventType, String accessToken) {
+        if (ongoingUpdate && !sourceObject.getProgram().equalsIgnoreCase(targetObject.getProgram())) {
+            if(targetObject.getProgram().equalsIgnoreCase("SCCP")) {
+                sourceObject.setProgramCompletionDate(null);
+                graduationStatusService.archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
+            } else {
+                graduationStatusService.deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
+            }
+        }
+
+        if (ongoingUpdate && eventType != null) {
+            populateOngoingUpdateFields(sourceObject, targetObject, eventType);
+        } else {
+            BeanUtils.copyProperties(sourceObject, targetObject, CREATE_USER, CREATE_DATE);
+        }
+        targetObject.setUpdateDate(null);
+        targetObject.setUpdateUser(null);
+        targetObject = graduationStatusRepository.saveAndFlush(targetObject);
+        if (ongoingUpdate) {
+            historyService.createStudentHistory(targetObject, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
+        }
+        if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(pen)) {
+            saveStudentGuidPenXref(targetObject.getStudentID(), pen);
+        }
+        return targetObject;
+    }
+
+    private GraduationStudentRecordEntity handleNewGraduationStatus(GraduationStudentRecordEntity newObject, String pen, boolean ongoingUpdate) {
+        newObject = graduationStatusRepository.saveAndFlush(newObject);
+        if (ongoingUpdate) {
+            historyService.createStudentHistory(newObject, ADD_ONGOING_HISTORY_ACTIVITY_CODE);
+        } else {
+            historyService.createStudentHistory(newObject, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
+        }
+        if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(pen)) {
+            saveStudentGuidPenXref(newObject.getStudentID(), pen);
+        }
+        return newObject;
+    }
+
+    private void populateOngoingUpdateFields(GraduationStudentRecordEntity sourceObject, GraduationStudentRecordEntity targetObject, TraxEventType eventType) {
+        if (eventType == TraxEventType.UPD_GRAD) {
+            // School of Record
+            targetObject.setSchoolOfRecord(sourceObject.getSchoolOfRecord());
+            // GRAD Program
+            targetObject.setProgram(sourceObject.getProgram());
+            // Adult Start Date
+            targetObject.setAdultStartDate(sourceObject.getAdultStartDate());
+            // SLP Date
+            targetObject.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
+            // Student Grade
+            targetObject.setStudentGrade(sourceObject.getStudentGrade());
+            // Citizenship
+            targetObject.setStudentCitizenship(sourceObject.getStudentCitizenship());
+        }
+        if (eventType == TraxEventType.UPD_STD_STATUS) {
+            // Student Status
+            targetObject.setStudentStatus(sourceObject.getStudentStatus());
+        }
+        // Others - common batch flags
+        targetObject.setRecalculateGradStatus(sourceObject.getRecalculateGradStatus());
+        targetObject.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
+    }
+
+    private StudentOptionalProgramEntity handleExistingOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, StudentOptionalProgramEntity gradEntity) {
+        if (studentOptionalProgramReq.getStudentOptionalProgramData() != null) {
+            gradEntity.setStudentOptionalProgramData(studentOptionalProgramReq.getStudentOptionalProgramData());
+        }
+        if (studentOptionalProgramReq.getOptionalProgramCompletionDate() != null) {
+            if (studentOptionalProgramReq.getOptionalProgramCompletionDate().length() > 7) {
+                gradEntity.setOptionalProgramCompletionDate(Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+            } else {
+                gradEntity.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parsingProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+            }
+        }
+        gradEntity.setUpdateDate(null);
+        gradEntity.setUpdateUser(null);
+        gradEntity = gradStudentOptionalProgramRepository.save(gradEntity);
+        return gradEntity;
+    }
+
+    private StudentOptionalProgramEntity handleNewOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, StudentOptionalProgramEntity sourceObject) {
+        if (studentOptionalProgramReq.getOptionalProgramCompletionDate() != null) {
+            if (studentOptionalProgramReq.getOptionalProgramCompletionDate().length() > 7) {
+                sourceObject.setOptionalProgramCompletionDate(Date.valueOf(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+            } else {
+                sourceObject.setOptionalProgramCompletionDate(EducGradStudentApiUtils.parsingProgramCompletionDate(studentOptionalProgramReq.getOptionalProgramCompletionDate()));
+            }
+        }
+        if (sourceObject.getId() == null) {
+            sourceObject.setId(UUID.randomUUID());
+        }
+        sourceObject = gradStudentOptionalProgramRepository.save(sourceObject);
+        historyService.createStudentOptionalProgramHistory(sourceObject, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
+        return sourceObject;
     }
 
 }
