@@ -171,18 +171,22 @@ public class DataConversionServiceTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        String mincode = "12345678";
+        String oldMincode = "12312312";
+        String newMincode = "12345678";
         String oldProgram = "2018-EN";
         String newProgram = "2018-PF";
+        String oldGrade = "12";
+        String newGrade = "11";
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setStudentGrade(oldGrade);
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram(oldProgram);
-        graduationStatusEntity.setSchoolOfRecord(mincode);
-        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setSchoolOfRecord(oldMincode);
+        graduationStatusEntity.setSchoolAtGrad(oldMincode);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
@@ -201,11 +205,40 @@ public class DataConversionServiceTest {
                 .build();
         requestDTO.getUpdateFields().add(field2);
 
+        OngoingUpdateFieldDTO field3 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.STUDENT_GRADE).value(newGrade)
+                .build();
+        requestDTO.getUpdateFields().add(field3);
+
+        OngoingUpdateFieldDTO field4 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.CITIZENSHIP).value("C")
+                .build();
+        requestDTO.getUpdateFields().add(field4);
+
+        OngoingUpdateFieldDTO field5 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.SCHOOL_OF_RECORD).value(newMincode)
+                .build();
+        requestDTO.getUpdateFields().add(field5);
+
+        OngoingUpdateFieldDTO field6 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.RECALC_GRAD_ALG).value(null)
+                .build();
+        requestDTO.getUpdateFields().add(field6);
+
+        OngoingUpdateFieldDTO field7 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.RECALC_TVR).value("Y")
+                .build();
+        requestDTO.getUpdateFields().add(field7);
+
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus(null);
+        savedGraduationStatus.setRecalculateProjectedGrad("Y");
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
         savedGraduationStatus.setProgram(newProgram);
+        savedGraduationStatus.setStudentGrade(newGrade);
+        savedGraduationStatus.setStudentCitizenship("C");
+        savedGraduationStatus.setSchoolOfRecord(newMincode);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
