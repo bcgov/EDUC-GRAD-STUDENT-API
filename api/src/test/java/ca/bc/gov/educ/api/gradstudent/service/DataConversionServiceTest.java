@@ -255,12 +255,15 @@ public class DataConversionServiceTest {
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
-        assertThat(result.getProgram()).isEqualTo(newProgram);
-        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
-        assertThat(result.getRecalculateGradStatus()).isNull();
         assertThat(result.getProgramCompletionDate()).isEqualTo(field1.getValue());
+        assertThat(result.getProgram()).isEqualTo(field2.getValue());
+        assertThat(result.getStudentGrade()).isEqualTo(field3.getValue());
+        assertThat(result.getStudentCitizenship()).isEqualTo(field4.getValue());
+        assertThat(result.getSchoolOfRecord()).isEqualTo(field5.getValue());
+        assertThat(result.getRecalculateGradStatus()).isNull();
+        assertThat(result.getRecalculateProjectedGrad()).isEqualTo("Y");
     }
 
     @Test
