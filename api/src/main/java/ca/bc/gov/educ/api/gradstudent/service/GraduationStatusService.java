@@ -222,13 +222,13 @@ public class GraduationStatusService {
                 }
             }
 
-            if("".equals(sourceObject.getRecalculateGradStatus()) || "N".equals(sourceObject.getRecalculateGradStatus())) {
+            if("".equals(sourceObject.getRecalculateGradStatus()) || "N".equalsIgnoreCase(sourceObject.getRecalculateGradStatus())) {
                 gradEntity.setRecalculateGradStatus(null);
             }
             else {
                 gradEntity.setRecalculateGradStatus(sourceObject.getRecalculateGradStatus());
             }
-            if ("".equals(sourceObject.getRecalculateProjectedGrad()) || "N".equals(sourceObject.getRecalculateProjectedGrad())) {
+            if ("".equals(sourceObject.getRecalculateProjectedGrad()) || "N".equalsIgnoreCase(sourceObject.getRecalculateProjectedGrad())) {
                 gradEntity.setRecalculateProjectedGrad(null);
             }
             else {
