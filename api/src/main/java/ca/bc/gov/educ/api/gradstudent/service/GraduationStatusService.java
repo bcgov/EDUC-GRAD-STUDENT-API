@@ -222,10 +222,8 @@ public class GraduationStatusService {
                 }
             }
 
-            if (hasDataChanged.hasDataChanged()) {
-                gradEntity.setRecalculateGradStatus(hasDataChanged.getRecalculateGradStatus());
-                gradEntity.setRecalculateProjectedGrad(hasDataChanged.getRecalculateProgectedGrad());
-            }
+            gradEntity.setRecalculateGradStatus(sourceObject.getRecalculateGradStatus());
+            gradEntity.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
 
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
