@@ -205,7 +205,7 @@ public class GraduationStatusService {
                 validation.stopOnErrors();
                 return Pair.of(new GraduationStudentRecord(), null);
             }
-            if(hasDataChanged.hasDataChanged() && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
+            if(hasDataChanged.hasDataChanged()) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
                 deleteStudentCareerPrograms(sourceObject.getStudentID());
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
@@ -220,19 +220,17 @@ public class GraduationStatusService {
                 } else {
                     deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
                 }
-            }
-
-            if("".equals(sourceObject.getRecalculateGradStatus()) || "N".equalsIgnoreCase(sourceObject.getRecalculateGradStatus())) {
-                gradEntity.setRecalculateGradStatus(null);
-            }
-            else {
-                gradEntity.setRecalculateGradStatus(sourceObject.getRecalculateGradStatus());
-            }
-            if ("".equals(sourceObject.getRecalculateProjectedGrad()) || "N".equalsIgnoreCase(sourceObject.getRecalculateProjectedGrad())) {
-                gradEntity.setRecalculateProjectedGrad(null);
-            }
-            else {
-                gradEntity.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
+            } else {
+                if ("".equals(sourceObject.getRecalculateGradStatus()) || "N".equalsIgnoreCase(sourceObject.getRecalculateGradStatus())) {
+                    gradEntity.setRecalculateGradStatus(null);
+                } else {
+                    gradEntity.setRecalculateGradStatus(sourceObject.getRecalculateGradStatus());
+                }
+                if ("".equals(sourceObject.getRecalculateProjectedGrad()) || "N".equalsIgnoreCase(sourceObject.getRecalculateProjectedGrad())) {
+                    gradEntity.setRecalculateProjectedGrad(null);
+                } else {
+                    gradEntity.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
+                }
             }
 
 
