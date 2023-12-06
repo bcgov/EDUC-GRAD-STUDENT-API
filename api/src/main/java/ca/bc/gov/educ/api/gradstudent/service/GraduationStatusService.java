@@ -222,8 +222,19 @@ public class GraduationStatusService {
                 }
             }
 
-            gradEntity.setRecalculateGradStatus(sourceObject.getRecalculateGradStatus());
-            gradEntity.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
+            if("".equals(sourceObject.getRecalculateGradStatus()) || "N".equals(sourceObject.getRecalculateGradStatus())) {
+                gradEntity.setRecalculateGradStatus(null);
+            }
+            else {
+                gradEntity.setRecalculateGradStatus(sourceObject.getRecalculateGradStatus());
+            }
+            if ("".equals(sourceObject.getRecalculateProjectedGrad()) || "N".equals(sourceObject.getRecalculateProjectedGrad())) {
+                gradEntity.setRecalculateProjectedGrad(null);
+            }
+            else {
+                gradEntity.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
+            }
+
 
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
