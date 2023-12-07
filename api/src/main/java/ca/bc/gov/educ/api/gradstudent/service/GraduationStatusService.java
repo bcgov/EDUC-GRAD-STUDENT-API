@@ -227,9 +227,6 @@ public class GraduationStatusService {
                 gradEntity.setRecalculateProjectedGrad(hasDataChanged.getRecalculateProgectedGrad());
             }
 
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
-            gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
-            gradEntity.setUpdateUser(null);
             if(!hasDataChanged.hasDataChanged()) {
                 if ("".equals(sourceObject.getRecalculateGradStatus()) || "N".equalsIgnoreCase(sourceObject.getRecalculateGradStatus())) {
                     gradEntity.setRecalculateGradStatus(null);
@@ -242,6 +239,10 @@ public class GraduationStatusService {
                     gradEntity.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
                 }
             }
+
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
+            gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
+            gradEntity.setUpdateUser(null);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
