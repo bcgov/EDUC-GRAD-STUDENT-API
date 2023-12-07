@@ -205,7 +205,7 @@ public class GraduationStatusService {
                 validation.stopOnErrors();
                 return Pair.of(new GraduationStudentRecord(), null);
             }
-            if(hasDataChanged.hasDataChanged()) {
+            if(hasDataChanged.hasDataChanged() && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
                 deleteStudentCareerPrograms(sourceObject.getStudentID());
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
@@ -222,9 +222,11 @@ public class GraduationStatusService {
                 }
             }
 
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
-            gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
-            gradEntity.setUpdateUser(null);
+            if (hasDataChanged.hasDataChanged()) {
+                gradEntity.setRecalculateGradStatus(hasDataChanged.getRecalculateGradStatus());
+                gradEntity.setRecalculateProjectedGrad(hasDataChanged.getRecalculateProgectedGrad());
+            }
+
             if(!hasDataChanged.hasDataChanged()) {
                 if ("".equals(sourceObject.getRecalculateGradStatus()) || "N".equalsIgnoreCase(sourceObject.getRecalculateGradStatus())) {
                     gradEntity.setRecalculateGradStatus(null);
@@ -237,6 +239,10 @@ public class GraduationStatusService {
                     gradEntity.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
                 }
             }
+
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
+            gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
+            gradEntity.setUpdateUser(null);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
