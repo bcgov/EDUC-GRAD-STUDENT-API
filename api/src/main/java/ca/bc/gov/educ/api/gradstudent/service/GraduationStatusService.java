@@ -205,7 +205,7 @@ public class GraduationStatusService {
                 validation.stopOnErrors();
                 return Pair.of(new GraduationStudentRecord(), null);
             }
-            if(hasDataChanged.hasDataChanged()) {
+            if(hasDataChanged.hasDataChanged() && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
                 deleteStudentCareerPrograms(sourceObject.getStudentID());
                 if(gradEntity.getProgram().equalsIgnoreCase("SCCP")) {
@@ -220,6 +220,11 @@ public class GraduationStatusService {
                 } else {
                     deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
                 }
+            }
+
+            if (hasDataChanged.hasDataChanged()) {
+                gradEntity.setRecalculateGradStatus(hasDataChanged.getRecalculateGradStatus());
+                gradEntity.setRecalculateProjectedGrad(hasDataChanged.getRecalculateProgectedGrad());
             }
 
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
