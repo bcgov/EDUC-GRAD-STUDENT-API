@@ -125,6 +125,15 @@ public class DataConversionService {
     @Retry(name = "generalpostcall")
     public StudentOptionalProgram saveStudentOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, String accessToken) {
         if (studentOptionalProgramReq.getOptionalProgramID() == null) {
+            Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentOptionalProgramReq.getStudentID());
+            if (gradStatusOptional.isPresent()) {
+                String currentGradProgramCode = gradStatusOptional.get().getProgram();
+                // GRAD2-2412: concurrency issue as grad program might be changed by another event by a millisecond.
+                //  => if the requested grad program is different from the current grad program, then use the existing one.
+                if (!StringUtils.equalsIgnoreCase(studentOptionalProgramReq.getMainProgramCode(), currentGradProgramCode)) {
+                    studentOptionalProgramReq.setMainProgramCode(currentGradProgramCode);
+                }
+            }
             OptionalProgram gradOptionalProgram = getOptionalProgram(studentOptionalProgramReq.getMainProgramCode(), studentOptionalProgramReq.getOptionalProgramCode(), accessToken);
             if (gradOptionalProgram == null) {
                 return null;
