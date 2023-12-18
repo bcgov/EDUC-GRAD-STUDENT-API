@@ -275,19 +275,31 @@ public class DataConversionService {
             if (f.getName() == FieldName.GRAD_PROGRAM) {
                 String newProgram = (String) f.getValue();
                 String currentProgram = targetObject.getProgram();
-                if (!StringUtils.equalsIgnoreCase(currentProgram, newProgram)) {
-                    if("SCCP".equalsIgnoreCase(currentProgram)) {
-                        log.info(" {} ==> {}: Archive Student Achievements and SLP_DATE is set to null.", currentProgram, newProgram);
-                        targetObject.setProgramCompletionDate(null);
-                        graduationStatusService.archiveStudentAchievements(targetObject.getStudentID(),accessToken);
-                    } else {
-                        log.info(" {} ==> {}: Delete Student Achievements.", currentProgram, newProgram);
-                        graduationStatusService.deleteStudentAchievements(targetObject.getStudentID(), accessToken);
-                    }
-                }
+                handleStudentAchievements(currentProgram, newProgram, targetObject, accessToken);
+                resetAdultStartDate(currentProgram, newProgram, targetObject);
             }
             populate(f, targetObject);
         });
+    }
+
+    private void handleStudentAchievements(String currentProgram, String newProgram, GraduationStudentRecordEntity targetObject, String accessToken) {
+        if (!StringUtils.equalsIgnoreCase(currentProgram, newProgram)) {
+            if("SCCP".equalsIgnoreCase(currentProgram)) {
+                log.info(" {} ==> {}: Archive Student Achievements and SLP_DATE is set to null.", currentProgram, newProgram);
+                targetObject.setProgramCompletionDate(null);
+                graduationStatusService.archiveStudentAchievements(targetObject.getStudentID(),accessToken);
+            } else {
+                log.info(" {} ==> {}: Delete Student Achievements.", currentProgram, newProgram);
+                graduationStatusService.deleteStudentAchievements(targetObject.getStudentID(), accessToken);
+            }
+        }
+    }
+
+    private void resetAdultStartDate(String currentProgram, String newProgram, GraduationStudentRecordEntity targetObject) {
+        // Only when 1950 adult program is channged to another, reset adultStartDate to null
+        if (!StringUtils.equalsIgnoreCase(currentProgram, newProgram) && "1950".equalsIgnoreCase(currentProgram)) {
+            targetObject.setAdultStartDate(null);
+        }
     }
 
     private void populate(OngoingUpdateFieldDTO field, GraduationStudentRecordEntity targetObject) {
