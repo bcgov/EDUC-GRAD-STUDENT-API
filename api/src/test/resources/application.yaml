@@ -95,6 +95,9 @@ cron:
           lockAtLeastFor: 800ms
           lockAtMostFor: 900ms
           threshold: 100
+      purge-old-records:
+        run: 0 30 0 * * *
+        staleInDays: 90
           
 #Endpoint properties
 endpoint:
