@@ -108,6 +108,9 @@ cron:
           lockAtLeastFor: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_LOCK_AT_LEAST_FOR}
           lockAtMostFor: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_LOCK_AT_MOST_FOR}
           threshold: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_THRESHOLD}
+      purge-old-records:
+        run: ${CRON_SCHEDULED_PURGE_OLD_RECORDS}
+        staleInDays: ${RECORDS_STALE_IN_DAYS}
 
 #Resilience
 resilience4j.retry:

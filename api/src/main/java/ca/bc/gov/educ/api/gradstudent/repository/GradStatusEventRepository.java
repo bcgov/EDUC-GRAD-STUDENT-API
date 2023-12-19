@@ -2,7 +2,11 @@ package ca.bc.gov.educ.api.gradstudent.repository;
 
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,4 +39,9 @@ public interface GradStatusEventRepository extends JpaRepository<GradStatusEvent
    * @return the list
    */
   List<GradStatusEvent> findByEventStatusOrderByCreateDate(String eventStatus);
+
+  @Transactional
+  @Modifying
+  @Query("delete from GradStatusEvent where createDate <= :createDate")
+  void deleteByCreateDateBefore(LocalDateTime createDate);
 }
