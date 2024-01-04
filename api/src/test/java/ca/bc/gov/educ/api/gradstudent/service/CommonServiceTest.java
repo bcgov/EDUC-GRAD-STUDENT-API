@@ -202,14 +202,14 @@ public class CommonServiceTest {
         note1.setId(UUID.randomUUID());
         note1.setStudentID(studentID);
         note1.setNote("Test1 Comments");
-        note1.setUpdateDate(new Date());
+        note1.setUpdateDate(LocalDateTime.now());
         allNotesList.add(note1);
 
         final StudentRecordNoteEntity note2 = new StudentRecordNoteEntity();
         note2.setId(UUID.randomUUID());
         note2.setStudentID(studentID);
         note2.setNote("Test2 Comments");
-        note2.setUpdateDate(new Date( + 100000L));
+        note2.setUpdateDate(LocalDateTime.now());
         allNotesList.add(note2);
 
         when(studentNoteRepository.findByStudentID(studentID)).thenReturn(allNotesList);
@@ -315,16 +315,16 @@ public class CommonServiceTest {
 		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date());
-		obj.setUpdateDate(new Date());
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		gradStudentStatusList.add(obj);
 		obj = new StudentStatusEntity();
 		obj.setCode("CC");
 		obj.setDescription("Courses not complete");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
-		obj.setCreateDate(new Date());
-		obj.setUpdateDate(new Date());
+		obj.setCreateDate(LocalDateTime.now());
+		obj.setUpdateDate(LocalDateTime.now());
 		gradStudentStatusList.add(obj);
 		Mockito.when(studentStatusRepository.findAll()).thenReturn(gradStudentStatusList);
         List<StudentStatus> result = commonService.getAllStudentStatusCodeList();
@@ -346,8 +346,8 @@ public class CommonServiceTest {
 		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
-		objEntity.setCreateDate(new Date());
-		objEntity.setUpdateDate(new Date());
+		objEntity.setCreateDate(LocalDateTime.now());
+		objEntity.setUpdateDate(LocalDateTime.now());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(reasonCode)).thenReturn(ent);
         StudentStatus result = commonService.getSpecificStudentStatusCode(reasonCode);
@@ -376,8 +376,8 @@ public class CommonServiceTest {
 		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
-		objEntity.setCreateDate(new Date());
-		objEntity.setUpdateDate(new Date());
+		objEntity.setCreateDate(LocalDateTime.now());
+		objEntity.setUpdateDate(LocalDateTime.now());
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(Optional.empty());
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
         StudentStatus result = commonService.createStudentStatus(obj);
@@ -399,8 +399,8 @@ public class CommonServiceTest {
 		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
-		objEntity.setCreateDate(new Date());
-		objEntity.setUpdateDate(new Date());
+		objEntity.setCreateDate(LocalDateTime.now());
+		objEntity.setUpdateDate(LocalDateTime.now());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
 		StudentStatus result = commonService.createStudentStatus(obj);
@@ -422,8 +422,8 @@ public class CommonServiceTest {
 		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
-		objEntity.setCreateDate(new Date());
-		objEntity.setUpdateDate(new Date());
+		objEntity.setCreateDate(LocalDateTime.now());
+		objEntity.setUpdateDate(LocalDateTime.now());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
@@ -444,7 +444,7 @@ public class CommonServiceTest {
 		objEntity.setCode("DC");
 		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
-		objEntity.setCreateDate(new Date());
+		objEntity.setCreateDate(LocalDateTime.now());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(ent);
 		Mockito.when(studentStatusRepository.save(objEntity)).thenReturn(objEntity);
@@ -466,8 +466,8 @@ public class CommonServiceTest {
 		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
-		objEntity.setCreateDate(new Date());
-		objEntity.setUpdateDate(new Date());
+		objEntity.setCreateDate(LocalDateTime.now());
+		objEntity.setUpdateDate(LocalDateTime.now());
 		Mockito.when(studentStatusRepository.findById(obj.getCode())).thenReturn(Optional.empty());
         StudentStatus result = commonService.updateStudentStatus(obj);
         assertThat(result).isNotNull();
@@ -492,8 +492,8 @@ public class CommonServiceTest {
 		objEntity.setDescription("Active");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
-		objEntity.setCreateDate(new Date());
-		objEntity.setUpdateDate(new Date());
+		objEntity.setCreateDate(LocalDateTime.now());
+		objEntity.setUpdateDate(LocalDateTime.now());
 		return objEntity;
 	}
 
@@ -505,16 +505,16 @@ public class CommonServiceTest {
         obj.setDescription("Data Correction by School");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
-        obj.setCreateDate(new Date());
-        obj.setUpdateDate(new Date());
+        obj.setCreateDate(LocalDateTime.now());
+        obj.setUpdateDate(LocalDateTime.now());
         gradHistoryActivityList.add(obj);
         obj = new HistoryActivityCodeEntity();
         obj.setCode("CC");
         obj.setDescription("Courses not complete");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
-        obj.setCreateDate(new Date());
-        obj.setUpdateDate(new Date());
+        obj.setCreateDate(LocalDateTime.now());
+        obj.setUpdateDate(LocalDateTime.now());
         gradHistoryActivityList.add(obj);
         Mockito.when(historyActivityRepository.findAll()).thenReturn(gradHistoryActivityList);
         commonService.getAllHistoryActivityCodeList();
@@ -535,8 +535,8 @@ public class CommonServiceTest {
         objEntity.setDescription("Data Correction by School");
         objEntity.setCreateUser("GRADUATION");
         objEntity.setUpdateUser("GRADUATION");
-        objEntity.setCreateDate(new Date());
-        objEntity.setUpdateDate(new Date());
+        objEntity.setCreateDate(LocalDateTime.now());
+        objEntity.setUpdateDate(LocalDateTime.now());
         Optional<HistoryActivityCodeEntity> ent = Optional.of(objEntity);
         Mockito.when(historyActivityRepository.findById(reasonCode)).thenReturn(ent);
         commonService.getSpecificHistoryActivityCode(reasonCode);

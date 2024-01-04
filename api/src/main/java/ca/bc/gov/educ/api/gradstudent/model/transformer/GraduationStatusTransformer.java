@@ -5,7 +5,6 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordDistribution;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ProjectedRunClob;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -136,8 +135,8 @@ public class GraduationStatusTransformer {
             populatePenAndLegalNamesAndNonGradReasons(gradStatus);
             gradStatus.setStudentCitizenship(gradStatusEntity.getStudentCitizenship());
             gradStatus.setStudentGradData(null);
-            gradStatus.setCreateDate(DateUtils.toLocalDateTime(gradStatusEntity.getCreateDate()));
-            gradStatus.setUpdateDate(DateUtils.toLocalDateTime(gradStatusEntity.getUpdateDate()));
+            gradStatus.setCreateDate((gradStatusEntity.getCreateDate()));
+            gradStatus.setUpdateDate((gradStatusEntity.getUpdateDate()));
             gradStatusList.add(gradStatus);
         }
         return gradStatusList;

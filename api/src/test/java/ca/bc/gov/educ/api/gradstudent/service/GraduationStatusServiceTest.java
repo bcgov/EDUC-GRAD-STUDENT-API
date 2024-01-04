@@ -6,10 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordSearchEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
@@ -66,6 +63,7 @@ public class GraduationStatusServiceTest {
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
     @MockBean ReportGradStudentDataRepository reportGradStudentDataRepository;
+    @MockBean StudentNonGradReasonRepository studentNonGradReasonRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
     @MockBean WebClient webClient;
@@ -2365,5 +2363,39 @@ public class GraduationStatusServiceTest {
 
         val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
         assertThat(results).isEmpty();
+    }
+
+    @Test
+    public void testGetNonGradReasonByPen() {
+        String pen = "123456789";
+
+        StudentNonGradReasonEntity entity = new StudentNonGradReasonEntity();
+        entity.setPen(pen);
+        entity.setGradRule1("Rule1");
+        entity.setTranscriptRule1("Tr1");
+        entity.setDescription1("Test Rule1 Description");
+        Mockito.when(studentNonGradReasonRepository.findByPen(pen)).thenReturn(List.of(entity));
+
+        var result = graduationStatusService.getNonGradReason(pen);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getGradRule1()).isEqualTo(entity.getGradRule1());
+    }
+
+    @Test
+    public void testGetNonGradReasonByPen_whenNonGradReason_isNot_Found() {
+        String pen = "123456789";
+
+        StudentNonGradReasonEntity entity = new StudentNonGradReasonEntity();
+        entity.setPen(pen);
+        entity.setGradRule1("Rule1");
+        entity.setTranscriptRule1("Tr1");
+        entity.setDescription1("Test Rule1 Description");
+
+        Mockito.when(studentNonGradReasonRepository.findByPen(pen)).thenReturn(new ArrayList<>());
+
+        var result = graduationStatusService.getNonGradReason(pen);
+
+        assertThat(result).isNull();
     }
 }
