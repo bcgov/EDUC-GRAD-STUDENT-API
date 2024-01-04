@@ -90,10 +90,10 @@ public class DataConversionService {
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
             gradEntity = handleExistingGraduationStatus(sourceObject, gradEntity, graduationStatus.getPen(), ongoingUpdate);
-            return graduationStatusTransformer.transformToDTO(gradEntity);
+            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         } else {
             sourceObject = handleNewGraduationStatus(sourceObject, graduationStatus.getPen(), ongoingUpdate);
-            return graduationStatusTransformer.transformToDTO(sourceObject);
+            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject);
         }
     }
 
