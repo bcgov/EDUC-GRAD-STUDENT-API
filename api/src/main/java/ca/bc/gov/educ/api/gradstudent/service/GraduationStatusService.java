@@ -159,7 +159,7 @@ public class GraduationStatusService {
         if (responseOptional.isPresent()) {
             return graduationStatusTransformer.transformToDTO(responseOptional.get());
         }
-        throw new EntityNotFoundException(String.format("Student with ID: {} not found", studentID));
+        throw new EntityNotFoundException(String.format("Student with ID: %s not found", studentID));
     }
 
     @Transactional

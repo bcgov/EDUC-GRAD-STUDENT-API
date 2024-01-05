@@ -128,7 +128,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         GraduationStudentRecord result = graduationStatusService.getGraduationStatus(studentID);
-        assertTrue(result != null);
+        assertNotNull(result);
     }
 
     @Test
