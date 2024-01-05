@@ -116,7 +116,7 @@ public class DataConversionService {
             if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(requestDTO.getPen())) {
                 saveStudentGuidPenXref(gradEntity.getStudentID(), requestDTO.getPen());
             }
-            return graduationStatusTransformer.transformToDTO(gradEntity);
+            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
     }
