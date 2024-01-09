@@ -122,6 +122,25 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testGetGraduationStatus_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        GraduationStudentRecord result = graduationStatusService.getGraduationStatus(studentID);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetGraduationStatus_givenNotFound_ExpectEntityNotFoundExcetpion() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> {
+            graduationStatusService.getGraduationStatus(studentID);
+        });
+    }
+
+    @Test
     public void testGetGraduationStatusForAlgorithm() {
         // ID
         UUID studentID = UUID.randomUUID();
