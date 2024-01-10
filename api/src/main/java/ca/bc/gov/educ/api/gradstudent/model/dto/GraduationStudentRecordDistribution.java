@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component
-public class GraduationStudentRecordDistribution extends BaseModel{
+public class GraduationStudentRecordDistribution extends BaseModel {
 
     private UUID studentID;
     private String pen;
@@ -18,6 +18,7 @@ public class GraduationStudentRecordDistribution extends BaseModel{
     private String legalMiddleNames;
     private String legalLastName;
     private String schoolOfRecord;
+    private String schoolAtGrad;
     private String programCompletionDate;
     private String honoursStanding;
     private String program;
