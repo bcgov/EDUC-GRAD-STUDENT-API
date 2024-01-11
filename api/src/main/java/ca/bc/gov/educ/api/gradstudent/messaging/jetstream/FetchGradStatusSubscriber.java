@@ -49,7 +49,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
         String response;
         try {
             Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
-            UUID stdId = UUID.fromString(event.getEventPayload());
+            UUID stdId = JsonUtil.getJsonObjectFromString(UUID.class, event.getEventPayload());
             GraduationStudentRecord graduationStatus = graduationStatusService.getGraduationStatus(stdId);
             response = getResponse(graduationStatus);
         } catch (Exception e) {
