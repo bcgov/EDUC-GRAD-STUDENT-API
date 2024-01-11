@@ -8,10 +8,11 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
-import ca.bc.gov.educ.api.gradstudent.util.LogHelper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.*;
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,14 +26,14 @@ public class FetchGradStatusSubscriber implements MessageHandler {
     private Dispatcher dispatcher;
     private final GraduationStatusService graduationStatusService;
 
-    private final EducGradStudentApiConstants constants;
     private static final String TOPIC = Topics.GRAD_STUDENT_API_FETCH_GRAD_STATUS_TOPIC.toString();
+
+    private static final Logger log = LoggerFactory.getLogger(FetchGradStatusSubscriber.class);
 
     @Autowired
     public FetchGradStatusSubscriber(final Connection natsConnection, GraduationStatusService graduationStatusService, EducGradStudentApiConstants constants) {
         this.natsConnection = natsConnection;
         this.graduationStatusService = graduationStatusService;
-        this.constants = constants;
     }
 
     @PostConstruct
@@ -44,7 +45,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
     @Override
     public void onMessage(Message message) {
         val eventString = new String(message.getData());
-        LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());
+        log.debug(eventString);
         String response;
         try {
             Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
@@ -53,7 +54,9 @@ public class FetchGradStatusSubscriber implements MessageHandler {
             response = getResponse(graduationStatus);
         } catch (Exception e) {
             response = getErrorResponse(e);
-            LogHelper.logMessagingEventDetails("NATS message exception at FetchGradStatusSubscriber: " + response + " when processing: " + eventString, constants.isSplunkLogHelperEnabled());
+            if(!(e instanceof EntityNotFoundException)){
+                log.error(String.format("NATS message exception at FetchGradStatusSubscriber: %s when processing: %s", e.getMessage(), eventString));
+            }
         }
         this.natsConnection.publish(message.getReplyTo(), response.getBytes());
     }
