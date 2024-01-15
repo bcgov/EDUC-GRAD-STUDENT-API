@@ -317,7 +317,7 @@ public class GradStudentService {
 		BeanUtils.copyProperties(student, gradStu);
 		GraduationStudentRecordEntity graduationStatusEntity = graduationStatusRepository.findByStudentID(UUID.fromString(student.getStudentID()));
 		if(graduationStatusEntity != null) {
-			GraduationStudentRecord gradObj = graduationStatusTransformer.transformToDTO(graduationStatusEntity);
+			GraduationStudentRecord gradObj = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity);
 			gradStu.setProgram(gradObj.getProgram());
 			gradStu.setStudentGrade(gradObj.getStudentGrade());
 			gradStu.setStudentStatus(gradObj.getStudentStatus());
