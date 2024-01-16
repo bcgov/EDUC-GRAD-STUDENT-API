@@ -31,7 +31,8 @@ public class CommonController {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonController.class);
     
-    private static final String STATUS_CODE="Status Code";
+    private static final String STATUS_CODE = "Status Code";
+    private static final String BEARER = "Bearer ";
 
     @Autowired
     CommonService commonService;
@@ -276,4 +277,36 @@ public class CommonController {
         return response.GET(commonService.getDeceasedStudentIDs(studentIds));
     }
 
+    @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAMS)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Create Student Optional Grad Program by Student ID", description = "Create Student Optional Grad Program by Student ID", tags = { "Optional Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<?> createStudentGradOptionalProgram(@PathVariable UUID studentID, @RequestBody StudentOptionalProgram gradStudentOptionalProgram,
+                                                                                    @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Create student Optional Grad Program for Student ID: {}", studentID);
+        graduationStatusService.createStudentGradOptionalProgram(studentID, gradStudentOptionalProgram);
+        return response.GET(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
+    }
+
+    @PutMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Update Student Optional Grad Program for Student ID", description = "Update Student Optional Grad Program for Student ID", tags = { "Optional Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<?> updateStudentGradOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID optionalProgramID, @RequestBody StudentOptionalProgram gradStudentOptionalProgram,
+                                                                                    @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Create student Optional Grad Program for Student ID: {}", studentID);
+        graduationStatusService.updateStudentGradOptionalProgram(studentID, optionalProgramID, gradStudentOptionalProgram);
+        return response.GET(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
+    }
+
+    @DeleteMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Delete Student Optional Grad Program by Student ID", description = "Delete Student Optional Grad Program by Student ID", tags = { "Optional Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<?> deleteStudentGradOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID optionalProgramID, @PathVariable String careerProgramCode,
+                                                                                    @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Delete student Optional Program for Student ID: {}", studentID);
+        graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, careerProgramCode);
+        return response.GET(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
+    }
 }

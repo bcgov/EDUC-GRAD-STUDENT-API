@@ -54,8 +54,12 @@ public class GraduationStatusService {
 
     private static final String CREATE_USER = "createUser";
     private static final String CREATE_DATE = "createDate";
+    private static final String UPDATE_USER = "updateUser";
+    private static final String UPDATE_DATE = "updateDate";
     private static final String GRAD_ALG = "GRADALG";
     private static final String USER_EDIT = "USEREDIT";
+    private static final String USER_CREATE = "USERCREATE";
+    private static final String USER_DELETE = "USERDELETE";
     private static final String USER_UNDO_CMPL = "USERUNDOCMPL";
 
     final
@@ -147,6 +151,8 @@ public class GraduationStatusService {
 
             List<StudentCareerProgramEntity> studentCareerProgramEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
             gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
+            List<StudentOptionalProgram> studentOptionalPrograms = getStudentGradOptionalProgram(studentID, accessToken);
+            gradStatus.setOptionalPrograms(studentOptionalPrograms);
             return gradStatus;
         } else {
             return null;
@@ -593,6 +599,10 @@ public class GraduationStatusService {
         }
     }
 
+    private void validateStudent(GraduationStudentRecord graduationStudentRecord) {
+        validateStudentStatus(graduationStudentRecord.getStudentStatus());
+    }
+
     private void validateProgram(GraduationStudentRecordEntity sourceEntity, String accessToken) {
         GradProgram gradProgram = webClient.get()
                 .uri(String.format(constants.getGradProgramNameUrl(), sourceEntity.getProgram()))
@@ -778,8 +788,66 @@ public class GraduationStatusService {
             return null;
         }
     }
+
+    public StudentOptionalProgram createStudentGradOptionalProgram(UUID studentID, StudentOptionalProgram gradStudentOptionalProgram) throws EntityNotFoundException {
+        gradStudentOptionalProgram.setStudentID(studentID);
+        validateStudent(getGraduationStatus(studentID));
+        StudentOptionalProgramEntity sourceObject = gradStudentOptionalProgramTransformer.transformToEntity(gradStudentOptionalProgram);
+        sourceObject.setUpdateUser(null); //this change is just till idir login is fixed
+        StudentOptionalProgramEntity gradEnity = new StudentOptionalProgramEntity();
+        logger.debug(" -> Creating Student Optional Program Entity for student ID: {}", studentID);
+        BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
+        gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
+        gradEnity = gradStudentOptionalProgramRepository.save(gradEnity);
+        historyService.createStudentOptionalProgramHistory(gradEnity, USER_CREATE);
+        graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+        return gradStudentOptionalProgramTransformer.transformToDTO(gradEnity);
+    }
+
+    public StudentOptionalProgram updateStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, StudentOptionalProgram gradStudentOptionalProgram) throws EntityNotFoundException {
+        validateStudent(getGraduationStatus(studentID));
+        gradStudentOptionalProgram.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgram.setStudentID(studentID);
+        Optional<StudentOptionalProgramEntity> gradStudentOptionalProgramEntityOptional =
+                gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
+        StudentOptionalProgramEntity sourceObject = gradStudentOptionalProgramTransformer.transformToEntity(gradStudentOptionalProgram);
+        sourceObject.setUpdateUser(null); //this change is just till idir login is fixed
+        if (gradStudentOptionalProgramEntityOptional.isPresent()) {
+            StudentOptionalProgramEntity gradEnity = gradStudentOptionalProgramEntityOptional.get();
+            logger.debug(" -> Student {} Optional Program Entity is found for ID: {} === Entity ID: {}", studentID, optionalProgramID, gradEnity.getId());
+            BeanUtils.copyProperties(sourceObject, gradEnity, UPDATE_USER, UPDATE_DATE);
+            gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
+            gradEnity = gradStudentOptionalProgramRepository.save(gradEnity);
+            historyService.createStudentOptionalProgramHistory(gradEnity,GRAD_ALG);
+            graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+            return gradStudentOptionalProgramTransformer.transformToDTO(gradEnity);
+        } else {
+            String msg = "Student {} optional program {} was not found";
+            throw new EntityNotFoundException(String.format(msg, studentID, optionalProgramID));
+        }
+    }
+
+    public void deleteStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, String careerProgramCode) throws EntityNotFoundException {
+        validateStudent(getGraduationStatus(studentID));
+        Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional =
+                gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
+        logger.debug("Save with payload ==> Student Optional Program ID: {}", optionalProgramID);
+        if (gradStudentOptionalOptional.isPresent()) {
+            StudentOptionalProgramEntity gradEnity = gradStudentOptionalOptional.get();
+            logger.debug(" -> Student Optional Program Entity is found for ID: {} === Entity ID: {}", optionalProgramID, optionalProgramID);
+            gradStudentOptionalProgramRepository.delete(gradEnity);
+            historyService.createStudentOptionalProgramHistory(gradEnity, USER_DELETE);
+            if(StringUtils.isNotBlank(careerProgramCode)) {
+                gradStudentCareerProgramRepository.deleteStudentCareerProgramEntityByStudentIDAndCareerProgramCode(studentID, careerProgramCode);
+            }
+            graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+        } else {
+            String msg = "Student Optional Program %s for student %s is not found";
+            throw new EntityNotFoundException(String.format(msg, optionalProgramID, studentID));
+        }
+    }
     
-    public StudentOptionalProgram updateStudentGradOptionalProgram(StudentOptionalProgramReq gradStudentOptionalProgramReq,String accessToken) {
+    public StudentOptionalProgram updateStudentGradOptionalProgram(StudentOptionalProgramReq gradStudentOptionalProgramReq, String accessToken) {
         Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional = Optional.empty();
         if(gradStudentOptionalProgramReq.getId() != null)
             gradStudentOptionalOptional = gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgramReq.getId());
@@ -797,22 +865,22 @@ public class GraduationStatusService {
         sourceObject.setId(gradStudentOptionalProgramReq.getId());
         sourceObject.setStudentID(gradStudentOptionalProgramReq.getStudentID());
         sourceObject.setOptionalProgramCompletionDate(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate() != null ?Date.valueOf(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate()) : null);
-        sourceObject.setOptionalProgramID(gradOptionalProgram != null ?gradOptionalProgram.getOptionalProgramID():null);
+        sourceObject.setOptionalProgramID(gradOptionalProgram != null ? gradOptionalProgram.getOptionalProgramID() : null);
         if (gradStudentOptionalOptional.isPresent()) {
             StudentOptionalProgramEntity gradEntity = gradStudentOptionalOptional.get();
             if(gradEntity.getOptionalProgramID().equals(sourceObject.getOptionalProgramID())) {
                 sourceObject.setStudentOptionalProgramData(gradEntity.getStudentOptionalProgramData());
-            }else {
+            } else {
                 sourceObject.setStudentOptionalProgramData(null);
             }
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE,"id");
+            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "id");
             gradEntity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
             gradEntity = gradStudentOptionalProgramRepository.save(gradEntity);
             historyService.createStudentOptionalProgramHistory(gradEntity, USER_EDIT);
             return gradStudentOptionalProgramTransformer.transformToDTO(gradEntity);
         } else {
             sourceObject = gradStudentOptionalProgramRepository.save(sourceObject);
-            historyService.createStudentOptionalProgramHistory(sourceObject, USER_EDIT);
+            historyService.createStudentOptionalProgramHistory(sourceObject, USER_CREATE);
             return gradStudentOptionalProgramTransformer.transformToDTO(sourceObject);
         }
     }
