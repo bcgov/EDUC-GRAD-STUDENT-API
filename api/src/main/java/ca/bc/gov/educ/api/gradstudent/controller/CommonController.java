@@ -288,7 +288,7 @@ public class CommonController {
         return response.GET(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
     }
 
-    @PutMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM)
+    @PutMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_UPDATE)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Update Student Optional Grad Program for Student ID", description = "Update Student Optional Grad Program for Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
@@ -299,14 +299,14 @@ public class CommonController {
         return response.GET(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
     }
 
-    @DeleteMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM)
+    @DeleteMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_DELETE)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Delete Student Optional Grad Program by Student ID", description = "Delete Student Optional Grad Program by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<?> deleteStudentGradOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID optionalProgramID, @PathVariable String careerProgramCode,
+    public ResponseEntity<?> deleteStudentGradOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID optionalProgramID, @RequestParam (value = "careerProgramID", required = false) String careerProgramID,
                                                                                     @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Delete student Optional Program for Student ID: {}", studentID);
-        graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, careerProgramCode);
+        graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, careerProgramID);
         return response.GET(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
     }
 }

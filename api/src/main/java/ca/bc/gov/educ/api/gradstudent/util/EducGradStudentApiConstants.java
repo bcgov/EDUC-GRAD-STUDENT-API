@@ -44,7 +44,8 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";
     public static final String SAVE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/optionalprogram";
     public static final String UPDATE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/gradstudent/optionalprogram";
-    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM = "/{studentID}/optionalPrograms/{optionalProgramID}/careerPrograms/{careerProgramID}";
+    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_DELETE = "/{studentID}/optionalPrograms/{optionalProgramID}/careerPrograms";
+    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_UPDATE = "/{studentID}/optionalPrograms/{optionalProgramID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAMS = "/{studentID}/optionalPrograms";
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GRAD_STUDENT_PROJECTED_RUN = "/projected";

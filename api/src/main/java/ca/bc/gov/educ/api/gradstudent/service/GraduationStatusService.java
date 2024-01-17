@@ -58,7 +58,7 @@ public class GraduationStatusService {
     private static final String UPDATE_DATE = "updateDate";
     private static final String GRAD_ALG = "GRADALG";
     private static final String USER_EDIT = "USEREDIT";
-    private static final String USER_CREATE = "USERCREATE";
+    private static final String USER_CREATE = "USEREDIT";
     private static final String USER_DELETE = "USERDELETE";
     private static final String USER_UNDO_CMPL = "USERUNDOCMPL";
 
@@ -789,6 +789,7 @@ public class GraduationStatusService {
         }
     }
 
+    @Transactional
     public StudentOptionalProgram createStudentGradOptionalProgram(UUID studentID, StudentOptionalProgram gradStudentOptionalProgram) throws EntityNotFoundException {
         gradStudentOptionalProgram.setStudentID(studentID);
         validateStudent(getGraduationStatus(studentID));
@@ -804,6 +805,7 @@ public class GraduationStatusService {
         return gradStudentOptionalProgramTransformer.transformToDTO(gradEnity);
     }
 
+    @Transactional
     public StudentOptionalProgram updateStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, StudentOptionalProgram gradStudentOptionalProgram) throws EntityNotFoundException {
         validateStudent(getGraduationStatus(studentID));
         gradStudentOptionalProgram.setOptionalProgramID(optionalProgramID);
@@ -815,19 +817,20 @@ public class GraduationStatusService {
         if (gradStudentOptionalProgramEntityOptional.isPresent()) {
             StudentOptionalProgramEntity gradEnity = gradStudentOptionalProgramEntityOptional.get();
             logger.debug(" -> Student {} Optional Program Entity is found for ID: {} === Entity ID: {}", studentID, optionalProgramID, gradEnity.getId());
-            BeanUtils.copyProperties(sourceObject, gradEnity, UPDATE_USER, UPDATE_DATE);
+            BeanUtils.copyProperties(sourceObject, gradEnity, "id", "studentID", "optionalProgramID", UPDATE_USER, UPDATE_DATE);
             gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
             gradEnity = gradStudentOptionalProgramRepository.save(gradEnity);
             historyService.createStudentOptionalProgramHistory(gradEnity,GRAD_ALG);
             graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
             return gradStudentOptionalProgramTransformer.transformToDTO(gradEnity);
         } else {
-            String msg = "Student {} optional program {} was not found";
+            String msg = "Student %s optional program % was not found";
             throw new EntityNotFoundException(String.format(msg, studentID, optionalProgramID));
         }
     }
 
-    public void deleteStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, String careerProgramCode) throws EntityNotFoundException {
+    @Transactional
+    public void deleteStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, String careerProgramID) throws EntityNotFoundException {
         validateStudent(getGraduationStatus(studentID));
         Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional =
                 gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
@@ -837,8 +840,8 @@ public class GraduationStatusService {
             logger.debug(" -> Student Optional Program Entity is found for ID: {} === Entity ID: {}", optionalProgramID, optionalProgramID);
             gradStudentOptionalProgramRepository.delete(gradEnity);
             historyService.createStudentOptionalProgramHistory(gradEnity, USER_DELETE);
-            if(StringUtils.isNotBlank(careerProgramCode)) {
-                gradStudentCareerProgramRepository.deleteStudentCareerProgramEntityByStudentIDAndCareerProgramCode(studentID, careerProgramCode);
+            if(StringUtils.isNotBlank(careerProgramID)) {
+                gradStudentCareerProgramRepository.deleteStudentCareerProgramEntityByStudentIDAndId(studentID, UUID.fromString(careerProgramID));
             }
             graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
         } else {
