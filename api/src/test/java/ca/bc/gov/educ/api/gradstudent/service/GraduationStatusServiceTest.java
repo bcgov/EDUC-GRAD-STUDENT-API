@@ -1018,14 +1018,11 @@ public class GraduationStatusServiceTest {
         UUID optionalProgramID = UUID.randomUUID();
 
         StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
-        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
         gradStudentOptionalProgramEntity.setStudentID(studentID);
         gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
-        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
 
         StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
         BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
-        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
         GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
         graduationStudentRecordEntity.setStudentID(studentID);

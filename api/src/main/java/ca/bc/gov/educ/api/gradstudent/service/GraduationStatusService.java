@@ -800,12 +800,9 @@ public class GraduationStatusService {
         BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
         gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
         StudentOptionalProgramEntity gradEnitySaved = gradStudentOptionalProgramRepository.save(gradEnity);
-        if(gradEnitySaved != null) {
-            historyService.createStudentOptionalProgramHistory(gradEnitySaved, USER_CREATE);
-            graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
-            return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
-        }
-        return gradStudentOptionalProgramTransformer.transformToDTO(gradEnity);
+        historyService.createStudentOptionalProgramHistory(gradEnitySaved, USER_CREATE);
+        graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+        return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
     }
 
     @Transactional
@@ -823,12 +820,9 @@ public class GraduationStatusService {
             BeanUtils.copyProperties(sourceObject, gradEnity, "id", "studentID", "optionalProgramID", UPDATE_USER, UPDATE_DATE);
             gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
             StudentOptionalProgramEntity gradEnitySaved = gradStudentOptionalProgramRepository.save(gradEnity);
-            if(gradEnitySaved != null) {
-                historyService.createStudentOptionalProgramHistory(gradEnitySaved,GRAD_ALG);
-                graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
-                return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
-            }
-            return gradStudentOptionalProgramTransformer.transformToDTO(gradEnity);
+            historyService.createStudentOptionalProgramHistory(gradEnitySaved,GRAD_ALG);
+            graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+            return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
         } else {
             String msg = "Student %s optional program % was not found";
             throw new EntityNotFoundException(String.format(msg, studentID, optionalProgramID));
