@@ -1106,7 +1106,7 @@ public class GraduationStatusServiceTest {
         doNothing().when(graduationStatusRepository).updateGradStudentRecalculationFlags(studentID, "Y", "Y");
 
         graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, null);
-
+        assertThat(graduationStudentRecordEntity).isNotNull();
     }
 
     @Test
