@@ -273,10 +273,20 @@ public class DataConversionService {
     private void populateOngoingUpdateFields(List<OngoingUpdateFieldDTO> fields, GraduationStudentRecordEntity targetObject, String accessToken) {
         fields.forEach(f -> {
             if (f.getName() == FieldName.GRAD_PROGRAM) {
-                String newProgram = (String) f.getValue();
+                String newProgram = getStringValue(f.getValue());
                 String currentProgram = targetObject.getProgram();
                 handleStudentAchievements(currentProgram, newProgram, targetObject, accessToken);
                 resetAdultStartDate(currentProgram, newProgram, targetObject);
+            } else if (f.getName() == FieldName.STUDENT_STATUS) {
+                String newStatus = getStringValue(f.getValue());
+                if ("MER".equals(newStatus)) {
+                    targetObject.setStudentGradData(null);
+                    targetObject.setStudentProjectedGradData(null);
+                    targetObject.setRecalculateGradStatus(null);
+                    targetObject.setRecalculateProjectedGrad(null);
+                    log.info(" {} ==> {}: Delete Student Achievements.", targetObject.getStudentStatus(), newStatus);
+                    graduationStatusService.deleteStudentAchievements(targetObject.getStudentID(), accessToken);
+                }
             }
             populate(f, targetObject);
         });
