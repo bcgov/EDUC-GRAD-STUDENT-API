@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
-public class GradBusinessRuleException extends RuntimeException{
+public class GradBusinessRuleException extends RuntimeException {
 
 	/**
 	 * 

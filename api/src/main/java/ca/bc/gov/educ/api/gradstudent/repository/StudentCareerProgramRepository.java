@@ -22,4 +22,6 @@ public interface StudentCareerProgramRepository extends JpaRepository<StudentCar
 	List<StudentCareerProgramEntity> existsByCareerProgramCode(String cpCode);
 
 	void deleteByStudentID(UUID studentID);
+
+	void deleteStudentCareerProgramEntityByStudentIDAndId(UUID studentGuid, UUID id);
 }

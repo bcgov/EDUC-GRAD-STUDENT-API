@@ -1,6 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.exception;
 
-public class EntityNotFoundException extends Exception {
+import ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException;
+
+public class EntityNotFoundException extends GradBusinessRuleException {
 
 
     public EntityNotFoundException() {
@@ -11,11 +13,4 @@ public class EntityNotFoundException extends Exception {
         super(message);
     }
 
-    public EntityNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public EntityNotFoundException(Throwable cause) {
-        super(cause);
-    }
 }
