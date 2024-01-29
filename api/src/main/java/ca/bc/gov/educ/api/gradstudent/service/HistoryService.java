@@ -153,4 +153,15 @@ public class HistoryService {
         });
         return pagedDate;
     }
+
+    public GraduationStudentRecordHistory saveStudentRecordHistoryDistributionRun(Long batchId, String userName) {
+
+        GraduationStudentRecordHistoryEntity gradStudentRecordHistoryEntity = graduationStudentRecordHistoryRepository.findByBatchId(batchId);
+        gradStudentRecordHistoryEntity.setUpdateUser(userName);
+        gradStudentRecordHistoryEntity.setUpdateDate(null);
+        graduationStudentRecordHistoryRepository.save(gradStudentRecordHistoryEntity);
+        return graduationStudentRecordHistoryTransformer.transformToDTO(gradStudentRecordHistoryEntity);
+
+    }
+
 }
