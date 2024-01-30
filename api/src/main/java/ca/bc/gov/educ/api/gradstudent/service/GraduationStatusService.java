@@ -790,7 +790,7 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public StudentOptionalProgram createStudentGradOptionalProgram(UUID studentID, StudentOptionalProgram gradStudentOptionalProgram) throws EntityNotFoundException {
+    public StudentOptionalProgram createStudentGradOptionalProgram(UUID studentID, StudentOptionalProgram gradStudentOptionalProgram, String careerProgramCode) throws EntityNotFoundException {
         gradStudentOptionalProgram.setStudentID(studentID);
         validateStudent(getGraduationStatus(studentID));
         StudentOptionalProgramEntity sourceObject = gradStudentOptionalProgramTransformer.transformToEntity(gradStudentOptionalProgram);
@@ -800,6 +800,12 @@ public class GraduationStatusService {
         BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
         gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
         StudentOptionalProgramEntity gradEnitySaved = gradStudentOptionalProgramRepository.save(gradEnity);
+        if(StringUtils.equalsIgnoreCase(careerProgramCode, "CP")) {
+            StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
+            studentCareerProgramEntity.setStudentID(studentID);
+            studentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
+            gradStudentCareerProgramRepository.save(studentCareerProgramEntity);
+        }
         historyService.createStudentOptionalProgramHistory(gradEnitySaved, USER_CREATE);
         graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
         return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
@@ -830,7 +836,7 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public void deleteStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, String careerProgramID) throws EntityNotFoundException {
+    public void deleteStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, String careerProgramCode) throws EntityNotFoundException {
         validateStudent(getGraduationStatus(studentID));
         Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional =
                 gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
@@ -840,8 +846,8 @@ public class GraduationStatusService {
             logger.debug(" -> Student Optional Program Entity is found for ID: {} === Entity ID: {}", optionalProgramID, optionalProgramID);
             gradStudentOptionalProgramRepository.delete(gradEnity);
             historyService.createStudentOptionalProgramHistory(gradEnity, USER_DELETE);
-            if(StringUtils.isNotBlank(careerProgramID)) {
-                gradStudentCareerProgramRepository.deleteStudentCareerProgramEntityByStudentIDAndId(studentID, UUID.fromString(careerProgramID));
+            if(StringUtils.isNotBlank(careerProgramCode)) {
+                gradStudentCareerProgramRepository.deleteStudentCareerProgramEntityByStudentIDAndCareerProgramCode(studentID, careerProgramCode);
             }
             graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
         } else {

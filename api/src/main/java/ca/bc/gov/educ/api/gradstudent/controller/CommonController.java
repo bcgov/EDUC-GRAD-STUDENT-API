@@ -281,10 +281,10 @@ public class CommonController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Create Student Optional Grad Program by Student ID", description = "Create Student Optional Grad Program by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<GraduationStudentRecord> createStudentGradOptionalProgram(@PathVariable UUID studentID, @RequestBody StudentOptionalProgram gradStudentOptionalProgram,
+    public ResponseEntity<GraduationStudentRecord> createStudentGradOptionalProgram(@PathVariable UUID studentID, @RequestBody StudentOptionalProgram gradStudentOptionalProgram, @RequestParam (value = "careerProgramCode", required = false) String careerProgramCode,
                                                                                     @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Create student Optional Grad Program for Student ID: {}", studentID);
-        graduationStatusService.createStudentGradOptionalProgram(studentID, gradStudentOptionalProgram);
+        graduationStatusService.createStudentGradOptionalProgram(studentID, gradStudentOptionalProgram, careerProgramCode);
         return response.GET(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
     }
 
@@ -303,10 +303,10 @@ public class CommonController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Delete Student Optional Grad Program by Student ID", description = "Delete Student Optional Grad Program by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<GraduationStudentRecord> deleteStudentGradOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID optionalProgramID, @RequestParam (value = "careerProgramID", required = false) String careerProgramID,
+    public ResponseEntity<GraduationStudentRecord> deleteStudentGradOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID optionalProgramID, @RequestParam (value = "careerProgramCode", required = false) String careerProgramCode,
                                                                                     @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Delete student Optional Program for Student ID: {}", studentID);
-        graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, careerProgramID);
+        graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, careerProgramCode);
         return response.GET(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
     }
 }

@@ -365,13 +365,13 @@ public class CommonControllerTest {
         BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
         studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        Mockito.when(graduationStatusService.createStudentGradOptionalProgram(studentID, studentOptionalProgram)).thenReturn(studentOptionalProgram);
+        Mockito.when(graduationStatusService.createStudentGradOptionalProgram(studentID, studentOptionalProgram, "CP")).thenReturn(studentOptionalProgram);
         Mockito.when(graduationStatusService.getGraduationStatus(studentID, "accessToken")).thenReturn(graduationStudentRecord);
 
         Mockito.when(responseHelper.GET(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(graduationStudentRecord));
 
-        var result = commonController.createStudentGradOptionalProgram(studentID, studentOptionalProgram,"accessToken");
-        Mockito.verify(graduationStatusService).createStudentGradOptionalProgram(studentID, studentOptionalProgram);
+        var result = commonController.createStudentGradOptionalProgram(studentID, studentOptionalProgram, "CP", "accessToken");
+        Mockito.verify(graduationStatusService).createStudentGradOptionalProgram(studentID, studentOptionalProgram, "CP");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
