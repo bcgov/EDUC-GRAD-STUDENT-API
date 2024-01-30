@@ -1035,7 +1035,7 @@ public class GraduationStatusServiceTest {
         doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_CREATE");
         doNothing().when(graduationStatusRepository).updateGradStudentRecalculationFlags(studentID, "Y", "Y");
 
-        var result = graduationStatusService.createStudentGradOptionalProgram(studentID, studentOptionalProgram);
+        var result = graduationStatusService.createStudentGradOptionalProgram(studentID, studentOptionalProgram, "CP");
 
         assertThat(result).isNotNull();
 
