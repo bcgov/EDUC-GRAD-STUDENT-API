@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
@@ -32,6 +33,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -150,6 +152,20 @@ public class HistoryServiceTest {
         graduationStatusEntity.setActivityCode("GRADALG");
         when(graduationStudentRecordHistoryRepository.findById(historyID)).thenReturn(Optional.of(graduationStatusEntity));
         var result = historyService.getStudentHistoryByID(historyID);
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    public void testSaveStudentRecordHistoryDistributionRun() {
+        final Long batchID = 426L;
+        final String userName = "ABC";
+
+        GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
+        graduationStatusEntity.setUpdateUser("ABC");
+        graduationStatusEntity.setUpdateDate(LocalDateTime.now());
+
+        when(graduationStudentRecordHistoryRepository.findByBatchId(batchID)).thenReturn(graduationStatusEntity);
+        var result = historyService.saveStudentRecordHistoryDistributionRun(batchID, userName);
         assertThat(result).isNotNull();
     }
 
