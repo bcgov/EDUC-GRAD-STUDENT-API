@@ -801,10 +801,13 @@ public class GraduationStatusService {
         gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
         StudentOptionalProgramEntity gradEnitySaved = gradStudentOptionalProgramRepository.save(gradEnity);
         if(StringUtils.equalsIgnoreCase(careerProgramCode, "CP")) {
-            StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
-            studentCareerProgramEntity.setStudentID(studentID);
-            studentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
-            gradStudentCareerProgramRepository.save(studentCareerProgramEntity);
+            Optional<StudentCareerProgramEntity>  optionalStudentCareerProgramEntity = gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode);
+            if(!optionalStudentCareerProgramEntity.isPresent()) {
+                StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
+                studentCareerProgramEntity.setStudentID(studentID);
+                studentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
+                gradStudentCareerProgramRepository.save(studentCareerProgramEntity);
+            }
         }
         historyService.createStudentOptionalProgramHistory(gradEnitySaved, USER_CREATE);
         graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");

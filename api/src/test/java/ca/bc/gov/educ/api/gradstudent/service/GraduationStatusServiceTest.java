@@ -1031,6 +1031,7 @@ public class GraduationStatusServiceTest {
         Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, "CP")).thenReturn(Optional.empty());
         when(gradStudentOptionalProgramRepository.save(gradStudentOptionalProgramEntity)).thenReturn(gradStudentOptionalProgramEntity);
         doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_CREATE");
         doNothing().when(graduationStatusRepository).updateGradStudentRecalculationFlags(studentID, "Y", "Y");
