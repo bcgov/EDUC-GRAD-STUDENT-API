@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordHistory;
 import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
@@ -21,8 +22,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -154,14 +157,12 @@ public class HistoryService {
         return pagedDate;
     }
 
-    public GraduationStudentRecordHistory saveStudentRecordHistoryDistributionRun(Long batchId, String userName) {
+    @Transactional
+    public void updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser) {
 
-        GraduationStudentRecordHistoryEntity gradStudentRecordHistoryEntity = graduationStudentRecordHistoryRepository.findByBatchId(batchId);
-        gradStudentRecordHistoryEntity.setUpdateUser(userName);
-        gradStudentRecordHistoryEntity.setUpdateDate(null);
-        graduationStudentRecordHistoryRepository.save(gradStudentRecordHistoryEntity);
-        return graduationStudentRecordHistoryTransformer.transformToDTO(gradStudentRecordHistoryEntity);
+        LocalDateTime updateDate = LocalDateTime.now();
+        graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser, updateDate);
 
-    }
+        }
 
 }

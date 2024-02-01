@@ -443,21 +443,6 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
-    public void saveStudentGradHistoryStatusDistributionRun() {
-        // ID
-        final Long batchID = 426L;
-        final String userName = "ABC";
-
-        GraduationStudentRecordHistory gradStudRecHistory = new GraduationStudentRecordHistory();
-        gradStudRecHistory.setBatchId(426L);
-        gradStudRecHistory.setUpdateUser("ABC");
-
-        Mockito.when(historyService.saveStudentRecordHistoryDistributionRun(batchID, userName)).thenReturn(gradStudRecHistory);
-        graduationStatusController.saveStudentGradHistoryStatusDistributionRun(batchID, userName);
-        Mockito.verify(historyService).saveStudentRecordHistoryDistributionRun(batchID, userName);
-    }
-    
-    @Test
     public void testreturnToOriginalState_returnsfalse() {
         // ID
         UUID studentID = UUID.randomUUID();
