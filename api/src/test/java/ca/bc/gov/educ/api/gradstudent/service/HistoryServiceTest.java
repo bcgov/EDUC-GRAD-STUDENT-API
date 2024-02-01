@@ -156,20 +156,6 @@ public class HistoryServiceTest {
     }
 
     @Test
-    public void testSaveStudentRecordHistoryDistributionRun() {
-        final Long batchID = 426L;
-        final String userName = "ABC";
-
-        GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
-        graduationStatusEntity.setUpdateUser("ABC");
-        graduationStatusEntity.setUpdateDate(LocalDateTime.now());
-
-        when(graduationStudentRecordHistoryRepository.findByBatchId(batchID)).thenReturn(graduationStatusEntity);
-        var result = historyService.saveStudentRecordHistoryDistributionRun(batchID, userName);
-        assertThat(result).isNotNull();
-    }
-
-    @Test
     public  void testGetStudentOptionalProgramHistoryByID() {
         UUID studentID = UUID.randomUUID();
         UUID historyID = UUID.randomUUID();

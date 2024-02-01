@@ -6,10 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
-import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
+import ca.bc.gov.educ.api.gradstudent.util.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -362,10 +359,10 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<GraduationStudentRecordHistory> saveStudentGradHistoryStatusDistributionRun(@PathVariable Long batchID, @RequestParam(required = false) String userName) {
+    public ResponseEntity<ApiResponseModel<Void>> updateStudentGradHistoryStatusDistributionRun(@PathVariable Long batchID, @RequestParam(required = false) String userName) {
         logger.debug("Save Distribution student Grad history for Student ID");
-        GraduationStudentRecordHistory gradRecord =  historyService.saveStudentRecordHistoryDistributionRun(batchID, userName);
-        return response.GET(gradRecord);
+        historyService.updateStudentRecordHistoryDistributionRun(batchID, userName);
+        return response.UPDATED(null);
     }
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_SCHOOL_REPORT)
