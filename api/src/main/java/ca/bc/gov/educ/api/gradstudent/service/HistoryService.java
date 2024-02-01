@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
-import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordHistory;
 import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
