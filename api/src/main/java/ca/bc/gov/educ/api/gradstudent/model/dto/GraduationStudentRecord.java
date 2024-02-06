@@ -14,7 +14,7 @@ import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.DE
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component
-public class GraduationStudentRecord extends BaseModel{
+public class GraduationStudentRecord extends BaseModel {
 
     private String studentGradData;
     private String pen;
@@ -44,5 +44,6 @@ public class GraduationStudentRecord extends BaseModel{
     private Date adultStartDate;
 
     private List<StudentCareerProgram> careerPrograms;
+    private List<StudentOptionalProgram> optionalPrograms;
     private List<GradRequirement> nonGradReasons;
 }

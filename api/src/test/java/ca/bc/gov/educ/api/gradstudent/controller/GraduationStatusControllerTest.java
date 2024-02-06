@@ -441,7 +441,7 @@ public class GraduationStatusControllerTest {
         graduationStatusController.saveStudentGradStatusDistributionRun(studentID.toString(),null,"ACTIVITYCODE");
         Mockito.verify(graduationStatusService).saveStudentRecordDistributionRun(studentID,null,"ACTIVITYCODE");
     }
-    
+
     @Test
     public void testreturnToOriginalState_returnsfalse() {
         // ID

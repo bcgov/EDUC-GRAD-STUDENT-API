@@ -46,6 +46,7 @@ import static ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService.PAG
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -58,6 +59,7 @@ public class GraduationStatusServiceTest {
     EducGradStudentApiConstants constants;
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean GradStudentService gradStudentService;
+    @MockBean HistoryService historyService;
     @Autowired GradStudentReportService gradStudentReportService;
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
@@ -1006,6 +1008,106 @@ public class GraduationStatusServiceTest {
         assertThat(result.getId()).isEqualTo(gradStudentOptionalProgramEntity.getId());
         assertThat(result.getOptionalProgramID()).isEqualTo(gradStudentOptionalProgramEntity.getOptionalProgramID());
         assertThat(result.getOptionalProgramCompletionDate()).isEqualTo(EducGradStudentApiUtils.parseDateFromString(studentOptionalProgram.getOptionalProgramCompletionDate()));
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradOptionalProgram() {
+        // ID
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, "CP")).thenReturn(Optional.empty());
+        when(gradStudentOptionalProgramRepository.save(gradStudentOptionalProgramEntity)).thenReturn(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_CREATE");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+
+        var result = graduationStatusService.createStudentGradOptionalProgram(studentID, studentOptionalProgram, "CP");
+
+        assertThat(result).isNotNull();
+
+    }
+
+    @Test
+    public void testUpdateCRUDStudentGradOptionalProgram() {
+        // ID
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+        when(gradStudentOptionalProgramRepository.save(gradStudentOptionalProgramEntity)).thenReturn(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "GRADALG");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+
+        var result = graduationStatusService.updateStudentGradOptionalProgram(studentID, optionalProgramID, studentOptionalProgram);
+
+        assertThat(result).isNotNull();
+
+    }
+
+    @Test
+    public void testDeleteCRUDStudentGradOptionalProgram() {
+        // ID
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+        doNothing().when(gradStudentOptionalProgramRepository).delete(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "GRADALG");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+
+        graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, null);
+        assertThat(graduationStudentRecordEntity).isNotNull();
     }
 
     @Test

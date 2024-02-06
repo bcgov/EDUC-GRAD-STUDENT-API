@@ -38,13 +38,13 @@ public class GradValidation {
 
 	public void addErrorAndStop(String errorMessage) {
 		errorList.get().add(errorMessage);
-		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException();
+		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException(String.join(",\n", errorList.get()));
 
 	}
 
 	public void addErrorAndStop(String formattedErrorMessage, Object... args) {
 		errorList.get().add(String.format(formattedErrorMessage, args));
-		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException();
+		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException(String.join(",\n", errorList.get()));
 
 	}
 
@@ -83,7 +83,7 @@ public class GradValidation {
     
     public void stopOnErrors() {
     	if (hasErrors()) {
-    		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException();
+    		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException(String.join(",\n", errorList.get()));
     	}
     }
 
