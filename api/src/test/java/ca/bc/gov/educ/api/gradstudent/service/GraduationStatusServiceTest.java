@@ -1130,7 +1130,8 @@ public class GraduationStatusServiceTest {
         graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, "AB");
         assertThat(graduationStudentRecordEntity).isNotNull();
 
-        assertThrows(EntityNotFoundException.class, () -> graduationStatusService.deleteStudentGradOptionalProgram(studentID, UUID.randomUUID(), "CD"));
+        UUID gradStudentOptionalProgramID2 = UUID.randomUUID();
+        assertThrows(EntityNotFoundException.class, () -> graduationStatusService.deleteStudentGradOptionalProgram(studentID, gradStudentOptionalProgramID2, "CD"));
 
     }
 
