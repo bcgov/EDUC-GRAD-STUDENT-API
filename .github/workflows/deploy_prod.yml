@@ -17,10 +17,10 @@ env:
   GRAD_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}
   TAG: "latest"
   BRANCH: "main"
-  MIN_CPU: "20m"
-  MAX_CPU: "250m"
-  MIN_MEM: "100Mi"
-  MAX_MEM: "600Mi"
+  MIN_CPU: "100m"
+  MAX_CPU: "500m"
+  MIN_MEM: "256Mi"
+  MAX_MEM: "1Gi"
   MIN_REPLICAS: "3"
   MAX_REPLICAS: "5"
 
