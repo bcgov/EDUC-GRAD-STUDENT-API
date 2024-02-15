@@ -840,10 +840,9 @@ public class GraduationStatusService {
                 graduationStatusRepository.updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
             } else {
                 graduationStatusRepository.updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
-            }return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
+            } return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
         } else {
-            String msg = "Student %s optional program % was not found";
-            throw new EntityNotFoundException(String.format(msg, studentID, optionalProgramID));
+            throw new EntityNotFoundException("Student optional program was not found");
         }
     }
 
@@ -868,8 +867,7 @@ public class GraduationStatusService {
                 graduationStatusRepository.updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
             }
         } else {
-            String msg = "Student Optional Program %s for student %s is not found";
-            throw new EntityNotFoundException(String.format(msg, optionalProgramID, studentID));
+            throw new EntityNotFoundException("Student optional program was not found");
         }
     }
     

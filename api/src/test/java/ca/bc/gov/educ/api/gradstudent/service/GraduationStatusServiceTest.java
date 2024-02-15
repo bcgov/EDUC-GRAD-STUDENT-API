@@ -1038,6 +1038,11 @@ public class GraduationStatusServiceTest {
         doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
 
         var result = graduationStatusService.createStudentGradOptionalProgram(studentID, studentOptionalProgram, "CP");
+        assertThat(result).isNotNull();
+
+        graduationStudentRecordEntity.setStudentStatus("ARC");
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, "AB")).thenReturn(Optional.of(new StudentCareerProgramEntity()));
+        result = graduationStatusService.createStudentGradOptionalProgram(studentID, studentOptionalProgram, null);
 
         assertThat(result).isNotNull();
 
@@ -1074,8 +1079,14 @@ public class GraduationStatusServiceTest {
         doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
 
         var result = graduationStatusService.updateStudentGradOptionalProgram(studentID, optionalProgramID, studentOptionalProgram);
-
         assertThat(result).isNotNull();
+
+        graduationStudentRecordEntity.setStudentStatus("ARC");
+
+        StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
+        studentCareerProgramEntity.setCareerProgramCode("AB");
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, "AB")).thenReturn(Optional.of(studentCareerProgramEntity));
+        assertThrows(EntityNotFoundException.class, () -> graduationStatusService.updateStudentGradOptionalProgram(studentID, gradStudentOptionalProgramID, studentOptionalProgram));
 
     }
 
@@ -1111,6 +1122,16 @@ public class GraduationStatusServiceTest {
 
         graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, null);
         assertThat(graduationStudentRecordEntity).isNotNull();
+
+        graduationStudentRecordEntity.setStudentStatus("ARC");
+        StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
+        studentCareerProgramEntity.setCareerProgramCode("AB");
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, "AB")).thenReturn(Optional.of(studentCareerProgramEntity));
+        graduationStatusService.deleteStudentGradOptionalProgram(studentID, optionalProgramID, "AB");
+        assertThat(graduationStudentRecordEntity).isNotNull();
+
+        assertThrows(EntityNotFoundException.class, () -> graduationStatusService.deleteStudentGradOptionalProgram(studentID, UUID.randomUUID(), "CD"));
+
     }
 
     @Test
