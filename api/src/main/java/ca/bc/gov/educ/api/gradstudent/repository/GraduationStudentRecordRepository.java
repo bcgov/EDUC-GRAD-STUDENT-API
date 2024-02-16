@@ -82,5 +82,9 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	@Modifying
 	@Query("update GraduationStudentRecordEntity e set e.recalculateGradStatus = :recalculateGradStatus, e.recalculateProjectedGrad = :recalculateProjectedGrad where e.studentID = :studentGuid")
-	void updateGradStudentRecalculationFlags(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "recalculateGradStatus") String recalculateGradStatus, @Param(value = "recalculateProjectedGrad") String recalculateProjectedGrad);
+	void updateGradStudentRecalculationAllFlags(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "recalculateGradStatus") String recalculateGradStatus, @Param(value = "recalculateProjectedGrad") String recalculateProjectedGrad);
+
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.recalculateGradStatus = :recalculateGradStatus where e.studentID = :studentGuid")
+	void updateGradStudentRecalculationRecalculateGradStatusFlag(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "recalculateGradStatus") String recalculateGradStatus);
 }

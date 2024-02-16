@@ -792,7 +792,8 @@ public class GraduationStatusService {
     @Transactional
     public StudentOptionalProgram createStudentGradOptionalProgram(UUID studentID, StudentOptionalProgram gradStudentOptionalProgram, String careerProgramCode) throws EntityNotFoundException {
         gradStudentOptionalProgram.setStudentID(studentID);
-        validateStudent(getGraduationStatus(studentID));
+        GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
+        validateStudent(graduationStudentRecord);
         StudentOptionalProgramEntity sourceObject = gradStudentOptionalProgramTransformer.transformToEntity(gradStudentOptionalProgram);
         sourceObject.setUpdateUser(null); //this change is just till idir login is fixed
         StudentOptionalProgramEntity gradEnity = new StudentOptionalProgramEntity();
@@ -810,13 +811,18 @@ public class GraduationStatusService {
             }
         }
         historyService.createStudentOptionalProgramHistory(gradEnitySaved, USER_CREATE);
-        graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+        if("CUR".equalsIgnoreCase(graduationStudentRecord.getStudentStatus())) {
+            graduationStatusRepository.updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        } else {
+            graduationStatusRepository.updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+        }
         return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
     }
 
     @Transactional
     public StudentOptionalProgram updateStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, StudentOptionalProgram gradStudentOptionalProgram) throws EntityNotFoundException {
-        validateStudent(getGraduationStatus(studentID));
+        GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
+        validateStudent(graduationStudentRecord);
         gradStudentOptionalProgram.setOptionalProgramID(optionalProgramID);
         gradStudentOptionalProgram.setStudentID(studentID);
         Optional<StudentOptionalProgramEntity> gradStudentOptionalProgramEntityOptional =
@@ -830,17 +836,20 @@ public class GraduationStatusService {
             gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
             StudentOptionalProgramEntity gradEnitySaved = gradStudentOptionalProgramRepository.save(gradEnity);
             historyService.createStudentOptionalProgramHistory(gradEnitySaved,GRAD_ALG);
-            graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
-            return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
+            if("CUR".equalsIgnoreCase(graduationStudentRecord.getStudentStatus())) {
+                graduationStatusRepository.updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+            } else {
+                graduationStatusRepository.updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+            } return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
         } else {
-            String msg = "Student %s optional program % was not found";
-            throw new EntityNotFoundException(String.format(msg, studentID, optionalProgramID));
+            throw new EntityNotFoundException("Student optional program was not found");
         }
     }
 
     @Transactional
     public void deleteStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, String careerProgramCode) throws EntityNotFoundException {
-        validateStudent(getGraduationStatus(studentID));
+        GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
+        validateStudent(graduationStudentRecord);
         Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional =
                 gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
         logger.debug("Save with payload ==> Student Optional Program ID: {}", optionalProgramID);
@@ -852,10 +861,13 @@ public class GraduationStatusService {
             if(StringUtils.isNotBlank(careerProgramCode)) {
                 gradStudentCareerProgramRepository.deleteStudentCareerProgramEntityByStudentIDAndCareerProgramCode(studentID, careerProgramCode);
             }
-            graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
+            if("CUR".equalsIgnoreCase(graduationStudentRecord.getStudentStatus())) {
+                graduationStatusRepository.updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+            } else {
+                graduationStatusRepository.updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+            }
         } else {
-            String msg = "Student Optional Program %s for student %s is not found";
-            throw new EntityNotFoundException(String.format(msg, optionalProgramID, studentID));
+            throw new EntityNotFoundException("Student optional program was not found");
         }
     }
     
