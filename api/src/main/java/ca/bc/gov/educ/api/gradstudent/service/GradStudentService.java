@@ -357,29 +357,10 @@ public class GradStudentService {
     }
 
 	@Transactional
-	@Retry(name = "rt-getTraxStudent")
-	public GradTraxStudent getTraxStudentMasterDataByPen(String pen, String accessToken) {
-		final ParameterizedTypeReference<List<GradTraxStudent>> responseType = new ParameterizedTypeReference<>() {
-		};
-		List<GradTraxStudent> result = this.webClient.get()
-				.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(), pen))
-				.headers(h -> {
-					h.setBearerAuth(accessToken);
-					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-				})
-				.retrieve().bodyToMono(responseType).block();
-		if(result != null && !result.isEmpty()) {
-			return result.get(0);
-		}
-		return null;
-	}
-
-	@Transactional
 	@Retry(name = "searchbyid")
 	public GraduationStudentRecordDistribution getStudentByStudentIDFromGrad(String studentID) {
 		return graduationStatusTransformer.tToDForDistribution(graduationStatusRepository.findByStudentID(UUID.fromString(studentID)));
 	}
-
 
 	@Transactional
 	public Student addNewPenFromStudentAPI(StudentCreate student, String accessToken) {
