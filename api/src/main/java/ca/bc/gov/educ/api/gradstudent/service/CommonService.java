@@ -206,10 +206,8 @@ public class CommonService {
 		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID, accessToken);
 		GraduationStudentRecord gradStudentRecord = graduationStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID));
 		List<StudentCareerProgram> cpList = getAllGradStudentCareerProgramList(studentID, accessToken);
-		GradTraxStudent gradTraxStudent = gradStudentService.getTraxStudentMasterDataByPen(gradStudent.getPen(), accessToken);
-		if(gradTraxStudent != null) {
-			gradStudent.setStudentCitizenship(gradTraxStudent.getStudentCitizenship());
-			gradStudentRecord.setStudentCitizenship(gradTraxStudent.getStudentCitizenship());
+		if(gradStudentRecord != null && StringUtils.isNotBlank(gradStudentRecord.getStudentCitizenship())) {
+			gradStudent.setStudentCitizenship(gradStudentRecord.getStudentCitizenship());
 		}
 		data.setGradStudent(gradStudent);
 		data.setGraduationStudentRecord(gradStudentRecord);
