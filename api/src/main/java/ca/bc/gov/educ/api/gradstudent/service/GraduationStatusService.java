@@ -801,7 +801,7 @@ public class GraduationStatusService {
         BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
         gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
         StudentOptionalProgramEntity gradEnitySaved = gradStudentOptionalProgramRepository.save(gradEnity);
-        if(StringUtils.equalsIgnoreCase(careerProgramCode, "CP")) {
+        if(StringUtils.isNotBlank(careerProgramCode)) {
             Optional<StudentCareerProgramEntity>  optionalStudentCareerProgramEntity = gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode);
             if(!optionalStudentCareerProgramEntity.isPresent()) {
                 StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
