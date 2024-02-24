@@ -1058,6 +1058,53 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testCreateCRUDStudentGradOptionalProgram_when_already_Exists() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode("2018-EN");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+        when(gradStudentOptionalProgramRepository.save(any())).thenReturn(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_CREATE");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),optionalProgramID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        var result = graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        assertThat(result).isNull();
+
+        graduationStudentRecordEntity.setStudentStatus("ARC");
+        result = graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     public void testCreateCRUDStudentGradOptionalProgram_whenGivenOptionalProgramID_is_Null() {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -1197,7 +1244,7 @@ public class GraduationStatusServiceTest {
         careerProgram.setCode(careerProgramCode);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
-        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, "XA")).thenReturn(Optional.empty());
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode)).thenReturn(Optional.empty());
         when(gradStudentCareerProgramRepository.save(any())).thenReturn(gradStudentCareerProgramEntity);
         when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.empty());
         when(gradStudentOptionalProgramRepository.save(any())).thenReturn(gradStudentOptionalProgramEntity);
@@ -1224,6 +1271,72 @@ public class GraduationStatusServiceTest {
         result = graduationStatusService.createStudentCareerPrograms(studentID, studentCareerProgramReq, "123");
 
         assertThat(result).isNotNull();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradCareerPrograms_when_already_Exists() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+        String gradProgram = "2018-EN";
+        String careerProgramCode = "XA";
+
+        // CP
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+
+        StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
+        gradStudentCareerProgramEntity.setStudentID(studentID);
+        gradStudentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode(gradProgram);
+        optionalProgram.setOptProgramCode("CP");
+        optionalProgram.setOptionalProgramName("Career Program");
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setProgram(gradProgram);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        StudentCareerProgramRequestDTO studentCareerProgramReq = new StudentCareerProgramRequestDTO();
+        studentCareerProgramReq.getCareerProgramCodes().addAll(Arrays.asList(careerProgramCode));
+
+        CareerProgram careerProgram = new CareerProgram();
+        careerProgram.setCode(careerProgramCode);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode)).thenReturn(Optional.of(gradStudentCareerProgramEntity));
+        when(gradStudentCareerProgramRepository.save(any())).thenReturn(gradStudentCareerProgramEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.empty());
+        when(gradStudentOptionalProgramRepository.save(any())).thenReturn(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_CREATE");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(),optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getCareerProgramByCodeUrl(),careerProgramCode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(CareerProgram.class)).thenReturn(Mono.just(careerProgram));
+
+        var result = graduationStatusService.createStudentCareerPrograms(studentID, studentCareerProgramReq, "123");
+        assertThat(result).isEmpty();
+
+        graduationStudentRecordEntity.setStudentStatus("ARC");
+        result = graduationStatusService.createStudentCareerPrograms(studentID, studentCareerProgramReq, "123");
+
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -1366,13 +1479,6 @@ public class GraduationStatusServiceTest {
 
         graduationStatusService.deleteStudentOptionalProgram(studentID, optionalProgramID, "123");
         assertThat(graduationStudentRecordEntity).isNotNull();
-
-        graduationStudentRecordEntity.setStudentStatus("ARC");
-        StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
-        studentCareerProgramEntity.setCareerProgramCode("AB");
-        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, "AB")).thenReturn(Optional.of(studentCareerProgramEntity));
-        graduationStatusService.deleteStudentCareerProgram(studentID, "AB", "123");
-        assertThat(graduationStudentRecordEntity).isNotNull();
     }
 
     @Test
@@ -1381,6 +1487,7 @@ public class GraduationStatusServiceTest {
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
         UUID optionalProgramID = UUID.randomUUID();
+        String gradProgram = "2018-EN";
 
         StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
         gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
@@ -1394,12 +1501,13 @@ public class GraduationStatusServiceTest {
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
-        optionalProgram.setGraduationProgramCode("2018-EN");
+        optionalProgram.setGraduationProgramCode(gradProgram);
         optionalProgram.setOptProgramCode("CP");
         optionalProgram.setOptionalProgramName("Career Program");
 
         GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
         graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setProgram(gradProgram);
         graduationStudentRecordEntity.setStudentStatus("CUR");
 
         Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
@@ -1417,13 +1525,11 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
-        graduationStatusService.deleteStudentOptionalProgram(studentID, optionalProgramID, "123");
-        assertThat(graduationStudentRecordEntity).isNotNull();
-
-        graduationStudentRecordEntity.setStudentStatus("ARC");
         StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
         studentCareerProgramEntity.setCareerProgramCode("AB");
         when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, "AB")).thenReturn(Optional.of(studentCareerProgramEntity));
+        when(gradStudentCareerProgramRepository.findByStudentID(studentID)).thenReturn(new ArrayList<>());
+
         graduationStatusService.deleteStudentCareerProgram(studentID, "AB", "123");
         assertThat(graduationStudentRecordEntity).isNotNull();
     }
