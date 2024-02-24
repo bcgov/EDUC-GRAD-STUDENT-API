@@ -134,7 +134,7 @@ public class DataConversionService {
                     studentOptionalProgramReq.setMainProgramCode(currentGradProgramCode);
                 }
             }
-            OptionalProgram gradOptionalProgram = getOptionalProgram(studentOptionalProgramReq.getMainProgramCode(), studentOptionalProgramReq.getOptionalProgramCode(), accessToken);
+            OptionalProgram gradOptionalProgram = graduationStatusService.getOptionalProgram(studentOptionalProgramReq.getMainProgramCode(), studentOptionalProgramReq.getOptionalProgramCode(), accessToken);
             if (gradOptionalProgram == null) {
                 return null;
             }
@@ -154,24 +154,6 @@ public class DataConversionService {
             sourceObject = handleNewOptionalProgram(studentOptionalProgramReq, sourceObject);
             return gradStudentOptionalProgramTransformer.transformToDTO(sourceObject);
         }
-    }
-
-    private OptionalProgram getOptionalProgram(String mainProgramCode, String optionalProgramCode, String accessToken) {
-        OptionalProgram optionalProgram = null;
-        try {
-            optionalProgram = webClient.get()
-                    .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), mainProgramCode, optionalProgramCode))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    })
-                    .retrieve()
-                    .bodyToMono(OptionalProgram.class)
-                    .block();
-        } catch (Exception e) {
-            log.error("Program API is failed to find an optional program: [{}] / [{}]", mainProgramCode, optionalProgramCode);
-        }
-        return optionalProgram;
     }
 
     @Transactional
