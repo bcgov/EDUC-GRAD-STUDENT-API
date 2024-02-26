@@ -329,7 +329,7 @@ public class CommonController {
 
     @DeleteMapping (EducGradStudentApiConstants.GRAD_STUDENT_CAREER_PROGRAMS_BY_CODE)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
-    @Operation(summary = "Delete Student Optional Grad Program by Student ID", description = "Delete Student Optional Grad Program by Student ID", tags = { "Optional Student Graduation Status" })
+    @Operation(summary = "Delete a Student Career Program by Student ID and Career Program Code", description = "Delete a Student Career Program by Student ID and Career Program Code", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "404", description = "NOT FOUND"),
