@@ -64,7 +64,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
@@ -99,7 +99,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
@@ -120,7 +120,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
@@ -146,7 +146,7 @@ public class GraduationStatusControllerTest {
             graduationStatus.setPen("123456789");
             graduationStatus.setStudentStatus("A");
             graduationStatus.setRecalculateGradStatus("Y");
-            graduationStatus.setProgram("2018-en");
+            graduationStatus.setProgram("2018-EN");
             graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
@@ -277,7 +277,7 @@ public class GraduationStatusControllerTest {
         gradStudentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         gradStudentOptionalProgramReq.setStudentID(studentID);
         gradStudentOptionalProgramReq.setPen(pen);
-        gradStudentOptionalProgramReq.setMainProgramCode("2018-en");
+        gradStudentOptionalProgramReq.setMainProgramCode("2018-EN");
         gradStudentOptionalProgramReq.setOptionalProgramCode("FI");
         gradStudentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
 
@@ -443,21 +443,6 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
-    public void saveStudentGradHistoryStatusDistributionRun() {
-        // ID
-        final Long batchID = 426L;
-        final String userName = "ABC";
-
-        GraduationStudentRecordHistory gradStudRecHistory = new GraduationStudentRecordHistory();
-        gradStudRecHistory.setBatchId(426L);
-        gradStudRecHistory.setUpdateUser("ABC");
-
-        Mockito.when(historyService.saveStudentRecordHistoryDistributionRun(batchID, userName)).thenReturn(gradStudRecHistory);
-        graduationStatusController.saveStudentGradHistoryStatusDistributionRun(batchID, userName);
-        Mockito.verify(historyService).saveStudentRecordHistoryDistributionRun(batchID, userName);
-    }
-    
-    @Test
     public void testreturnToOriginalState_returnsfalse() {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -475,7 +460,7 @@ public class GraduationStatusControllerTest {
         graduationStatusEntity.setStudentID(UUID.fromString(studentID));
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
@@ -513,7 +498,7 @@ public class GraduationStatusControllerTest {
         graduationStatusEntity.setStudentID(UUID.fromString(studentID));
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
@@ -550,7 +535,7 @@ public class GraduationStatusControllerTest {
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));

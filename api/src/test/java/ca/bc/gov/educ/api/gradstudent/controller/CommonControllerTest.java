@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.service.CommonService;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentReportService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
+import ca.bc.gov.educ.api.gradstudent.util.ApiResponseModel;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
@@ -346,7 +347,7 @@ public class CommonControllerTest {
         graduationStudentRecord.setPen("123456789");
         graduationStudentRecord.setStudentStatus("A");
         graduationStudentRecord.setRecalculateGradStatus("Y");
-        graduationStudentRecord.setProgram("2018-en");
+        graduationStudentRecord.setProgram("2018-EN");
         graduationStudentRecord.setSchoolOfRecord(mincode);
         graduationStudentRecord.setSchoolAtGrad(mincode);
         graduationStudentRecord.setGpa("4");
@@ -365,22 +366,23 @@ public class CommonControllerTest {
         BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
         studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
-        Mockito.when(graduationStatusService.createStudentGradOptionalProgram(studentID, studentOptionalProgram, "CP")).thenReturn(studentOptionalProgram);
+        Mockito.when(graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, "accessToken")).thenReturn(studentOptionalProgram);
         Mockito.when(graduationStatusService.getGraduationStatus(studentID, "accessToken")).thenReturn(graduationStudentRecord);
 
-        Mockito.when(responseHelper.GET(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(graduationStudentRecord));
+        Mockito.when(responseHelper.UPDATED(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(ApiResponseModel.SUCCESS(graduationStudentRecord)));
 
-        var result = commonController.createStudentGradOptionalProgram(studentID, studentOptionalProgram, "CP", "accessToken");
-        Mockito.verify(graduationStatusService).createStudentGradOptionalProgram(studentID, studentOptionalProgram, "CP");
+        var result = commonController.saveStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        Mockito.verify(graduationStatusService).createStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
-    public void testUpdateStudentGradOptionalProgram() {
+    public void testCreateStudentGradCareerProgram() {
         // ID
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
+        String careerProgramCode = "XA";
 
         GraduationStudentRecord graduationStudentRecord = new GraduationStudentRecord();
         graduationStudentRecord.setStudentID(studentID);
@@ -388,32 +390,25 @@ public class CommonControllerTest {
         graduationStudentRecord.setPen("123456789");
         graduationStudentRecord.setStudentStatus("A");
         graduationStudentRecord.setRecalculateGradStatus("Y");
-        graduationStudentRecord.setProgram("2018-en");
+        graduationStudentRecord.setProgram("2018-EN");
         graduationStudentRecord.setSchoolOfRecord(mincode);
         graduationStudentRecord.setSchoolAtGrad(mincode);
         graduationStudentRecord.setGpa("4");
         graduationStudentRecord.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        UUID gradStudentOptionalProgramID = UUID.randomUUID();
-        UUID optionalProgramID = UUID.randomUUID();
+        StudentCareerProgram studentCareerProgram = new StudentCareerProgram();
+        studentCareerProgram.setCareerProgramCode(careerProgramCode);
 
-        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
-        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
-        gradStudentOptionalProgramEntity.setStudentID(studentID);
-        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
-        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+        StudentCareerProgramRequestDTO requestDTO = new StudentCareerProgramRequestDTO();
+        requestDTO.getCareerProgramCodes().add(careerProgramCode);
 
-        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
-        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
-        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
-
-        Mockito.when(graduationStatusService.updateStudentGradOptionalProgram(studentID, optionalProgramID, studentOptionalProgram)).thenReturn(studentOptionalProgram);
+        Mockito.when(graduationStatusService.createStudentCareerPrograms(studentID, requestDTO, "accessToken")).thenReturn(Arrays.asList(studentCareerProgram));
         Mockito.when(graduationStatusService.getGraduationStatus(studentID, "accessToken")).thenReturn(graduationStudentRecord);
 
-        Mockito.when(responseHelper.GET(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(graduationStudentRecord));
+        Mockito.when(responseHelper.UPDATED(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(ApiResponseModel.SUCCESS(graduationStudentRecord)));
 
-        var result = commonController.updateStudentGradOptionalProgram(studentID, optionalProgramID, studentOptionalProgram,"accessToken");
-        Mockito.verify(graduationStatusService).updateStudentGradOptionalProgram(studentID, optionalProgramID, studentOptionalProgram);
+        var result = commonController.saveStudentCareerPrograms(studentID, requestDTO, "accessToken");
+        Mockito.verify(graduationStatusService).createStudentCareerPrograms(studentID, requestDTO, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -422,6 +417,7 @@ public class CommonControllerTest {
     public void testDeleteStudentGradOptionalProgram() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String mincode = "12345678";
 
         GraduationStudentRecord graduationStudentRecord = new GraduationStudentRecord();
@@ -430,40 +426,28 @@ public class CommonControllerTest {
         graduationStudentRecord.setPen("123456789");
         graduationStudentRecord.setStudentStatus("A");
         graduationStudentRecord.setRecalculateGradStatus("Y");
-        graduationStudentRecord.setProgram("2018-en");
+        graduationStudentRecord.setProgram("2018-EN");
         graduationStudentRecord.setSchoolOfRecord(mincode);
         graduationStudentRecord.setSchoolAtGrad(mincode);
         graduationStudentRecord.setGpa("4");
         graduationStudentRecord.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        UUID gradStudentOptionalProgramID = UUID.randomUUID();
-        UUID optionalProgramID = UUID.randomUUID();
-
-        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
-        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
-        gradStudentOptionalProgramEntity.setStudentID(studentID);
-        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
-        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
-
-        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
-        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
-        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
-
         Mockito.when(graduationStatusService.getGraduationStatus(studentID, "accessToken")).thenReturn(graduationStudentRecord);
-        doNothing().when(graduationStatusService).deleteStudentGradOptionalProgram(studentID, optionalProgramID, null);
-        Mockito.when(responseHelper.GET(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(graduationStudentRecord));
+        doNothing().when(graduationStatusService).deleteStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        Mockito.when(responseHelper.UPDATED(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(ApiResponseModel.SUCCESS(graduationStudentRecord)));
 
-        var result = commonController.deleteStudentGradOptionalProgram(studentID, optionalProgramID, null, "accessToken");
-        Mockito.verify(graduationStatusService).deleteStudentGradOptionalProgram(studentID, optionalProgramID, null);
+        var result = commonController.deleteStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        Mockito.verify(graduationStatusService).deleteStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
-    public void testDeleteStudentGradOptionalProgramWithCareerProgram() {
+    public void testDeleteStudentGradCareerProgram() {
         // ID
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
+        String careerProgramCode = "XA";
 
         GraduationStudentRecord graduationStudentRecord = new GraduationStudentRecord();
         graduationStudentRecord.setStudentID(studentID);
@@ -471,33 +455,19 @@ public class CommonControllerTest {
         graduationStudentRecord.setPen("123456789");
         graduationStudentRecord.setStudentStatus("A");
         graduationStudentRecord.setRecalculateGradStatus("Y");
-        graduationStudentRecord.setProgram("2018-en");
+        graduationStudentRecord.setProgram("2018-EN");
         graduationStudentRecord.setSchoolOfRecord(mincode);
         graduationStudentRecord.setSchoolAtGrad(mincode);
         graduationStudentRecord.setGpa("4");
         graduationStudentRecord.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        UUID gradStudentOptionalProgramID = UUID.randomUUID();
-        UUID optionalProgramID = UUID.randomUUID();
-
-        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
-        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
-        gradStudentOptionalProgramEntity.setStudentID(studentID);
-        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
-        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
-
-        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
-        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
-        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
-
-        String careerProgramID = UUID.randomUUID().toString();
-
         Mockito.when(graduationStatusService.getGraduationStatus(studentID, "accessToken")).thenReturn(graduationStudentRecord);
-        doNothing().when(graduationStatusService).deleteStudentGradOptionalProgram(studentID, optionalProgramID, careerProgramID);
-        Mockito.when(responseHelper.GET(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(graduationStudentRecord));
+        doNothing().when(graduationStatusService).deleteStudentCareerProgram(studentID, careerProgramCode, "accessToken");
 
-        var result = commonController.deleteStudentGradOptionalProgram(studentID, optionalProgramID, careerProgramID, "accessToken");
-        Mockito.verify(graduationStatusService).deleteStudentGradOptionalProgram(studentID, optionalProgramID, careerProgramID);
+        Mockito.when(responseHelper.UPDATED(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(ApiResponseModel.SUCCESS(graduationStudentRecord)));
+
+        var result = commonController.deleteStudentCareerProgram(studentID, careerProgramCode, "accessToken");
+        Mockito.verify(graduationStatusService).deleteStudentCareerProgram(studentID, careerProgramCode, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }

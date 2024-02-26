@@ -88,7 +88,7 @@ public class HistoryServiceTest {
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
@@ -115,7 +115,7 @@ public class HistoryServiceTest {
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(gradStudentOptionalProgramEntity.getOptionalProgramID());
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
@@ -145,27 +145,13 @@ public class HistoryServiceTest {
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
         graduationStatusEntity.setActivityCode("GRADALG");
         when(graduationStudentRecordHistoryRepository.findById(historyID)).thenReturn(Optional.of(graduationStatusEntity));
         var result = historyService.getStudentHistoryByID(historyID);
-        assertThat(result).isNotNull();
-    }
-
-    @Test
-    public void testSaveStudentRecordHistoryDistributionRun() {
-        final Long batchID = 426L;
-        final String userName = "ABC";
-
-        GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
-        graduationStatusEntity.setUpdateUser("ABC");
-        graduationStatusEntity.setUpdateDate(LocalDateTime.now());
-
-        when(graduationStudentRecordHistoryRepository.findByBatchId(batchID)).thenReturn(graduationStatusEntity);
-        var result = historyService.saveStudentRecordHistoryDistributionRun(batchID, userName);
         assertThat(result).isNotNull();
     }
 
@@ -183,7 +169,7 @@ public class HistoryServiceTest {
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(gradStudentOptionalProgramEntity.getOptionalProgramID());
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
@@ -241,7 +227,7 @@ public class HistoryServiceTest {
             e.printStackTrace();
         }
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));

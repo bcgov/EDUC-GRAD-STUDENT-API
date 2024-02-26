@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Generated;
@@ -683,6 +682,48 @@ public class GraduationStatusService {
         
     }
 
+    private void validateOptionalProgram(UUID optionalProgramID, String accessToken) {
+        if (optionalProgramID == null) {
+            validation.addErrorAndStop("Optional Program ID is required");
+            return;
+        }
+
+        OptionalProgram optionalProgram = getOptionalProgram(optionalProgramID, accessToken);
+        if (optionalProgram == null || isPrimaryKeyNull(optionalProgram)) {
+            validation.addNotFoundErrorAndStop(String.format("Optional Program with ID: %s not found", optionalProgramID));
+        }
+    }
+
+    private void validateCareerPrograms(List<String> careerProgramCodes, String accessToken) {
+        if (careerProgramCodes == null || careerProgramCodes.isEmpty()) {
+            validation.addErrorAndStop("Career Program Codes are required");
+            return;
+        }
+
+        careerProgramCodes.forEach(cp -> validateCareerProgram(cp, accessToken));
+        validation.stopOnNotFoundErrors();
+    }
+
+    private void validateCareerProgram(String careerProgramCode, String accessToken) {
+        if (StringUtils.isBlank(careerProgramCode)) {
+            validation.addError("Career Program Code is required");
+            return;
+        }
+
+        CareerProgram careerProgram = getCareerProgram(careerProgramCode, accessToken);
+        if (careerProgram == null || isPrimaryKeyNull(careerProgram)) {
+            validation.addError(String.format("Career Program with Code: [%s] not found", careerProgramCode));
+        }
+    }
+
+    private boolean isPrimaryKeyNull(OptionalProgram optionalProgram) {
+        return optionalProgram.getOptionalProgramID() == null;
+    }
+
+    private boolean isPrimaryKeyNull(CareerProgram careerProgram) {
+        return careerProgram.getCode() == null;
+    }
+
     private ValidateDataResult validateData(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
         ValidateDataResult hasDataChanged = new ValidateDataResult();
         validateStudentStatus(existingEntity.getStudentStatus());
@@ -744,15 +785,7 @@ public class GraduationStatusService {
         List<StudentOptionalProgram> optionalProgramList =
                 gradStudentOptionalProgramTransformer.transformToDTO(gradStudentOptionalProgramRepository.findByStudentID(studentID));
         optionalProgramList.forEach(sP -> {
-            OptionalProgram gradOptionalProgram = webClient.get()
-                    .uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
-                    .headers(h -> {
-              h.setBearerAuth(accessToken);
-              h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-          })
-                    .retrieve()
-                    .bodyToMono(OptionalProgram.class)
-                    .block();
+            OptionalProgram gradOptionalProgram = getOptionalProgram(sP.getOptionalProgramID(), accessToken);
             if(gradOptionalProgram != null) {
                 sP.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
                 sP.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
@@ -790,87 +823,199 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public StudentOptionalProgram createStudentGradOptionalProgram(UUID studentID, StudentOptionalProgram gradStudentOptionalProgram, String careerProgramCode) throws EntityNotFoundException {
-        gradStudentOptionalProgram.setStudentID(studentID);
-        validateStudent(getGraduationStatus(studentID));
-        StudentOptionalProgramEntity sourceObject = gradStudentOptionalProgramTransformer.transformToEntity(gradStudentOptionalProgram);
-        sourceObject.setUpdateUser(null); //this change is just till idir login is fixed
-        StudentOptionalProgramEntity gradEnity = new StudentOptionalProgramEntity();
-        logger.debug(" -> Creating Student Optional Program Entity for student ID: {}", studentID);
-        BeanUtils.copyProperties(sourceObject, gradEnity, CREATE_USER, CREATE_DATE);
-        gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
-        StudentOptionalProgramEntity gradEnitySaved = gradStudentOptionalProgramRepository.save(gradEnity);
-        if(StringUtils.equalsIgnoreCase(careerProgramCode, "CP")) {
-            StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
-            studentCareerProgramEntity.setStudentID(studentID);
-            studentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
-            gradStudentCareerProgramRepository.save(studentCareerProgramEntity);
+    public StudentOptionalProgram createStudentOptionalProgram(UUID studentID, UUID optionalProgramID, String accessToken) throws GradBusinessRuleException {
+        // Validation
+        GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
+        validateStudent(graduationStudentRecord);
+        validateOptionalProgram(optionalProgramID, accessToken);
+
+        // Process
+        StudentOptionalProgramEntity entity = persistStudentOptionalProgramWithAuditHistory(studentID, optionalProgramID);
+        if (entity != null) {
+            handleBatchFlags(studentID, graduationStudentRecord.getStudentStatus());
+            return gradStudentOptionalProgramTransformer.transformToDTO(entity);
         }
-        historyService.createStudentOptionalProgramHistory(gradEnitySaved, USER_CREATE);
-        graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
-        return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
+        return null;
     }
 
     @Transactional
-    public StudentOptionalProgram updateStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, StudentOptionalProgram gradStudentOptionalProgram) throws EntityNotFoundException {
-        validateStudent(getGraduationStatus(studentID));
-        gradStudentOptionalProgram.setOptionalProgramID(optionalProgramID);
-        gradStudentOptionalProgram.setStudentID(studentID);
-        Optional<StudentOptionalProgramEntity> gradStudentOptionalProgramEntityOptional =
-                gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
-        StudentOptionalProgramEntity sourceObject = gradStudentOptionalProgramTransformer.transformToEntity(gradStudentOptionalProgram);
-        sourceObject.setUpdateUser(null); //this change is just till idir login is fixed
-        if (gradStudentOptionalProgramEntityOptional.isPresent()) {
-            StudentOptionalProgramEntity gradEnity = gradStudentOptionalProgramEntityOptional.get();
-            logger.debug(" -> Student {} Optional Program Entity is found for ID: {} === Entity ID: {}", studentID, optionalProgramID, gradEnity.getId());
-            BeanUtils.copyProperties(sourceObject, gradEnity, "id", "studentID", "optionalProgramID", UPDATE_USER, UPDATE_DATE);
-            gradEnity.setOptionalProgramCompletionDate(sourceObject.getOptionalProgramCompletionDate());
-            StudentOptionalProgramEntity gradEnitySaved = gradStudentOptionalProgramRepository.save(gradEnity);
-            historyService.createStudentOptionalProgramHistory(gradEnitySaved,GRAD_ALG);
-            graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
-            return gradStudentOptionalProgramTransformer.transformToDTO(gradEnitySaved);
-        } else {
-            String msg = "Student %s optional program % was not found";
-            throw new EntityNotFoundException(String.format(msg, studentID, optionalProgramID));
-        }
-    }
+    public List<StudentCareerProgram> createStudentCareerPrograms(UUID studentID, StudentCareerProgramRequestDTO studentCareerProgramReq, String accessToken) throws GradBusinessRuleException {
+        // Validation
+        GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
+        validateStudent(graduationStudentRecord);
+        validateCareerPrograms(studentCareerProgramReq.getCareerProgramCodes(), accessToken);
 
-    @Transactional
-    public void deleteStudentGradOptionalProgram(UUID studentID, UUID optionalProgramID, String careerProgramCode) throws EntityNotFoundException {
-        validateStudent(getGraduationStatus(studentID));
-        Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional =
-                gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
-        logger.debug("Save with payload ==> Student Optional Program ID: {}", optionalProgramID);
-        if (gradStudentOptionalOptional.isPresent()) {
-            StudentOptionalProgramEntity gradEnity = gradStudentOptionalOptional.get();
-            logger.debug(" -> Student Optional Program Entity is found for ID: {} === Entity ID: {}", optionalProgramID, optionalProgramID);
-            gradStudentOptionalProgramRepository.delete(gradEnity);
-            historyService.createStudentOptionalProgramHistory(gradEnity, USER_DELETE);
-            if(StringUtils.isNotBlank(careerProgramCode)) {
-                gradStudentCareerProgramRepository.deleteStudentCareerProgramEntityByStudentIDAndCareerProgramCode(studentID, careerProgramCode);
+        // Process
+        List<StudentCareerProgram> results = studentCareerProgramReq.getCareerProgramCodes().stream().map(c -> persistStudentCareerProgram(studentID, c)).filter(Objects::nonNull).toList();
+        if (!results.isEmpty()) {
+            OptionalProgram cp = getOptionalProgram(graduationStudentRecord.getProgram(), "CP", accessToken);
+            if (cp != null) {
+                // CP Creation
+                persistStudentOptionalProgramWithAuditHistory(studentID, cp.getOptionalProgramID());
+                handleBatchFlags(studentID, graduationStudentRecord.getStudentStatus());
             }
-            graduationStatusRepository.updateGradStudentRecalculationFlags(studentID, "Y", "Y");
-        } else {
-            String msg = "Student Optional Program %s for student %s is not found";
-            throw new EntityNotFoundException(String.format(msg, optionalProgramID, studentID));
+        }
+        return results;
+    }
+
+    @Transactional
+    public void deleteStudentOptionalProgram(UUID studentID, UUID optionalProgramID, String accessToken) throws GradBusinessRuleException {
+        // Validation
+        GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
+        validateStudent(graduationStudentRecord);
+        validateOptionalProgram(optionalProgramID, accessToken);
+
+        // Process
+        removeStudentOptionalProgramWithAuditHistory(studentID, optionalProgramID);
+        handleBatchFlags(studentID, graduationStudentRecord.getStudentStatus());
+    }
+
+    @Transactional
+    public void deleteStudentCareerProgram(UUID studentID, String careerProgramCode, String accessToken) throws GradBusinessRuleException {
+        // Validation
+        GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
+        validateStudent(graduationStudentRecord);
+        validateCareerProgram(careerProgramCode, accessToken);
+        validation.stopOnNotFoundErrors();
+
+        // Process
+        removeStudentCareerProgram(studentID, careerProgramCode);
+        handleBatchFlags(studentID, graduationStudentRecord.getStudentStatus());
+
+        OptionalProgram cp = getOptionalProgram(graduationStudentRecord.getProgram(), "CP", accessToken);
+        if (cp != null && !hasAnyCareerPrograms(studentID)) {
+            // CP Removal
+            removeStudentOptionalProgramWithAuditHistory(studentID, cp.getOptionalProgramID());
         }
     }
-    
+
+    private boolean hasAnyCareerPrograms(UUID studentID) {
+        List<StudentCareerProgramEntity> list = gradStudentCareerProgramRepository.findByStudentID(studentID);
+        return list != null && !list.isEmpty();
+    }
+
+    @Retry(name = "generalgetcall")
+    public OptionalProgram getOptionalProgram(String mainProgramCode, String optionalProgramCode, String accessToken) {
+        OptionalProgram optionalProgram = null;
+        try {
+            optionalProgram = webClient.get()
+                    .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), mainProgramCode, optionalProgramCode))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    })
+                    .retrieve()
+                    .bodyToMono(OptionalProgram.class)
+                    .block();
+        } catch (Exception e) {
+            logger.error("Program API is failed to find an optional program: [{}] / [{}]", mainProgramCode, optionalProgramCode);
+        }
+        return optionalProgram;
+    }
+
+    @Retry(name = "generalgetcall")
+    public OptionalProgram getOptionalProgram(UUID optionalProgramID, String accessToken) {
+        OptionalProgram optionalProgram = null;
+        try {
+            optionalProgram = webClient.get()
+                    .uri(String.format(constants.getGradOptionalProgramNameUrl(), optionalProgramID))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    })
+                    .retrieve()
+                    .bodyToMono(OptionalProgram.class)
+                    .block();
+        } catch (Exception e) {
+            logger.error("Program API is failed to find an optional program with ID: [{}]", optionalProgramID);
+        }
+        return optionalProgram;
+    }
+
+    @Retry(name = "generalgetcall")
+    public CareerProgram getCareerProgram(String careerProgramCode, String accessToken) {
+        CareerProgram careerProgram = null;
+        try {
+            careerProgram = webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(), careerProgramCode))
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    }).retrieve().bodyToMono(CareerProgram.class).block();
+        } catch (Exception e) {
+            logger.error("Program API is failed to find a carrer program with Code: [{}]", careerProgramCode);
+        }
+        return careerProgram;
+    }
+
+    private StudentOptionalProgramEntity persistStudentOptionalProgramWithAuditHistory(UUID studentID, UUID optionalProgramID) {
+        Optional<StudentOptionalProgramEntity> studentOptionalProgramOptional =
+                gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
+        StudentOptionalProgramEntity entity;
+        if (studentOptionalProgramOptional.isPresent()) {
+            return null;
+        } else {
+            StudentOptionalProgramEntity newEntity = new StudentOptionalProgramEntity();
+            newEntity.setId(UUID.randomUUID());
+            newEntity.setStudentID(studentID);
+            newEntity.setOptionalProgramID(optionalProgramID);
+            entity = gradStudentOptionalProgramRepository.save(newEntity);
+
+            historyService.createStudentOptionalProgramHistory(newEntity, USER_CREATE);
+        }
+
+        return entity;
+    }
+
+    private void removeStudentOptionalProgramWithAuditHistory(UUID studentID, UUID optionalProgramID) {
+        Optional<StudentOptionalProgramEntity> studentOptionalProgramOptional =
+                gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
+        if (studentOptionalProgramOptional.isPresent()) {
+            StudentOptionalProgramEntity entity = studentOptionalProgramOptional.get();
+            logger.debug(" -> Remove a Student Optional Program Entity for Student ID: {} === Entity ID: {}", studentID, entity.getId());
+            gradStudentOptionalProgramRepository.delete(entity);
+            historyService.createStudentOptionalProgramHistory(entity, USER_DELETE);
+        }
+    }
+
+    private StudentCareerProgram persistStudentCareerProgram(UUID studentID, String careerProgramCode) {
+        Optional<StudentCareerProgramEntity> studentCareerProgramOptional = gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode);
+        StudentCareerProgramEntity entity;
+        if (studentCareerProgramOptional.isPresent()) {
+            return null;
+        } else {
+            StudentCareerProgramEntity newEntity = new StudentCareerProgramEntity();
+            newEntity.setId(UUID.randomUUID());
+            newEntity.setStudentID(studentID);
+            newEntity.setCareerProgramCode(careerProgramCode);
+            entity = gradStudentCareerProgramRepository.save(newEntity);
+        }
+        return gradStudentCareerProgramTransformer.transformToDTO(entity);
+    }
+
+    private void removeStudentCareerProgram(UUID studentID, String careerProgramCode) {
+        Optional<StudentCareerProgramEntity> studentCareerProgramOptional = gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode);
+        if (studentCareerProgramOptional.isPresent()) {
+            StudentCareerProgramEntity entity = studentCareerProgramOptional.get();
+            logger.debug(" -> Remove a Student Career Program Entity for Student ID: {} === Entity ID: {}", studentID, entity.getId());
+            gradStudentCareerProgramRepository.delete(entity);
+        }
+    }
+
+    private void handleBatchFlags(UUID studentID, String studentStatus) {
+        if("CUR".equalsIgnoreCase(studentStatus)) {
+            graduationStatusRepository.updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        } else {
+            graduationStatusRepository.updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+        }
+    }
+
     public StudentOptionalProgram updateStudentGradOptionalProgram(StudentOptionalProgramReq gradStudentOptionalProgramReq, String accessToken) {
         Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional = Optional.empty();
         if(gradStudentOptionalProgramReq.getId() != null)
             gradStudentOptionalOptional = gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgramReq.getId());
 
         StudentOptionalProgramEntity sourceObject = new StudentOptionalProgramEntity();
-        OptionalProgram gradOptionalProgram = webClient.get()
-                .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), gradStudentOptionalProgramReq.getMainProgramCode(),gradStudentOptionalProgramReq.getOptionalProgramCode()))
-                .headers(h -> {
-            h.setBearerAuth(accessToken);
-            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-        })
-                .retrieve()
-                .bodyToMono(OptionalProgram.class)
-                .block();
+        OptionalProgram gradOptionalProgram = getOptionalProgram(gradStudentOptionalProgramReq.getMainProgramCode(), gradStudentOptionalProgramReq.getOptionalProgramCode(), accessToken);
         sourceObject.setId(gradStudentOptionalProgramReq.getId());
         sourceObject.setStudentID(gradStudentOptionalProgramReq.getStudentID());
         sourceObject.setOptionalProgramCompletionDate(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate() != null ?Date.valueOf(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate()) : null);
@@ -915,15 +1060,7 @@ public class GraduationStatusService {
                 gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramIDUUID);
         if (gradStudentOptionalOptional.isPresent()) {
             StudentOptionalProgram responseObj = gradStudentOptionalProgramTransformer.transformToDTO(gradStudentOptionalOptional);
-            OptionalProgram gradOptionalProgram = webClient.get()
-                    .uri(String.format(constants.getGradOptionalProgramNameUrl(), responseObj.getOptionalProgramID()))
-                    .headers(h -> {
-              h.setBearerAuth(accessToken);
-              h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-          })
-                    .retrieve()
-                    .bodyToMono(OptionalProgram.class)
-                    .block();
+            OptionalProgram gradOptionalProgram = getOptionalProgram(responseObj.getOptionalProgramID(), accessToken);
             if(gradOptionalProgram != null) {
                 responseObj.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
                 responseObj.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
