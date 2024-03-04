@@ -95,7 +95,7 @@ public class DataConversionServiceTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(null);
         graduationStatus.setSchoolAtGrad(null);
         graduationStatus.setGpa("4");
@@ -133,7 +133,7 @@ public class DataConversionServiceTest {
         graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("4");
@@ -458,7 +458,7 @@ public class DataConversionServiceTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(null);
         graduationStatus.setSchoolAtGrad(null);
         graduationStatus.setGpa("4");
@@ -501,6 +501,11 @@ public class DataConversionServiceTest {
         UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setProgram("2018-EN");
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setPen(pen);
+
         StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
         gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
         gradStudentOptionalProgramEntity.setStudentID(studentID);
@@ -516,25 +521,21 @@ public class DataConversionServiceTest {
         studentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         studentOptionalProgramReq.setStudentID(studentID);
         studentOptionalProgramReq.setPen(pen);
-        studentOptionalProgramReq.setMainProgramCode("2018-en");
+        studentOptionalProgramReq.setMainProgramCode("2018-EN");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
         studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), dateFormat));
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStudentRecordEntity));
         when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.empty());
         when(gradStudentOptionalProgramRepository.save(any(StudentOptionalProgramEntity.class))).thenReturn(gradStudentOptionalProgramEntity);
         doNothing().when(historyService).createStudentOptionalProgramHistory(any(), any());
-
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(),optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+        when(graduationStatusService.getOptionalProgram(optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode(), "accessToken")).thenReturn(optionalProgram);
 
         var result = dataConversionService.saveStudentOptionalProgram(studentOptionalProgramReq, "accessToken");
 
@@ -560,6 +561,11 @@ public class DataConversionServiceTest {
         UUID optionalProgramID = UUID.randomUUID();
         String pen = "123456789";
 
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setProgram("2018-EN");
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setPen(pen);
+
         StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
         gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
         gradStudentOptionalProgramEntity.setStudentID(studentID);
@@ -575,25 +581,21 @@ public class DataConversionServiceTest {
         studentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         studentOptionalProgramReq.setStudentID(studentID);
         studentOptionalProgramReq.setPen(pen);
-        studentOptionalProgramReq.setMainProgramCode("2018-en");
+        studentOptionalProgramReq.setMainProgramCode("2018-EN");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
         studentOptionalProgramReq.setStudentOptionalProgramData("{}");
         studentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), dateFormat));
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStudentRecordEntity));
         when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
         when(gradStudentOptionalProgramRepository.save(gradStudentOptionalProgramEntity)).thenReturn(gradStudentOptionalProgramEntity);
-
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(),optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+        when(graduationStatusService.getOptionalProgram(optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode(), "accessToken")).thenReturn(optionalProgram);
 
         var result = dataConversionService.saveStudentOptionalProgram(studentOptionalProgramReq, "accessToken");
         doNothing().when(historyService).createStudentOptionalProgramHistory(any(), any());
@@ -607,23 +609,49 @@ public class DataConversionServiceTest {
     @Test
     public void testSaveStudentCareerProgramAsNew() {
         // ID
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
         UUID gradStudentCareerProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
         String careerProgramCode = "Test";
         String pen = "123456789";
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setProgram("2018-EN");
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setPen(pen);
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+        studentOptionalProgram.setOptionalProgramCode("CP");
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
 
         StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgramID);
         gradStudentCareerProgramEntity.setStudentID(studentID);
         gradStudentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
 
-        StudentCareerProgram studentOptionalProgram = new StudentCareerProgram();
-        BeanUtils.copyProperties(gradStudentCareerProgramEntity, studentOptionalProgram);
+        StudentCareerProgram studentCareerProgram = new StudentCareerProgram();
+        BeanUtils.copyProperties(gradStudentCareerProgramEntity, studentCareerProgram);
 
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode("2018-EN");
+        optionalProgram.setOptProgramCode("CP");
+        optionalProgram.setOptionalProgramName("Career Program");
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStudentRecordEntity));
         when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode)).thenReturn(Optional.empty());
         when(gradStudentCareerProgramRepository.save(gradStudentCareerProgramEntity)).thenReturn(gradStudentCareerProgramEntity);
+        when(graduationStatusService.getOptionalProgram(optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode(), "accessToken")).thenReturn(optionalProgram);
 
-        var result = dataConversionService.saveStudentCareerProgram(studentOptionalProgram);
+        var result = dataConversionService.saveStudentCareerProgram(studentCareerProgram);
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentCareerProgramEntity.getId());
         assertThat(result.getCareerProgramCode()).isEqualTo(gradStudentCareerProgramEntity.getCareerProgramCode());
@@ -743,7 +771,7 @@ public class DataConversionServiceTest {
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
@@ -751,7 +779,7 @@ public class DataConversionServiceTest {
         studentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         studentOptionalProgramReq.setStudentID(studentID);
         studentOptionalProgramReq.setPen(pen);
-        studentOptionalProgramReq.setMainProgramCode("2018-en");
+        studentOptionalProgramReq.setMainProgramCode("2018-EN");
         studentOptionalProgramReq.setOptionalProgramCode("FI");
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);

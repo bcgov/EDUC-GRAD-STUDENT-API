@@ -634,35 +634,6 @@ public class GradStudentServiceTest {
     }
 
     @Test
-    public void testGetTraxStudentMasterDataByPen() {
-
-        String pen = "128385861";
-        GradTraxStudent sObj = new GradTraxStudent();
-        sObj.setPen(pen);
-
-        final ParameterizedTypeReference<List<GradTraxStudent>> responseType = new ParameterizedTypeReference<>() {
-        };
-
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of(sObj)));
-
-        GradTraxStudent result = gradStudentService.getTraxStudentMasterDataByPen(pen, "accessToken");
-        assertNotNull(result);
-
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getTraxStudentMasterDataByPenUrl(),pen))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(List.of()));
-
-        result = gradStudentService.getTraxStudentMasterDataByPen(pen, "accessToken");
-        assertNull(result);
-    }
-
-    @Test
     public void testAddNewPenFromStudentAPI() {
         // ID
         final UUID studentID = UUID.randomUUID();
