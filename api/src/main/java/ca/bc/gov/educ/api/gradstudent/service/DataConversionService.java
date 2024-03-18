@@ -11,7 +11,6 @@ import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +50,7 @@ public class DataConversionService {
     final StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository;
     final GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository;
     final HistoryService historyService;
+    final StudentNoteRepository studentNoteRepository;
 
     final GraduationStatusService graduationStatusService;
     final GradValidation validation;
@@ -64,7 +64,7 @@ public class DataConversionService {
                                  StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,
                                  StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository,
                                  GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository,
-                                 HistoryService historyService, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants) {
+                                 HistoryService historyService, StudentNoteRepository studentNoteRepository, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
@@ -75,6 +75,7 @@ public class DataConversionService {
         this.gradStudentOptionalProgramHistoryRepository = gradStudentOptionalProgramHistoryRepository;
         this.gradStudentRecordHistoryRepository = gradStudentRecordHistoryRepository;
         this.historyService = historyService;
+        this.studentNoteRepository = studentNoteRepository;
         this.graduationStatusService = graduationStatusService;
         this.validation = validation;
         this.constants = constants;
@@ -215,6 +216,8 @@ public class DataConversionService {
 
     @Transactional
     public void deleteAllDependencies(UUID studentID) {
+        // student_record_note
+        studentNoteRepository.deleteByStudentID(studentID);
         // student_career_program
         gradStudentCareerProgramRepository.deleteByStudentID(studentID);
         // student_optional_program_history
