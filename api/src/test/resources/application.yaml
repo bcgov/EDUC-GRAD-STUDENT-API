@@ -98,6 +98,8 @@ cron:
       purge-old-records:
         run: 0 30 0 * * *
         staleInDays: 90
+      refresh-non-grad-status:
+        run: 0 30 0 * * *
           
 #Endpoint properties
 endpoint:
