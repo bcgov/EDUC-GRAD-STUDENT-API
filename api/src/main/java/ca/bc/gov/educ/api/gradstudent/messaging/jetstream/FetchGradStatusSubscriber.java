@@ -67,8 +67,8 @@ public class FetchGradStatusSubscriber implements MessageHandler {
         GradStatusPayload gradStatusPayload = GradStatusPayload.builder()
                 .program(graduationStudentRecord.getProgram())
                 .programCompletionDate(
-                        EducGradStudentApiUtils.parseDateFromString(graduationStudentRecord.getProgramCompletionDate() != null ?
-                        EducGradStudentApiUtils.formatDate(graduationStudentRecord.getProgramCompletionDate()) : null))
+                        graduationStudentRecord.getProgramCompletionDate() != null ?
+                        EducGradStudentApiUtils.formatDate(graduationStudentRecord.getProgramCompletionDate()) : null)
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStatusPayload);
     }
