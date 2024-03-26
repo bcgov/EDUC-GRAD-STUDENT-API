@@ -60,7 +60,7 @@ oc create -n "$GRAD_NAMESPACE"-"$envValue" configmap "$APP_NAME"-config-map \
   --dry-run=client -o yaml | oc apply -f -
 
 echo Creating config map "$APP_NAME"-flb-sc-config-map
-oc create -n "$OPENSHIFT_NAMESPACE"-"$envValue" configmap "$APP_NAME"-flb-sc-config-map \
+oc create -n "$GRAD_NAMESPACE"-"$envValue" configmap "$APP_NAME"-flb-sc-config-map \
   --from-literal=fluent-bit.conf="$FLB_CONFIG" \
   --from-literal=parsers.conf="$PARSER_CONFIG" \
   --dry-run=client -o yaml | oc apply -f -
