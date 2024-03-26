@@ -5,8 +5,10 @@ import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStatusPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.*;
@@ -50,7 +52,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
         try {
             Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
             UUID stdId = JsonUtil.getJsonObjectFromString(UUID.class, event.getEventPayload());
-            GraduationStudentRecord graduationStatus = graduationStatusService.getGraduationStatus(stdId);
+            GraduationStudentRecordGradStatus graduationStatus = graduationStatusService.getGraduationStatusProjection(stdId);
             response = getResponse(graduationStatus);
         } catch (Exception e) {
             response = getErrorResponse(e);
@@ -61,10 +63,12 @@ public class FetchGradStatusSubscriber implements MessageHandler {
         this.natsConnection.publish(message.getReplyTo(), response.getBytes());
     }
 
-    private String getResponse(GraduationStudentRecord graduationStudentRecord) throws JsonProcessingException {
+    private String getResponse(GraduationStudentRecordGradStatus graduationStudentRecord) throws JsonProcessingException {
         GradStatusPayload gradStatusPayload = GradStatusPayload.builder()
                 .program(graduationStudentRecord.getProgram())
-                .programCompletionDate(graduationStudentRecord.getProgramCompletionDate())
+                .programCompletionDate(
+                        EducGradStudentApiUtils.parseDateFromString(graduationStudentRecord.getProgramCompletionDate() != null ?
+                        EducGradStudentApiUtils.formatDate(graduationStudentRecord.getProgramCompletionDate()) : null))
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStatusPayload);
     }

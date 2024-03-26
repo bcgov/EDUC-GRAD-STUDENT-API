@@ -91,4 +91,6 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Modifying
 	@Query( "update GraduationStudentRecordEntity e set e.recalculateProjectedGrad = 'Y' where e.studentStatus = 'CUR' and e.programCompletionDate is null and (e.studentGrade = '12' or e.studentGrade = 'AD')")
 	void updateGradStudentRecalcFlagsForCurrentStudentsWithNullCompletion();
+
+	<T> T findByStudentID(UUID studentId, Class<T> type);
 }

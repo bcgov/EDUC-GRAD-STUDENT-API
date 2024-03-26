@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -128,8 +129,8 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
-        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        GraduationStudentRecord result = graduationStatusService.getGraduationStatus(studentID);
+        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(new GraduationStudentRecordGradStatus(studentID, "2018-EN", new java.util.Date()));
+        GraduationStudentRecordGradStatus result = graduationStatusService.getGraduationStatusProjection(studentID);
         assertNotNull(result);
     }
 
