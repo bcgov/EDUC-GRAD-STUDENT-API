@@ -129,8 +129,8 @@ public class GraduationStatusServiceTest {
         UUID studentID = UUID.randomUUID();
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
-        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(new GraduationStudentRecordGradStatus(studentID, "2018-EN", new java.util.Date()));
-        GraduationStudentRecordGradStatus result = graduationStatusService.getGraduationStatusProjection(studentID);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        GraduationStudentRecord result = graduationStatusService.getGraduationStatus(studentID);
         assertNotNull(result);
     }
 
@@ -140,6 +140,25 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         assertThrows(EntityNotFoundException.class, () -> {
             graduationStatusService.getGraduationStatus(studentID);
+        });
+    }
+
+    @Test
+    public void testGetGraduationStatusProjection_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(new GraduationStudentRecordGradStatus(studentID, "2018-EN", new java.util.Date()));
+        GraduationStudentRecordGradStatus result = graduationStatusService.getGraduationStatusProjection(studentID);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetGraduationStatusProjection_givenNotFound_ExpectEntityNotFoundExcetpion() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(null);
+        assertThrows(EntityNotFoundException.class, () -> {
+            graduationStatusService.getGraduationStatusProjection(studentID);
         });
     }
 
