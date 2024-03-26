@@ -79,8 +79,8 @@ server:
       worker: 128
       io: 16
   #port: ${HTTP_PORT}
-  tomcat:
-    connection-timeout: 200s
+  #tomcat:
+    #connection-timeout: 200s
 
 #API Documentation
 springdoc:
@@ -109,6 +109,8 @@ cron:
       purge-old-records:
         run: ${CRON_SCHEDULED_PURGE_OLD_RECORDS}
         staleInDays: ${RECORDS_STALE_IN_DAYS}
+      refresh-non-grad-status:
+        run: ${CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS}
 
 #Resilience
 resilience4j.retry:
