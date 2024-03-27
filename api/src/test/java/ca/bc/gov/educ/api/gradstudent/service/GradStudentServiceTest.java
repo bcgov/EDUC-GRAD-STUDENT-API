@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -34,13 +35,12 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -340,13 +340,105 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setSchoolOfRecord(mincode);
+
+        final GraduationStudentRecordView graduationStatusView = new GraduationStudentRecordView() {
+            @Override
+            public String getProgram() {
+                return program;
+            }
+
+            @Override
+            public Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return null;
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return mincode;
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return stdGrade;
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return gradStatus;
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return studentID;
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return null;
+            }
+
+            @Override
+            public Long getBatchId() {
+                return null;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return null;
+            }
+
+            @Override
+            public Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
         List<UUID> studentSubList = new ArrayList<>();
-        studentSubList.add(graduationStatusEntity.getStudentID());
+        studentSubList.add(graduationStatusView.getStudentID());
 
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
         when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
-        when(this.graduationStatusRepository.findByStudentIDIn(studentSubList)).thenReturn(List.of(graduationStatusEntity));
+        when(this.graduationStatusRepository.findByStudentIDIn(studentSubList)).thenReturn(List.of(graduationStatusView));
         RestResponsePage<Student> response = new RestResponsePage<>(List.of(student));
         final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<>() {
         };

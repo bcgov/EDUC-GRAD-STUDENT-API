@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.repository;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.BatchGraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -39,16 +40,14 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 			+ "(:schoolOfRecord is null or si.school_of_record = :schoolOfRecord)",nativeQuery = true)
 	public Page<GraduationStudentRecordEntity> findStudentWithFilter(String gradProgram,String schoolOfRecord, Pageable paging);
 
-    List<GraduationStudentRecordEntity> findByStudentIDIn(List<UUID> studentIds);
+    List<GraduationStudentRecordView> findByStudentIDIn(List<UUID> studentIds);
 
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.programCompletionDate is null and c.studentStatus='CUR' and (c.studentGrade='AD' or c.studentGrade='12')")
 	Page<UUID> findStudentsForYearlyDistribution(Pageable page);
 
-	@Query("select c from GraduationStudentRecordEntity c where c.schoolOfRecord=:schoolOfRecord and c.studentStatus='CUR'")
-	List<GraduationStudentRecordEntity> findBySchoolOfRecord(String schoolOfRecord);
+	List<GraduationStudentRecordView> findBySchoolOfRecordAndStudentStatus(String schoolOfRecord, String studentStatus);
 
-	@Query("select c from GraduationStudentRecordEntity c where c.schoolOfRecord=:schoolOfRecord and c.studentStatus='CUR' and (c.studentGrade='AD' or c.studentGrade='12')")
-	List<GraduationStudentRecordEntity> findBySchoolOfRecordAmalgamated(String schoolOfRecord);
+	List<GraduationStudentRecordView> findBySchoolOfRecordAndStudentStatusAndStudentGradeIn(String schoolOfRecord, String studentStatus, List<String> studentGrade);
 
 	// Data Conversion
 	@Modifying
