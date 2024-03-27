@@ -39,6 +39,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -2615,23 +2616,118 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentsForSchoolReport() {
         String mincode = "123213123";
-        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
-        graduationStatus.setStudentID(new UUID(1,1));
-        graduationStatus.setSchoolOfRecord(mincode);
-        GraduationData gradData = new GraduationData();
-        GradSearchStudent gS = new GradSearchStudent();
-        gS.setPen("123123123123");
-        gS.setLegalFirstName("sadas");
-        gS.setLegalMiddleNames("fdf");
-        gS.setLegalLastName("rrw");
-        gradData.setGradStudent(gS);
-        graduationStatus.setStudentStatus("CUR");
-        try {
-            graduationStatus.setStudentGradData(new ObjectMapper().writeValueAsString(gradData));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStatus));
+        GraduationStudentRecordView graduationStudentRecordView = new GraduationStudentRecordView() {
+            @Override
+            public String getPen() {
+                return null;
+            }
+
+            @Override
+            public String getProgram() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return null;
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return mincode;
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return null;
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return "CUR";
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return new UUID(1,1);
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return null;
+            }
+
+            @Override
+            public Long getBatchId() {
+                return null;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public String getLegalFirstName() {
+                return null;
+            }
+
+            @Override
+            public String getLegalMiddleNames() {
+                return null;
+            }
+
+            @Override
+            public String getLegalLastName() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return LocalDateTime.now();
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return LocalDateTime.now();
+            }
+        };
+        when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStudentRecordView));
         var result = graduationStatusService.getStudentsForSchoolReport(mincode);
         assertThat(result).isNotNull().hasSize(1);
         GraduationStudentRecord responseGraduationStatus = result.get(0);

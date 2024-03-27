@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordDistribution;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ProjectedRunClob;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -125,9 +126,26 @@ public class GraduationStatusTransformer {
         return distObj;
     }
 
-    public List<GraduationStudentRecord> tToDForBatch(Iterable<GraduationStudentRecordEntity> gradStatusEntities) {
+    public List<GraduationStudentRecord> tToDForBatchEntity(Iterable<GraduationStudentRecordEntity> gradStatusEntities) {
         List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
         for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
+            GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
+            logger.debug("GraduationStudentRecordEntity {} with database program completion date {}", gradStatusEntity.getPen(), gradStatusEntity.getProgramCompletionDate());
+            gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStatusEntity.getProgramCompletionDate(), "yyyy/MM"));
+            logger.debug("GraduationStudentRecord {} with trax program completion date {}", gradStatus.getPen(), gradStatus.getProgramCompletionDate());
+            populatePenAndLegalNamesAndNonGradReasons(gradStatus);
+            gradStatus.setStudentCitizenship(gradStatusEntity.getStudentCitizenship());
+            gradStatus.setStudentGradData(null);
+            gradStatus.setCreateDate((gradStatusEntity.getCreateDate()));
+            gradStatus.setUpdateDate((gradStatusEntity.getUpdateDate()));
+            gradStatusList.add(gradStatus);
+        }
+        return gradStatusList;
+    }
+
+    public List<GraduationStudentRecord> tToDForBatch(Iterable<GraduationStudentRecordView> gradStatusEntities) {
+        List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
+        for (GraduationStudentRecordView gradStatusEntity : gradStatusEntities) {
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
             logger.debug("GraduationStudentRecordEntity {} with database program completion date {}", gradStatusEntity.getPen(), gradStatusEntity.getProgramCompletionDate());
             gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStatusEntity.getProgramCompletionDate(), "yyyy/MM"));
