@@ -1265,7 +1265,7 @@ public class GraduationStatusService {
     }
 
     public List<GraduationStudentRecord> getStudentDataByStudentIDs(List<UUID> studentIds) {
-        return graduationStatusTransformer.tToDForBatch(graduationStatusRepository.findByStudentIDIn(studentIds));
+        return graduationStatusTransformer.tToDForBatchView(graduationStatusRepository.findByStudentIDIn(studentIds));
     }
 
     public List<UUID> getStudentsForYearlyDistribution() {
@@ -1364,18 +1364,18 @@ public class GraduationStatusService {
     }
 
     public List<GraduationStudentRecord> getStudentsForSchoolReport(String schoolOfRecord) {
-        return graduationStatusTransformer.tToDForBatch(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord));
+        return graduationStatusTransformer.tToDForBatchView(graduationStatusRepository.findBySchoolOfRecordAndStudentStatus(schoolOfRecord, "CUR"));
     }
 
     public List<UUID> getStudentsForAmalgamatedSchoolReport(String schoolOfRecord,String type) {
-        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecordAmalgamated(schoolOfRecord),type);
+        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecordAndStudentStatusAndStudentGradeIn(schoolOfRecord, "CUR", List.of("AD", "12")),type);
     }
 
-    public List<GraduationStudentRecord> updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
+    public void updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
         logger.debug("updateStudentFlagReadyForBatchJobByStudentIDs");
-        return studentIDs.stream()
-                .map(stid -> updateStudentFlagReadyForBatchJob(stid, batchJobType))
-                .filter(Objects::nonNull).collect(Collectors.toList());
+        for(UUID uuid: studentIDs) {
+            updateStudentFlagReadyForBatchJob(uuid, batchJobType);
+        }
     }
 
     private GraduationStudentRecord updateStudentFlagReadyForBatchJob(UUID studentID, String batchJobType) {

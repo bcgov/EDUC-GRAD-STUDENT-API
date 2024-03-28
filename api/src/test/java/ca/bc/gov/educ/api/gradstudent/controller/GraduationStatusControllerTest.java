@@ -619,7 +619,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentGrade("12");
         graduationStatus.setGpa("4");
 
-        Mockito.when(graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids())).thenReturn(Arrays.asList(graduationStatus));
+        Mockito.doNothing().when(graduationStatusService).updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids());
         graduationStatusController.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList);
         Mockito.verify(graduationStatusService).updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids());
     }

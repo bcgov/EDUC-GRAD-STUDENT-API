@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -221,7 +222,7 @@ public class GradStudentService {
 		for (int i = 0; i < partitions.size(); i++) {
 			List<UUID> subList = partitions.get(i);
 			logger.debug(" sub list length {} par {}", subList.size(), i);
-			List<GraduationStudentRecordEntity> gradList = graduationStatusRepository.findByStudentIDIn(subList);
+			List<GraduationStudentRecordView> gradList = graduationStatusRepository.findByStudentIDIn(subList);
 			if (!gradList.isEmpty()) {
 				gradList.forEach(st -> {
 					GradSearchStudent gradStu = populateGradStudent(st, accessToken);
@@ -273,9 +274,9 @@ public class GradStudentService {
 			if(StringUtils.isNotBlank(value) && StringUtils.isNotBlank(value2)) {
 				criteria = SearchCriteria.builder().condition(Condition.AND).key(paramterType).operation(FilterOperation.BETWEEN).value(value + "," + value2).valueType(ValueType.DATE).build();
 			}
-		}else if (paramterType.equalsIgnoreCase("studentID")) {
+		} else if (paramterType.equalsIgnoreCase("studentID")) {
 			criteria = SearchCriteria.builder().key(paramterType).operation(FilterOperation.IN).value(value).valueType(ValueType.UUID).condition(Condition.AND).build();
-		}else {
+		} else {
 			if(StringUtils.isNotBlank(value)) {
 				if(StringUtils.contains(value,"*")) {
 					criteria = SearchCriteria.builder().key(paramterType).operation(FilterOperation.STARTS_WITH_IGNORE_CASE).value(StringUtils.strip(value,"*")).valueType(ValueType.STRING).condition(Condition.AND).build();
@@ -290,21 +291,32 @@ public class GradStudentService {
 	private GradSearchStudent populateGradStudent(GraduationStudentRecordEntity gradRecord, String accessToken) {
 		GradSearchStudent gradStu = new GradSearchStudent();
 		BeanUtils.copyProperties(gradRecord, gradStu);
-		Student studentPen = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), gradRecord.getStudentID()))
-			.headers(h -> {
-				h.setBearerAuth(accessToken);
-				h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-			})
-		.retrieve().bodyToMono(Student.class).block();
+		return populateGradStudent(gradStu, accessToken);
+	}
+
+	private GradSearchStudent populateGradStudent(GraduationStudentRecordView gradRecord, String accessToken) {
+		GradSearchStudent gradStu = new GradSearchStudent();
+		BeanUtils.copyProperties(gradRecord, gradStu);
+		gradStu.setStudentID(gradRecord.getStudentID().toString());
+		return populateGradStudent(gradStu, accessToken);
+	}
+
+	private GradSearchStudent populateGradStudent(GradSearchStudent gradStu, String accessToken) {
+		Student studentPen = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), gradStu.getStudentID()))
+				.headers(h -> {
+					h.setBearerAuth(accessToken);
+					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+				})
+				.retrieve().bodyToMono(Student.class).block();
 		if(studentPen != null) {
 			BeanUtils.copyProperties(studentPen, gradStu);
 		}
 		School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord()))
-			.headers(h -> {
-				h.setBearerAuth(accessToken);
-				h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-			})
-		.retrieve().bodyToMono(School.class).block();
+				.headers(h -> {
+					h.setBearerAuth(accessToken);
+					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+				})
+				.retrieve().bodyToMono(School.class).block();
 		if (school != null) {
 			gradStu.setSchoolOfRecordName(school.getSchoolName());
 			gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());

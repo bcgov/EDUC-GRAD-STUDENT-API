@@ -1,15 +1,15 @@
 package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordDistribution;
-import ca.bc.gov.educ.api.gradstudent.model.dto.ProjectedRunClob;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
+import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import ca.bc.gov.educ.api.gradstudent.util.JsonTransformer;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Date;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -32,6 +34,12 @@ public class GraduationStatusTransformer {
     
     @Autowired
     GradValidation validation;
+
+    @Autowired
+    JsonTransformer jsonTransformer;
+
+    @Autowired
+    ReportGradStudentDataRepository reportGradStudentDataRepository;
 
     public GraduationStudentRecord transformToDTOWithModifiedProgramCompletionDate(GraduationStudentRecordEntity gradStatusEntity) {
         GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
@@ -107,12 +115,7 @@ public class GraduationStatusTransformer {
         distObj.setStudentID(ent.getStudentID());
         distObj.setStudentCitizenship(ent.getStudentCitizenship());
         if(ent.getStudentGradData() != null) {
-            GraduationData existingData = null;
-            try {
-                existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-            } catch (JsonProcessingException e) {
-                logger.error(JSON_PARSING_ERROR, e.getMessage());
-            }
+            GraduationData existingData = (GraduationData)jsonTransformer.unmarshall(ent.getStudentGradData(), GraduationData.class);
             if(existingData != null) {
                 distObj.setPen(existingData.getGradStudent().getPen());
                 distObj.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
@@ -125,14 +128,14 @@ public class GraduationStatusTransformer {
         return distObj;
     }
 
-    public List<GraduationStudentRecord> tToDForBatch(Iterable<GraduationStudentRecordEntity> gradStatusEntities) {
+    public List<GraduationStudentRecord> tToDForBatchView(List<GraduationStudentRecordView> gradStatusEntities) {
         List<GraduationStudentRecord> gradStatusList = new ArrayList<>();
-        for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
+        Map<UUID, ReportGradStudentDataEntity> reportGradStudentDataMap = convertGraduationStudentRecordViewToReportGradStudentDataMap(gradStatusEntities);
+        for (GraduationStudentRecordView gradStatusEntity : gradStatusEntities) {
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
-            logger.debug("GraduationStudentRecordEntity {} with database program completion date {}", gradStatusEntity.getPen(), gradStatusEntity.getProgramCompletionDate());
             gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStatusEntity.getProgramCompletionDate(), "yyyy/MM"));
+            populatePenAndLegalNamesAndNonGradReasons(gradStatus, reportGradStudentDataMap);
             logger.debug("GraduationStudentRecord {} with trax program completion date {}", gradStatus.getPen(), gradStatus.getProgramCompletionDate());
-            populatePenAndLegalNamesAndNonGradReasons(gradStatus);
             gradStatus.setStudentCitizenship(gradStatusEntity.getStudentCitizenship());
             gradStatus.setStudentGradData(null);
             gradStatus.setCreateDate((gradStatusEntity.getCreateDate()));
@@ -142,20 +145,17 @@ public class GraduationStatusTransformer {
         return gradStatusList;
     }
 
-    public List<UUID> tToDForAmalgamation(Iterable<GraduationStudentRecordEntity> gradStatusEntities, String type) {
+    public List<UUID> tToDForAmalgamation(List<GraduationStudentRecordView> gradStatusEntities, String type) {
         List<GraduationStudentRecord> results = new ArrayList<>();
-        for (GraduationStudentRecordEntity gradStatusEntity : gradStatusEntities) {
+        Map<UUID, ReportGradStudentDataEntity> reportGradStudentDataMap = convertGraduationStudentRecordViewToReportGradStudentDataMap(gradStatusEntities);
+        for (GraduationStudentRecordView gradStatusEntity : gradStatusEntities) {
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
             gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
-            populatePenAndLegalNamesAndNonGradReasons(gradStatus);
+            populatePenAndLegalNamesAndNonGradReasons(gradStatus, reportGradStudentDataMap);
             if(gradStatus.getStudentProjectedGradData() != null) {
-                try {
-                    ProjectedRunClob existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(gradStatus.getStudentProjectedGradData(), ProjectedRunClob.class);
-                    if((!existingData.isGraduated() && type.equalsIgnoreCase("TVRNONGRAD")) || (existingData.isGraduated() && type.equalsIgnoreCase("TVRGRAD"))) {
-                        results.add(gradStatus);
-                    }
-                } catch (JsonProcessingException e) {
-                    logger.error(JSON_PARSING_ERROR ,e.getMessage());
+                ProjectedRunClob existingData = (ProjectedRunClob)jsonTransformer.unmarshall(gradStatus.getStudentProjectedGradData(), ProjectedRunClob.class);
+                if((!existingData.isGraduated() && type.equalsIgnoreCase("TVRNONGRAD")) || (existingData.isGraduated() && type.equalsIgnoreCase("TVRGRAD"))) {
+                    results.add(gradStatus);
                 }
             }
 
@@ -171,20 +171,23 @@ public class GraduationStatusTransformer {
         return results.stream().map(GraduationStudentRecord::getStudentID).toList();
     }
 
-    private void populatePenAndLegalNamesAndNonGradReasons(GraduationStudentRecord gradStatus) {
-        if(gradStatus.getStudentGradData() != null) {
-            GraduationData existingData = null;
-            try {
-                existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(gradStatus.getStudentGradData(), GraduationData.class);
-            } catch (JsonProcessingException e) {
-                logger.error(JSON_PARSING_ERROR, e.getMessage());
-            }
-            if (existingData != null) {
-                gradStatus.setPen(existingData.getGradStudent().getPen());
-                gradStatus.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                gradStatus.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                gradStatus.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-                gradStatus.setNonGradReasons(existingData.getNonGradReasons());
+    private Map<UUID, ReportGradStudentDataEntity> convertGraduationStudentRecordViewToReportGradStudentDataMap(List<GraduationStudentRecordView> gradStatusEntities) {
+        List<UUID> uuids = gradStatusEntities.stream().map(GraduationStudentRecordView::getStudentID).toList();
+        List<ReportGradStudentDataEntity> reportGradStudentData = reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(uuids);
+        return reportGradStudentData.stream().collect(Collectors.toMap(ReportGradStudentDataEntity::getGraduationStudentRecordId, Function.identity()));
+    }
+
+    private void populatePenAndLegalNamesAndNonGradReasons(GraduationStudentRecord gradStatus, Map<UUID, ReportGradStudentDataEntity> reportGradStudentDataMap) {
+        ReportGradStudentDataEntity existingData = reportGradStudentDataMap.get(gradStatus.getStudentID());
+        if (existingData != null) {
+            gradStatus.setPen(existingData.getPen());
+            gradStatus.setLegalFirstName(existingData.getFirstName());
+            gradStatus.setLegalMiddleNames(existingData.getMiddleName());
+            gradStatus.setLegalLastName(existingData.getLastName());
+            if (StringUtils.isNotBlank(existingData.getNonGradReasons())) {
+                TypeFactory typeFactory = jsonTransformer.getTypeFactory();
+                List<GradRequirement> nonGradReasons = (List<GradRequirement>) jsonTransformer.unmarshall(existingData.getNonGradReasons(), typeFactory.constructCollectionType(List.class, GradRequirement.class));
+                gradStatus.setNonGradReasons(nonGradReasons);
             }
         }
     }
