@@ -1378,18 +1378,16 @@ public class GraduationStatusService {
         }
     }
 
-    private GraduationStudentRecord updateStudentFlagReadyForBatchJob(UUID studentID, String batchJobType) {
+    private void updateStudentFlagReadyForBatchJob(UUID studentID, String batchJobType) {
         logger.debug("updateStudentFlagReadyByJobType for studentID - {}", studentID);
-        GraduationStudentRecord result = null;
         Optional<GraduationStudentRecordEntity> optional = graduationStatusRepository.findById(studentID);
         if (optional.isPresent()) {
             GraduationStudentRecordEntity entity = optional.get();
-            result = saveBatchFlagsOfGraduationStudentRecord(entity, batchJobType);
+           saveBatchFlagsOfGraduationStudentRecord(entity, batchJobType);
         }
-        return result;
     }
 
-    private GraduationStudentRecord saveBatchFlagsOfGraduationStudentRecord(GraduationStudentRecordEntity entity, String batchJobType) {
+    private void saveBatchFlagsOfGraduationStudentRecord(GraduationStudentRecordEntity entity, String batchJobType) {
         boolean isUpdated = false;
         if (entity.getBatchId() != null) {
             if (StringUtils.equals("REGALG", batchJobType)) {
@@ -1405,10 +1403,8 @@ public class GraduationStatusService {
             }
             if (isUpdated) {
                 graduationStatusRepository.save(entity);
-                return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(entity);
             }
         }
-        return null;
     }
 
     private void resetBatchFlags(GraduationStudentRecordEntity gradEntity, boolean projectedRun) {
