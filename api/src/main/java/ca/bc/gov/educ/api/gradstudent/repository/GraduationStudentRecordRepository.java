@@ -91,4 +91,15 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Modifying
 	@Query( "update GraduationStudentRecordEntity e set e.recalculateProjectedGrad = 'Y' where e.studentStatus = 'CUR' and e.programCompletionDate is null and (e.studentGrade = '12' or e.studentGrade = 'AD')")
 	void updateGradStudentRecalcFlagsForCurrentStudentsWithNullCompletion();
+
+	/**
+	 * Find a GraduationStudentRecord By Student ID using generics. Pass an object with the
+	 * same subset of field names, getters/setters of GraduationStudentRecordEntity to return
+	 * objects with a subset of values. More info: https://docs.spring.io/spring-data/jpa/reference/repositories/projections.html
+	 * @param studentId the student ID
+	 * @param type The class type of the object you wish to use
+	 * @return
+	 * @param <T>
+	 */
+	<T> T findByStudentID(UUID studentId, Class<T> type);
 }
