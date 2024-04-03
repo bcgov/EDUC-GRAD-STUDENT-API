@@ -6,9 +6,10 @@ import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -32,11 +33,12 @@ public class StudentSearchRequest {
     List<String> schoolCategoryCodes;
     List<String> pens;
     List<String> programs;
+    List<UUID> studentIDs;
 
     @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
-    Date gradDateFrom;
+    LocalDate gradDateFrom;
     @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
-    Date gradDateTo;
+    LocalDate gradDateTo;
 
     Boolean validateInput;
 
