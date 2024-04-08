@@ -56,7 +56,7 @@ oc create -n "$GRAD_NAMESPACE"-"$envValue" configmap "$APP_NAME"-config-map \
   --from-literal=MAXIMUM_POOL_SIZE="20" \
   --from-literal=MAX_RETRY_ATTEMPTS="3" \
   --from-literal=PEN_API="http://student-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/" \
-  --from-literal=CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS="0 */10 * ? * *" \
+  --from-literal=CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS="0 0 0 1 * ?" \
   --dry-run=client -o yaml | oc apply -f -
 
 echo Creating config map "$APP_NAME"-flb-sc-config-map
