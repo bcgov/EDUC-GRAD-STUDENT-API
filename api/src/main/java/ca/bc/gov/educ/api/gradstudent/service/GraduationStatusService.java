@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Generated;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
@@ -163,6 +164,20 @@ public class GraduationStatusService {
         Optional<GraduationStudentRecordEntity> responseOptional = graduationStatusRepository.findById(studentID);
         if (responseOptional.isPresent()) {
             return graduationStatusTransformer.transformToDTO(responseOptional.get());
+        }
+        throw new EntityNotFoundException(String.format("Student with ID: %s not found", studentID));
+    }
+
+    /**
+     * Returns a condensed version of GraduationStudentRecord without the CLOB etc
+     * @param studentID
+     * @return
+     * @throws EntityNotFoundException
+     */
+    public GraduationStudentRecordGradStatus getGraduationStatusProjection(UUID studentID) throws EntityNotFoundException {
+        GraduationStudentRecordGradStatus response = graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class);
+        if (response != null) {
+            return response;
         }
         throw new EntityNotFoundException(String.format("Student with ID: %s not found", studentID));
     }
@@ -1250,7 +1265,7 @@ public class GraduationStatusService {
     }
 
     public List<GraduationStudentRecord> getStudentDataByStudentIDs(List<UUID> studentIds) {
-        return graduationStatusTransformer.tToDForBatch(graduationStatusRepository.findByStudentIDIn(studentIds));
+        return graduationStatusTransformer.tToDForBatchView(graduationStatusRepository.findByStudentIDIn(studentIds));
     }
 
     public List<UUID> getStudentsForYearlyDistribution() {
@@ -1349,32 +1364,30 @@ public class GraduationStatusService {
     }
 
     public List<GraduationStudentRecord> getStudentsForSchoolReport(String schoolOfRecord) {
-        return graduationStatusTransformer.tToDForBatch(graduationStatusRepository.findBySchoolOfRecord(schoolOfRecord));
+        return graduationStatusTransformer.tToDForBatchView(graduationStatusRepository.findBySchoolOfRecordAndStudentStatus(schoolOfRecord, "CUR"));
     }
 
     public List<UUID> getStudentsForAmalgamatedSchoolReport(String schoolOfRecord,String type) {
-        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecordAmalgamated(schoolOfRecord),type);
+        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecordAndStudentStatusAndStudentGradeIn(schoolOfRecord, "CUR", List.of("AD", "12")),type);
     }
 
-    public List<GraduationStudentRecord> updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
+    public void updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
         logger.debug("updateStudentFlagReadyForBatchJobByStudentIDs");
-        return studentIDs.stream()
-                .map(stid -> updateStudentFlagReadyForBatchJob(stid, batchJobType))
-                .filter(Objects::nonNull).collect(Collectors.toList());
+        for(UUID uuid: studentIDs) {
+            updateStudentFlagReadyForBatchJob(uuid, batchJobType);
+        }
     }
 
-    private GraduationStudentRecord updateStudentFlagReadyForBatchJob(UUID studentID, String batchJobType) {
+    private void updateStudentFlagReadyForBatchJob(UUID studentID, String batchJobType) {
         logger.debug("updateStudentFlagReadyByJobType for studentID - {}", studentID);
-        GraduationStudentRecord result = null;
         Optional<GraduationStudentRecordEntity> optional = graduationStatusRepository.findById(studentID);
         if (optional.isPresent()) {
             GraduationStudentRecordEntity entity = optional.get();
-            result = saveBatchFlagsOfGraduationStudentRecord(entity, batchJobType);
+           saveBatchFlagsOfGraduationStudentRecord(entity, batchJobType);
         }
-        return result;
     }
 
-    private GraduationStudentRecord saveBatchFlagsOfGraduationStudentRecord(GraduationStudentRecordEntity entity, String batchJobType) {
+    private void saveBatchFlagsOfGraduationStudentRecord(GraduationStudentRecordEntity entity, String batchJobType) {
         boolean isUpdated = false;
         if (entity.getBatchId() != null) {
             if (StringUtils.equals("REGALG", batchJobType)) {
@@ -1390,10 +1403,8 @@ public class GraduationStatusService {
             }
             if (isUpdated) {
                 graduationStatusRepository.save(entity);
-                return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(entity);
             }
         }
-        return null;
     }
 
     private void resetBatchFlags(GraduationStudentRecordEntity gradEntity, boolean projectedRun) {

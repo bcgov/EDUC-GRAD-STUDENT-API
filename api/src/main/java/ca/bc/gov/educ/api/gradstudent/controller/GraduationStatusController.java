@@ -387,10 +387,10 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Update Student Flag ready for batch by Batch Job Type and Student IDs", description = "Update Student Flag ready for batch by Batch Job Type and Student IDs", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GraduationStudentRecord>> updateStudentFlagReadyForBatchJobByStudentIDs(@PathVariable String batchJobType, @RequestBody StudentList sList) {
+    public ResponseEntity<String> updateStudentFlagReadyForBatchJobByStudentIDs(@PathVariable String batchJobType, @RequestBody StudentList sList) {
         logger.debug("Update Student Flag ready for batch by Student IDs and Batch Job Type - {}", batchJobType);
-        List<GraduationStudentRecord> gradRecords =  gradStatusService.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, sList.getStudentids());
-        return response.GET(gradRecords);
+        gradStatusService.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, sList.getStudentids());
+        return response.GET("SUCCESS");
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_NON_GRAD_REASON_BY_PEN)

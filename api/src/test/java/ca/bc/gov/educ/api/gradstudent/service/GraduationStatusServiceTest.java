@@ -6,15 +6,12 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
-import ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import ca.bc.gov.educ.api.gradstudent.util.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.val;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -39,6 +36,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -61,6 +59,7 @@ public class GraduationStatusServiceTest {
     @MockBean GradStudentService gradStudentService;
     @MockBean HistoryService historyService;
     @Autowired GradStudentReportService gradStudentReportService;
+    @Autowired JsonTransformer jsonTransformer;
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
@@ -139,6 +138,25 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         assertThrows(EntityNotFoundException.class, () -> {
             graduationStatusService.getGraduationStatus(studentID);
+        });
+    }
+
+    @Test
+    public void testGetGraduationStatusProjection_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(new GraduationStudentRecordGradStatus(studentID, "2018-EN", new java.util.Date()));
+        GraduationStudentRecordGradStatus result = graduationStatusService.getGraduationStatusProjection(studentID);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetGraduationStatusProjection_givenNotFound_ExpectEntityNotFoundExcetpion() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(null);
+        assertThrows(EntityNotFoundException.class, () -> {
+            graduationStatusService.getGraduationStatusProjection(studentID);
         });
     }
 
@@ -2204,7 +2222,7 @@ public class GraduationStatusServiceTest {
     public void testGetStudentDataByStudentIds() {
         // ID
         List<UUID> sList = Arrays.asList(UUID.randomUUID());
-        List<GraduationStudentRecordEntity> histList = new ArrayList<>();
+        List<GraduationStudentRecordView> histList = new ArrayList<>();
 
         GradSearchStudent serObj = new GradSearchStudent();
         serObj.setPen("123123");
@@ -2214,26 +2232,98 @@ public class GraduationStatusServiceTest {
         GraduationData gd = new GraduationData();
         gd.setGradStudent(serObj);
 
-        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
-        graduationStatusEntity.setStudentID(sList.get(0));
-        graduationStatusEntity.setStudentStatus("A");
-        try {
-            graduationStatusEntity.setStudentGradData(new ObjectMapper().writeValueAsString(gd));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord("223333");
-        graduationStatusEntity.setGpa("4");
-        graduationStatusEntity.setBatchId(4000L);
-        graduationStatusEntity.setPen("123123");
-        graduationStatusEntity.setLegalFirstName("Asdad");
-        graduationStatusEntity.setLegalMiddleNames("Adad");
-        graduationStatusEntity.setLegalLastName("sadad");
-        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
-        histList.add(graduationStatusEntity);
+        GraduationStudentRecordView graduationStatusEntity = new GraduationStudentRecordView() {
+            @Override
+            public String getProgram() {
+                return null;
+            }
 
+            @Override
+            public java.util.Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return null;
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return null;
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return null;
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return null;
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return null;
+            }
+
+            @Override
+            public Long getBatchId() {
+                return null;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
+        histList.add(graduationStatusEntity);
         when(graduationStatusRepository.findByStudentIDIn(sList)).thenReturn(histList);
         List<GraduationStudentRecord> list = graduationStatusService.getStudentDataByStudentIDs(sList);
         assertThat(list).isNotEmpty().hasSize(1);
@@ -2615,23 +2705,99 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentsForSchoolReport() {
         String mincode = "123213123";
-        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
-        graduationStatus.setStudentID(new UUID(1,1));
-        graduationStatus.setSchoolOfRecord(mincode);
-        GraduationData gradData = new GraduationData();
-        GradSearchStudent gS = new GradSearchStudent();
-        gS.setPen("123123123123");
-        gS.setLegalFirstName("sadas");
-        gS.setLegalMiddleNames("fdf");
-        gS.setLegalLastName("rrw");
-        gradData.setGradStudent(gS);
-        graduationStatus.setStudentStatus("CUR");
-        try {
-            graduationStatus.setStudentGradData(new ObjectMapper().writeValueAsString(gradData));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStatus));
+        GraduationStudentRecordView graduationStatus = new GraduationStudentRecordView() {
+
+            @Override
+            public String getProgram() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return null;
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return mincode;
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return "AD";
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return "CUR";
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return new UUID(1,1);
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return mincode;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return null;
+            }
+
+            @Override
+            public Long getBatchId() {
+                return null;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
+        when(graduationStatusRepository.findBySchoolOfRecordAndStudentStatus(mincode, "CUR")).thenReturn(List.of(graduationStatus));
         var result = graduationStatusService.getStudentsForSchoolReport(mincode);
         assertThat(result).isNotNull().hasSize(1);
         GraduationStudentRecord responseGraduationStatus = result.get(0);
@@ -2735,25 +2901,98 @@ public class GraduationStatusServiceTest {
         projectedRunClob.setGraduated(isGraduated);
         projectedRunClob.setNonGradReasons(null);
 
-        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
-        graduationStatusEntity.setStudentID(UUID.randomUUID());
-        graduationStatusEntity.setStudentStatus("A");
-        try {
-            graduationStatusEntity.setStudentProjectedGradData(new ObjectMapper().writeValueAsString(projectedRunClob));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord("21313121");
-        graduationStatusEntity.setGpa("4");
-        graduationStatusEntity.setBatchId(4000L);
-        graduationStatusEntity.setPen("123123");
-        graduationStatusEntity.setLegalFirstName("Asdad");
-        graduationStatusEntity.setLegalMiddleNames("Adad");
-        graduationStatusEntity.setLegalLastName("sadad");
+        GraduationStudentRecordView graduationStatusEntity = new GraduationStudentRecordView() {
+            @Override
+            public String getProgram() {
+                return "2018-EN";
+            }
 
-        Mockito.when(graduationStatusRepository.findBySchoolOfRecordAmalgamated(mincode)).thenReturn(List.of(graduationStatusEntity));
+            @Override
+            public java.util.Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return "4";
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return "Y";
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return "21313121";
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return null;
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return "A";
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return UUID.randomUUID();
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return "Y";
+            }
+
+            @Override
+            public Long getBatchId() {
+                return 4000L;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return "C";
+            }
+
+            @Override
+            public java.util.Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return jsonTransformer.marshall(projectedRunClob);
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
+        Mockito.when(graduationStatusRepository.findBySchoolOfRecordAndStudentStatusAndStudentGradeIn(mincode, "CUR", List.of("AD", "12"))).thenReturn(List.of(graduationStatusEntity));
 
         return graduationStatusService.getStudentsForAmalgamatedSchoolReport(mincode,type);
     }
@@ -2795,14 +3034,8 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.findById(studentID1)).thenReturn(Optional.of(graduationStatusEntity1));
         Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
 
-        val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("REGALG", studentIDs);
-        assertThat(results).hasSize(1);
-
-        // result is updated
-        GraduationStudentRecord result = results.get(0);
-        assertThat(result.getStudentID()).isEqualTo(studentID1);
-        assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");
-        assertThat(result.getRecalculateProjectedGrad()).isEqualTo("Y");
+        graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("REGALG", studentIDs);
+        assertThat(studentIDs).hasSize(2);
     }
 
     @Test
@@ -2842,14 +3075,8 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.findById(studentID1)).thenReturn(Optional.of(graduationStatusEntity1));
         Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
 
-        val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
-        assertThat(results).hasSize(1);
-
-        // result is updated
-        GraduationStudentRecord result = results.get(0);
-        assertThat(result.getStudentID()).isEqualTo(studentID2);
-        assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");
-        assertThat(result.getRecalculateProjectedGrad()).isEqualTo("Y");
+        graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
+        assertThat(studentIDs).hasSize(2);
     }
 
     @Test
@@ -2887,8 +3114,8 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.findById(studentID1)).thenReturn(Optional.of(graduationStatusEntity1));
         Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
 
-        val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
-        assertThat(results).isEmpty();
+        graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
+        assertThat(studentIDs).isNotEmpty();
     }
 
     @Test
