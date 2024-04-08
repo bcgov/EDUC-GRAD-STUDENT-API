@@ -697,15 +697,18 @@ public class GraduationStatusService {
         
     }
 
-    private void validateOptionalProgram(UUID optionalProgramID, String accessToken) {
-        if (optionalProgramID == null) {
-            validation.addErrorAndStop("Optional Program ID is required");
-            return;
-        }
+    private void validateOptionalProgram(UUID optionalProgramID, GraduationStudentRecord graduationStudentRecord, String accessToken) {
 
+        // check if op exists
         OptionalProgram optionalProgram = getOptionalProgram(optionalProgramID, accessToken);
         if (optionalProgram == null || isPrimaryKeyNull(optionalProgram)) {
             validation.addNotFoundErrorAndStop(String.format("Optional Program with ID: %s not found", optionalProgramID));
+        }
+
+        // check that op and program combination exists and that the op id matches
+        OptionalProgram optionalProgram1 = getOptionalProgram(graduationStudentRecord.getProgram(), optionalProgram.getOptProgramCode(), accessToken);
+        if (optionalProgram1 == null || !optionalProgram1.getOptionalProgramID().equals(optionalProgramID)) {
+            validation.addError(String.format("Cannot add optional program: %s to student as it is available under the program: %s", optionalProgram1.getOptionalProgramName(), graduationStudentRecord.getProgram()));
         }
     }
 
@@ -842,7 +845,7 @@ public class GraduationStatusService {
         // Validation
         GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
         validateStudent(graduationStudentRecord);
-        validateOptionalProgram(optionalProgramID, accessToken);
+        validateOptionalProgram(optionalProgramID, graduationStudentRecord, accessToken);
 
         // Process
         StudentOptionalProgramEntity entity = persistStudentOptionalProgramWithAuditHistory(studentID, optionalProgramID);
@@ -878,7 +881,6 @@ public class GraduationStatusService {
         // Validation
         GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
         validateStudent(graduationStudentRecord);
-        validateOptionalProgram(optionalProgramID, accessToken);
 
         // Process
         removeStudentOptionalProgramWithAuditHistory(studentID, optionalProgramID);
