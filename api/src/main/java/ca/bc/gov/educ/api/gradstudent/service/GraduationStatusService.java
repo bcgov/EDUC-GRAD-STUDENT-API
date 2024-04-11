@@ -54,13 +54,13 @@ public class GraduationStatusService {
 
     private static final String CREATE_USER = "createUser";
     private static final String CREATE_DATE = "createDate";
-    private static final String UPDATE_USER = "updateUser";
-    private static final String UPDATE_DATE = "updateDate";
     private static final String GRAD_ALG = "GRADALG";
     private static final String USER_EDIT = "USEREDIT";
     private static final String USER_CREATE = "USEREDIT";
     private static final String USER_DELETE = "USERDELETE";
     private static final String USER_UNDO_CMPL = "USERUNDOCMPL";
+
+    private static final String STD_NOT_FOUND_MSG = "Student with ID: %s not found";
 
     final
     WebClient webClient;
@@ -127,7 +127,7 @@ public class GraduationStatusService {
             GraduationStudentRecordEntity graduationStudentRecord = responseOptional.get();
             return graduationStudentRecord.getProgramCompletionDate() != null;
         }
-        throw new EntityNotFoundException(String.format("Student with ID: {} not found", studentID));
+        throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
     }
 
     @Retry(name = "generalgetcall")
@@ -165,7 +165,7 @@ public class GraduationStatusService {
         if (responseOptional.isPresent()) {
             return graduationStatusTransformer.transformToDTO(responseOptional.get());
         }
-        throw new EntityNotFoundException(String.format("Student with ID: %s not found", studentID));
+        throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
     }
 
     /**
@@ -179,7 +179,7 @@ public class GraduationStatusService {
         if (response != null) {
             return response;
         }
-        throw new EntityNotFoundException(String.format("Student with ID: %s not found", studentID));
+        throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
     }
 
     @Transactional
@@ -697,15 +697,19 @@ public class GraduationStatusService {
         
     }
 
-    private void validateOptionalProgram(UUID optionalProgramID, String accessToken) {
-        if (optionalProgramID == null) {
-            validation.addErrorAndStop("Optional Program ID is required");
-            return;
-        }
+    private void validateOptionalProgram(UUID optionalProgramID, GraduationStudentRecord graduationStudentRecord, String accessToken) {
 
+        // check if op exists
         OptionalProgram optionalProgram = getOptionalProgram(optionalProgramID, accessToken);
         if (optionalProgram == null || isPrimaryKeyNull(optionalProgram)) {
             validation.addNotFoundErrorAndStop(String.format("Optional Program with ID: %s not found", optionalProgramID));
+            return;
+        }
+
+        // check that op and program combination exists and that the op id matches
+        OptionalProgram optionalProgram1 = getOptionalProgram(graduationStudentRecord.getProgram(), optionalProgram.getOptProgramCode(), accessToken);
+        if (optionalProgram1 == null || !optionalProgram1.getOptionalProgramID().equals(optionalProgramID)) {
+            validation.addErrorAndStop(String.format("Cannot add optional program: %s to student as it is not available under the program: %s", optionalProgram.getOptionalProgramName(), graduationStudentRecord.getProgram()));
         }
     }
 
@@ -779,7 +783,7 @@ public class GraduationStatusService {
         List<StudentOptionalProgramEntity> studOpList = gradStudentOptionalProgramRepository.findByStudentID(studentID);
         if(!studOpList.isEmpty()) {
             for (StudentOptionalProgramEntity studentOptionalProgramEntity : studOpList) {
-                historyService.createStudentOptionalProgramHistory(studentOptionalProgramEntity,"USERDELETE");
+                historyService.createStudentOptionalProgramHistory(studentOptionalProgramEntity,USER_DELETE);
                 gradStudentOptionalProgramRepository.deleteById(studentOptionalProgramEntity.getId());
             }
         }
@@ -787,13 +791,6 @@ public class GraduationStatusService {
 
     private void deleteStudentCareerPrograms(UUID studentID) {
         gradStudentCareerProgramRepository.deleteByStudentID(studentID);
-    }
-
-    private String getHonoursFlag(String gPA) {
-        if (Float.parseFloat(gPA) > 3)
-            return "Y";
-        else
-            return "N";
     }
 
     public List<StudentOptionalProgram> getStudentGradOptionalProgram(UUID studentID, String accessToken) {
@@ -842,7 +839,7 @@ public class GraduationStatusService {
         // Validation
         GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
         validateStudent(graduationStudentRecord);
-        validateOptionalProgram(optionalProgramID, accessToken);
+        validateOptionalProgram(optionalProgramID, graduationStudentRecord, accessToken);
 
         // Process
         StudentOptionalProgramEntity entity = persistStudentOptionalProgramWithAuditHistory(studentID, optionalProgramID);
@@ -878,7 +875,6 @@ public class GraduationStatusService {
         // Validation
         GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
         validateStudent(graduationStudentRecord);
-        validateOptionalProgram(optionalProgramID, accessToken);
 
         // Process
         removeStudentOptionalProgramWithAuditHistory(studentID, optionalProgramID);
