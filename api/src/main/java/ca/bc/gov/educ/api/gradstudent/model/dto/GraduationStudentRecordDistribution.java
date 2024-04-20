@@ -18,6 +18,7 @@ public class GraduationStudentRecordDistribution extends BaseModel{
     private String legalMiddleNames;
     private String legalLastName;
     private String schoolOfRecord;
+    private String schoolAtGrad;
     private String programCompletionDate;
     private String honoursStanding;
     private String program;
