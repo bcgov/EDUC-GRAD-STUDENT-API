@@ -365,12 +365,9 @@ public class GraduationStatusService {
                 if(!searchRequest.getDistricts().contains(school.getDistNo())) {
                     it.remove();
                 } else {
-                    if(searchRequest.getSchoolCategoryCodes() != null && !searchRequest.getSchoolCategoryCodes().isEmpty()) {
-                        if(!searchRequest.getSchoolCategoryCodes().contains(school.getSchoolCategoryCode())) {
-                            it.remove();
-                        } else {
-                            searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
-                        }
+                    List<String> schoolCategoryCodes = searchRequest.getSchoolCategoryCodes().stream().filter(StringUtils::isNotBlank).toList();
+                    if(!schoolCategoryCodes.isEmpty() && !schoolCategoryCodes.contains(school.getSchoolCategoryCode())) {
+                        it.remove();
                     } else {
                         searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
                     }
