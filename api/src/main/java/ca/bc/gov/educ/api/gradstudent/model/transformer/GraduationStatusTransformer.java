@@ -111,6 +111,7 @@ public class GraduationStatusTransformer {
         distObj.setProgram(ent.getProgram());
         distObj.setHonoursStanding(ent.getHonoursStanding());
         distObj.setSchoolOfRecord(ent.getSchoolOfRecord());
+        distObj.setSchoolAtGrad(ent.getSchoolAtGrad());
         distObj.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
         distObj.setStudentID(ent.getStudentID());
         distObj.setStudentCitizenship(ent.getStudentCitizenship());
