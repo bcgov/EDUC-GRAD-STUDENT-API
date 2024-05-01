@@ -394,6 +394,7 @@ public class GraduationStatusService {
                 .programs(searchRequest.getPrograms())
                 .gradDateFrom(searchRequest.getGradDateFrom())
                 .gradDateTo(searchRequest.getGradDateTo())
+                .activityCode(searchRequest.getActivityCode())
                 .build();
 
         Specification<GraduationStudentRecordSearchEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
