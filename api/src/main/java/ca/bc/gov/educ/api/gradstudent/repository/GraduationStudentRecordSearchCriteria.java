@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,8 +24,8 @@ public class GraduationStudentRecordSearchCriteria implements Serializable {
     private List<String> studentIds;
     private List<String> programs;
 
-    Date gradDateFrom;
-    Date gradDateTo;
+    LocalDate gradDateFrom;
+    LocalDate gradDateTo;
 
     public List<UUID> getStudentUUIDs() {
         List<UUID> result = new ArrayList<>();
