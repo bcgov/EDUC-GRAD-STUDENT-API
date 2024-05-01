@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
+import ca.bc.gov.educ.api.gradstudent.constant.Generated;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordSearchEntity;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -27,6 +28,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
 
     @Override
     @Nullable
+    @Generated
     public Predicate toPredicate(Root<GraduationStudentRecordSearchEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
         logger.debug("toPredicate()");
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
