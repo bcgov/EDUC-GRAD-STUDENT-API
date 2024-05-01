@@ -40,7 +40,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
         }
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
             return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
-                    curStatusOptional
+              curStatusOptional
             );
         } else if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
             Predicate datesRangePredicate = null;
