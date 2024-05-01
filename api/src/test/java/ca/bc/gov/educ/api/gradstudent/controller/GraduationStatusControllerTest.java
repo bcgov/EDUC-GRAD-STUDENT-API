@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -327,8 +328,8 @@ public class GraduationStatusControllerTest {
         List<String> programs = new ArrayList<>();
         programs.add("1950");
 
-        Date gradDateFrom = new Date(System.currentTimeMillis() - (1000L * 60 * 60 * 24 * 30 * 12 * 10));
-        Date gradDateTo = new Date(System.currentTimeMillis());
+        LocalDate gradDateFrom = LocalDate.of(2000, 01, 01);
+        LocalDate gradDateTo = LocalDate.now();
 
         StudentSearchRequest searchRequest = StudentSearchRequest.builder()
                 .pens(pens)
