@@ -6,10 +6,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-<<<<<<<<< Temporary merge branch 1
-=========
 import org.apache.commons.lang3.StringUtils;
->>>>>>>>> Temporary merge branch 2
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
