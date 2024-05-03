@@ -42,6 +42,7 @@ public class StudentSearchRequest implements Serializable {
     LocalDate gradDateTo;
 
     Boolean validateInput;
+    String activityCode;
 
     public List<String> getSchoolOfRecords() {
         if(schoolOfRecords == null) {

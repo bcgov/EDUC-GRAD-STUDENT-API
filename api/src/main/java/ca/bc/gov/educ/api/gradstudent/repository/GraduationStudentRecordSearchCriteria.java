@@ -27,6 +27,8 @@ public class GraduationStudentRecordSearchCriteria implements Serializable {
     LocalDate gradDateFrom;
     LocalDate gradDateTo;
 
+    String activityCode;
+
     public List<UUID> getStudentUUIDs() {
         List<UUID> result = new ArrayList<>();
         for(String id: studentIds) {

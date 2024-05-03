@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,47 +32,34 @@ public class GraduationStudentRecordSearchSpecification implements Specification
     @Generated
     public Predicate toPredicate(Root<GraduationStudentRecordSearchEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
         logger.debug("toPredicate()");
+        Predicate curStatusOptional;
+        if(StringUtils.containsAnyIgnoreCase(searchCriteria.activityCode, "USERDIST", "USERDISTOC", "USERDISTRC", "USERDISTOT", "USERDISTRT")) {
+            curStatusOptional = criteriaBuilder.notEqual(root.get(STUDENT_STATUS), "MER");
+        } else {
+            curStatusOptional = criteriaBuilder.equal(root.get(STUDENT_STATUS), "CUR");
+        }
+        Predicate datesRangePredicate = null;
+        if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
+            datesRangePredicate = criteriaBuilder.and(
+                    criteriaBuilder.greaterThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateFrom())
+                    ,criteriaBuilder.lessThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateTo())
+            );
+        }
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
             return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
-                    criteriaBuilder.notEqual(root.get(STUDENT_STATUS), "MER")
+                    curStatusOptional, datesRangePredicate
             );
-        } else if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
-            Predicate datesRangePredicate = null;
-            if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
-                datesRangePredicate = criteriaBuilder.and(
-                        criteriaBuilder.greaterThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateFrom())
-                        ,criteriaBuilder.lessThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateTo())
-                );
-            }
-            Predicate curStatusOptional;
-            if(datesRangePredicate == null) {
-                curStatusOptional = criteriaBuilder.equal(root.get(STUDENT_STATUS), "CUR");
-                datesRangePredicate = curStatusOptional;
-            } else {
-                curStatusOptional = criteriaBuilder.notEqual(root.get(STUDENT_STATUS), "MER");
-            }
+        }
+        if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
             return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()),
                     curStatusOptional, datesRangePredicate
             );
-        } else if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
-            Predicate datesRangePredicate = null;
-            if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
-                datesRangePredicate = criteriaBuilder.and(
-                        criteriaBuilder.greaterThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateFrom())
-                        ,criteriaBuilder.lessThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateTo())
-                );
-            }
-            Predicate curStatusOptional;
-            if(datesRangePredicate == null) {
-                curStatusOptional = criteriaBuilder.equal(root.get(STUDENT_STATUS), "CUR");
-                datesRangePredicate = curStatusOptional;
-            } else {
-                curStatusOptional = criteriaBuilder.notEqual(root.get(STUDENT_STATUS), "MER");
-            }
+        }
+        if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
             return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
                     curStatusOptional, datesRangePredicate
             );
         }
-        return criteriaBuilder.and();
+        return criteriaBuilder.and(curStatusOptional);
     }
 }
