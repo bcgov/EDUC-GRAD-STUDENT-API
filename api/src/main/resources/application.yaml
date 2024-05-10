@@ -154,10 +154,15 @@ resilience4j.retry:
 #Endpoint properties
 endpoint:
   grad-trax-api:
+    all-commonschools:
+      url: ${GRAD_TRAX_API}api/v1/trax/school/common
     school-by-min-code:
       url: ${GRAD_TRAX_API}api/v1/trax/school/%s
     district-by-district-code:
       url: ${GRAD_TRAX_API}api/v1/trax/district/%s
+    commonschool-by-mincode:
+      url: ${GRAD_TRAX_API}api/v1/trax/school/common/%s
+
   grad-program-api:
     optional_program_name_by_optional_program_id:
       url: ${GRAD_PROGRAM_API}api/v1/program/optionalprograms/id/%s
@@ -189,10 +194,8 @@ endpoint:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentcertificates?studentID=%s
     archive-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/archiveachievement/%s
-  educ-school-api:
-    url: ${EDUC_SCHOOL_API}api/v1/schools
-    get-school-by-mincode:
-      url: ${EDUC_SCHOOL_API}api/v1/schools/%s
+
+
 
 #Splunk LogHelper
 splunk:
