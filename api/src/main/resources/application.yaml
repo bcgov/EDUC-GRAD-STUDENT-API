@@ -154,7 +154,8 @@ resilience4j.retry:
 #Endpoint properties
 endpoint:
   grad-trax-api:
-    url: ${GRAD_TRAX_API}api/v1/trax/school/common
+    all-commonschools:
+      url: ${GRAD_TRAX_API}api/v1/trax/school/common
     school-by-min-code:
       url: ${GRAD_TRAX_API}api/v1/trax/school/%s
     district-by-district-code:

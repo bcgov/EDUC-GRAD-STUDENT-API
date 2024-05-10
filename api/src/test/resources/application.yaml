@@ -104,7 +104,8 @@ cron:
 #Endpoint properties
 endpoint:
   grad-trax-api:
-    url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/trax/school/common
+    all-commonschools:
+      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/trax/school/common
     school-by-min-code:
       url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/trax/school/%s
     district-by-district-code:
