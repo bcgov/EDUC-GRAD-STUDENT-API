@@ -1,10 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.model.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Immutable;
 
-import jakarta.persistence.*;
 import java.util.Date;
 import java.util.UUID;
 
@@ -26,6 +29,9 @@ public class GraduationStudentRecordSearchEntity {
     
     @Column(name = "SCHOOL_OF_RECORD", nullable = true)
     private String schoolOfRecord;
+
+    @Column(name = "SCHOOL_AT_GRADUATION", nullable = true)
+    private String schoolAtGraduation;
     
     @Column(name = "STUDENT_STATUS_CODE", nullable = false)
     private String studentStatus;
