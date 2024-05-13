@@ -38,7 +38,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
         } else {
             curStatusOptional = criteriaBuilder.equal(root.get(STUDENT_STATUS), "CUR");
         }
-        Predicate datesRangePredicate = null;
+        Predicate datesRangePredicate = criteriaBuilder.and();
         if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
             datesRangePredicate = criteriaBuilder.and(
                     criteriaBuilder.greaterThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateFrom())
