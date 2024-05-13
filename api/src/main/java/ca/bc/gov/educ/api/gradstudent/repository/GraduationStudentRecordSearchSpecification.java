@@ -20,6 +20,8 @@ public class GraduationStudentRecordSearchSpecification implements Specification
     private static final Logger logger = LoggerFactory.getLogger(GraduationStudentRecordSearchSpecification.class);
     private static final String PROGRAM_COMPLETION_DATE = "programCompletionDate";
     private static final String STUDENT_STATUS = "studentStatus";
+    private static final String SCHOOL_AT_GRADUATION = "schoolAtGraduation";
+    private static final String SCHOOL_OF_RECORD = "schoolOfRecord";
 
     private final GraduationStudentRecordSearchCriteria searchCriteria;
 
@@ -52,10 +54,10 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             );
         }
         if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
-            Predicate schoolAtGraduationIsNull = criteriaBuilder.isNull(root.get("schoolAtGraduation"));
-            Predicate schoolAtGraduationIsNotNull = criteriaBuilder.isNotNull(root.get("schoolAtGraduation"));
-            Predicate schoolOfRecordPredicate = criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()), schoolAtGraduationIsNull);
-            Predicate schoolAtGraduationPredicate = criteriaBuilder.and(root.get("schoolAtGraduation").in(searchCriteria.getSchoolOfRecords()), schoolAtGraduationIsNotNull);
+            Predicate schoolAtGraduationIsNull = criteriaBuilder.isNull(root.get(SCHOOL_AT_GRADUATION));
+            Predicate schoolAtGraduationIsNotNull = criteriaBuilder.isNotNull(root.get(SCHOOL_AT_GRADUATION));
+            Predicate schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_OF_RECORD).in(searchCriteria.getSchoolOfRecords()), schoolAtGraduationIsNull);
+            Predicate schoolAtGraduationPredicate = criteriaBuilder.and(root.get(SCHOOL_AT_GRADUATION).in(searchCriteria.getSchoolOfRecords()), schoolAtGraduationIsNotNull);
             Predicate schoolOfRecordPredicateOr = criteriaBuilder.and(criteriaBuilder.or(schoolOfRecordPredicate));
             Predicate schoolAtGraduationPredicateOr = criteriaBuilder.and(criteriaBuilder.or(schoolAtGraduationPredicate));
             Predicate finalPredicate = criteriaBuilder.or(schoolOfRecordPredicateOr, schoolAtGraduationPredicateOr);
