@@ -38,7 +38,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
         } else {
             curStatusOptional = criteriaBuilder.equal(root.get(STUDENT_STATUS), "CUR");
         }
-        Predicate datesRangePredicate = null;
+        Predicate datesRangePredicate = criteriaBuilder.and();
         if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
             datesRangePredicate = criteriaBuilder.and(
                     criteriaBuilder.greaterThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateFrom())
@@ -47,17 +47,17 @@ public class GraduationStudentRecordSearchSpecification implements Specification
         }
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
             return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
-                    curStatusOptional, datesRangePredicate == null ? criteriaBuilder.and() : datesRangePredicate
+                    curStatusOptional, datesRangePredicate
             );
         }
         if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
             return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()),
-                    curStatusOptional, datesRangePredicate == null ? criteriaBuilder.and() : datesRangePredicate
+                    curStatusOptional, datesRangePredicate
             );
         }
         if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
             return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
-                    curStatusOptional, datesRangePredicate == null ? criteriaBuilder.and() : datesRangePredicate
+                    curStatusOptional, datesRangePredicate
             );
         }
         return criteriaBuilder.and(curStatusOptional);
