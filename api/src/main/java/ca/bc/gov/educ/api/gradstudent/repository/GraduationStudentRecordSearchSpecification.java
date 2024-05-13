@@ -47,17 +47,17 @@ public class GraduationStudentRecordSearchSpecification implements Specification
         }
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
             return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
-                    curStatusOptional, datesRangePredicate
+                    curStatusOptional, datesRangePredicate == null ? criteriaBuilder.and() : datesRangePredicate
             );
         }
         if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
             return criteriaBuilder.and(root.get("schoolOfRecord").in(searchCriteria.getSchoolOfRecords()),
-                    curStatusOptional, datesRangePredicate
+                    curStatusOptional, datesRangePredicate == null ? criteriaBuilder.and() : datesRangePredicate
             );
         }
         if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
             return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
-                    curStatusOptional, datesRangePredicate
+                    curStatusOptional, datesRangePredicate == null ? criteriaBuilder.and() : datesRangePredicate
             );
         }
         return criteriaBuilder.and(curStatusOptional);
