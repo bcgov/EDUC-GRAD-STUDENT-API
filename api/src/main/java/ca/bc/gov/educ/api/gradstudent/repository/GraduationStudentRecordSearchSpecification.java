@@ -53,7 +53,9 @@ public class GraduationStudentRecordSearchSpecification implements Specification
                     curStatusOptional, datesRangePredicate
             );
         }
+        boolean certDist = StringUtils.containsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOC", "USERDISTRC");
         if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
+            /***
             Predicate schoolAtGraduationIsNull = criteriaBuilder.isNull(root.get(SCHOOL_AT_GRADUATION));
             Predicate schoolAtGraduationIsNotNull = criteriaBuilder.isNotNull(root.get(SCHOOL_AT_GRADUATION));
             Predicate schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_OF_RECORD).in(searchCriteria.getSchoolOfRecords()), schoolAtGraduationIsNull);
@@ -62,6 +64,16 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             Predicate schoolAtGraduationPredicateOr = criteriaBuilder.and(criteriaBuilder.or(schoolAtGraduationPredicate));
             Predicate finalPredicate = criteriaBuilder.or(schoolOfRecordPredicateOr, schoolAtGraduationPredicateOr);
             return criteriaBuilder.and(curStatusOptional, datesRangePredicate, finalPredicate);
+             ***/
+            if(certDist) {
+                return criteriaBuilder.and(root.get(SCHOOL_AT_GRADUATION).in(searchCriteria.getSchoolOfRecords()),
+                        curStatusOptional, datesRangePredicate
+                );
+            } else {
+                return criteriaBuilder.and(root.get(SCHOOL_OF_RECORD).in(searchCriteria.getSchoolOfRecords()),
+                        curStatusOptional, datesRangePredicate
+                );
+            }
         }
         if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
             return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
