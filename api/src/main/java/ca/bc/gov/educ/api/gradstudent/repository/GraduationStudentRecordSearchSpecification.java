@@ -37,7 +37,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
         Predicate curStatusOptional;
         boolean userDist = StringUtils.containsAnyIgnoreCase(searchCriteria.activityCode, "USERDIST", "USERDISTOC", "USERDISTRC", "USERDISTOT", "USERDISTRT");
         if(userDist) {
-            curStatusOptional = criteriaBuilder.notEqual(root.get(STUDENT_STATUS), "MER");
+            curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER", "DEC"));
         } else {
             curStatusOptional = criteriaBuilder.equal(root.get(STUDENT_STATUS), "CUR");
         }
@@ -49,6 +49,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             );
         }
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
+            curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER"));
             return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
                     curStatusOptional, datesRangePredicate
             );
@@ -80,6 +81,6 @@ public class GraduationStudentRecordSearchSpecification implements Specification
                     curStatusOptional, datesRangePredicate
             );
         }
-        return criteriaBuilder.and(curStatusOptional);
+        return criteriaBuilder.and(curStatusOptional, datesRangePredicate);
     }
 }
