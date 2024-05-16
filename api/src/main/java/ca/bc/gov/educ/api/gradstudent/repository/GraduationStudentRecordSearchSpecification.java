@@ -35,7 +35,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
     public Predicate toPredicate(Root<GraduationStudentRecordSearchEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
         logger.debug("toPredicate()");
         Predicate curStatusOptional;
-        boolean userDist = StringUtils.containsAnyIgnoreCase(searchCriteria.activityCode, "USERDIST", "USERDISTOC", "USERDISTRC", "USERDISTOT", "USERDISTRT");
+        boolean userDist = StringUtils.containsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOC", "USERDISTRC");
         if(userDist) {
             curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER", "DEC"));
         } else {
@@ -54,7 +54,8 @@ public class GraduationStudentRecordSearchSpecification implements Specification
                     curStatusOptional, datesRangePredicate
             );
         }
-        boolean certDist = StringUtils.containsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOC", "USERDISTRC");
+        boolean certDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOC", "USERDISTRC");
+        Predicate schoolOfRecordPredicate = criteriaBuilder.and();
         if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
             /***
             Predicate schoolAtGraduationIsNull = criteriaBuilder.isNull(root.get(SCHOOL_AT_GRADUATION));
@@ -64,23 +65,24 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             Predicate schoolOfRecordPredicateOr = criteriaBuilder.and(criteriaBuilder.or(schoolOfRecordPredicate));
             Predicate schoolAtGraduationPredicateOr = criteriaBuilder.and(criteriaBuilder.or(schoolAtGraduationPredicate));
             Predicate finalPredicate = criteriaBuilder.or(schoolOfRecordPredicateOr, schoolAtGraduationPredicateOr);
-            return criteriaBuilder.and(curStatusOptional, datesRangePredicate, finalPredicate);
+            schoolOfRecordPredicate = criteriaBuilder.and(curStatusOptional, datesRangePredicate, finalPredicate);
              ***/
             if(certDist) {
-                return criteriaBuilder.and(root.get(SCHOOL_AT_GRADUATION).in(searchCriteria.getSchoolOfRecords()),
+                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_AT_GRADUATION).in(searchCriteria.getSchoolOfRecords()),
                         curStatusOptional, datesRangePredicate
                 );
             } else {
-                return criteriaBuilder.and(root.get(SCHOOL_OF_RECORD).in(searchCriteria.getSchoolOfRecords()),
+                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_OF_RECORD).in(searchCriteria.getSchoolOfRecords()),
                         curStatusOptional, datesRangePredicate
                 );
             }
         }
+        Predicate programPredicate = criteriaBuilder.and();
         if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
-            return criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
-                    curStatusOptional, datesRangePredicate
+            programPredicate = criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
+                    curStatusOptional, datesRangePredicate, schoolOfRecordPredicate
             );
         }
-        return criteriaBuilder.and(curStatusOptional, datesRangePredicate);
+        return criteriaBuilder.and(curStatusOptional, datesRangePredicate, schoolOfRecordPredicate, programPredicate);
     }
 }
