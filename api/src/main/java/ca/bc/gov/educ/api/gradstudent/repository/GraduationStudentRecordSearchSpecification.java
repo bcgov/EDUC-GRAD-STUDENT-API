@@ -43,6 +43,10 @@ public class GraduationStudentRecordSearchSpecification implements Specification
         }
         Predicate datesRangePredicate = criteriaBuilder.and();
         if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
+            boolean transcriptDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOT", "USERDISTRT");
+            if(transcriptDist) {
+                curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER", "DEC"));
+            }
             datesRangePredicate = criteriaBuilder.and(
                     criteriaBuilder.greaterThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateFrom())
                     ,criteriaBuilder.lessThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateTo())
@@ -67,20 +71,14 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             schoolOfRecordPredicate = criteriaBuilder.and(curStatusOptional, datesRangePredicate, finalPredicate);
              ***/
             if(certDist) {
-                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_AT_GRADUATION).in(searchCriteria.getSchoolOfRecords()),
-                        curStatusOptional, datesRangePredicate
-                );
+                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_AT_GRADUATION).in(searchCriteria.getSchoolOfRecords()));
             } else {
-                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_OF_RECORD).in(searchCriteria.getSchoolOfRecords()),
-                        curStatusOptional, datesRangePredicate
-                );
+                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_OF_RECORD).in(searchCriteria.getSchoolOfRecords()));
             }
         }
         Predicate programPredicate = criteriaBuilder.and();
         if (searchCriteria.getPrograms() != null && !searchCriteria.getPrograms().isEmpty()) {
-            programPredicate = criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()),
-                    curStatusOptional, datesRangePredicate, schoolOfRecordPredicate
-            );
+            programPredicate = criteriaBuilder.and(root.get("program").in(searchCriteria.getPrograms()));
         }
         return criteriaBuilder.and(curStatusOptional, datesRangePredicate, schoolOfRecordPredicate, programPredicate);
     }
