@@ -41,6 +41,12 @@ public class GraduationStudentRecordSearchSpecification implements Specification
         } else {
             curStatusOptional = criteriaBuilder.equal(root.get(STUDENT_STATUS), "CUR");
         }
+        if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
+            curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER"));
+            return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
+                    curStatusOptional
+            );
+        }
         Predicate datesRangePredicate = criteriaBuilder.and();
         if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
             boolean transcriptDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOT", "USERDISTRT");
@@ -50,12 +56,6 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             datesRangePredicate = criteriaBuilder.and(
                     criteriaBuilder.greaterThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateFrom())
                     ,criteriaBuilder.lessThanOrEqualTo(root.get(PROGRAM_COMPLETION_DATE).as(LocalDate.class), searchCriteria.getGradDateTo())
-            );
-        }
-        if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
-            curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER"));
-            return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
-                    curStatusOptional, datesRangePredicate
             );
         }
         Predicate schoolOfRecordPredicate = criteriaBuilder.and();
