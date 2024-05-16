@@ -35,18 +35,19 @@ public class GraduationStudentRecordSearchSpecification implements Specification
     public Predicate toPredicate(Root<GraduationStudentRecordSearchEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
         logger.debug("toPredicate()");
         Predicate curStatusOptional;
-        boolean certDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOC", "USERDISTRC");
-        if(certDist) {
-            curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER", "DEC"));
-        } else {
-            curStatusOptional = criteriaBuilder.equal(root.get(STUDENT_STATUS), "CUR");
-        }
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
             curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER"));
             return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
                     curStatusOptional
             );
         }
+        boolean certDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOC", "USERDISTRC");
+        if(certDist) {
+            curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER", "DEC"));
+        } else {
+            curStatusOptional = criteriaBuilder.equal(root.get(STUDENT_STATUS), "CUR");
+        }
+
         Predicate datesRangePredicate = criteriaBuilder.and();
         if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
             boolean transcriptDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOT", "USERDISTRT");
