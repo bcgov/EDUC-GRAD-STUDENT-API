@@ -6,13 +6,15 @@ import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
-public class StudentSearchRequest {
+public class StudentSearchRequest implements Serializable {
     String legalFirstName;
     String legalLastName;
     String legalMiddleNames;
@@ -27,18 +29,20 @@ public class StudentSearchRequest {
     String schoolOfRecord;
     String gradProgram;
 
-    List<String> schoolOfRecords;
-    List<String> districts;
-    List<String> schoolCategoryCodes;
-    List<String> pens;
-    List<String> programs;
+    private List<String> schoolOfRecords;
+    private List<String> districts;
+    private List<String> schoolCategoryCodes;
+    private List<String> pens;
+    private List<String> programs;
+    private List<UUID> studentIDs;
 
     @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
-    Date gradDateFrom;
+    LocalDate gradDateFrom;
     @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
-    Date gradDateTo;
+    LocalDate gradDateTo;
 
     Boolean validateInput;
+    String activityCode;
 
     public List<String> getSchoolOfRecords() {
         if(schoolOfRecords == null) {
