@@ -15,6 +15,7 @@ public class EducGradStudentApiConstants {
     public static final String API_NAME = "GRAD-STUDENT-API";
     public static final String STREAM_NAME="GRAD_STATUS_EVENT_STREAM";
     public static final String CORRELATION_ID = "correlationID";
+    public static final String OPTIONAL_PROGRAM_CP = "CP";
 
     //API end-point Mapping constants
     public static final String API_ROOT_MAPPING = "";
@@ -45,7 +46,8 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";
     public static final String SAVE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/optionalprogram";
     public static final String UPDATE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/gradstudent/optionalprogram";
-    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID = "/{studentID}/optionalPrograms/{optionalProgramID}";
+    public static final String DELETE_GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID = "/{studentID}/optionalPrograms/{studentOptionalProgramID}";
+    public static final String CREATE_GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID = "/{studentID}/optionalPrograms/{optionalProgramID}";
     public static final String GRAD_STUDENT_CAREER_PROGRAMS = "/{studentID}/careerPrograms";
     public static final String GRAD_STUDENT_CAREER_PROGRAMS_BY_CODE = "/{studentID}/careerPrograms/{careerProgramCode}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAMS = "/{studentID}/optionalPrograms";

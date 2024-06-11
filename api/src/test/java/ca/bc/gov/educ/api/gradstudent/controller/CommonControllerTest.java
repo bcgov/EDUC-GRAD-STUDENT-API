@@ -417,7 +417,7 @@ public class CommonControllerTest {
     public void testDeleteStudentGradOptionalProgram() {
         // ID
         UUID studentID = UUID.randomUUID();
-        UUID optionalProgramID = UUID.randomUUID();
+        UUID studentOptionalProgramID = UUID.randomUUID();
         String mincode = "12345678";
 
         GraduationStudentRecord graduationStudentRecord = new GraduationStudentRecord();
@@ -433,11 +433,11 @@ public class CommonControllerTest {
         graduationStudentRecord.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
         Mockito.when(graduationStatusService.getGraduationStatus(studentID, "accessToken")).thenReturn(graduationStudentRecord);
-        doNothing().when(graduationStatusService).deleteStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        doNothing().when(graduationStatusService).deleteStudentOptionalProgram(studentID, studentOptionalProgramID, "accessToken");
         Mockito.when(responseHelper.UPDATED(graduationStudentRecord)).thenReturn(ResponseEntity.ok().body(ApiResponseModel.SUCCESS(graduationStudentRecord)));
 
-        var result = commonController.deleteStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
-        Mockito.verify(graduationStatusService).deleteStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        var result = commonController.deleteStudentOptionalProgram(studentID, studentOptionalProgramID, "accessToken");
+        Mockito.verify(graduationStatusService).deleteStudentOptionalProgram(studentID, studentOptionalProgramID, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -448,6 +448,7 @@ public class CommonControllerTest {
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
         String careerProgramCode = "XA";
+        UUID studentOptionalProgramID = UUID.randomUUID();
 
         GraduationStudentRecord graduationStudentRecord = new GraduationStudentRecord();
         graduationStudentRecord.setStudentID(studentID);

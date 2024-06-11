@@ -869,13 +869,13 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public void deleteStudentOptionalProgram(UUID studentID, UUID optionalProgramID, String accessToken) throws GradBusinessRuleException {
+    public void deleteStudentOptionalProgram(UUID studentID, UUID studentOptionalProgramID, String accessToken) throws GradBusinessRuleException {
         // Validation
         GraduationStudentRecord graduationStudentRecord = getGraduationStatus(studentID);
         validateStudent(graduationStudentRecord);
 
         // Process
-        removeStudentOptionalProgramWithAuditHistory(studentID, optionalProgramID);
+        removeStudentOptionalProgramWithAuditHistory(studentID, studentOptionalProgramID);
         handleBatchFlags(studentID, graduationStudentRecord.getStudentStatus());
     }
 
@@ -891,10 +891,15 @@ public class GraduationStatusService {
         removeStudentCareerProgram(studentID, careerProgramCode);
         handleBatchFlags(studentID, graduationStudentRecord.getStudentStatus());
 
-        OptionalProgram cp = getOptionalProgram(graduationStudentRecord.getProgram(), "CP", accessToken);
-        if (cp != null && !hasAnyCareerPrograms(studentID)) {
-            // CP Removal
-            removeStudentOptionalProgramWithAuditHistory(studentID, cp.getOptionalProgramID());
+        List<StudentOptionalProgram> gradResponse = getStudentGradOptionalProgram(studentID, accessToken);
+
+        for(StudentOptionalProgram gs : gradResponse) {
+            if (gs.getOptionalProgramCode().equalsIgnoreCase(EducGradStudentApiConstants.OPTIONAL_PROGRAM_CP)) {
+               if ((gs.getId()) != null && !hasAnyCareerPrograms(studentID)) {
+                    // CP Removal
+                     removeStudentOptionalProgramWithAuditHistory(studentID, gs.getId());
+                }
+            }
         }
     }
 
@@ -975,11 +980,11 @@ public class GraduationStatusService {
         return entity;
     }
 
-    private void removeStudentOptionalProgramWithAuditHistory(UUID studentID, UUID optionalProgramID) {
-        Optional<StudentOptionalProgramEntity> studentOptionalProgramOptional =
-                gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID);
-        if (studentOptionalProgramOptional.isPresent()) {
-            StudentOptionalProgramEntity entity = studentOptionalProgramOptional.get();
+    private void removeStudentOptionalProgramWithAuditHistory(UUID studentID, UUID studentOptionalProgramID) {
+        Optional<StudentOptionalProgramEntity> studentOptionalProgram =
+                gradStudentOptionalProgramRepository.findById(studentOptionalProgramID);
+        if (studentOptionalProgram.isPresent()) {
+            StudentOptionalProgramEntity entity = studentOptionalProgram.get();
             logger.debug(" -> Remove a Student Optional Program Entity for Student ID: {} === Entity ID: {}", studentID, entity.getId());
             gradStudentOptionalProgramRepository.delete(entity);
             historyService.createStudentOptionalProgramHistory(entity, USER_DELETE);

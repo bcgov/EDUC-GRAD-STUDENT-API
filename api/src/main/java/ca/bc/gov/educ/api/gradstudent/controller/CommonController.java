@@ -278,7 +278,7 @@ public class CommonController {
         return response.GET(commonService.getDeceasedStudentIDs(studentIds));
     }
 
-    @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID)
+    @PostMapping (EducGradStudentApiConstants.CREATE_GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Create a Student Optional Program by Student ID and Optional Program ID", description = "Create a Student Optional Program by Student ID and Optional Program ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
@@ -313,7 +313,7 @@ public class CommonController {
         return response.UPDATED(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
     }
 
-    @DeleteMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID)
+    @DeleteMapping (EducGradStudentApiConstants.DELETE_GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Delete a Student Optional Program by Student ID and Optional Program ID", description = "Delete a Student Optional Program by Student ID and Optional Program ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
@@ -321,9 +321,9 @@ public class CommonController {
             @ApiResponse(responseCode = "404", description = "NOT FOUND"),
             @ApiResponse(responseCode = "422", description = "VALIDATION ERROR")
     })
-    public ResponseEntity<ApiResponseModel<GraduationStudentRecord>> deleteStudentOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID optionalProgramID, @RequestHeader(name="Authorization") String accessToken) {
-        logger.debug("Delete a Student Optional Program for Student ID: {}, OptionalProgram ID: {}", studentID, optionalProgramID);
-        graduationStatusService.deleteStudentOptionalProgram(studentID, optionalProgramID, accessToken.replace(BEARER, ""));
+    public ResponseEntity<ApiResponseModel<GraduationStudentRecord>> deleteStudentOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID studentOptionalProgramID, @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Delete a Student Optional Program for Student ID: {}, StudentOptionalProgram ID: {}", studentID, studentOptionalProgramID);
+        graduationStatusService.deleteStudentOptionalProgram(studentID, studentOptionalProgramID, accessToken.replace(BEARER, ""));
         return response.UPDATED(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
     }
 

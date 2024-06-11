@@ -1489,13 +1489,13 @@ public class GraduationStatusServiceTest {
         Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
-        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, gradStudentOptionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
         doNothing().when(gradStudentOptionalProgramRepository).delete(gradStudentOptionalProgramEntity);
         doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_DELETE");
         doNothing().when(graduationStatusRepository).updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
         doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
 
-        graduationStatusService.deleteStudentOptionalProgram(studentID, optionalProgramID, "123");
+        graduationStatusService.deleteStudentOptionalProgram(studentID, gradStudentOptionalProgramID, "123");
         assertThat(graduationStudentRecordEntity).isNotNull();
     }
 
