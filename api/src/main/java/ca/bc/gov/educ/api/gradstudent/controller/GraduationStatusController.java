@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
@@ -359,10 +358,9 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<ApiResponseModel<Void>> updateStudentGradHistoryStatusDistributionRun(@PathVariable Long batchID, @RequestParam(required = false) String userName) {
+    public ResponseEntity<ApiResponseModel<Integer>> updateStudentGradHistoryStatusDistributionRun(@PathVariable Long batchID, @RequestParam(required = false) String userName, @RequestParam(required = false) String activityCode) {
         logger.debug("Save Distribution student Grad history for Student ID");
-        historyService.updateStudentRecordHistoryDistributionRun(batchID, userName);
-        return response.UPDATED(null);
+        return response.UPDATED(historyService.updateStudentRecordHistoryDistributionRun(batchID, userName, activityCode));
     }
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_SCHOOL_REPORT)
