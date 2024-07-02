@@ -160,7 +160,7 @@ public class HistoryService {
     @Transactional
     public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, String activityCode) {
         LocalDateTime updateDate = LocalDateTime.now();
-        if(StringUtils.isBlank(activityCode)) {
+        if(StringUtils.isBlank(activityCode) || StringUtils.equalsIgnoreCase(activityCode, "null")) {
             return graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser, updateDate);
         } else {
             return graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, activityCode, updateUser, updateDate);
