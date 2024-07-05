@@ -383,6 +383,15 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.getStudentsForAmalgamatedSchoolReport(schoolOfRecord,type));
     }
 
+    @GetMapping (EducGradStudentApiConstants.STUDENT_COUNT_FOR_AMALGAMATED_SCHOOL_REPORT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Students Count For School Report by mincode", description = "Get Students Count For School Report by mincode", tags = { "Business" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<Integer> getStudentsCountForAmalgamatedSchoolReport(@PathVariable String schoolOfRecord) {
+        logger.debug("getStudentsCountForAmalgamatedSchoolReport:");
+        return response.GET(gradStatusService.countStudentsForAmalgamatedSchoolReport(schoolOfRecord));
+    }
+
     @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Update Student Flag ready for batch by Batch Job Type and Student IDs", description = "Update Student Flag ready for batch by Batch Job Type and Student IDs", tags = { "Batch Algorithm" })

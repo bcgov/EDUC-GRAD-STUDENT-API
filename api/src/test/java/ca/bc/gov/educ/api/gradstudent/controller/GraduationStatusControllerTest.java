@@ -594,6 +594,16 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
+    public void testGetStudentsCountForAmalgamatedSchoolReport() {
+        // ID
+        String mincode = "123456789";
+        UUID studentID = UUID.randomUUID();
+        Mockito.when(graduationStatusService.countStudentsForAmalgamatedSchoolReport(mincode)).thenReturn(1);
+        graduationStatusController.getStudentsCountForAmalgamatedSchoolReport(mincode);
+        Mockito.verify(graduationStatusService).countStudentsForAmalgamatedSchoolReport(mincode);
+    }
+
+    @Test
     public void testGetStudentForBatch() {
         String mincode = "123456789";
         UUID studentID = UUID.randomUUID();
