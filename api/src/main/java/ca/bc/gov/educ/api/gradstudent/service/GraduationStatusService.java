@@ -1365,6 +1365,10 @@ public class GraduationStatusService {
         return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecordAndStudentStatusAndStudentGradeIn(schoolOfRecord, "CUR", List.of("AD", "12")),type);
     }
 
+    public Integer countStudentsForAmalgamatedSchoolReport(String schoolOfRecord) {
+        return graduationStatusRepository.countBySchoolOfRecordAmalgamated(schoolOfRecord);
+    }
+
     public void updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
         logger.debug("updateStudentFlagReadyForBatchJobByStudentIDs");
         for(UUID uuid: studentIDs) {
