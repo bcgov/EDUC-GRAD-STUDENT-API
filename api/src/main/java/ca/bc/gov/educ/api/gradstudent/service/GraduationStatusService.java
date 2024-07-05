@@ -1088,6 +1088,10 @@ public class GraduationStatusService {
         return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecordAmalgamated(schoolOfRecord),type);
     }
 
+    public Integer countStudentsForAmalgamatedSchoolReport(String schoolOfRecord) {
+        return graduationStatusRepository.countBySchoolOfRecordAmalgamated(schoolOfRecord);
+    }
+
     public List<GraduationStudentRecord> updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
         logger.debug("updateStudentFlagReadyForBatchJobByStudentIDs");
         return studentIDs.stream()

@@ -50,6 +50,9 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Query("select c from GraduationStudentRecordEntity c where c.schoolOfRecord=:schoolOfRecord and c.studentStatus='CUR' and (c.studentGrade='AD' or c.studentGrade='12')")
 	List<GraduationStudentRecordEntity> findBySchoolOfRecordAmalgamated(String schoolOfRecord);
 
+	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord=:schoolOfRecord and c.studentStatus='CUR' and (c.studentGrade='AD' or c.studentGrade='12')")
+	Integer countBySchoolOfRecordAmalgamated(String schoolOfRecord);
+
 	// Data Conversion
 	@Modifying
     @Query(value="insert into STUDENT_GUID_PEN_XREF(STUDENT_GUID, STUDENT_PEN, CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE)\n"

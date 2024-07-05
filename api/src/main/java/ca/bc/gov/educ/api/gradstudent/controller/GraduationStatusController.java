@@ -239,7 +239,7 @@ public class GraduationStatusController {
 
     private void publishToJetStream(final GradStatusEvent event) {
         if (event != null) {
-            publisher.dispatchChoreographyEvent(event);
+           publisher.dispatchChoreographyEvent(event);
         }
     }
 
@@ -376,6 +376,15 @@ public class GraduationStatusController {
     public ResponseEntity<List<UUID>> getStudentsForAmalgamatedSchoolReport(@PathVariable String schoolOfRecord, @PathVariable String type) {
         logger.debug("getStudentsForSchoolReport:");
         return response.GET(gradStatusService.getStudentsForAmalgamatedSchoolReport(schoolOfRecord,type));
+    }
+
+    @GetMapping (EducGradStudentApiConstants.STUDENT_COUNT_FOR_AMALGAMATED_SCHOOL_REPORT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Students Count For School Report by mincode", description = "Get Students Count For School Report by mincode", tags = { "Business" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<Integer> getStudentsCountForAmalgamatedSchoolReport(@PathVariable String schoolOfRecord) {
+        logger.debug("getStudentsCountForAmalgamatedSchoolReport:");
+        return response.GET(gradStatusService.countStudentsForAmalgamatedSchoolReport(schoolOfRecord));
     }
 
     @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS)
