@@ -51,6 +51,17 @@ public class DataConversionController {
         return response.GET(result);
     }
 
+    @PostMapping(EducGradStudentApiConstants.CONV_GRADUATION_STATUS_FOR_ONGOING_UPDATES)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
+    @Operation(summary = "Update Graduation Status At Field Level for Ongoing Updates", description = "Update Graduation Status At Field Level for Ongoing Updates", tags = { "Data Conversion" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<GraduationStudentRecord> updateGraduationStatusForOngoingUpdates(@RequestBody OngoingUpdateRequestDTO requestDTO,
+                                                                                           @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Save Graduation Student Record for Student ID");
+        var result = dataConversionService.updateGraduationStatusByFields(requestDTO, accessToken.replace(BEARER, ""));
+        return response.GET(result);
+    }
+
     @PostMapping (EducGradStudentApiConstants.CONV_STUDENT_OPTIONAL_PROGRAM)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Update/Create Student Optional Program", description = "Update/Create Student Optional Program", tags = { "Data Conversion" })
@@ -98,7 +109,8 @@ public class DataConversionController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Void> deleteAll(@PathVariable String studentID) {
         logger.debug("Delete All Student Related Data for Student ID [{}]", studentID);
-        dataConversionService.deleteAll(UUID.fromString(studentID));
+        dataConversionService.deleteAllDependencies(UUID.fromString(studentID));
+        dataConversionService.deleteGraduationStatus(UUID.fromString(studentID));
         return response.DELETE(1);
     }
 

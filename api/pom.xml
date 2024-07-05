@@ -6,7 +6,7 @@
 
     <groupId>ca.bc.gov.educ</groupId>
 	<artifactId>educ-grad-student-api</artifactId>
-	<version>1.8.30</version>
+	<version>1.8.60</version>
 	<name>educ-grad-student-api</name>
 	<description>Student Demographics API for GRAD team</description>
    
@@ -20,7 +20,8 @@
             src/main/java/ca/bc/gov/educ/api/gradstudent/model/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/messaging/**,
             src/main/java/ca/bc/gov/educ/api/gradstudent/scheduler/**,
-            src/main/java/ca/bc/gov/educ/api/gradstudent/util/**
+            src/main/java/ca/bc/gov/educ/api/gradstudent/util/**,
+            src/main/java/ca/bc/gov/educ/api/gradstudent/exception/**
         </sonar.exclusions>
         <sonar.junit.exclusions>
             src/main/java/ca/bc/gov/educ/api/gradstudent/messaging/**,
@@ -34,7 +35,7 @@
         <shedlock.version>4.38.0</shedlock.version>
         <nats.version>2.11.0</nats.version>
         <resilience4j.version>1.7.1</resilience4j.version>
-        <guava.version>30.1.1-jre</guava.version>
+        <guava.version>32.0.1-jre</guava.version>
         <log4j.version>2.18.0</log4j.version>
     </properties>
 
@@ -74,6 +75,12 @@
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -219,6 +226,16 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-to-slf4j</artifactId>
             <version>${log4j.version}</version>
+        </dependency>
+	    <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+	<dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.15.2</version>
         </dependency>
     </dependencies>
 

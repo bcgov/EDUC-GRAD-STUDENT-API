@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.config;
 
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.util.ApiResponseMessage.MessageTypeEnum;
 import ca.bc.gov.educ.api.gradstudent.util.ApiResponseModel;
 import ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException;
@@ -55,7 +56,7 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
 		return new ResponseEntity<>(ApiResponseModel.ERROR(null, message), HttpStatus.FORBIDDEN);
 	}
 
-	@ExceptionHandler(value = { GradBusinessRuleException.class })
+	@ExceptionHandler(value = { GradBusinessRuleException.class, EntityNotFoundException.class })
 	protected ResponseEntity<Object> handleGradBusinessException(Exception ex, WebRequest request) {
 		ApiResponseModel<?> response = ApiResponseModel.ERROR(null);
 		validation.ifErrors(response::addErrorMessages);
@@ -64,7 +65,8 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
 			response.addMessageItem(ex.getLocalizedMessage(), MessageTypeEnum.ERROR);
 		}
 		validation.clear();
-		return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+		HttpStatus httpStatus = (ex instanceof EntityNotFoundException) ? HttpStatus.NOT_FOUND : HttpStatus.UNPROCESSABLE_ENTITY;
+		return new ResponseEntity<>(response, httpStatus);
 	}
 
 	@ExceptionHandler(value = { OptimisticEntityLockException.class })

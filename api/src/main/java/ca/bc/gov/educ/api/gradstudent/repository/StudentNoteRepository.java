@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface StudentNoteRepository extends JpaRepository<StudentRecordNoteEntity, UUID> {
 
 	List<StudentRecordNoteEntity> findByStudentID(UUID studentId);
+
+	void deleteByStudentID(UUID studentID);
 }

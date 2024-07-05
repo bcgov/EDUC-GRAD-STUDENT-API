@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -38,16 +39,20 @@ public class GradValidation {
 
 	public void addErrorAndStop(String errorMessage) {
 		errorList.get().add(errorMessage);
-		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException();
+		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException(String.join(",\n", errorList.get()));
 
 	}
 
 	public void addErrorAndStop(String formattedErrorMessage, Object... args) {
 		errorList.get().add(String.format(formattedErrorMessage, args));
-		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException();
+		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException(String.join(",\n", errorList.get()));
 
 	}
 
+	public void addNotFoundErrorAndStop(String errorMessage) {
+		errorList.get().add(errorMessage);
+		throw new EntityNotFoundException(String.join(",\n", errorList.get()));
+	}
 	
 	public List<String> getWarnings() {
 		return warningList.get();
@@ -78,16 +83,26 @@ public class GradValidation {
 			addError(messagesHelper.missingValue(fieldName));
 			return false;
     	}
+		if (requiredValue instanceof List && ((List<?>) requiredValue).isEmpty()) {
+			addError(messagesHelper.missingValue(fieldName));
+			return false;
+		}
     	return true;
     }
     
     public void stopOnErrors() {
     	if (hasErrors()) {
-    		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException();
+    		throw new ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException(String.join(",\n", errorList.get()));
     	}
     }
 
-    public boolean hasErrors() {
+	public void stopOnNotFoundErrors() {
+		if (hasErrors()) {
+			throw new EntityNotFoundException(String.join(",\n", errorList.get()));
+		}
+	}
+
+	public boolean hasErrors() {
     	return !errorList.get().isEmpty();
     }
     

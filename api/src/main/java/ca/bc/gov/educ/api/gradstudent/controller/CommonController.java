@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,8 @@ public class CommonController {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonController.class);
     
-    private static final String STATUS_CODE="Status Code";
+    private static final String STATUS_CODE = "Status Code";
+    private static final String BEARER = "Bearer ";
 
     @Autowired
     CommonService commonService;
@@ -227,6 +229,17 @@ public class CommonController {
             description = "Find a Student Graduation Data for Year End School Report", tags = {"Student Graduation Data for School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataForYearEndNonGrad() {
+        logger.debug("getStudentReportDataForYearEndNonGrad :");
+        return response.GET(gradStudentReportService.getGradStudentDataForNonGradYearEndReport());
+    }
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_MINCODE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find a Student Graduation Data for Year End School Report",
+            description = "Find a Student Graduation Data for Year End School Report", tags = {"Student Graduation Data for School Reports"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataForYearEndNonGrad(@PathVariable String mincode) {
         logger.debug("getStudentReportDataForYearEndNonGrad :");
         return response.GET(gradStudentReportService.getGradStudentDataForNonGradYearEndReport(mincode));
@@ -252,5 +265,79 @@ public class CommonController {
     public ResponseEntity<List<String>> getDistrictReportDataForYearEndNonGrad() {
         logger.debug("getSchoolReportDataForYearEndNonGrad :");
         return response.GET(gradStudentReportService.getGradDistrictsForNonGradYearEndReport());
+    }
+
+    @PostMapping(EducGradStudentApiConstants.GET_DECEASED_STUDENT_ID)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find Deceased Student IDs by List of GUIDs",
+            description = "Find Deceased Student IDs by List of GUIDs", tags = {"Student Graduation Data for School Reports"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<UUID>> getDeceasedStudentIDs(@RequestBody List<UUID> studentIds) {
+        logger.debug("getDeceasedStudentIDs :");
+        return response.GET(commonService.getDeceasedStudentIDs(studentIds));
+    }
+
+    @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Create a Student Optional Program by Student ID and Optional Program ID", description = "Create a Student Optional Program by Student ID and Optional Program ID", tags = { "Optional Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+            @ApiResponse(responseCode = "404", description = "NOT FOUND"),
+            @ApiResponse(responseCode = "422", description = "VALIDATION ERROR")
+    })
+    public ResponseEntity<ApiResponseModel<GraduationStudentRecord>> saveStudentOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID optionalProgramID, @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Create a Student Optional Program for Student ID: {}, OptionalProgram ID: {}", studentID, optionalProgramID);
+        graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, accessToken.replace(BEARER, ""));
+        return response.UPDATED(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
+    }
+
+    @PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_CAREER_PROGRAMS)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Create Student Career Programs by Student ID with Career Program Codes", description = "Create Student Career Programs by Student ID with Career Program Codes", tags = { "Optional Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+            @ApiResponse(responseCode = "404", description = "NOT FOUND"),
+            @ApiResponse(responseCode = "422", description = "VALIDATION ERROR")
+    })
+    public ResponseEntity<ApiResponseModel<GraduationStudentRecord>> saveStudentCareerPrograms(@PathVariable UUID studentID, @NotNull @Valid @RequestBody StudentCareerProgramRequestDTO studentCareerProgramReq,
+                                                                             @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Create Student Career Programs for Student ID: {}", studentID);
+        validation.requiredField(studentCareerProgramReq.getCareerProgramCodes(), "Career Program Codes");
+        if (validation.hasErrors()) {
+            validation.stopOnErrors();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        graduationStatusService.createStudentCareerPrograms(studentID, studentCareerProgramReq, accessToken.replace(BEARER, ""));
+        return response.UPDATED(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
+    }
+
+    @DeleteMapping (EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Delete a Student Optional Program by Student ID and Optional Program ID", description = "Delete a Student Optional Program by Student ID and Optional Program ID", tags = { "Optional Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+            @ApiResponse(responseCode = "404", description = "NOT FOUND"),
+            @ApiResponse(responseCode = "422", description = "VALIDATION ERROR")
+    })
+    public ResponseEntity<ApiResponseModel<GraduationStudentRecord>> deleteStudentOptionalProgram(@PathVariable UUID studentID, @PathVariable UUID optionalProgramID, @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Delete a Student Optional Program for Student ID: {}, OptionalProgram ID: {}", studentID, optionalProgramID);
+        graduationStatusService.deleteStudentOptionalProgram(studentID, optionalProgramID, accessToken.replace(BEARER, ""));
+        return response.UPDATED(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
+    }
+
+    @DeleteMapping (EducGradStudentApiConstants.GRAD_STUDENT_CAREER_PROGRAMS_BY_CODE)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
+    @Operation(summary = "Delete a Student Career Program by Student ID and Career Program Code", description = "Delete a Student Career Program by Student ID and Career Program Code", tags = { "Optional Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+            @ApiResponse(responseCode = "404", description = "NOT FOUND"),
+            @ApiResponse(responseCode = "422", description = "VALIDATION ERROR")
+    })
+    public ResponseEntity<ApiResponseModel<GraduationStudentRecord>> deleteStudentCareerProgram(@PathVariable UUID studentID, @PathVariable String careerProgramCode, @RequestHeader(name="Authorization") String accessToken) {
+        logger.debug("Delete a Student Career Program for Student ID: {}, Career Program: {}", studentID, careerProgramCode);
+        graduationStatusService.deleteStudentCareerProgram(studentID, careerProgramCode, accessToken.replace(BEARER, ""));
+        return response.UPDATED(graduationStatusService.getGraduationStatus(studentID, accessToken.replace(BEARER, "")));
     }
 }

@@ -4,9 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.CertificateType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.NonGradReason;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ReportGradStudentData;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import ca.bc.gov.educ.api.gradstudent.util.JsonTransformer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
@@ -28,6 +26,9 @@ public class ReportGradStudentTransformer {
     @Autowired
     ModelMapper modelMapper;
 
+    @Autowired
+    JsonTransformer jsonTransformer;
+
     public ReportGradStudentData transformToDTO (ReportGradStudentDataEntity entity) {
     	return modelMapper.map(entity, ReportGradStudentData.class);
     }
@@ -41,26 +42,21 @@ public class ReportGradStudentTransformer {
     }
 
     public List<ReportGradStudentData> transformToDTO (Iterable<ReportGradStudentDataEntity> studentStatusEntities ) {
-        ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        TypeFactory typeFactory = objectMapper.getTypeFactory();
+        TypeFactory typeFactory = jsonTransformer.getTypeFactory();
 		List<ReportGradStudentData> result = new ArrayList<>();
         for (ReportGradStudentDataEntity entity : studentStatusEntities) {
             ReportGradStudentData data = modelMapper.map(entity, ReportGradStudentData.class);
-            try {
-                if (StringUtils.isNotBlank(entity.getCertificateTypeCodes())) {
-                    List<CertificateType> types = objectMapper.readValue(entity.getCertificateTypeCodes(), typeFactory.constructCollectionType(List.class, CertificateType.class));
-                    if (!types.isEmpty()) {
-                        data.setCertificateTypes(types);
-                    }
+            if (StringUtils.isNotBlank(entity.getCertificateTypeCodes())) {
+                List<CertificateType> types = (List<CertificateType>)jsonTransformer.unmarshall(entity.getCertificateTypeCodes(), typeFactory.constructCollectionType(List.class, CertificateType.class));
+                if (!types.isEmpty()) {
+                    data.setCertificateTypes(types);
                 }
-                if (StringUtils.isNotBlank(entity.getNonGradReasons())) {
-                    List<NonGradReason> reasons = objectMapper.readValue(entity.getNonGradReasons(), typeFactory.constructCollectionType(List.class, NonGradReason.class));
-                    if (!reasons.isEmpty()) {
-                        data.setNonGradReasons(reasons);
-                    }
+            }
+            if (StringUtils.isNotBlank(entity.getNonGradReasons())) {
+                List<NonGradReason> reasons = (List<NonGradReason>)jsonTransformer.unmarshall(entity.getNonGradReasons(), typeFactory.constructCollectionType(List.class, NonGradReason.class));
+                if (!reasons.isEmpty()) {
+                    data.setNonGradReasons(reasons);
                 }
-            } catch (JsonProcessingException ex) {
-                logger.error("Unable to process transformation of students {}", ex.getMessage());
             }
             result.add(data);
         }

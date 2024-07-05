@@ -37,12 +37,18 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_UPDATE_BY_STUDENT_ID = "/gradstudent/studentid/{studentID}";
     public static final String GRADUATION_RECORD_BY_STUDENT_ID_PROJECTED_RUN = "/projected/studentid/{studentID}";
     public static final String GRADUATION_RECORD_BY_STUDENT_ID_DISTRIBUTION_RUN = "/distribution/studentid/{studentID}";
+    public static final String GRADUATION_RECORD_HISTORY_BY_BATCH_ID_DISTRIBUTION_RUN = "/distribution/batchid/{batchID}";
     public static final String UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS = "/multistudentids/batchflag/jobtype/{batchJobType}";
+    public static final String GRAD_STUDENT_NON_GRAD_REASON_BY_PEN = "/pen/{pen}/nongrad-reason";
 
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN = "/optionalprogram/studentid/{studentID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";
     public static final String SAVE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/optionalprogram";
     public static final String UPDATE_GRAD_STUDENT_OPTIONAL_PROGRAM = "/gradstudent/optionalprogram";
+    public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_ID = "/{studentID}/optionalPrograms/{optionalProgramID}";
+    public static final String GRAD_STUDENT_CAREER_PROGRAMS = "/{studentID}/careerPrograms";
+    public static final String GRAD_STUDENT_CAREER_PROGRAMS_BY_CODE = "/{studentID}/careerPrograms/{careerProgramCode}";
+    public static final String GRAD_STUDENT_OPTIONAL_PROGRAMS = "/{studentID}/optionalPrograms";
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GRAD_STUDENT_PROJECTED_RUN = "/projected";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_FOR_BATCH_RUN = "/batch/gradstudent/studentid/{studentID}";
@@ -76,9 +82,11 @@ public class EducGradStudentApiConstants {
     public static final String STUDENT_ALGORITHM_DATA = "/algorithmdata/{studentID}";
     public static final String GET_ALL_STUDENT_REPORT_DATA_BY_MINCODE = "/studentschoolreportdata/{mincode}";
     public static final String GET_ALL_STUDENT_REPORT_DATA = "/studentschoolreportdata";
-    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA = "/studentnongradreportdata/{mincode}";
+    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA = "/studentnongradreportdata";
+    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_MINCODE = "/studentnongradreportdata/{mincode}";
     public static final String GET_ALL_SCHOOL_NON_GRAD_REPORT_DATA = "/schoolnongradreportdata";
     public static final String GET_ALL_DISTRICT_NON_GRAD_REPORT_DATA = "/districtnongradreportdata";
+    public static final String GET_DECEASED_STUDENT_ID = "/deceasedstudentid";
     
     public static final String RETURN_TO_ORIGINAL_STATE = "/algorithmerror/{studentID}";
 
@@ -98,15 +106,21 @@ public class EducGradStudentApiConstants {
     public static final String CONV_GRADUATION_STATUS_BY_STUDENT_ID = "/conv/studentid/{studentID}";
     public static final String CONV_STUDENT_OPTIONAL_PROGRAM = "/conv/studentoptionalprogram";
     public static final String CONV_STUDENT_CAREER_PROGRAM = "/conv/studentcareerprogram";
+    public static final String CONV_GRADUATION_STATUS_FOR_ONGOING_UPDATES = "/conv/ongoingupdate/gradstatus";
 
     public static final String CONV_STUDENT_OPTIONAL_PROGRAM_BY_STUDENT_ID = "/conv/studentoptionalprogram/{optionalProgramID}/{studentID}";
     public static final String CONV_STUDENT_CAREER_PROGRAM_BY_STUDENT_ID = "/conv/studentcareerprogram/{careerProgramCode}/{studentID}";
+
+    public static final String EDW_GRADUATION_STATUS_SNAPSHOT = "/edw/snapshot";
 
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final String DEFAULT_UPDATED_BY = "API_GRAD_STUDENT";
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String SECOND_DEFAULT_DATE_FORMAT = "yyyy/MM/dd";
+    public static final String SECOND_DEFAULT_DATE_TIME_FORMAT = "yyyy/MM/dd HH:mm:ss";
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
     public static final String PROGRAM_COMPLETION_DATE_FORMAT = "yyyy/MM";
     public static final String DATE_FORMAT = "yyyy/MM/dd";
@@ -168,10 +182,10 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-graduation-report-api.archive-student-achievement.url}")
     private String archiveStudentAchievements;
 
-    @Value("${endpoint.educ-school-api.get-school-by-mincode.url}")
+    @Value("${endpoint.grad-trax-api.commonschool-by-mincode.url}")
     private String schoolByMincodeSchoolApiUrl;
 
-    @Value("${endpoint.educ-school-api.url}")
+    @Value("${endpoint.grad-trax-api.all-commonschools.url}")
     private String schoolsSchoolApiUrl;
     
     // Splunk LogHelper Enabled
@@ -185,4 +199,20 @@ public class EducGradStudentApiConstants {
     // Data Conversion option
     @Value("${data-conversion.student-guid-pen-xref.enabled}")
     private boolean studentGuidPenXrefEnabled;
+
+    // Scheduler: ongoing updates from GRAD to TRAX
+    @Value("${cron.scheduled.process.events.stan.run}")
+    private String gradToTraxCronRun;
+
+    @Value("${cron.scheduled.process.events.stan.lockAtLeastFor}")
+    private String gradToTraxLockAtLeastFor;
+
+    @Value("${cron.scheduled.process.events.stan.lockAtMostFor}")
+    private String gradToTraxLockAtMostFor;
+
+    @Value("${cron.scheduled.process.events.stan.threshold}")
+    private int gradToTraxProcessingThreshold;
+
+    @Value("${cron.scheduled.process.purge-old-records.staleInDays}")
+    private int recordsStaleInDays;
 }

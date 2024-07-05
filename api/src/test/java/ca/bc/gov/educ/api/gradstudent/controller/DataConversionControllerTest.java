@@ -1,10 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
+import ca.bc.gov.educ.api.gradstudent.constant.FieldName;
+import ca.bc.gov.educ.api.gradstudent.constant.FieldType;
+import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramRequestDTO;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.DataConversionService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
@@ -59,7 +59,7 @@ public class DataConversionControllerTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
@@ -70,6 +70,43 @@ public class DataConversionControllerTest {
         var result = dataConversionController
                 .saveStudentGradStatus(studentID.toString(), false, graduationStatus);
         Mockito.verify(dataConversionService).saveGraduationStudentRecord(studentID, graduationStatus,false);
+        assertThat(result).isNotNull();
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void testSaveStudentGradStatusByFields() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
+        String mincode = "12345678";
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setPen(pen);
+        graduationStatus.setStudentStatus("A");
+        graduationStatus.setRecalculateGradStatus("Y");
+        graduationStatus.setProgram("2018-PF");
+        graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setSchoolAtGrad(mincode);
+        graduationStatus.setGpa("4");
+        graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
+
+        OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
+        requestDTO.setPen(pen);
+        requestDTO.setStudentID(studentID.toString());
+        requestDTO.setEventType(TraxEventType.UPD_GRAD);
+
+        OngoingUpdateFieldDTO field = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.GRAD_PROGRAM).value("2018-EN")
+                .build();
+        requestDTO.getUpdateFields().add(field);
+
+        Mockito.when(dataConversionService.updateGraduationStatusByFields(requestDTO, "accessToken")).thenReturn(graduationStatus);
+        Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
+        var result = dataConversionController
+                .updateGraduationStatusForOngoingUpdates(requestDTO, "accessToken");
+        Mockito.verify(dataConversionService).updateGraduationStatusByFields(requestDTO, "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -86,7 +123,7 @@ public class DataConversionControllerTest {
         gradStudentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         gradStudentOptionalProgramReq.setStudentID(studentID);
         gradStudentOptionalProgramReq.setPen(pen);
-        gradStudentOptionalProgramReq.setMainProgramCode("2018-en");
+        gradStudentOptionalProgramReq.setMainProgramCode("2018-EN");
         gradStudentOptionalProgramReq.setOptionalProgramCode("FI");
         gradStudentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
 
@@ -160,10 +197,15 @@ public class DataConversionControllerTest {
         // ID
         UUID studentID = UUID.randomUUID();
 
-        Mockito.doNothing().when(dataConversionService).deleteAll(studentID);
+        Mockito.doNothing().when(dataConversionService).deleteAllDependencies(studentID);
+        Mockito.doNothing().when(dataConversionService).deleteGraduationStatus(studentID);
         Mockito.when(responseHelper.DELETE(1)).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+
         var result = dataConversionController.deleteAll(studentID.toString());
-        Mockito.verify(dataConversionService).deleteAll(studentID);
+
+        Mockito.verify(dataConversionService).deleteAllDependencies(studentID);
+        Mockito.verify(dataConversionService).deleteGraduationStatus(studentID);
+
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }

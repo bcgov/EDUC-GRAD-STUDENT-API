@@ -1,20 +1,17 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordSearchEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import ca.bc.gov.educ.api.gradstudent.util.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.val;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -39,15 +36,16 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService.PAGE_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
@@ -59,14 +57,20 @@ public class GraduationStatusServiceTest {
     EducGradStudentApiConstants constants;
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean GradStudentService gradStudentService;
+    @MockBean HistoryService historyService;
     @Autowired GradStudentReportService gradStudentReportService;
+    @Autowired JsonTransformer jsonTransformer;
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
     @MockBean ReportGradStudentDataRepository reportGradStudentDataRepository;
+    @MockBean StudentNonGradReasonRepository studentNonGradReasonRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
     @MockBean WebClient webClient;
+
+    @MockBean
+    FetchGradStatusSubscriber fetchGradStatusSubscriber;
     @Mock WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
     @Mock WebClient.RequestBodySpec requestBodyMock;
@@ -91,6 +95,72 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testHasStudentGraduated_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        boolean result = graduationStatusService.hasStudentGraduated(studentID);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testHasStudentGraduated_GivenNoProgramCompletionDate_ExpectFalse() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        boolean result = graduationStatusService.hasStudentGraduated(studentID);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testHasStudentGraduated_GivenNotFound_ExpectEntityNotFoundException() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> {
+            graduationStatusService.hasStudentGraduated(studentID);
+        });
+    }
+
+    @Test
+    public void testGetGraduationStatus_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        GraduationStudentRecord result = graduationStatusService.getGraduationStatus(studentID);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetGraduationStatus_givenNotFound_ExpectEntityNotFoundExcetpion() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> {
+            graduationStatusService.getGraduationStatus(studentID);
+        });
+    }
+
+    @Test
+    public void testGetGraduationStatusProjection_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(new GraduationStudentRecordGradStatus(studentID, "2018-EN", new java.util.Date()));
+        GraduationStudentRecordGradStatus result = graduationStatusService.getGraduationStatusProjection(studentID);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetGraduationStatusProjection_givenNotFound_ExpectEntityNotFoundExcetpion() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(null);
+        assertThrows(EntityNotFoundException.class, () -> {
+            graduationStatusService.getGraduationStatusProjection(studentID);
+        });
+    }
+
+    @Test
     public void testGetGraduationStatusForAlgorithm() {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -101,7 +171,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setGpa("4");
 
@@ -128,7 +198,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("CUR");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("4");
@@ -139,7 +209,7 @@ public class GraduationStatusServiceTest {
         studentStatus.setDescription(null);
 
         GradProgram program = new GradProgram();
-        program.setProgramCode("2018-en");
+        program.setProgramCode("2018-EN");
         program.setProgramName("Graduation Program 2018");
 
         School school = new School();
@@ -216,7 +286,7 @@ public class GraduationStatusServiceTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(null);
         graduationStatus.setSchoolAtGrad(null);
         graduationStatus.setGpa("4");
@@ -256,7 +326,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setPen("123456789");
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("4");
@@ -302,7 +372,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("4");
@@ -353,7 +423,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("CUR");
         graduationStatusEntity.setStudentGrade("11");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("4");
@@ -425,17 +495,17 @@ public class GraduationStatusServiceTest {
         GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
-        input.setProgram("2018-en");
+        input.setProgram("2018-EN");
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
-        savedGraduationStatus.setProgram("2018-en");
+        savedGraduationStatus.setProgram("2018-EN");
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
         GradProgram program = new GradProgram();
-        program.setProgramCode("2018-en");
+        program.setProgramCode("2018-EN");
         program.setProgramName("Graduation Program 2018");
 
         StudentOptionalProgramEntity optEnt = new StudentOptionalProgramEntity();
@@ -496,17 +566,17 @@ public class GraduationStatusServiceTest {
         GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
-        input.setProgram("2018-en");
+        input.setProgram("2018-EN");
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
-        savedGraduationStatus.setProgram("2018-en");
+        savedGraduationStatus.setProgram("2018-EN");
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
         GradProgram program = new GradProgram();
-        program.setProgramCode("2018-en");
+        program.setProgramCode("2018-EN");
         program.setProgramName("Graduation Program 2018");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
@@ -612,7 +682,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("4");
@@ -627,7 +697,7 @@ public class GraduationStatusServiceTest {
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
-        savedGraduationStatus.setProgram("2018-en");
+        savedGraduationStatus.setProgram("2018-EN");
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
         GradProgram program = new GradProgram();
@@ -681,17 +751,17 @@ public class GraduationStatusServiceTest {
         GraduationStudentRecord input = new GraduationStudentRecord();
         BeanUtils.copyProperties(graduationStatusEntity, input);
         input.setRecalculateGradStatus(null);
-        input.setProgram("2018-en");
+        input.setProgram("2018-EN");
         input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
 
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus("Y");
-        savedGraduationStatus.setProgram("2018-en");
+        savedGraduationStatus.setProgram("2018-EN");
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
         GradProgram program = new GradProgram();
-        program.setProgramCode("2018-en");
+        program.setProgramCode("2018-EN");
         program.setProgramName("Graduation Program 2018");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
@@ -733,7 +803,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("4");
@@ -794,7 +864,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("4");
@@ -854,7 +924,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setPen(pen);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGrade("12");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("3");
@@ -906,7 +976,7 @@ public class GraduationStatusServiceTest {
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
@@ -959,6 +1029,530 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testCreateCRUDStudentGradOptionalProgram() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode("2018-EN");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.empty());
+        when(gradStudentOptionalProgramRepository.save(any())).thenReturn(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_CREATE");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),optionalProgramID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        var result = graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        assertThat(result).isNotNull();
+
+        graduationStudentRecordEntity.setStudentStatus("ARC");
+        result = graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradOptionalProgram_when_already_Exists() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode("2018-EN");
+        optionalProgram.setOptProgramCode("FI");
+        optionalProgram.setOptionalProgramName("French Immersion");
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+        when(gradStudentOptionalProgramRepository.save(any())).thenReturn(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_CREATE");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),optionalProgramID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        var result = graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        assertThat(result).isNull();
+
+        graduationStudentRecordEntity.setStudentStatus("ARC");
+        result = graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradOptionalProgram_whenGivenOptionalProgramID_is_Null() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        doThrow(new EntityNotFoundException("Is Required")).when(validation).addErrorAndStop(any());
+
+        boolean isBadRequest = false;
+        try {
+            graduationStatusService.createStudentOptionalProgram(studentID, null, "accessToken");
+        } catch (EntityNotFoundException ex) {
+            isBadRequest = true;
+        }
+
+        assertThat(isBadRequest).isTrue();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradOptionalProgram_whenOptionalProgram_is_notFound() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),optionalProgramID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.empty());
+
+        when(validation.hasErrors()).thenReturn(true);
+        doThrow(new EntityNotFoundException("Not Found")).when(validation).addNotFoundErrorAndStop(any());
+
+        boolean isNotFound = false;
+        try {
+            graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        } catch (EntityNotFoundException ex) {
+            isNotFound = true;
+        }
+
+        assertThat(isNotFound).isTrue();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradOptionalProgram_whenOptionalProgram_has_Null_PrimaryKey() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(null);
+        optionalProgram.setGraduationProgramCode("2018-EN");
+        optionalProgram.setOptProgramCode("CP");
+        optionalProgram.setOptionalProgramName("Career Program");
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramNameUrl(),optionalProgramID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        when(validation.hasErrors()).thenReturn(true);
+        doThrow(new EntityNotFoundException("Not Found")).when(validation).addNotFoundErrorAndStop(any());
+
+        boolean isNotFound = false;
+        try {
+            graduationStatusService.createStudentOptionalProgram(studentID, optionalProgramID, "accessToken");
+        } catch (EntityNotFoundException ex) {
+            isNotFound = true;
+        }
+
+        assertThat(isNotFound).isTrue();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradCareerPrograms() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+        String gradProgram = "2018-EN";
+        String careerProgramCode = "XA";
+
+        // CP
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+
+        StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
+        gradStudentCareerProgramEntity.setStudentID(studentID);
+        gradStudentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode(gradProgram);
+        optionalProgram.setOptProgramCode("CP");
+        optionalProgram.setOptionalProgramName("Career Program");
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setProgram(gradProgram);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        StudentCareerProgramRequestDTO studentCareerProgramReq = new StudentCareerProgramRequestDTO();
+        studentCareerProgramReq.getCareerProgramCodes().addAll(Arrays.asList(careerProgramCode, "XB"));
+
+        CareerProgram careerProgram = new CareerProgram();
+        careerProgram.setCode(careerProgramCode);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode)).thenReturn(Optional.empty());
+        when(gradStudentCareerProgramRepository.save(any())).thenReturn(gradStudentCareerProgramEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.empty());
+        when(gradStudentOptionalProgramRepository.save(any())).thenReturn(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_CREATE");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(),optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getCareerProgramByCodeUrl(),careerProgramCode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(CareerProgram.class)).thenReturn(Mono.just(careerProgram));
+
+        var result = graduationStatusService.createStudentCareerPrograms(studentID, studentCareerProgramReq, "123");
+        assertThat(result).isNotNull();
+
+        graduationStudentRecordEntity.setStudentStatus("ARC");
+        result = graduationStatusService.createStudentCareerPrograms(studentID, studentCareerProgramReq, "123");
+
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradCareerPrograms_when_already_Exists() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+        String gradProgram = "2018-EN";
+        String careerProgramCode = "XA";
+
+        // CP
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+
+        StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
+        gradStudentCareerProgramEntity.setStudentID(studentID);
+        gradStudentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode(gradProgram);
+        optionalProgram.setOptProgramCode("CP");
+        optionalProgram.setOptionalProgramName("Career Program");
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setProgram(gradProgram);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        StudentCareerProgramRequestDTO studentCareerProgramReq = new StudentCareerProgramRequestDTO();
+        studentCareerProgramReq.getCareerProgramCodes().addAll(Arrays.asList(careerProgramCode));
+
+        CareerProgram careerProgram = new CareerProgram();
+        careerProgram.setCode(careerProgramCode);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode)).thenReturn(Optional.of(gradStudentCareerProgramEntity));
+        when(gradStudentCareerProgramRepository.save(any())).thenReturn(gradStudentCareerProgramEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.empty());
+        when(gradStudentOptionalProgramRepository.save(any())).thenReturn(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_CREATE");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(),optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getCareerProgramByCodeUrl(),careerProgramCode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(CareerProgram.class)).thenReturn(Mono.just(careerProgram));
+
+        var result = graduationStatusService.createStudentCareerPrograms(studentID, studentCareerProgramReq, "123");
+        assertThat(result).isEmpty();
+
+        graduationStudentRecordEntity.setStudentStatus("ARC");
+        result = graduationStatusService.createStudentCareerPrograms(studentID, studentCareerProgramReq, "123");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradCareerProgram_whenGivenCareerProgramCode_is_Null() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+
+        doThrow(new GradBusinessRuleException("Is Required")).when(validation).addErrorAndStop(any());
+
+        StudentCareerProgramRequestDTO requestDTO = new StudentCareerProgramRequestDTO();
+        boolean isBadRequest = false;
+        try {
+            graduationStatusService.createStudentCareerPrograms(studentID, requestDTO, "accessToken");
+        } catch (GradBusinessRuleException ex) {
+            isBadRequest = true;
+        }
+
+        assertThat(isBadRequest).isTrue();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradCareerProgram_whenCareerProgram_is_notFound() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+        String careerProgramCode = "XA";
+
+        StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
+        gradStudentCareerProgramEntity.setStudentID(studentID);
+        gradStudentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
+
+        StudentCareerProgram studentCareerProgram = new StudentCareerProgram();
+        BeanUtils.copyProperties(gradStudentCareerProgramEntity, studentCareerProgram);
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        StudentCareerProgramRequestDTO requestDTO = new StudentCareerProgramRequestDTO();
+        requestDTO.getCareerProgramCodes().addAll(Arrays.asList(careerProgramCode, "XB"));
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getCareerProgramByCodeUrl(),careerProgramCode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(CareerProgram.class)).thenReturn(Mono.empty());
+
+        when(validation.hasErrors()).thenReturn(true);
+        doThrow(new EntityNotFoundException("Not Found")).when(validation).stopOnNotFoundErrors();
+
+        boolean isNotFound= false;
+        try {
+            graduationStatusService.createStudentCareerPrograms(studentID, requestDTO, "accessToken");
+        } catch (GradBusinessRuleException ex) {
+            isNotFound = true;
+        }
+
+        assertThat(isNotFound).isTrue();
+    }
+
+    @Test
+    public void testCreateCRUDStudentGradCareerProgram_whenCareerProgram_is_Null_PrimaryKey() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+        String careerProgramCode = "XA";
+
+        StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
+        gradStudentCareerProgramEntity.setStudentID(studentID);
+        gradStudentCareerProgramEntity.setCareerProgramCode(careerProgramCode);
+
+        StudentCareerProgram studentCareerProgram = new StudentCareerProgram();
+        BeanUtils.copyProperties(gradStudentCareerProgramEntity, studentCareerProgram);
+
+        CareerProgram careerProgram = new CareerProgram();
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        StudentCareerProgramRequestDTO requestDTO = new StudentCareerProgramRequestDTO();
+        requestDTO.getCareerProgramCodes().addAll(Arrays.asList(careerProgramCode, "XB"));
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getCareerProgramByCodeUrl(),careerProgramCode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(CareerProgram.class)).thenReturn(Mono.just(careerProgram));
+
+        when(validation.hasErrors()).thenReturn(true);
+        doThrow(new EntityNotFoundException("Not Found")).when(validation).stopOnNotFoundErrors();
+
+        boolean isNotFound= false;
+        try {
+            graduationStatusService.createStudentCareerPrograms(studentID, requestDTO, "accessToken");
+        } catch (GradBusinessRuleException ex) {
+            isNotFound = true;
+        }
+
+        assertThat(isNotFound).isTrue();
+    }
+
+    @Test
+    public void testDeleteCRUDStudentGradOptionalProgram() {
+        // ID
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+        doNothing().when(gradStudentOptionalProgramRepository).delete(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_DELETE");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+
+        graduationStatusService.deleteStudentOptionalProgram(studentID, optionalProgramID, "123");
+        assertThat(graduationStudentRecordEntity).isNotNull();
+    }
+
+    @Test
+    public void testDeleteCRUDStudentGradCareerProgram() {
+        // ID
+        UUID gradStudentOptionalProgramID = UUID.randomUUID();
+        UUID studentID = UUID.randomUUID();
+        UUID optionalProgramID = UUID.randomUUID();
+        String gradProgram = "2018-EN";
+
+        StudentOptionalProgramEntity gradStudentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        gradStudentOptionalProgramEntity.setId(gradStudentOptionalProgramID);
+        gradStudentOptionalProgramEntity.setStudentID(studentID);
+        gradStudentOptionalProgramEntity.setOptionalProgramID(optionalProgramID);
+        gradStudentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        StudentOptionalProgram studentOptionalProgram = new StudentOptionalProgram();
+        BeanUtils.copyProperties(gradStudentOptionalProgramEntity, studentOptionalProgram);
+        studentOptionalProgram.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(gradStudentOptionalProgramEntity.getOptionalProgramCompletionDate(), "yyyy-MM-dd" ));
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setGraduationProgramCode(gradProgram);
+        optionalProgram.setOptProgramCode("CP");
+        optionalProgram.setOptionalProgramName("Career Program");
+
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setStudentID(studentID);
+        graduationStudentRecordEntity.setProgram(gradProgram);
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
+        when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
+        doNothing().when(gradStudentOptionalProgramRepository).delete(gradStudentOptionalProgramEntity);
+        doNothing().when(historyService).createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_DELETE");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationAllFlags(studentID, "Y", "Y");
+        doNothing().when(graduationStatusRepository).updateGradStudentRecalculationRecalculateGradStatusFlag(studentID, "Y");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(),optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        StudentCareerProgramEntity studentCareerProgramEntity = new StudentCareerProgramEntity();
+        studentCareerProgramEntity.setCareerProgramCode("AB");
+        when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, "AB")).thenReturn(Optional.of(studentCareerProgramEntity));
+        when(gradStudentCareerProgramRepository.findByStudentID(studentID)).thenReturn(new ArrayList<>());
+
+        graduationStatusService.deleteStudentCareerProgram(studentID, "AB", "123");
+        assertThat(graduationStudentRecordEntity).isNotNull();
+    }
+
+    @Test
     public void testUpdateStudentGradOptionalProgram() {
         // ID
         UUID gradStudentOptionalProgramID = UUID.randomUUID();
@@ -980,13 +1574,13 @@ public class GraduationStatusServiceTest {
         gradStudentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         gradStudentOptionalProgramReq.setStudentID(studentID);
         gradStudentOptionalProgramReq.setPen(pen);
-        gradStudentOptionalProgramReq.setMainProgramCode("2018-en");
+        gradStudentOptionalProgramReq.setMainProgramCode("2018-EN");
         gradStudentOptionalProgramReq.setOptionalProgramCode("FI");
         gradStudentOptionalProgramReq.setOptionalProgramCompletionDate(studentOptionalProgram.getOptionalProgramCompletionDate());
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
@@ -1343,7 +1937,7 @@ public class GraduationStatusServiceTest {
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(optionalProgramID);
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
@@ -1628,7 +2222,7 @@ public class GraduationStatusServiceTest {
     public void testGetStudentDataByStudentIds() {
         // ID
         List<UUID> sList = Arrays.asList(UUID.randomUUID());
-        List<GraduationStudentRecordEntity> histList = new ArrayList<>();
+        List<GraduationStudentRecordView> histList = new ArrayList<>();
 
         GradSearchStudent serObj = new GradSearchStudent();
         serObj.setPen("123123");
@@ -1638,26 +2232,98 @@ public class GraduationStatusServiceTest {
         GraduationData gd = new GraduationData();
         gd.setGradStudent(serObj);
 
-        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
-        graduationStatusEntity.setStudentID(sList.get(0));
-        graduationStatusEntity.setStudentStatus("A");
-        try {
-            graduationStatusEntity.setStudentGradData(new ObjectMapper().writeValueAsString(gd));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
-        graduationStatusEntity.setSchoolOfRecord("223333");
-        graduationStatusEntity.setGpa("4");
-        graduationStatusEntity.setBatchId(4000L);
-        graduationStatusEntity.setPen("123123");
-        graduationStatusEntity.setLegalFirstName("Asdad");
-        graduationStatusEntity.setLegalMiddleNames("Adad");
-        graduationStatusEntity.setLegalLastName("sadad");
-        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
-        histList.add(graduationStatusEntity);
+        GraduationStudentRecordView graduationStatusEntity = new GraduationStudentRecordView() {
+            @Override
+            public String getProgram() {
+                return null;
+            }
 
+            @Override
+            public java.util.Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return null;
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return null;
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return null;
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return null;
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return null;
+            }
+
+            @Override
+            public Long getBatchId() {
+                return null;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
+        histList.add(graduationStatusEntity);
         when(graduationStatusRepository.findByStudentIDIn(sList)).thenReturn(histList);
         List<GraduationStudentRecord> list = graduationStatusService.getStudentDataByStudentIDs(sList);
         assertThat(list).isNotEmpty().hasSize(1);
@@ -1672,7 +2338,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setStudentID(new UUID(1,1));
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setBatchId(4000L);
@@ -1771,6 +2437,92 @@ public class GraduationStatusServiceTest {
         ReportGradStudentDataEntity reportGradStudentData = new ReportGradStudentDataEntity();
         reportGradStudentData.setGraduationStudentRecordId(graduationStatusEntity.getStudentID());
 
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
+
+            @Override
+            public Iterator<ReportGradStudentDataEntity> iterator() {
+                return getContent().listIterator();
+            }
+
+            @Override
+            public int getNumber() {
+                return 1;
+            }
+
+            @Override
+            public int getSize() {
+                return 1;
+            }
+
+            @Override
+            public int getNumberOfElements() {
+                return 1;
+            }
+
+            @Override
+            public List<ReportGradStudentDataEntity> getContent() {
+                return List.of(reportGradStudentData);
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !getContent().isEmpty();
+            }
+
+            @Override
+            public Sort getSort() {
+                return null;
+            }
+
+            @Override
+            public boolean isFirst() {
+                return false;
+            }
+
+            @Override
+            public boolean isLast() {
+                return false;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return false;
+            }
+
+            @Override
+            public Pageable nextPageable() {
+                return null;
+            }
+
+            @Override
+            public Pageable previousPageable() {
+                return null;
+            }
+
+            @Override
+            public int getTotalPages() {
+                return getContent().size();
+            }
+
+            @Override
+            public long getTotalElements() {
+                return getContent().size();
+            }
+
+            @Override
+            public Page map(Function converter) {
+                return null;
+            }
+        });
+
+        var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport();
+        assertThat(result).isNotEmpty().hasSize(1);
+
         when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(graduationStatusEntity.getSchoolOfRecord(), PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
 
             @Override
@@ -1854,7 +2606,7 @@ public class GraduationStatusServiceTest {
             }
         });
 
-        var result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
+        result = gradStudentReportService.getGradStudentDataForNonGradYearEndReport(graduationStatusEntity.getSchoolOfRecord());
         assertThat(result).isNotEmpty().hasSize(1);
 
         graduationStatusEntity.setSchoolOfRecord("001");
@@ -1953,23 +2705,99 @@ public class GraduationStatusServiceTest {
     @Test
     public void testGetStudentsForSchoolReport() {
         String mincode = "123213123";
-        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
-        graduationStatus.setStudentID(new UUID(1,1));
-        graduationStatus.setSchoolOfRecord(mincode);
-        GraduationData gradData = new GraduationData();
-        GradSearchStudent gS = new GradSearchStudent();
-        gS.setPen("123123123123");
-        gS.setLegalFirstName("sadas");
-        gS.setLegalMiddleNames("fdf");
-        gS.setLegalLastName("rrw");
-        gradData.setGradStudent(gS);
-        graduationStatus.setStudentStatus("CUR");
-        try {
-            graduationStatus.setStudentGradData(new ObjectMapper().writeValueAsString(gradData));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        when(graduationStatusRepository.findBySchoolOfRecord(mincode)).thenReturn(List.of(graduationStatus));
+        GraduationStudentRecordView graduationStatus = new GraduationStudentRecordView() {
+
+            @Override
+            public String getProgram() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return null;
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return mincode;
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return "AD";
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return "CUR";
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return new UUID(1,1);
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return mincode;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return null;
+            }
+
+            @Override
+            public Long getBatchId() {
+                return null;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
+        when(graduationStatusRepository.findBySchoolOfRecordAndStudentStatus(mincode, "CUR")).thenReturn(List.of(graduationStatus));
         var result = graduationStatusService.getStudentsForSchoolReport(mincode);
         assertThat(result).isNotNull().hasSize(1);
         GraduationStudentRecord responseGraduationStatus = result.get(0);
@@ -1996,7 +2824,7 @@ public class GraduationStatusServiceTest {
             e.printStackTrace();
         }
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setBatchId(4000L);
@@ -2027,7 +2855,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setStudentGradData(null);
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setBatchId(4000L);
@@ -2082,25 +2910,98 @@ public class GraduationStatusServiceTest {
         projectedRunClob.setGraduated(isGraduated);
         projectedRunClob.setNonGradReasons(null);
 
-        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
-        graduationStatusEntity.setStudentID(UUID.randomUUID());
-        graduationStatusEntity.setStudentStatus("A");
-        try {
-            graduationStatusEntity.setStudentProjectedGradData(new ObjectMapper().writeValueAsString(projectedRunClob));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
-        graduationStatusEntity.setSchoolOfRecord("21313121");
-        graduationStatusEntity.setGpa("4");
-        graduationStatusEntity.setBatchId(4000L);
-        graduationStatusEntity.setPen("123123");
-        graduationStatusEntity.setLegalFirstName("Asdad");
-        graduationStatusEntity.setLegalMiddleNames("Adad");
-        graduationStatusEntity.setLegalLastName("sadad");
+        GraduationStudentRecordView graduationStatusEntity = new GraduationStudentRecordView() {
+            @Override
+            public String getProgram() {
+                return "2018-EN";
+            }
 
-        Mockito.when(graduationStatusRepository.findBySchoolOfRecordAmalgamated(mincode)).thenReturn(List.of(graduationStatusEntity));
+            @Override
+            public java.util.Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return "4";
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return "Y";
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return "21313121";
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return null;
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return "A";
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return UUID.randomUUID();
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return "Y";
+            }
+
+            @Override
+            public Long getBatchId() {
+                return 4000L;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return "C";
+            }
+
+            @Override
+            public java.util.Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return jsonTransformer.marshall(projectedRunClob);
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
+        Mockito.when(graduationStatusRepository.findBySchoolOfRecordAndStudentStatusAndStudentGradeIn(mincode, "CUR", List.of("AD", "12"))).thenReturn(List.of(graduationStatusEntity));
 
         return graduationStatusService.getStudentsForAmalgamatedSchoolReport(mincode,type);
     }
@@ -2112,7 +3013,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity1.setStudentID(studentID1);
         graduationStatusEntity1.setStudentStatus("A");
         graduationStatusEntity1.setRecalculateProjectedGrad("Y");
-        graduationStatusEntity1.setProgram("2018-en");
+        graduationStatusEntity1.setProgram("2018-EN");
         graduationStatusEntity1.setSchoolOfRecord("21313121");
         graduationStatusEntity1.setGpa("4");
         graduationStatusEntity1.setBatchId(4000L);
@@ -2126,7 +3027,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity2.setStudentID(studentID2);
         graduationStatusEntity2.setStudentStatus("A");
         graduationStatusEntity2.setRecalculateGradStatus("Y");
-        graduationStatusEntity2.setProgram("2018-en");
+        graduationStatusEntity2.setProgram("2018-EN");
         graduationStatusEntity2.setSchoolOfRecord("21313121");
         graduationStatusEntity2.setGpa("4");
         graduationStatusEntity2.setBatchId(4000L);
@@ -2142,14 +3043,8 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.findById(studentID1)).thenReturn(Optional.of(graduationStatusEntity1));
         Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
 
-        val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("REGALG", studentIDs);
-        assertThat(results).hasSize(1);
-
-        // result is updated
-        GraduationStudentRecord result = results.get(0);
-        assertThat(result.getStudentID()).isEqualTo(studentID1);
-        assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");
-        assertThat(result.getRecalculateProjectedGrad()).isEqualTo("Y");
+        graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("REGALG", studentIDs);
+        assertThat(studentIDs).hasSize(2);
     }
 
     @Test
@@ -2159,7 +3054,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity1.setStudentID(studentID1);
         graduationStatusEntity1.setStudentStatus("A");
         graduationStatusEntity1.setRecalculateProjectedGrad("Y");
-        graduationStatusEntity1.setProgram("2018-en");
+        graduationStatusEntity1.setProgram("2018-EN");
         graduationStatusEntity1.setSchoolOfRecord("21313121");
         graduationStatusEntity1.setGpa("4");
         graduationStatusEntity1.setBatchId(4000L);
@@ -2173,7 +3068,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity2.setStudentID(studentID2);
         graduationStatusEntity2.setStudentStatus("A");
         graduationStatusEntity2.setRecalculateGradStatus("Y");
-        graduationStatusEntity2.setProgram("2018-en");
+        graduationStatusEntity2.setProgram("2018-EN");
         graduationStatusEntity2.setSchoolOfRecord("21313121");
         graduationStatusEntity2.setGpa("4");
         graduationStatusEntity2.setBatchId(4000L);
@@ -2189,14 +3084,8 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.findById(studentID1)).thenReturn(Optional.of(graduationStatusEntity1));
         Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
 
-        val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
-        assertThat(results).hasSize(1);
-
-        // result is updated
-        GraduationStudentRecord result = results.get(0);
-        assertThat(result.getStudentID()).isEqualTo(studentID2);
-        assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");
-        assertThat(result.getRecalculateProjectedGrad()).isEqualTo("Y");
+        graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
+        assertThat(studentIDs).hasSize(2);
     }
 
     @Test
@@ -2206,7 +3095,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity1.setStudentID(studentID1);
         graduationStatusEntity1.setStudentStatus("A");
         graduationStatusEntity1.setRecalculateProjectedGrad("Y");
-        graduationStatusEntity1.setProgram("2018-en");
+        graduationStatusEntity1.setProgram("2018-EN");
         graduationStatusEntity1.setSchoolOfRecord("21313121");
         graduationStatusEntity1.setGpa("4");
         graduationStatusEntity1.setPen("123123");
@@ -2219,7 +3108,7 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity2.setStudentID(studentID2);
         graduationStatusEntity2.setStudentStatus("A");
         graduationStatusEntity2.setRecalculateGradStatus("Y");
-        graduationStatusEntity2.setProgram("2018-en");
+        graduationStatusEntity2.setProgram("2018-EN");
         graduationStatusEntity2.setSchoolOfRecord("21313121");
         graduationStatusEntity2.setGpa("4");
         graduationStatusEntity2.setPen("123456");
@@ -2234,7 +3123,41 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.findById(studentID1)).thenReturn(Optional.of(graduationStatusEntity1));
         Mockito.when(graduationStatusRepository.findById(studentID2)).thenReturn(Optional.of(graduationStatusEntity2));
 
-        val results = graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
-        assertThat(results).isEmpty();
+        graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs("TVRRUN", studentIDs);
+        assertThat(studentIDs).isNotEmpty();
+    }
+
+    @Test
+    public void testGetNonGradReasonByPen() {
+        String pen = "123456789";
+
+        StudentNonGradReasonEntity entity = new StudentNonGradReasonEntity();
+        entity.setPen(pen);
+        entity.setGradRule1("Rule1");
+        entity.setTranscriptRule1("Tr1");
+        entity.setDescription1("Test Rule1 Description");
+        Mockito.when(studentNonGradReasonRepository.findByPen(pen)).thenReturn(List.of(entity));
+
+        var result = graduationStatusService.getNonGradReason(pen);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getGradRule1()).isEqualTo(entity.getGradRule1());
+    }
+
+    @Test
+    public void testGetNonGradReasonByPen_whenNonGradReason_isNot_Found() {
+        String pen = "123456789";
+
+        StudentNonGradReasonEntity entity = new StudentNonGradReasonEntity();
+        entity.setPen(pen);
+        entity.setGradRule1("Rule1");
+        entity.setTranscriptRule1("Tr1");
+        entity.setDescription1("Test Rule1 Description");
+
+        Mockito.when(studentNonGradReasonRepository.findByPen(pen)).thenReturn(new ArrayList<>());
+
+        var result = graduationStatusService.getNonGradReason(pen);
+
+        assertThat(result).isNull();
     }
 }

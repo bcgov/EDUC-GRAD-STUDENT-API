@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +65,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
@@ -99,7 +100,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
@@ -120,7 +121,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setPen("123456789");
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
-        graduationStatus.setProgram("2018-en");
+        graduationStatus.setProgram("2018-EN");
         graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
@@ -146,7 +147,7 @@ public class GraduationStatusControllerTest {
             graduationStatus.setPen("123456789");
             graduationStatus.setStudentStatus("A");
             graduationStatus.setRecalculateGradStatus("Y");
-            graduationStatus.setProgram("2018-en");
+            graduationStatus.setProgram("2018-EN");
             graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolAtGrad(mincode);
         graduationStatus.setGpa("4");
@@ -277,7 +278,7 @@ public class GraduationStatusControllerTest {
         gradStudentOptionalProgramReq.setId(gradStudentOptionalProgramID);
         gradStudentOptionalProgramReq.setStudentID(studentID);
         gradStudentOptionalProgramReq.setPen(pen);
-        gradStudentOptionalProgramReq.setMainProgramCode("2018-en");
+        gradStudentOptionalProgramReq.setMainProgramCode("2018-EN");
         gradStudentOptionalProgramReq.setOptionalProgramCode("FI");
         gradStudentOptionalProgramReq.setOptionalProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy-MM-dd" ));
 
@@ -327,8 +328,8 @@ public class GraduationStatusControllerTest {
         List<String> programs = new ArrayList<>();
         programs.add("1950");
 
-        Date gradDateFrom = new Date(System.currentTimeMillis() - (1000L * 60 * 60 * 24 * 30 * 12 * 10));
-        Date gradDateTo = new Date(System.currentTimeMillis());
+        LocalDate gradDateFrom = LocalDate.of(2000, 01, 01);
+        LocalDate gradDateTo = LocalDate.now();
 
         StudentSearchRequest searchRequest = StudentSearchRequest.builder()
                 .pens(pens)
@@ -441,7 +442,7 @@ public class GraduationStatusControllerTest {
         graduationStatusController.saveStudentGradStatusDistributionRun(studentID.toString(),null,"ACTIVITYCODE");
         Mockito.verify(graduationStatusService).saveStudentRecordDistributionRun(studentID,null,"ACTIVITYCODE");
     }
-    
+
     @Test
     public void testreturnToOriginalState_returnsfalse() {
         // ID
@@ -460,7 +461,7 @@ public class GraduationStatusControllerTest {
         graduationStatusEntity.setStudentID(UUID.fromString(studentID));
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
@@ -498,7 +499,7 @@ public class GraduationStatusControllerTest {
         graduationStatusEntity.setStudentID(UUID.fromString(studentID));
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
@@ -535,7 +536,7 @@ public class GraduationStatusControllerTest {
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
@@ -629,8 +630,23 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentGrade("12");
         graduationStatus.setGpa("4");
 
-        Mockito.when(graduationStatusService.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids())).thenReturn(Arrays.asList(graduationStatus));
+        Mockito.doNothing().when(graduationStatusService).updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids());
         graduationStatusController.updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList);
         Mockito.verify(graduationStatusService).updateStudentFlagReadyForBatchJobByStudentIDs(batchJobType, stList.getStudentids());
+    }
+
+    @Test
+    public void testGetStudentNonGradReasonByPen() {
+        String pen = "123456789";
+
+        StudentNonGradReason nonGradReason = new StudentNonGradReason();
+        nonGradReason.setPen(pen);
+        nonGradReason.setGradRule1("Rule1");
+        nonGradReason.setTranscriptRule1("Tr1");
+        nonGradReason.setDescription1("Test Rule1 Description");
+
+        Mockito.when(graduationStatusService.getNonGradReason(pen)).thenReturn(nonGradReason);
+        graduationStatusController.getStudentNonGradReasonByPen(pen);
+        Mockito.verify(graduationStatusService).getNonGradReason(pen);
     }
 }

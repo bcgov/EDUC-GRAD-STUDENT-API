@@ -1,10 +1,12 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -33,6 +35,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -62,6 +65,9 @@ public class GradStudentServiceTest {
 
     @MockBean
     WebClient webClient;
+
+    @MockBean
+    FetchGradStatusSubscriber fetchGradStatusSubscriber;
 
     @MockBean
     GraduationStudentRecordRepository graduationStatusRepository;
@@ -143,7 +149,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
@@ -238,7 +244,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         org.springframework.data.domain.Page<GraduationStudentRecordEntity> pagedResult = new PageImpl<>(List.of(graduationStatusEntity));
         when(this.graduationStatusRepository.findAll(any(), any(Pageable.class))).thenReturn(pagedResult);
@@ -334,13 +340,105 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setSchoolOfRecord(mincode);
+
+        final GraduationStudentRecordView graduationStatusView = new GraduationStudentRecordView() {
+            @Override
+            public String getProgram() {
+                return program;
+            }
+
+            @Override
+            public Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return null;
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return mincode;
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return stdGrade;
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return gradStatus;
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return studentID;
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return null;
+            }
+
+            @Override
+            public Long getBatchId() {
+                return null;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return null;
+            }
+
+            @Override
+            public Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
         List<UUID> studentSubList = new ArrayList<>();
-        studentSubList.add(graduationStatusEntity.getStudentID());
+        studentSubList.add(graduationStatusView.getStudentID());
 
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
-        when(this.graduationStatusRepository.findByStudentIDIn(studentSubList)).thenReturn(List.of(graduationStatusEntity));
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusRepository.findByStudentIDIn(studentSubList)).thenReturn(List.of(graduationStatusView));
         RestResponsePage<Student> response = new RestResponsePage<>(List.of(student));
         final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<>() {
         };
@@ -499,7 +597,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
@@ -591,7 +689,7 @@ public class GradStudentServiceTest {
         graduationStatusEntity.setSchoolOfRecord(mincode);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
-        when(this.graduationStatusTransformer.transformToDTO(graduationStatusEntity)).thenReturn(graduationStatus);
+        when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // School
         final School school = new School();
@@ -692,6 +790,35 @@ public class GradStudentServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getProgram()).isEqualTo("2018-EN");
     }
+
+    @Test
+    public void testGetStudentIDsByStatusCode_whenStatusCode_is_notProvided() {
+        // ID
+        final UUID studentID = UUID.randomUUID();
+        var result = gradStudentService.getStudentIDsByStatusCode(Arrays.asList(studentID), "");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentIDsByStatusCode_whenStudentIDs_are_notProvided() {
+        var result = gradStudentService.getStudentIDsByStatusCode(new ArrayList<>(), "DEC");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentIDsByStatusCode() {
+        // ID 1
+        final UUID studentID1 = UUID.randomUUID();
+        // ID 2
+        final UUID studentID2 = UUID.randomUUID();
+
+        Mockito.when(graduationStatusRepository.filterGivenStudentsByStatusCode(Arrays.asList(studentID1, studentID2), "DEC")).thenReturn(Arrays.asList(studentID1));
+
+        var result = gradStudentService.getStudentIDsByStatusCode(Arrays.asList(studentID1, studentID2), "DEC");
+        assertThat(result).isNotEmpty();
+        assertThat(result.get(0)).isEqualTo(studentID1);
+    }
+
 
 
     @SneakyThrows

@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class EducGradStudentApiUtils {
@@ -66,6 +67,11 @@ public class EducGradStudentApiUtils {
         return date;
     }
 
+    public static LocalDate parseLocalDate(String dateString, String dateFormat) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
+        return LocalDate.parse(dateString, formatter);
+    }
+
     public static String parseDateFromString (String sessionDate) {
         if (sessionDate == null)
             return null;
@@ -110,6 +116,19 @@ public class EducGradStudentApiUtils {
             logger.error("ERROR: {}", pe.getMessage());
          }
          return sDates;
+    }
+
+    public static String parsingEdwDate(String sessionDate) {
+        String actualSessionDate = sessionDate + "01";
+        Date temp = new Date();
+        String sDates = null;
+        try {
+            temp = EducGradStudentApiUtils.parseDate(actualSessionDate, "yyyyMMdd");
+            sDates = EducGradStudentApiUtils.formatDate(temp, EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        } catch (ParseException pe) {
+            logger.error("ERROR: {}", pe.getMessage());
+        }
+        return sDates;
     }
 
     public static Date parsingProgramCompletionDate(String sessionDate) {

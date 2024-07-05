@@ -94,14 +94,24 @@ cron:
           run: 0 0/5 * * * *
           lockAtLeastFor: 800ms
           lockAtMostFor: 900ms
+          threshold: 100
+      purge-old-records:
+        run: 0 30 0 * * *
+        staleInDays: 90
+      refresh-non-grad-status:
+        run: 0 30 0 * * *
           
 #Endpoint properties
 endpoint:
   grad-trax-api:
+    all-commonschools:
+      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/trax/school/common
     school-by-min-code:
       url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/trax/school/%s
     district-by-district-code:
       url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/trax/district/%s
+    commonschool-by-mincode:
+      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/trax/school/common/%s
   grad-program-api:
     optional_program_name_by_optional_program_id:
       url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/optionalprograms/id/%s
@@ -135,8 +145,7 @@ endpoint:
       url: https://educ-grad-graduation-report-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/graduationreports/studentachievement/%s
   educ-school-api:
     url: https://school-api-75e61b-dev.apps.silver.devops.gov.bc.ca/api/v1/schools
-    get-school-by-mincode:
-      url: https://school-api-75e61b-dev.apps.silver.devops.gov.bc.ca/api/v1/schools/%s
+
 
 #Splunk LogHelper
 splunk:

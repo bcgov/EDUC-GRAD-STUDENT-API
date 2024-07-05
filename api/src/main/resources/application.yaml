@@ -13,10 +13,10 @@ spring:
     url: ${CONNECTION_STRING}
     username: ${USERNAME}
     password: ${PASSWORD}
-    driver-class: oracle.jdbc.driver.OracleDriver
+    driver-class-name: oracle.jdbc.driver.OracleDriver
   jpa:
     show-sql: ${SHOW_SQL_LOGS}
-    database-platform: org.hibernate.dialect.Oracle12cDialect
+    database-platform: org.hibernate.dialect.OracleDialect
     hibernate:
       ddl-auto: none
   mvc:
@@ -79,8 +79,8 @@ server:
       worker: 128
       io: 16
   #port: ${HTTP_PORT}
-  tomcat:
-    connection-timeout: 200s
+  #tomcat:
+    #connection-timeout: 200s
 
 #API Documentation
 springdoc:
@@ -105,40 +105,46 @@ cron:
           run: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN}
           lockAtLeastFor: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_LOCK_AT_LEAST_FOR}
           lockAtMostFor: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_LOCK_AT_MOST_FOR}
+          threshold: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_THRESHOLD}
+      purge-old-records:
+        run: ${CRON_SCHEDULED_PURGE_OLD_RECORDS}
+        staleInDays: ${RECORDS_STALE_IN_DAYS}
+      refresh-non-grad-status:
+        run: ${CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS}
 
 #Resilience
 resilience4j.retry:
   instances:
     searchbypen:
-      maxRetryAttempts: ${MAX_RETRY_ATTEMPTS}
+      maxAttempts: ${MAX_RETRY_ATTEMPTS}
       waitDuration: 5s
       retryExceptions:
         - org.springframework.web.client.HttpServerErrorException
       ignoreExceptions:
         - java.lang.NullPointerException
     advancedsearch:
-      maxRetryAttempts: ${MAX_RETRY_ATTEMPTS}
+      maxAttempts: ${MAX_RETRY_ATTEMPTS}
       waitDuration: 30s
       retryExceptions:
         - org.springframework.web.client.HttpServerErrorException
       ignoreExceptions:
         - java.lang.NullPointerException
     searchbyid:
-      maxRetryAttempts: ${MAX_RETRY_ATTEMPTS}
+      maxAttempts: ${MAX_RETRY_ATTEMPTS}
       waitDuration: 5s
       retryExceptions:
         - org.springframework.web.client.HttpServerErrorException
       ignoreExceptions:
         - java.lang.NullPointerException
     generalpostcall:
-      maxRetryAttempts: ${MAX_RETRY_ATTEMPTS}
+      maxAttempts: ${MAX_RETRY_ATTEMPTS}
       waitDuration: 3s
       retryExceptions:
         - org.springframework.web.client.HttpServerErrorException
       ignoreExceptions:
         - java.lang.NullPointerException
     generalgetcall:
-      maxRetryAttempts: ${MAX_RETRY_ATTEMPTS}
+      maxAttempts: ${MAX_RETRY_ATTEMPTS}
       waitDuration: 3s
       retryExceptions:
         - org.springframework.web.client.HttpServerErrorException
@@ -148,10 +154,15 @@ resilience4j.retry:
 #Endpoint properties
 endpoint:
   grad-trax-api:
+    all-commonschools:
+      url: ${GRAD_TRAX_API}api/v1/trax/school/common
     school-by-min-code:
       url: ${GRAD_TRAX_API}api/v1/trax/school/%s
     district-by-district-code:
       url: ${GRAD_TRAX_API}api/v1/trax/district/%s
+    commonschool-by-mincode:
+      url: ${GRAD_TRAX_API}api/v1/trax/school/common/%s
+
   grad-program-api:
     optional_program_name_by_optional_program_id:
       url: ${GRAD_PROGRAM_API}api/v1/program/optionalprograms/id/%s
@@ -183,10 +194,8 @@ endpoint:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentcertificates?studentID=%s
     archive-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/archiveachievement/%s
-  educ-school-api:
-    url: ${EDUC_SCHOOL_API}api/v1/schools
-    get-school-by-mincode:
-      url: ${EDUC_SCHOOL_API}api/v1/schools/%s
+
+
 
 #Splunk LogHelper
 splunk:

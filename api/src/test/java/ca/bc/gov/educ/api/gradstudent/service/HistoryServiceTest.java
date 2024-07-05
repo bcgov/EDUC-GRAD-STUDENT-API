@@ -1,9 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
+import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
@@ -31,7 +35,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,6 +58,9 @@ public class HistoryServiceTest {
     @MockBean HistoryActivityRepository historyActivityRepository;
     @MockBean StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
     @MockBean WebClient webClient;
+
+    @MockBean
+    FetchGradStatusSubscriber fetchGradStatusSubscriber;
     @Mock WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
     @Mock WebClient.RequestBodySpec requestBodyMock;
@@ -82,7 +92,7 @@ public class HistoryServiceTest {
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
@@ -109,7 +119,7 @@ public class HistoryServiceTest {
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(gradStudentOptionalProgramEntity.getOptionalProgramID());
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
@@ -139,7 +149,7 @@ public class HistoryServiceTest {
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
@@ -163,7 +173,7 @@ public class HistoryServiceTest {
 
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(gradStudentOptionalProgramEntity.getOptionalProgramID());
-        optionalProgram.setGraduationProgramCode("2018-en");
+        optionalProgram.setGraduationProgramCode("2018-EN");
         optionalProgram.setOptProgramCode("FI");
         optionalProgram.setOptionalProgramName("French Immersion");
 
@@ -221,7 +231,7 @@ public class HistoryServiceTest {
             e.printStackTrace();
         }
         graduationStatusEntity.setRecalculateGradStatus("Y");
-        graduationStatusEntity.setProgram("2018-en");
+        graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord("223333");
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
