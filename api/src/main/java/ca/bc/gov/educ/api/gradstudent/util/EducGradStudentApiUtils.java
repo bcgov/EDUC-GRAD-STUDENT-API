@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
 
 public class EducGradStudentApiUtils {
@@ -107,10 +108,10 @@ public class EducGradStudentApiUtils {
 	
 	 public static String parsingTraxDate(String sessionDate) {
     	 String actualSessionDate = sessionDate + "/01";
-    	 Date temp = new Date();
+    	 Date temp;
 		 String sDates = null;
          try {
-            temp = EducGradStudentApiUtils.parseDate(actualSessionDate, "yyyy/MM/dd");
+            temp = toLastDayOfMonth(EducGradStudentApiUtils.parseDate(actualSessionDate, "yyyy/MM/dd"));
             sDates = EducGradStudentApiUtils.formatDate(temp, EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
          } catch (ParseException pe) {
             logger.error("ERROR: {}", pe.getMessage());
@@ -136,7 +137,7 @@ public class EducGradStudentApiUtils {
         Date temp;
         Date sDate = null;
         try {
-            temp = EducGradStudentApiUtils.parseDate(actualSessionDate, EducGradStudentApiConstants.DATE_FORMAT);
+            temp = toLastDayOfMonth(EducGradStudentApiUtils.parseDate(actualSessionDate, EducGradStudentApiConstants.DATE_FORMAT));
             String sDates = EducGradStudentApiUtils.formatDate(temp, EducGradStudentApiConstants.DATE_FORMAT);
             sDate = EducGradStudentApiUtils.parseDate(sDates, EducGradStudentApiConstants.DATE_FORMAT);
         } catch (ParseException pe) {
@@ -186,6 +187,16 @@ public class EducGradStudentApiUtils {
                 .honoursStanding(graduationStudentRecord.getHonoursStanding())
                 .updateUser(graduationStudentRecord.getUpdateUser())
                 .build();
+    }
+
+    static Date toLastDayOfMonth(Date date) {
+        if(date != null) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+            return cal.getTime();
+        }
+        return null;
     }
 
 }
