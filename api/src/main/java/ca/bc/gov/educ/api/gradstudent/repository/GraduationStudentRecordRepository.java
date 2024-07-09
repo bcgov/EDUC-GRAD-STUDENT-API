@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -51,6 +52,15 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord=:schoolOfRecord and c.studentStatus='CUR' and (c.studentGrade='AD' or c.studentGrade='12')")
 	Integer countBySchoolOfRecordAmalgamated(String schoolOfRecord);
+
+	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords) and c.studentStatus=:studentStatus")
+	Long countBySchoolOfRecordsAAndStudentStatus(List<String> schoolOfRecords, String studentStatus);
+
+	@Query("select count(*) from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
+	Long countByStudentStatus(String studentStatus);
+
+	@Procedure(value = "update_grad_stud_rcrd_status")
+	Integer archiveStudents(String inSor, String inStudStatFrom, String inStudStatTo, long batchId);
 
 	// Data Conversion
 	@Modifying

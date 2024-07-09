@@ -1369,6 +1369,19 @@ public class GraduationStatusService {
         return graduationStatusRepository.countBySchoolOfRecordAmalgamated(schoolOfRecord);
     }
 
+    public Long countBySchoolOfRecordsAAndStudentStatus(List<String> schoolOfRecords, String studentStatus) {
+        if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
+            return graduationStatusRepository.countBySchoolOfRecordsAAndStudentStatus(schoolOfRecords, StringUtils.defaultString(studentStatus, "CUR"));
+        } else {
+            return graduationStatusRepository.countByStudentStatus(StringUtils.defaultString(studentStatus, "CUR"));
+        }
+    }
+
+    public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus) {
+        String inSor = schoolOfRecords != null && !schoolOfRecords.isEmpty() ? String.join(",", schoolOfRecords) : null;
+        return graduationStatusRepository.archiveStudents(inSor, StringUtils.defaultString(studentStatus, "CUR"), "ARC", batchId);
+    }
+
     public void updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
         logger.debug("updateStudentFlagReadyForBatchJobByStudentIDs");
         for(UUID uuid: studentIDs) {

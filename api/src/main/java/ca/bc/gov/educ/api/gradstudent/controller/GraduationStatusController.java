@@ -392,6 +392,24 @@ public class GraduationStatusController {
         return response.GET(gradStatusService.countStudentsForAmalgamatedSchoolReport(schoolOfRecord));
     }
 
+    @PostMapping (EducGradStudentApiConstants.STUDENT_COUNT)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Students Count by mincode and status", description = "Get Students Count by mincode and status", tags = { "Business" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<Long> getStudentsCount(@RequestParam(required = false) String studentStatus, @RequestBody List<String> schoolOfRecords) {
+        logger.debug("getStudentsCount: {}->{}", studentStatus, String.join(",", schoolOfRecords));
+        return response.GET(gradStatusService.countBySchoolOfRecordsAAndStudentStatus(schoolOfRecords, studentStatus));
+    }
+
+    @PostMapping (EducGradStudentApiConstants.STUDENT_ARCHIVE)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Students Count by mincode and status", description = "Get Students Count by mincode and status", tags = { "Business" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<Integer> archiveStudents(@RequestParam long batchId, @RequestParam(required = false) String studentStatus, @RequestBody List<String> schoolOfRecords) {
+        logger.debug("archiveStudents: {}->{}", studentStatus, String.join(",", schoolOfRecords));
+        return response.GET(gradStatusService.archiveStudents(batchId, schoolOfRecords, studentStatus));
+    }
+
     @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Update Student Flag ready for batch by Batch Job Type and Student IDs", description = "Update Student Flag ready for batch by Batch Job Type and Student IDs", tags = { "Batch Algorithm" })
