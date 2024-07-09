@@ -2883,6 +2883,15 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testGetStudentsCountForAmalgamatedSchoolReport() {
+        Mockito.when(graduationStatusRepository.countBySchoolOfRecordAmalgamated("12345678")).thenReturn(1);
+
+        Integer count = graduationStatusService.countStudentsForAmalgamatedSchoolReport("12345678");
+        assertThat(count).isNotNull().isEqualTo(1);
+
+    }
+
+    @Test
     public void testGetStudentsForAmalgamatedSchoolReport() {
         List<UUID> res = amalgamatedReports("TVRNONGRAD",false);
         assertThat(res).isNotNull().hasSize(1);
