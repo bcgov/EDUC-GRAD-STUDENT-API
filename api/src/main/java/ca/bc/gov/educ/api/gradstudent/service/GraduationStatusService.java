@@ -1369,7 +1369,7 @@ public class GraduationStatusService {
         return graduationStatusRepository.countBySchoolOfRecordAmalgamated(schoolOfRecord);
     }
 
-    public Long countBySchoolOfRecordsAAndStudentStatus(List<String> schoolOfRecords, String studentStatus) {
+    public Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus) {
         if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
             return graduationStatusRepository.countBySchoolOfRecordsAAndStudentStatus(schoolOfRecords, StringUtils.defaultString(studentStatus, "CUR"));
         } else {
