@@ -1219,7 +1219,7 @@ public class GraduationStatusService {
     }
 
     @Retry(name = "generalpostcall")
-    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId,String activityCode) {
+    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId, String activityCode) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
