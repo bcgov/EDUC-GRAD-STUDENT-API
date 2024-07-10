@@ -397,7 +397,9 @@ public class GraduationStatusController {
     @Operation(summary = "Get Students Count by mincode and status", description = "Get Students Count by mincode and status", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Long> getStudentsCount(@RequestParam(required = false) String studentStatus, @RequestBody List<String> schoolOfRecords) {
-        logger.debug("getStudentsCount: {}->{}", studentStatus, String.join(",", schoolOfRecords));
+        if(logger.isDebugEnabled()) {
+            logger.debug("getStudentsCount: {}->{}", studentStatus, String.join(",", schoolOfRecords));
+        }
         return response.GET(gradStatusService.countBySchoolOfRecordsAAndStudentStatus(schoolOfRecords, studentStatus));
     }
 
@@ -406,7 +408,9 @@ public class GraduationStatusController {
     @Operation(summary = "Get Students Count by mincode and status", description = "Get Students Count by mincode and status", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Integer> archiveStudents(@RequestParam long batchId, @RequestParam(required = false) String studentStatus, @RequestBody List<String> schoolOfRecords) {
-        logger.debug("archiveStudents: {}->{}", studentStatus, String.join(",", schoolOfRecords));
+        if(logger.isDebugEnabled()) {
+            logger.debug("archiveStudents: {}->{}", studentStatus, String.join(",", schoolOfRecords));
+        }
         return response.GET(gradStatusService.archiveStudents(batchId, schoolOfRecords, studentStatus));
     }
 
