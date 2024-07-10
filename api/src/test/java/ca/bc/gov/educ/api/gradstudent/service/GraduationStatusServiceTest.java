@@ -2906,7 +2906,7 @@ public class GraduationStatusServiceTest {
     public void testArchiveStudents() {
         Mockito.when(graduationStatusRepository.archiveStudents("12345678", "CUR", "ARC", 1L)).thenReturn(1);
         Integer count = graduationStatusService.archiveStudents(1L, List.of("12345678"), "CUR");
-        assertThat(count).isNotNull().isEqualTo(1L);
+        assertThat(count).isNotNull().isEqualTo(1);
     }
 
     @Test
