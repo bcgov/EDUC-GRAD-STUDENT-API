@@ -54,7 +54,7 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	Integer countBySchoolOfRecordAmalgamated(String schoolOfRecord);
 
 	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords) and c.studentStatus=:studentStatus")
-	Long countBySchoolOfRecordsAAndStudentStatus(List<String> schoolOfRecords, String studentStatus);
+	Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus);
 
 	@Query("select count(*) from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
 	Long countByStudentStatus(String studentStatus);

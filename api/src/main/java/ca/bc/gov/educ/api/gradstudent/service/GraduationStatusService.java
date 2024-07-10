@@ -1371,7 +1371,7 @@ public class GraduationStatusService {
 
     public Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus) {
         if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
-            return graduationStatusRepository.countBySchoolOfRecordsAAndStudentStatus(schoolOfRecords, StringUtils.defaultString(studentStatus, "CUR"));
+            return graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(schoolOfRecords, StringUtils.defaultString(studentStatus, "CUR"));
         } else {
             return graduationStatusRepository.countByStudentStatus(StringUtils.defaultString(studentStatus, "CUR"));
         }

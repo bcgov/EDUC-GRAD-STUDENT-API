@@ -2892,6 +2892,24 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testCountBySchoolOfRecordsAndStudentStatus() {
+        Mockito.when(graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "CUR")).thenReturn(1L);
+        Long count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "CUR");
+        assertThat(count).isNotNull().isEqualTo(1L);
+        Mockito.when(graduationStatusRepository.countByStudentStatus("CUR")).thenReturn(2L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(null, "CUR");
+        assertThat(count).isNotNull().isEqualTo(2L);
+
+    }
+
+    @Test
+    public void testArchiveStudents() {
+        Mockito.when(graduationStatusRepository.archiveStudents("12345678", "CUR", "ARC", 1L)).thenReturn(1);
+        Integer count = graduationStatusService.archiveStudents(1L, List.of("12345678"), "CUR");
+        assertThat(count).isNotNull().isEqualTo(1L);
+    }
+
+    @Test
     public void testGetStudentsForAmalgamatedSchoolReport() {
         List<UUID> res = amalgamatedReports("TVRNONGRAD",false);
         assertThat(res).isNotNull().hasSize(1);
