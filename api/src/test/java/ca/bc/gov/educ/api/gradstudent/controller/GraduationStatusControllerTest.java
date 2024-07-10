@@ -607,7 +607,6 @@ public class GraduationStatusControllerTest {
     public void testGetStudentsCount() {
         // ID
         String mincode = "123456789";
-        UUID studentID = UUID.randomUUID();
         Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(mincode), "CUR")).thenReturn(1L);
         graduationStatusController.getStudentsCount("CUR", List.of(mincode));
         Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(mincode), "CUR");
@@ -617,7 +616,6 @@ public class GraduationStatusControllerTest {
     public void testArchiveStudents() {
         // ID
         String mincode = "123456789";
-        UUID studentID = UUID.randomUUID();
         Mockito.when(graduationStatusService.archiveStudents(1L, List.of(mincode), "CUR")).thenReturn(1);
         graduationStatusController.archiveStudents(1L, "CUR", List.of(mincode));
         Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(mincode), "CUR");
