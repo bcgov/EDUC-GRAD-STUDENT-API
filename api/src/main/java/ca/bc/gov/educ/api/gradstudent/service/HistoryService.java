@@ -13,6 +13,7 @@ import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -56,7 +57,7 @@ public class HistoryService {
     }
 
     public void createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
-    	if(curStudentEntity != null) {
+        if (curStudentEntity != null) {
             logger.debug("Create Student History");
             final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
             BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
@@ -75,18 +76,18 @@ public class HistoryService {
         studentOptionalProgramHistoryEntity.setStudentOptionalProgramData("{ EMPTY CLOB }");
         studentOptionalProgramHistoryRepository.save(studentOptionalProgramHistoryEntity);
     }
-    
+
     public List<GraduationStudentRecordHistory> getStudentEditHistory(UUID studentID) {
         List<GraduationStudentRecordHistory> histList = graduationStudentRecordHistoryTransformer.transformToDTO(graduationStudentRecordHistoryRepository.findByStudentID(studentID));
-        histList.forEach(gS->{
+        histList.forEach(gS -> {
             Optional<HistoryActivityCodeEntity> entOpt = historyActivityRepository.findById(gS.getActivityCode());
             entOpt.ifPresent(historyActivityCodeEntity -> gS.setActivityCodeDescription(historyActivityCodeEntity.getDescription()));
         });
         return histList;
     }
 
-    public List<StudentOptionalProgramHistory> getStudentOptionalProgramEditHistory(UUID studentID,String accessToken) {
-        List<StudentOptionalProgramHistory> histList =   studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findByStudentID(studentID));
+    public List<StudentOptionalProgramHistory> getStudentOptionalProgramEditHistory(UUID studentID, String accessToken) {
+        List<StudentOptionalProgramHistory> histList = studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findByStudentID(studentID));
         histList.forEach(sP -> {
             OptionalProgram gradOptionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
@@ -97,7 +98,7 @@ public class HistoryService {
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
-            if(gradOptionalProgram != null) {
+            if (gradOptionalProgram != null) {
                 sP.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
                 sP.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
                 sP.setProgramCode(gradOptionalProgram.getGraduationProgramCode());
@@ -113,9 +114,9 @@ public class HistoryService {
         return graduationStudentRecordHistoryTransformer.transformToDTO(graduationStudentRecordHistoryRepository.findById(historyID));
     }
 
-    public StudentOptionalProgramHistory getStudentOptionalProgramHistoryByID(UUID historyID,String accessToken) {
+    public StudentOptionalProgramHistory getStudentOptionalProgramHistoryByID(UUID historyID, String accessToken) {
         StudentOptionalProgramHistory obj = studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findById(historyID));
-        if(obj.getOptionalProgramID() != null) {
+        if (obj.getOptionalProgramID() != null) {
             OptionalProgram gradOptionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), obj.getOptionalProgramID()))
                     .headers(h -> {
@@ -125,7 +126,7 @@ public class HistoryService {
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
-            if(gradOptionalProgram != null) {
+            if (gradOptionalProgram != null) {
                 obj.setOptionalProgramName(gradOptionalProgram.getOptionalProgramName());
                 obj.setOptionalProgramCode(gradOptionalProgram.getOptProgramCode());
                 obj.setProgramCode(gradOptionalProgram.getGraduationProgramCode());
@@ -134,18 +135,18 @@ public class HistoryService {
         return obj;
     }
 
-    public Page<GraduationStudentRecordHistoryEntity> getStudentHistoryByBatchID(Long batchId, Integer pageNumber, Integer pageSize,String accessToken) {
+    public Page<GraduationStudentRecordHistoryEntity> getStudentHistoryByBatchID(Long batchId, Integer pageNumber, Integer pageSize, String accessToken) {
         Pageable paging = PageRequest.of(pageNumber, pageSize);
-        Page<GraduationStudentRecordHistoryEntity> pagedDate = graduationStudentRecordHistoryRepository.findByBatchId(batchId,paging);
+        Page<GraduationStudentRecordHistoryEntity> pagedDate = graduationStudentRecordHistoryRepository.findByBatchId(batchId, paging);
         List<GraduationStudentRecordHistoryEntity> list = pagedDate.getContent();
-        list.forEach(ent->{
+        list.forEach(ent -> {
             Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
-                .retrieve().bodyToMono(Student.class).block();
-            if(stuData != null) {
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                    })
+                    .retrieve().bodyToMono(Student.class).block();
+            if (stuData != null) {
                 ent.setPen(stuData.getPen());
                 ent.setLegalFirstName(stuData.getLegalFirstName());
                 ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
@@ -157,11 +158,13 @@ public class HistoryService {
     }
 
     @Transactional
-    public void updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser) {
-
+    public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, String activityCode) {
         LocalDateTime updateDate = LocalDateTime.now();
-        graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser, updateDate);
-
+        if(StringUtils.isBlank(activityCode) || StringUtils.equalsIgnoreCase(activityCode, "null")) {
+            return graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser, updateDate);
+        } else {
+            return graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, activityCode, updateUser, updateDate);
         }
+    }
 
 }
