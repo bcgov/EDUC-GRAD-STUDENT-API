@@ -1338,7 +1338,7 @@ public class GraduationStatusService {
                 ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
                 ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
                 ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-            }else {
+            } else {
                 Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
                         .headers(h -> {
                             h.setBearerAuth(accessToken);
@@ -1377,9 +1377,13 @@ public class GraduationStatusService {
         }
     }
 
+    @Transactional
     public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus) {
-        String inSor = schoolOfRecords != null && !schoolOfRecords.isEmpty() ? String.join(",", schoolOfRecords) : null;
-        return graduationStatusRepository.archiveStudents(inSor, StringUtils.defaultString(studentStatus, "CUR"), "ARC", batchId);
+        if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
+            return graduationStatusRepository.archiveStudents(schoolOfRecords, StringUtils.defaultString(studentStatus, "CUR"), "ARC", batchId);
+        } else {
+            return graduationStatusRepository.archiveStudents(StringUtils.defaultString(studentStatus, "CUR"), "ARC", batchId);
+        }
     }
 
     public void updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {

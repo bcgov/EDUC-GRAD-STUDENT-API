@@ -62,6 +62,14 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Procedure(value = "update_grad_stud_rcrd_status")
 	Integer archiveStudents(String inSor, String inStudStatFrom, String inStudStatTo, long batchId);
 
+	@Modifying
+	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = 'Batch Archive Process' where school_of_record in (:inSor) and student_status_code = :inStudStatFrom", nativeQuery=true)
+	Integer archiveStudents(List<String> inSor, String inStudStatFrom, String inStudStatTo, long batchId);
+
+	@Modifying
+	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = 'Batch Archive Process' where student_status_code = :inStudStatFrom", nativeQuery=true)
+	Integer archiveStudents(String inStudStatFrom, String inStudStatTo, long batchId);
+
 	// Data Conversion
 	@Modifying
     @Query(value="insert into STUDENT_GUID_PEN_XREF(STUDENT_GUID, STUDENT_PEN, CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE)\n"
