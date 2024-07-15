@@ -2904,16 +2904,15 @@ public class GraduationStatusServiceTest {
 
     @Test
     public void testArchiveStudents() {
-        Mockito.when(graduationStatusRepository.archiveStudents("12345678", "CUR", "ARC", 1L)).thenReturn(1);
         Mockito.when(graduationStatusRepository.archiveStudents(List.of("12345678"), "CUR", "ARC", 1L)).thenReturn(1);
         Integer count = graduationStatusService.archiveStudents(1L, List.of("12345678"), "CUR");
         assertThat(count).isNotNull().isEqualTo(1);
     }
 
     @Test
-    public void testArchiveStudentUpdates() {
-        Mockito.when(graduationStatusRepository.archiveStudents(List.of("12345678"), "CUR", "ARC", 1L)).thenReturn(1);
-        Integer count = graduationStatusService.archiveStudents(1L, List.of("12345678"), "CUR");
+    public void testArchiveStudentEmpty() {
+        Mockito.when(graduationStatusRepository.archiveStudents("CUR", "ARC", 1L)).thenReturn(1);
+        Integer count = graduationStatusService.archiveStudents(1L, new ArrayList<>(), "CUR");
         assertThat(count).isNotNull().isEqualTo(1);
     }
 
