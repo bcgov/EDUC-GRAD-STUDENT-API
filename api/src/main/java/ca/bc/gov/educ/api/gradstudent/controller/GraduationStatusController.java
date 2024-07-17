@@ -400,7 +400,7 @@ public class GraduationStatusController {
     }
 
     @PostMapping (EducGradStudentApiConstants.STUDENT_ARCHIVE)
-    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @PreAuthorize(PermissionsConstants.ARCHIVE_GRADUATION_STUDENT)
     @Operation(summary = "Get Students Count by mincode and status", description = "Get Students Count by mincode and status", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Integer> archiveStudents(@RequestParam long batchId, @RequestParam(required = false) String studentStatus, @RequestBody List<String> schoolOfRecords) {
