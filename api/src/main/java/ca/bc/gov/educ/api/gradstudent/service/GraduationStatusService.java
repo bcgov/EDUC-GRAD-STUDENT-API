@@ -1338,7 +1338,7 @@ public class GraduationStatusService {
                 ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
                 ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
                 ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-            }else {
+            } else {
                 Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
                         .headers(h -> {
                             h.setBearerAuth(accessToken);
@@ -1367,6 +1367,23 @@ public class GraduationStatusService {
 
     public Integer countStudentsForAmalgamatedSchoolReport(String schoolOfRecord) {
         return graduationStatusRepository.countBySchoolOfRecordAmalgamated(schoolOfRecord);
+    }
+
+    public Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus) {
+        if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
+            return graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(schoolOfRecords, StringUtils.defaultString(studentStatus, "CUR"));
+        } else {
+            return graduationStatusRepository.countByStudentStatus(StringUtils.defaultString(studentStatus, "CUR"));
+        }
+    }
+
+    @Transactional
+    public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus) {
+        if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
+            return graduationStatusRepository.archiveStudents(schoolOfRecords, StringUtils.defaultString(studentStatus, "CUR"), "ARC", batchId);
+        } else {
+            return graduationStatusRepository.archiveStudents(StringUtils.defaultString(studentStatus, "CUR"), "ARC", batchId);
+        }
     }
 
     public void updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {

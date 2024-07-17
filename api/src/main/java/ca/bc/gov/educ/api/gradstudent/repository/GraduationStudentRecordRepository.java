@@ -52,6 +52,20 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord=:schoolOfRecord and c.studentStatus='CUR' and (c.studentGrade='AD' or c.studentGrade='12')")
 	Integer countBySchoolOfRecordAmalgamated(String schoolOfRecord);
 
+	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords) and c.studentStatus=:studentStatus")
+	Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus);
+
+	@Query("select count(*) from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
+	Long countByStudentStatus(String studentStatus);
+
+	@Modifying
+	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = 'Batch Archive Process' where school_of_record in (:inSor) and student_status_code = :inStudStatFrom", nativeQuery=true)
+	Integer archiveStudents(List<String> inSor, String inStudStatFrom, String inStudStatTo, long batchId);
+
+	@Modifying
+	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = 'Batch Archive Process' where student_status_code = :inStudStatFrom", nativeQuery=true)
+	Integer archiveStudents(String inStudStatFrom, String inStudStatTo, long batchId);
+
 	// Data Conversion
 	@Modifying
     @Query(value="insert into STUDENT_GUID_PEN_XREF(STUDENT_GUID, STUDENT_PEN, CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE)\n"

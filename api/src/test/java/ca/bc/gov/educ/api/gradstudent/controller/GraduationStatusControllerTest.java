@@ -604,6 +604,24 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
+    public void testGetStudentsCount() {
+        // ID
+        String mincode = "123456789";
+        Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(mincode), "CUR")).thenReturn(1L);
+        graduationStatusController.getStudentsCount("CUR", List.of(mincode));
+        Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(mincode), "CUR");
+    }
+
+    @Test
+    public void testArchiveStudents() {
+        // ID
+        String mincode = "123456789";
+        Mockito.when(graduationStatusService.archiveStudents(1L, List.of(mincode), "CUR")).thenReturn(1);
+        graduationStatusController.archiveStudents(1L, "CUR", List.of(mincode));
+        Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(mincode), "CUR");
+    }
+
+    @Test
     public void testGetStudentForBatch() {
         String mincode = "123456789";
         UUID studentID = UUID.randomUUID();
