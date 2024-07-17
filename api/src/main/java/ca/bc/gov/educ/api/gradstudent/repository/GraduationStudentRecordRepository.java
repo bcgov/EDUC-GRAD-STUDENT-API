@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -58,9 +57,6 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	@Query("select count(*) from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
 	Long countByStudentStatus(String studentStatus);
-
-	@Procedure(value = "update_grad_stud_rcrd_status")
-	Integer archiveStudents(String inSor, String inStudStatFrom, String inStudStatTo, long batchId);
 
 	@Modifying
 	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = 'Batch Archive Process' where school_of_record in (:inSor) and student_status_code = :inStudStatFrom", nativeQuery=true)
