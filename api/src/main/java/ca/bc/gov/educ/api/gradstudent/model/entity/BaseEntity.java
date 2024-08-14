@@ -42,9 +42,13 @@ public class BaseEntity {
 			if (StringUtils.isBlank(updateUser)) {
 				this.updateUser = EducGradStudentApiConstants.DEFAULT_UPDATED_BY;
 			}
-		}		
-		this.createDate = LocalDateTime.now();
-		this.updateDate = LocalDateTime.now();
+		}
+		if(this.createDate == null) {
+			this.createDate = LocalDateTime.now();
+		}
+		if(this.updateDate == null) {
+			this.updateDate = LocalDateTime.now();
+		}
 
 	}
 
