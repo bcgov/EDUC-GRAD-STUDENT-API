@@ -2219,6 +2219,23 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testSaveStudentRecord_DistributionRun_2() {
+        UUID studentID = new UUID(1, 1);
+        Long batchId = null;
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+
+        graduationStatusService.saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE");
+
+        assertThat(graduationStatusEntity).isNotNull();
+    }
+
+    @Test
     public void testGetStudentDataByStudentIds() {
         // ID
         List<UUID> sList = Arrays.asList(UUID.randomUUID());
