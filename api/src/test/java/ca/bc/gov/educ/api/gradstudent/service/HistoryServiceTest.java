@@ -146,7 +146,6 @@ public class HistoryServiceTest {
     @Test
     public void testCreateStudentHistory() {
         UUID studentID = new UUID(1, 1);
-        Long batchId = null;
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen("12321321");
