@@ -4,12 +4,16 @@ import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
+import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -33,8 +37,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,6 +57,7 @@ public class HistoryServiceTest {
     @Autowired HistoryService historyService;
     @MockBean CommonService commonService;
     @MockBean GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
+    @MockBean GraduationStudentRecordRepository graduationStudentRecordRepository;
     @MockBean HistoryActivityRepository historyActivityRepository;
     @MockBean StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
     @MockBean WebClient webClient;
@@ -134,6 +141,23 @@ public class HistoryServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
 
+    }
+
+    @Test
+    public void testCreateStudentHistory() {
+        UUID studentID = new UUID(1, 1);
+        Long batchId = null;
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+
+        when(graduationStudentRecordRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+
+        historyService.createStudentHistory(graduationStatusEntity, "ACTIVITYCODE");
+
+        assertThat(graduationStatusEntity).isNotNull();
     }
 
     @Test

@@ -2921,6 +2921,16 @@ public class GraduationStatusServiceTest {
 
     @Test
     public void testArchiveStudents() {
+
+        UUID studentID = new UUID(1, 1);
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        Mockito.when(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(List.of("12345678"), "CUR")).thenReturn(List.of(studentID));
         Mockito.when(graduationStatusRepository.archiveStudents(List.of("12345678"), "CUR", "ARC", 1L)).thenReturn(1);
         Integer count = graduationStatusService.archiveStudents(1L, List.of("12345678"), "CUR");
         assertThat(count).isNotNull().isEqualTo(1);
@@ -2928,6 +2938,15 @@ public class GraduationStatusServiceTest {
 
     @Test
     public void testArchiveStudentEmpty() {
+        UUID studentID = new UUID(1, 1);
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        Mockito.when(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(List.of("12345678"), "CUR")).thenReturn(List.of(studentID));
         Mockito.when(graduationStatusRepository.archiveStudents("CUR", "ARC", 1L)).thenReturn(1);
         Integer count = graduationStatusService.archiveStudents(1L, new ArrayList<>(), "CUR");
         assertThat(count).isNotNull().isEqualTo(1);
