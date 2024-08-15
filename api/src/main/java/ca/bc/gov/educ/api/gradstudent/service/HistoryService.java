@@ -61,6 +61,8 @@ public class HistoryService {
             logger.debug("Create Student History");
             final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
             BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
+            graduationStudentRecordHistoryEntity.setCreateUser(curStudentEntity.getCreateUser());
+            graduationStudentRecordHistoryEntity.setCreateDate(curStudentEntity.getCreateDate());
             graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
             graduationStudentRecordHistoryEntity.setStudentGradData("{ EMPTY CLOB }");
             graduationStudentRecordHistoryRepository.save(graduationStudentRecordHistoryEntity);

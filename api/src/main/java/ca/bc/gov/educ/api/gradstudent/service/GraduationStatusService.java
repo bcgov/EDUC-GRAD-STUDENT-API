@@ -1234,6 +1234,18 @@ public class GraduationStatusService {
     }
 
     @Retry(name = "generalpostcall")
+    public void saveStudentHistoryRecordDistributionRun(UUID studentID, Long batchId, String activityCode) {
+        Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        if (gradStatusOptional.isPresent()) {
+            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            gradEntity.setUpdateUser(null);
+            gradEntity.setUpdateDate(null);
+            gradEntity.setBatchId(batchId);
+            historyService.createStudentHistory(gradEntity, activityCode);
+        }
+    }
+
+    @Retry(name = "generalpostcall")
     public GraduationStudentRecord saveStudentRecordProjectedTVRRun(UUID studentID, Long batchId, ProjectedRunClob projectedRunClob) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         String projectedClob = null;
@@ -1379,10 +1391,19 @@ public class GraduationStatusService {
 
     @Transactional
     public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus) {
+        String recordStudentStatus = StringUtils.defaultString(studentStatus, "CUR");
         if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
-            return graduationStatusRepository.archiveStudents(schoolOfRecords, StringUtils.defaultString(studentStatus, "CUR"), "ARC", batchId);
+            List<UUID> graduationStudentRecordGuids = graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(schoolOfRecords, recordStudentStatus);
+            for(UUID graduationStudentRecordGuid: graduationStudentRecordGuids) {
+                saveStudentHistoryRecordDistributionRun(graduationStudentRecordGuid, batchId, "USERSTUDARC");
+            }
+            return graduationStatusRepository.archiveStudents(schoolOfRecords, recordStudentStatus, "ARC", batchId);
         } else {
-            return graduationStatusRepository.archiveStudents(StringUtils.defaultString(studentStatus, "CUR"), "ARC", batchId);
+            List<UUID> graduationStudentRecordGuids = graduationStatusRepository.findByStudentStatus(recordStudentStatus);
+            for(UUID graduationStudentRecordGuid: graduationStudentRecordGuids) {
+                saveStudentHistoryRecordDistributionRun(graduationStudentRecordGuid, batchId, "USERSTUDARC");
+            }
+            return graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId);
         }
     }
 
