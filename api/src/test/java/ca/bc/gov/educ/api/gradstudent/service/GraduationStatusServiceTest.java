@@ -2230,7 +2230,7 @@ public class GraduationStatusServiceTest {
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
 
-        graduationStatusService.saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE");
+        graduationStatusService.saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "ARC");
 
         assertThat(graduationStatusEntity).isNotNull();
     }

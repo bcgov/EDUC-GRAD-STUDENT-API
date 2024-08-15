@@ -1234,10 +1234,13 @@ public class GraduationStatusService {
     }
 
     @Retry(name = "generalpostcall")
-    public void saveStudentHistoryRecordDistributionRun(UUID studentID, Long batchId, String activityCode) {
+    public void saveStudentHistoryRecordDistributionRun(UUID studentID, Long batchId, String activityCode, String studentStatus) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            if(StringUtils.isNotBlank(studentStatus)) {
+                gradEntity.setStudentStatus(studentStatus);
+            }
             gradEntity.setUpdateUser(null);
             gradEntity.setUpdateDate(null);
             gradEntity.setBatchId(batchId);
@@ -1395,13 +1398,13 @@ public class GraduationStatusService {
         if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
             List<UUID> graduationStudentRecordGuids = graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(schoolOfRecords, recordStudentStatus);
             for(UUID graduationStudentRecordGuid: graduationStudentRecordGuids) {
-                saveStudentHistoryRecordDistributionRun(graduationStudentRecordGuid, batchId, "USERSTUDARC");
+                saveStudentHistoryRecordDistributionRun(graduationStudentRecordGuid, batchId, "USERSTUDARC", "ARC");
             }
             return graduationStatusRepository.archiveStudents(schoolOfRecords, recordStudentStatus, "ARC", batchId);
         } else {
             List<UUID> graduationStudentRecordGuids = graduationStatusRepository.findByStudentStatus(recordStudentStatus);
             for(UUID graduationStudentRecordGuid: graduationStudentRecordGuids) {
-                saveStudentHistoryRecordDistributionRun(graduationStudentRecordGuid, batchId, "USERSTUDARC");
+                saveStudentHistoryRecordDistributionRun(graduationStudentRecordGuid, batchId, "USERSTUDARC", "ARC");
             }
             return graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId);
         }
