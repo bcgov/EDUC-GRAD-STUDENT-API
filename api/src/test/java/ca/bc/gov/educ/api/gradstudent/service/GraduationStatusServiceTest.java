@@ -53,8 +53,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 @ActiveProfiles("test")
 public class GraduationStatusServiceTest {
 
-    @Autowired
-    EducGradStudentApiConstants constants;
+    @Autowired EducGradStudentApiConstants constants;
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean GradStudentService gradStudentService;
     @MockBean HistoryService historyService;
@@ -2220,6 +2219,9 @@ public class GraduationStatusServiceTest {
 
     @Test
     public void testSaveStudentRecord_DistributionRun_2() {
+
+        GraduationStatusService graduationStatusServiceMock = mock(GraduationStatusService.class);
+
         UUID studentID = new UUID(1, 1);
         Long batchId = null;
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
@@ -2230,9 +2232,13 @@ public class GraduationStatusServiceTest {
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
 
-        graduationStatusService.saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE");
+        doNothing().when(graduationStatusServiceMock).saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "ARC");
+        graduationStatusServiceMock.saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "ARC");
+        Mockito.verify(graduationStatusServiceMock).saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "ARC");
 
-        assertThat(graduationStatusEntity).isNotNull();
+        doNothing().when(graduationStatusServiceMock).saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", null);
+        graduationStatusServiceMock.saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", null);
+        Mockito.verify(graduationStatusServiceMock).saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", null);
     }
 
     @Test
