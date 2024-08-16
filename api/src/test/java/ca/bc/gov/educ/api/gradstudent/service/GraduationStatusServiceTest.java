@@ -2333,6 +2333,8 @@ public class GraduationStatusServiceTest {
         graduationStatusServiceMock.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
         Mockito.verify(graduationStatusServiceMock).saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
 
+        graduationStatusService.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+
     }
 
     @Test
