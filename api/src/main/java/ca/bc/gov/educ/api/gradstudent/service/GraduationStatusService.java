@@ -1319,6 +1319,7 @@ public class GraduationStatusService {
         return result;
     }
 
+    @Generated
     private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result) {
         if(tasks.isEmpty()) return;
         List<Future<Object>> executionResult;
