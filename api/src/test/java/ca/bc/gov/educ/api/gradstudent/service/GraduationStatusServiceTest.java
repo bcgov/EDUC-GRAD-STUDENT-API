@@ -2224,21 +2224,117 @@ public class GraduationStatusServiceTest {
 
         UUID studentID = new UUID(1, 1);
         Long batchId = null;
-        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
-        graduationStatusEntity.setStudentID(studentID);
-        graduationStatusEntity.setPen("12321321");
-        graduationStatusEntity.setStudentStatus("A");
-        graduationStatusEntity.setSchoolOfRecord("12345678");
+        GraduationStudentRecordView graduationStatusEntity = new GraduationStudentRecordView() {
 
-        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+            @Override
+            public String getProgram() {
+                return null;
+            }
 
-        doNothing().when(graduationStatusServiceMock).saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "ARC");
-        graduationStatusServiceMock.saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "ARC");
-        Mockito.verify(graduationStatusServiceMock).saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "ARC");
+            @Override
+            public java.util.Date getProgramCompletionDate() {
+                return null;
+            }
 
-        doNothing().when(graduationStatusServiceMock).saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", null);
-        graduationStatusServiceMock.saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", null);
-        Mockito.verify(graduationStatusServiceMock).saveStudentHistoryRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", null);
+            @Override
+            public String getGpa() {
+                return null;
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return "12345678";
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return null;
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return "A";
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return studentID;
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return null;
+            }
+
+            @Override
+            public Long getBatchId() {
+                return null;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
+
+        when(graduationStatusRepository.findByStudentIDIn(List.of(studentID))).thenReturn(List.of(graduationStatusEntity));
+
+        doNothing().when(graduationStatusServiceMock).saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+        graduationStatusServiceMock.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+        Mockito.verify(graduationStatusServiceMock).saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+
+        graduationStatusService.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+
     }
 
     @Test
@@ -2333,6 +2429,16 @@ public class GraduationStatusServiceTest {
 
             @Override
             public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
                 return null;
             }
 
@@ -2811,6 +2917,16 @@ public class GraduationStatusServiceTest {
             }
 
             @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
+                return null;
+            }
+
+            @Override
             public LocalDateTime getCreateDate() {
                 return null;
             }
@@ -3056,6 +3172,16 @@ public class GraduationStatusServiceTest {
             @Override
             public String getStudentProjectedGradData() {
                 return jsonTransformer.marshall(projectedRunClob);
+            }
+
+            @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
+                return null;
             }
 
             @Override

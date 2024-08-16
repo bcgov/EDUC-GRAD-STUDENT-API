@@ -1234,17 +1234,16 @@ public class GraduationStatusService {
     }
 
     @Retry(name = "generalpostcall")
-    public void saveStudentHistoryRecordDistributionRun(UUID studentID, Long batchId, String activityCode, String studentStatus) {
-        Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
-        if (gradStatusOptional.isPresent()) {
-            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            if(StringUtils.isNotBlank(studentStatus)) {
-                gradEntity.setStudentStatus(studentStatus);
-            }
-            gradEntity.setUpdateUser(null);
-            gradEntity.setUpdateDate(null);
-            gradEntity.setBatchId(batchId);
-            historyService.createStudentHistory(gradEntity, activityCode);
+    public void saveStudentHistoryRecordArchiveStudentsRun(UUID studentID, Long batchId, String activityCode) {
+        List<GraduationStudentRecordView> graduationStudentRecordViews = graduationStatusRepository.findByStudentIDIn(List.of(studentID));
+        for(GraduationStudentRecordView st: graduationStudentRecordViews) {
+            GraduationStudentRecordEntity toBeSaved = new GraduationStudentRecordEntity();
+            BeanUtils.copyProperties(st, toBeSaved);
+            toBeSaved.setStudentStatus("ARC");
+            toBeSaved.setUpdateUser(null);
+            toBeSaved.setUpdateDate(null);
+            toBeSaved.setBatchId(batchId);
+            historyService.createStudentHistory(toBeSaved, activityCode);
         }
     }
 
@@ -1320,6 +1319,7 @@ public class GraduationStatusService {
         return result;
     }
 
+    @Generated
     private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result) {
         if(tasks.isEmpty()) return;
         List<Future<Object>> executionResult;
@@ -1395,19 +1395,21 @@ public class GraduationStatusService {
     @Transactional
     public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus) {
         String recordStudentStatus = StringUtils.defaultString(studentStatus, "CUR");
+        Integer archivedStudentsCount = 0;
         if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
             List<UUID> graduationStudentRecordGuids = graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(schoolOfRecords, recordStudentStatus);
             for(UUID graduationStudentRecordGuid: graduationStudentRecordGuids) {
-                saveStudentHistoryRecordDistributionRun(graduationStudentRecordGuid, batchId, "USERSTUDARC", "ARC");
+                saveStudentHistoryRecordArchiveStudentsRun(graduationStudentRecordGuid, batchId, "USERSTUDARC");
             }
-            return graduationStatusRepository.archiveStudents(schoolOfRecords, recordStudentStatus, "ARC", batchId);
+            archivedStudentsCount = graduationStatusRepository.archiveStudents(schoolOfRecords, recordStudentStatus, "ARC", batchId);
         } else {
             List<UUID> graduationStudentRecordGuids = graduationStatusRepository.findByStudentStatus(recordStudentStatus);
             for(UUID graduationStudentRecordGuid: graduationStudentRecordGuids) {
-                saveStudentHistoryRecordDistributionRun(graduationStudentRecordGuid, batchId, "USERSTUDARC", "ARC");
+                saveStudentHistoryRecordArchiveStudentsRun(graduationStudentRecordGuid, batchId, "USERSTUDARC");
             }
-            return graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId);
+            archivedStudentsCount = graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId);
         }
+        return archivedStudentsCount;
     }
 
     public void updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {

@@ -65,7 +65,7 @@ public class HistoryService {
             graduationStudentRecordHistoryEntity.setCreateDate(curStudentEntity.getCreateDate());
             graduationStudentRecordHistoryEntity.setActivityCode(historyActivityCode);
             graduationStudentRecordHistoryEntity.setStudentGradData("{ EMPTY CLOB }");
-            graduationStudentRecordHistoryRepository.save(graduationStudentRecordHistoryEntity);
+            graduationStudentRecordHistoryRepository.saveAndFlush(graduationStudentRecordHistoryEntity);
         }
     }
 

@@ -423,6 +423,16 @@ public class GradStudentServiceTest {
             }
 
             @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
+                return null;
+            }
+
+            @Override
             public LocalDateTime getCreateDate() {
                 return null;
             }
@@ -432,9 +442,9 @@ public class GradStudentServiceTest {
                 return null;
             }
         };
+
         List<UUID> studentSubList = new ArrayList<>();
         studentSubList.add(graduationStatusView.getStudentID());
-
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
         when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
