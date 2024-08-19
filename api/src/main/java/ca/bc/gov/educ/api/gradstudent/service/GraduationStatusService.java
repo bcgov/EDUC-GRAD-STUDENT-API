@@ -1219,12 +1219,12 @@ public class GraduationStatusService {
     }
 
     @Retry(name = "generalpostcall")
-    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId, String activityCode) {
+    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId, String activityCode, String username) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            gradEntity.setUpdateUser(null);
-            gradEntity.setUpdateDate(null);
+            gradEntity.setUpdateUser(username);
+            gradEntity.setUpdateDate(LocalDateTime.now());
             gradEntity.setBatchId(batchId);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, activityCode);

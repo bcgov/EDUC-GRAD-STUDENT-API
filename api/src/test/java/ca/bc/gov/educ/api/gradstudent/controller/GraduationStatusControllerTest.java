@@ -438,9 +438,9 @@ public class GraduationStatusControllerTest {
         graduationStatus.setSchoolOfRecord("12345678");
         graduationStatus.setRecalculateGradStatus("Y");
 
-        Mockito.when(graduationStatusService.saveStudentRecordDistributionRun(studentID,null,"ACTIVITYCODE")).thenReturn(graduationStatus);
-        graduationStatusController.saveStudentGradStatusDistributionRun(studentID.toString(),null,"ACTIVITYCODE");
-        Mockito.verify(graduationStatusService).saveStudentRecordDistributionRun(studentID,null,"ACTIVITYCODE");
+        Mockito.when(graduationStatusService.saveStudentRecordDistributionRun(studentID,null,"ACTIVITYCODE", "USER")).thenReturn(graduationStatus);
+        graduationStatusController.saveStudentGradStatusDistributionRun(studentID.toString(),null,"ACTIVITYCODE", "USER");
+        Mockito.verify(graduationStatusService).saveStudentRecordDistributionRun(studentID,null,"ACTIVITYCODE", "USER");
     }
 
     @Test
