@@ -1223,7 +1223,7 @@ public class GraduationStatusService {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            gradEntity.setUpdateUser(username);
+            gradEntity.setUpdateUser(StringUtils.isNotBlank(username) && !StringUtils.equalsIgnoreCase(username, "null") ? username : null);
             gradEntity.setUpdateDate(LocalDateTime.now());
             gradEntity.setBatchId(batchId);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
