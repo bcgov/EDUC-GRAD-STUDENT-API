@@ -27,8 +27,7 @@ public class GradStudentController {
 
     @SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(GradStudentController.class);
-	private static final String BEARER = "Bearer ";
-	
+
     private final GradStudentService gradStudentService;
 
     public GradStudentController(GradStudentService gradStudentService) {

@@ -408,14 +408,20 @@ public class GradStudentService {
 
 	public List<UUID> getStudentIDsBySearchCriteriaOrAll(StudentSearchRequest searchRequest) {
 		ArrayList<UUID> result = new ArrayList<>();
-		result.addAll(searchRequest.getStudentIDs());
+		boolean paramsNotEmpty = false;
+		if(searchRequest.getStudentIDs() != null && !searchRequest.getStudentIDs().isEmpty()) {
+			paramsNotEmpty = true;
+			result.addAll(searchRequest.getStudentIDs());
+		}
 		if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
+			paramsNotEmpty = true;
 			result.addAll(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens()));
 		}
 		if(searchRequest.getSchoolOfRecords() != null && !searchRequest.getSchoolOfRecords().isEmpty()) {
+			paramsNotEmpty = true;
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIn(searchRequest.getSchoolOfRecords()));
 		}
-		if(result.isEmpty()) {
+		if(!paramsNotEmpty) {
 			result.addAll(graduationStatusRepository.findAllStudentGuids());
 		}
 		return result;
