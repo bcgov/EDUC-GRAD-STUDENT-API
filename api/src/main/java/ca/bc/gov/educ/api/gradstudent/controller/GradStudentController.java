@@ -1,22 +1,23 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import java.util.List;
-
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @CrossOrigin
@@ -26,7 +27,8 @@ public class GradStudentController {
 
     @SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(GradStudentController.class);
-
+	private static final String BEARER = "Bearer ";
+	
     private final GradStudentService gradStudentService;
 
     public GradStudentController(GradStudentService gradStudentService) {
@@ -115,5 +117,13 @@ public class GradStudentController {
 	@PreAuthorize("hasAuthority('SCOPE_WRITE_STUDENT')")
     public Student addNewPenFromStudentAPI(@Validated @RequestBody StudentCreate student, @RequestHeader(name="Authorization") String accessToken) {
 		return gradStudentService.addNewPenFromStudentAPI(student, accessToken.replaceAll("Bearer ", ""));
+	}
+
+	@PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_BY_SEARCH_CRITERIAS)
+	@PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+	@Operation(summary = "Find Students by StudentSearchRequest criteria", description = "Find Students by StudentSearchRequest criteria", tags = { "Search Student Records" })
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+	public List<UUID> searchGraduationStudentRecords(@RequestBody StudentSearchRequest searchRequest) {
+		return gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
 	}
 }

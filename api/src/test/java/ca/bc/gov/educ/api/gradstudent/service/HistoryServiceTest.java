@@ -37,6 +37,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -267,5 +268,53 @@ public class HistoryServiceTest {
         Page<GraduationStudentRecordHistoryEntity> list = historyService.getStudentHistoryByBatchID(4000L, 0, 10,null);
         assertThat(list).isNotEmpty();
         assertThat(list.getContent()).hasSize(1);
+    }
+
+    @Test
+    public void testUpdateStudentRecordHistoryDistributionRun() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID historyID = UUID.randomUUID();
+        List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
+
+        Student std = new Student();
+        std.setPen("123123");
+        std.setLegalFirstName("Asdad");
+        std.setLegalMiddleNames("Adad");
+        std.setLegalLastName("sadad");
+
+        GradSearchStudent serObj = new GradSearchStudent();
+        serObj.setPen("123123");
+        serObj.setLegalFirstName("Asdad");
+        serObj.setLegalMiddleNames("Adad");
+        serObj.setLegalLastName("sadad");
+        GraduationData gd = new GraduationData();
+        gd.setGradStudent(serObj);
+
+        GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
+        graduationStudentRecordHistoryEntity.setStudentID(studentID);
+        graduationStudentRecordHistoryEntity.setStudentStatus("A");
+        graduationStudentRecordHistoryEntity.setRecalculateGradStatus("Y");
+        graduationStudentRecordHistoryEntity.setProgram("2018-EN");
+        graduationStudentRecordHistoryEntity.setSchoolOfRecord("223333");
+        graduationStudentRecordHistoryEntity.setGpa("4");
+        graduationStudentRecordHistoryEntity.setHistoryID(new UUID(1,1));
+        graduationStudentRecordHistoryEntity.setActivityCode("GRADALG");
+        graduationStudentRecordHistoryEntity.setBatchId(4000L);
+        graduationStudentRecordHistoryEntity.setPen("123123");
+        graduationStudentRecordHistoryEntity.setLegalFirstName("Asdad");
+        graduationStudentRecordHistoryEntity.setLegalMiddleNames("Adad");
+        graduationStudentRecordHistoryEntity.setLegalLastName("sadad");
+        histList.add(graduationStudentRecordHistoryEntity);
+        Pageable paging = PageRequest.of(0, 10);
+        Page<GraduationStudentRecordHistoryEntity> hPage = new PageImpl(histList);
+
+        when(graduationStudentRecordHistoryRepository.findByBatchId(4000L, PageRequest.of(0, Integer.SIZE))).thenReturn(hPage);
+        when(graduationStudentRecordHistoryRepository.findByStudentID(studentID)).thenReturn(List.of(graduationStudentRecordHistoryEntity));
+        when(graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(4000L, "USER", LocalDateTime.now())).thenReturn(1);
+
+        var result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of(studentID));
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(0);
     }
 }

@@ -3035,8 +3035,21 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "CUR")).thenReturn(1L);
         Long count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "CUR");
         assertThat(count).isNotNull().isEqualTo(1L);
-        Mockito.when(graduationStatusRepository.countByStudentStatus("CUR")).thenReturn(2L);
-        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(null, "CUR");
+
+        Mockito.when(graduationStatusRepository.countByStudentStatus("CUR")).thenReturn(1L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), "CUR");
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.countBySchoolOfRecords(List.of("12345678"))).thenReturn(1L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), null);
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.countBySchoolOfRecords(List.of("12345678"))).thenReturn(1L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "null");
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.count()).thenReturn(2L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), null);
         assertThat(count).isNotNull().isEqualTo(2L);
 
     }

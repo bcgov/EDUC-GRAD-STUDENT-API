@@ -359,9 +359,9 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<ApiResponseModel<Integer>> updateStudentGradHistoryStatusDistributionRun(@PathVariable Long batchID, @RequestParam(required = false) String userName, @RequestParam(required = false) String activityCode) {
+    public ResponseEntity<ApiResponseModel<Integer>> updateStudentGradHistoryStatusDistributionRun(@PathVariable Long batchID, @RequestParam(required = false) String userName, @RequestParam(required = false) String activityCode, @RequestBody List<UUID> studentGuids) {
         logger.debug("Save Distribution student Grad history for Student ID");
-        return response.UPDATED(historyService.updateStudentRecordHistoryDistributionRun(batchID, userName, activityCode));
+        return response.UPDATED(historyService.updateStudentRecordHistoryDistributionRun(batchID, userName, activityCode, studentGuids));
     }
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_SCHOOL_REPORT)

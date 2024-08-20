@@ -559,6 +559,13 @@ public class GraduationStatusControllerTest {
     }
 
     @Test
+    public void testUpdateStudentGradHistoryStatusDistributionRun() {
+        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "USER", "activityCode", List.of())).thenReturn(1);
+        graduationStatusController.updateStudentGradHistoryStatusDistributionRun(1L, "USER", "activityCode", List.of());
+        Mockito.verify(historyService).updateStudentRecordHistoryDistributionRun(1L, "USER", "activityCode", List.of());
+    }
+
+    @Test
     public void testGetStudentsForSchoolReport() {
         // ID
         String mincode = "123456789";
@@ -610,6 +617,18 @@ public class GraduationStatusControllerTest {
         Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(mincode), "CUR")).thenReturn(1L);
         graduationStatusController.getStudentsCount("CUR", List.of(mincode));
         Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(mincode), "CUR");
+
+        Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), "CUR")).thenReturn(1L);
+        graduationStatusController.getStudentsCount("CUR", List.of());
+        Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(), "CUR");
+
+        Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(mincode), null)).thenReturn(1L);
+        graduationStatusController.getStudentsCount(null, List.of(mincode));
+        Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(mincode), null);
+
+        Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), null)).thenReturn(1L);
+        graduationStatusController.getStudentsCount(null, List.of());
+        Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(), null);
     }
 
     @Test
