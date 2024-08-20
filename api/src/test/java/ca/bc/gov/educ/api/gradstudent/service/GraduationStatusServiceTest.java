@@ -2213,7 +2213,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
 
-        GraduationStudentRecord res =graduationStatusService.saveStudentRecordDistributionRun(studentID, batchId, "ACTIVITYCODE");
+        GraduationStudentRecord res =graduationStatusService.saveStudentRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "USER");
         assertThat(res).isNotNull();
     }
 
