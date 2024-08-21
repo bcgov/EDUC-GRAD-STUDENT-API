@@ -219,7 +219,6 @@ public class HistoryServiceTest {
     public void testGetStudentHistoryByBatchID() {
         // ID
         UUID studentID = UUID.randomUUID();
-        UUID historyID = UUID.randomUUID();
         List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
 
         Student std = new Student();
@@ -274,7 +273,6 @@ public class HistoryServiceTest {
     public void testUpdateStudentRecordHistoryDistributionRun() {
         // ID
         UUID studentID = UUID.randomUUID();
-        UUID historyID = UUID.randomUUID();
         List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
 
         Student std = new Student();
@@ -306,7 +304,6 @@ public class HistoryServiceTest {
         graduationStudentRecordHistoryEntity.setLegalMiddleNames("Adad");
         graduationStudentRecordHistoryEntity.setLegalLastName("sadad");
         histList.add(graduationStudentRecordHistoryEntity);
-        Pageable paging = PageRequest.of(0, 10);
         Page<GraduationStudentRecordHistoryEntity> hPage = new PageImpl(histList);
 
         GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
@@ -318,25 +315,20 @@ public class HistoryServiceTest {
         when(graduationStudentRecordRepository.findByStudentID(studentID)).thenReturn(graduationStudentRecordEntity);
 
         var result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of(studentID));
-        assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(0);
+        assertThat(result).isNotNull().isZero();
 
         when(graduationStudentRecordHistoryRepository.findByBatchId(4000L, PageRequest.of(0, Integer.SIZE))).thenReturn(null);
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of(studentID));
-        assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(1);
+        assertThat(result).isNotNull().isEqualTo(1);
 
         when(graduationStudentRecordHistoryRepository.findByBatchId(4000L, PageRequest.of(0, Integer.SIZE))).thenReturn(new PageImpl(List.of()));
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of(studentID));
-        assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(1);
+        assertThat(result).isNotNull().isEqualTo(1);
 
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of());
-        assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(0);
+        assertThat(result).isNotNull().isZero();
 
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "", List.of());
-        assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(0);
+        assertThat(result).isNotNull().isZero();
     }
 }
