@@ -831,13 +831,13 @@ public class GradStudentServiceTest {
 
     @Test
     public void testGetStudentIDsBySearchCriterias() {
+        List<UUID> result = List.of(UUID.randomUUID());
+
         StudentSearchRequest searchRequest = StudentSearchRequest.builder()
                 .schoolOfRecords(List.of("12345678"))
                 .pens(List.of("12345678"))
-                .studentIDs(List.of(UUID.randomUUID()))
+                .studentIDs(result)
                 .build();
-
-        List<UUID> result = List.of(UUID.randomUUID());
 
         when(graduationStatusRepository.findBySchoolOfRecordIn(searchRequest.getSchoolOfRecords())).thenReturn(result);
         when(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens())).thenReturn(result);
