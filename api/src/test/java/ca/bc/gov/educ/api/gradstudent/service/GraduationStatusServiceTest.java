@@ -1529,6 +1529,8 @@ public class GraduationStatusServiceTest {
 
         Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
 
+        historyService.createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_DELETE");
+
         when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
         when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
         doNothing().when(gradStudentOptionalProgramRepository).delete(gradStudentOptionalProgramEntity);
