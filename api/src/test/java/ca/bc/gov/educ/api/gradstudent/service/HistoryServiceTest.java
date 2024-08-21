@@ -58,7 +58,6 @@ public class HistoryServiceTest {
     @Autowired HistoryService historyService;
     @MockBean CommonService commonService;
     @MockBean GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
-    @MockBean GraduationStudentRecordRepository graduationStatusRepository;
     @MockBean GraduationStudentRecordRepository graduationStudentRecordRepository;
     @MockBean HistoryActivityRepository historyActivityRepository;
     @MockBean StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
@@ -316,7 +315,7 @@ public class HistoryServiceTest {
         when(graduationStudentRecordHistoryRepository.findByBatchId(4000L, PageRequest.of(0, Integer.SIZE))).thenReturn(hPage);
         when(graduationStudentRecordHistoryRepository.findByStudentID(studentID)).thenReturn(List.of(graduationStudentRecordHistoryEntity));
         when(graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(4000L, "USER", LocalDateTime.now())).thenReturn(1);
-        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStudentRecordEntity);
+        when(graduationStudentRecordRepository.findByStudentID(studentID)).thenReturn(graduationStudentRecordEntity);
 
         var result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of(studentID));
         assertThat(result).isNotNull();
@@ -325,12 +324,12 @@ public class HistoryServiceTest {
         when(graduationStudentRecordHistoryRepository.findByBatchId(4000L, PageRequest.of(0, Integer.SIZE))).thenReturn(null);
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of(studentID));
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(0);
+        assertThat(result).isEqualTo(1);
 
         when(graduationStudentRecordHistoryRepository.findByBatchId(4000L, PageRequest.of(0, Integer.SIZE))).thenReturn(new PageImpl(List.of()));
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of(studentID));
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(0);
+        assertThat(result).isEqualTo(1);
 
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of());
         assertThat(result).isNotNull();
