@@ -831,10 +831,19 @@ public class GradStudentServiceTest {
 
     @Test
     public void testGetStudentIDsBySearchCriterias() {
-        StudentSearchRequest searchRequest = StudentSearchRequest.builder().schoolOfRecords(List.of("12345678")).build();
-        when(graduationStatusRepository.findBySchoolOfRecordIn(List.of("12345678"))).thenReturn(List.of(UUID.randomUUID()));
-        List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .schoolOfRecords(List.of("12345678"))
+                .pens(List.of("12345678"))
+                .studentIDs(List.of(UUID.randomUUID()))
+                .build();
 
+        List<UUID> result = List.of(UUID.randomUUID());
+
+        when(graduationStatusRepository.findBySchoolOfRecordIn(searchRequest.getSchoolOfRecords())).thenReturn(result);
+        when(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens())).thenReturn(result);
+        when(graduationStatusRepository.findAllStudentGuids()).thenReturn(result);
+
+        List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
         assertThat(results).isNotEmpty();
     }
 
