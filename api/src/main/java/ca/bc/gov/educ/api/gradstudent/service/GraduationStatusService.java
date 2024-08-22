@@ -1219,12 +1219,12 @@ public class GraduationStatusService {
     }
 
     @Retry(name = "generalpostcall")
-    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId, String activityCode) {
+    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId, String activityCode, String username) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            gradEntity.setUpdateUser(null);
-            gradEntity.setUpdateDate(null);
+            gradEntity.setUpdateUser(StringUtils.isNotBlank(username) && !StringUtils.equalsIgnoreCase(username, "null") ? username : null);
+            gradEntity.setUpdateDate(LocalDateTime.now());
             gradEntity.setBatchId(batchId);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, activityCode);
@@ -1385,10 +1385,12 @@ public class GraduationStatusService {
     }
 
     public Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus) {
-        if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
-            return graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(schoolOfRecords, StringUtils.defaultString(studentStatus, "CUR"));
+        if(schoolOfRecords != null && !schoolOfRecords.isEmpty() && StringUtils.isNotBlank(studentStatus) && !StringUtils.equalsAnyIgnoreCase(studentStatus, "null")) {
+            return graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(schoolOfRecords, StringUtils.upperCase(studentStatus));
+        } else if(StringUtils.isNotBlank(studentStatus) && !StringUtils.equalsAnyIgnoreCase(studentStatus, "null")) {
+            return graduationStatusRepository.countByStudentStatus(StringUtils.upperCase(studentStatus));
         } else {
-            return graduationStatusRepository.countByStudentStatus(StringUtils.defaultString(studentStatus, "CUR"));
+            return countBySchoolOfRecords(schoolOfRecords);
         }
     }
 
@@ -1445,6 +1447,14 @@ public class GraduationStatusService {
             if (isUpdated) {
                 graduationStatusRepository.save(entity);
             }
+        }
+    }
+
+    private Long countBySchoolOfRecords(List<String> schoolOfRecords) {
+        if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
+            return graduationStatusRepository.countBySchoolOfRecords(schoolOfRecords);
+        } else {
+            return graduationStatusRepository.count();
         }
     }
 

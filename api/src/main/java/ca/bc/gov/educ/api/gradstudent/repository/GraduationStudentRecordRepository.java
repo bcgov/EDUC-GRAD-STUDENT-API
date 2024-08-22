@@ -50,8 +50,14 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords) and c.studentStatus=:studentStatus")
 	List<UUID> findBySchoolOfRecordInAndStudentStatus(List<String> schoolOfRecords, String studentStatus);
 
+	@Query("select c.studentID from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords)")
+	List<UUID> findBySchoolOfRecordIn(List<String> schoolOfRecords);
+
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
 	List<UUID> findByStudentStatus(String studentStatus);
+
+	@Query("select distinct c.studentID from GraduationStudentRecordEntity c")
+	List<UUID> findAllStudentGuids();
 
 	List<GraduationStudentRecordView> findBySchoolOfRecordAndStudentStatusAndStudentGradeIn(String schoolOfRecord, String studentStatus, List<String> studentGrade);
 
@@ -60,6 +66,9 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords) and c.studentStatus=:studentStatus")
 	Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus);
+
+	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords)")
+	Long countBySchoolOfRecords(List<String> schoolOfRecords);
 
 	@Query("select count(*) from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
 	Long countByStudentStatus(String studentStatus);
@@ -96,8 +105,8 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
     long countStudentGuidPenXrefRecord(@Param("studentGuid") UUID studentGuid);
 
     @Query(value="select STUDENT_GUID from STUDENT_GUID_PEN_XREF \n"
-            + "where STUDENT_PEN = :pen", nativeQuery = true)
-    byte[] findStudentID(@Param("pen") String pen);
+            + "where STUDENT_PEN in (:pens)", nativeQuery = true)
+	List<UUID> findStudentIDsByPenIn(@Param("pens") List<String> pens);
 
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus = :statusCode and c.studentID in :studentIDList")
 	List<UUID> filterGivenStudentsByStatusCode(@Param("studentIDList") List<UUID> studentIDs, @Param("statusCode") String statusCode);

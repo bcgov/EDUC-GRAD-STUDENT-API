@@ -829,7 +829,23 @@ public class GradStudentServiceTest {
         assertThat(result.get(0)).isEqualTo(studentID1);
     }
 
+    @Test
+    public void testGetStudentIDsBySearchCriterias() {
+        List<UUID> result = List.of(UUID.randomUUID());
 
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .schoolOfRecords(List.of("12345678"))
+                .pens(List.of("12345678"))
+                .studentIDs(result)
+                .build();
+
+        when(graduationStatusRepository.findBySchoolOfRecordIn(searchRequest.getSchoolOfRecords())).thenReturn(result);
+        when(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens())).thenReturn(result);
+        when(graduationStatusRepository.findAllStudentGuids()).thenReturn(result);
+
+        List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
+        assertThat(results).isNotEmpty();
+    }
 
     @SneakyThrows
     protected Object createDataObjectFromJson(String jsonPath, Class<?> clazz) {

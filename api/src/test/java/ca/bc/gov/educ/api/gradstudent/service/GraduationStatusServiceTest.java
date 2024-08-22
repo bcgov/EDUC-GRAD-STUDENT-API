@@ -1529,6 +1529,8 @@ public class GraduationStatusServiceTest {
 
         Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
 
+        historyService.createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_DELETE");
+
         when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
         when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
         doNothing().when(gradStudentOptionalProgramRepository).delete(gradStudentOptionalProgramEntity);
@@ -2213,7 +2215,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
 
-        GraduationStudentRecord res =graduationStatusService.saveStudentRecordDistributionRun(studentID, batchId, "ACTIVITYCODE");
+        GraduationStudentRecord res =graduationStatusService.saveStudentRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "USER");
         assertThat(res).isNotNull();
     }
 
@@ -3035,8 +3037,21 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "CUR")).thenReturn(1L);
         Long count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "CUR");
         assertThat(count).isNotNull().isEqualTo(1L);
-        Mockito.when(graduationStatusRepository.countByStudentStatus("CUR")).thenReturn(2L);
-        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(null, "CUR");
+
+        Mockito.when(graduationStatusRepository.countByStudentStatus("CUR")).thenReturn(1L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), "CUR");
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.countBySchoolOfRecords(List.of("12345678"))).thenReturn(1L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), null);
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.countBySchoolOfRecords(List.of("12345678"))).thenReturn(1L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "null");
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.count()).thenReturn(2L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), null);
         assertThat(count).isNotNull().isEqualTo(2L);
 
     }

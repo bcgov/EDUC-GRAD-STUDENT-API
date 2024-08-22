@@ -9,6 +9,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStudentRecordHistoryTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentOptionalProgramHistoryTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -38,6 +39,7 @@ public class HistoryService {
     final
     WebClient webClient;
 
+    final GraduationStudentRecordRepository graduationStatusRepository;
     final GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
     final GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer;
     final StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
@@ -46,13 +48,14 @@ public class HistoryService {
     final EducGradStudentApiConstants constants;
 
     @Autowired
-    public HistoryService(WebClient webClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants, HistoryActivityRepository historyActivityRepository) {
+    public HistoryService(WebClient webClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants, HistoryActivityRepository historyActivityRepository, GraduationStudentRecordRepository graduationStatusRepository) {
         this.webClient = webClient;
         this.graduationStudentRecordHistoryRepository = graduationStudentRecordHistoryRepository;
         this.graduationStudentRecordHistoryTransformer = graduationStudentRecordHistoryTransformer;
         this.studentOptionalProgramHistoryRepository = studentOptionalProgramHistoryRepository;
         this.studentOptionalProgramHistoryTransformer = studentOptionalProgramHistoryTransformer;
         this.historyActivityRepository = historyActivityRepository;
+        this.graduationStatusRepository = graduationStatusRepository;
         this.constants = constants;
     }
 
@@ -160,13 +163,31 @@ public class HistoryService {
     }
 
     @Transactional
-    public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, String activityCode) {
+    public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, String activityCode, List<UUID> studentGuids) {
+        Integer result = 0;
         LocalDateTime updateDate = LocalDateTime.now();
-        if(StringUtils.isBlank(activityCode) || StringUtils.equalsIgnoreCase(activityCode, "null")) {
-            return graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser, updateDate);
+        if(studentGuids != null && !studentGuids.isEmpty()) {
+            Page<GraduationStudentRecordHistoryEntity> recordHistoryEntityPage = graduationStudentRecordHistoryRepository.findByBatchId(batchId, PageRequest.of(0, Integer.SIZE));
+            if(recordHistoryEntityPage == null || recordHistoryEntityPage.isEmpty()) {
+                for (UUID studentGuid : studentGuids) {
+                    GraduationStudentRecordEntity entity = graduationStatusRepository.findByStudentID(studentGuid);
+                    if(entity != null) {
+                        GraduationStudentRecordEntity toBeSaved = new GraduationStudentRecordEntity();
+                        BeanUtils.copyProperties(entity, toBeSaved);
+                        toBeSaved.setBatchId(batchId);
+                        toBeSaved.setUpdateDate(updateDate);
+                        toBeSaved.setUpdateUser(updateUser);
+                        createStudentHistory(toBeSaved, activityCode);
+                        result ++;
+                    }
+                }
+            }
+        } else if(StringUtils.isBlank(activityCode) || StringUtils.equalsIgnoreCase(activityCode, "null")) {
+            result = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser, updateDate);
         } else {
-            return graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, activityCode, updateUser, updateDate);
+            result = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, activityCode, updateUser, updateDate);
         }
+        return result;
     }
 
 }
