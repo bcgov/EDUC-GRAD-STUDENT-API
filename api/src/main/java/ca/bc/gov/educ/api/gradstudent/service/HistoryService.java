@@ -174,6 +174,7 @@ public class HistoryService {
                     if(entity != null) {
                         GraduationStudentRecordEntity toBeSaved = new GraduationStudentRecordEntity();
                         BeanUtils.copyProperties(entity, toBeSaved);
+                        toBeSaved.setBatchId(batchId);
                         toBeSaved.setUpdateDate(updateDate);
                         toBeSaved.setUpdateUser(updateUser);
                         createStudentHistory(toBeSaved, activityCode);
