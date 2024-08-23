@@ -59,9 +59,9 @@ public class HistoryService {
         this.constants = constants;
     }
 
-    public void createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
+    public void createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode, int count, int total) {
         if (curStudentEntity != null) {
-            logger.debug("Create Student History");
+            logger.debug("Create Student History for {}: {} of {}", curStudentEntity.getStudentID(), count, total);
             final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
             BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
             graduationStudentRecordHistoryEntity.setCreateUser(curStudentEntity.getCreateUser());
@@ -169,6 +169,8 @@ public class HistoryService {
         if(studentGuids != null && !studentGuids.isEmpty()) {
             Page<GraduationStudentRecordHistoryEntity> recordHistoryEntityPage = graduationStudentRecordHistoryRepository.findByBatchId(batchId, PageRequest.of(0, Integer.SIZE));
             if(recordHistoryEntityPage == null || recordHistoryEntityPage.isEmpty()) {
+                int count = 0;
+                int total = studentGuids.size();
                 for (UUID studentGuid : studentGuids) {
                     GraduationStudentRecordEntity entity = graduationStatusRepository.findByStudentID(studentGuid);
                     if(entity != null) {
@@ -177,7 +179,7 @@ public class HistoryService {
                         toBeSaved.setBatchId(batchId);
                         toBeSaved.setUpdateDate(updateDate);
                         toBeSaved.setUpdateUser(updateUser);
-                        createStudentHistory(toBeSaved, activityCode);
+                        createStudentHistory(toBeSaved, activityCode, ++ count, total);
                         result ++;
                     }
                 }

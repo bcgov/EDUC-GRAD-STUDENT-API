@@ -2331,11 +2331,11 @@ public class GraduationStatusServiceTest {
 
         when(graduationStatusRepository.findByStudentIDIn(List.of(studentID))).thenReturn(List.of(graduationStatusEntity));
 
-        doNothing().when(graduationStatusServiceMock).saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
-        graduationStatusServiceMock.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
-        Mockito.verify(graduationStatusServiceMock).saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+        doNothing().when(graduationStatusServiceMock).saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE", 1, 1);
+        graduationStatusServiceMock.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE", 1, 1);
+        Mockito.verify(graduationStatusServiceMock).saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE", 1, 1);
 
-        graduationStatusService.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+        graduationStatusService.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE", 1, 1);
 
     }
 

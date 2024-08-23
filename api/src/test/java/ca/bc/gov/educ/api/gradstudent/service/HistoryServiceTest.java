@@ -155,7 +155,7 @@ public class HistoryServiceTest {
 
         when(graduationStudentRecordRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
 
-        historyService.createStudentHistory(graduationStatusEntity, "ACTIVITYCODE");
+        historyService.createStudentHistory(graduationStatusEntity, "ACTIVITYCODE", 1, 1);
 
         assertThat(graduationStatusEntity).isNotNull();
     }

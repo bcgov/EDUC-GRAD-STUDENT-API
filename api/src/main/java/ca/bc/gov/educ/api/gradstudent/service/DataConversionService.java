@@ -3,7 +3,9 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import ca.bc.gov.educ.api.gradstudent.constant.FieldName;
 import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
@@ -21,7 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Initial Student Loads
@@ -113,7 +118,7 @@ public class DataConversionService {
             gradEntity.setUpdateDate(null);
             gradEntity.setUpdateUser(null);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-            historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
+            historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE, 1, 1);
             if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(requestDTO.getPen())) {
                 saveStudentGuidPenXref(gradEntity.getStudentID(), requestDTO.getPen());
             }
@@ -234,7 +239,7 @@ public class DataConversionService {
         targetObject.setUpdateUser(null);
         targetObject = graduationStatusRepository.saveAndFlush(targetObject);
         if (ongoingUpdate) {
-            historyService.createStudentHistory(targetObject, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
+            historyService.createStudentHistory(targetObject, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE, 1, 1);
         }
         if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(pen)) {
             saveStudentGuidPenXref(targetObject.getStudentID(), pen);
@@ -245,9 +250,9 @@ public class DataConversionService {
     private GraduationStudentRecordEntity handleNewGraduationStatus(GraduationStudentRecordEntity newObject, String pen, boolean ongoingUpdate) {
         newObject = graduationStatusRepository.saveAndFlush(newObject);
         if (ongoingUpdate) {
-            historyService.createStudentHistory(newObject, ADD_ONGOING_HISTORY_ACTIVITY_CODE);
+            historyService.createStudentHistory(newObject, ADD_ONGOING_HISTORY_ACTIVITY_CODE, 1, 1);
         } else {
-            historyService.createStudentHistory(newObject, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
+            historyService.createStudentHistory(newObject, DATA_CONVERSION_HISTORY_ACTIVITY_CODE, 1, 1);
         }
         if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(pen)) {
             saveStudentGuidPenXref(newObject.getStudentID(), pen);
