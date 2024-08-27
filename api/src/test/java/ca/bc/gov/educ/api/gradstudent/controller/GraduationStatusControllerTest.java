@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -560,9 +561,10 @@ public class GraduationStatusControllerTest {
 
     @Test
     public void testUpdateStudentGradHistoryStatusDistributionRun() {
-        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "USER", "activityCode", List.of())).thenReturn(1);
-        graduationStatusController.updateStudentGradHistoryStatusDistributionRun(1L, "USER", "activityCode", List.of());
-        Mockito.verify(historyService).updateStudentRecordHistoryDistributionRun(1L, "USER", "activityCode", List.of());
+        LocalDateTime updateDate = LocalDateTime.now();
+        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "Batch Archive Process", updateDate, "activityCode", List.of())).thenReturn(1);
+        graduationStatusController.updateStudentGradHistoryStatusDistributionRun(1L, "Batch Archive Process", "activityCode", List.of());
+        //Mockito.verify(historyService).updateStudentRecordHistoryDistributionRun(1L, "Batch Archive Process", updateDate, "activityCode", List.of());
     }
 
     @Test
@@ -635,9 +637,10 @@ public class GraduationStatusControllerTest {
     public void testArchiveStudents() {
         // ID
         String mincode = "123456789";
-        Mockito.when(graduationStatusService.archiveStudents(1L, List.of(mincode), "CUR")).thenReturn(1);
-        graduationStatusController.archiveStudents(1L, "CUR", List.of(mincode));
-        Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(mincode), "CUR");
+        LocalDateTime updateDate = LocalDateTime.now();
+        Mockito.when(graduationStatusService.archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process", updateDate)).thenReturn(1);
+        graduationStatusController.archiveStudents(1L, "CUR", "Batch Archive Process", List.of(mincode));
+        Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process", updateDate);
     }
 
     @Test

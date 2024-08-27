@@ -28,6 +28,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,9 +60,9 @@ public class HistoryService {
         this.constants = constants;
     }
 
-    public void createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode, int count, int total) {
+    public void createStudentHistory(GraduationStudentRecordEntity curStudentEntity, String historyActivityCode) {
         if (curStudentEntity != null) {
-            logger.debug("Create Student History for {}: {} of {}", curStudentEntity.getStudentID(), count, total);
+            logger.debug("Create Student History");
             final GraduationStudentRecordHistoryEntity graduationStudentRecordHistoryEntity = new GraduationStudentRecordHistoryEntity();
             BeanUtils.copyProperties(curStudentEntity, graduationStudentRecordHistoryEntity);
             graduationStudentRecordHistoryEntity.setCreateUser(curStudentEntity.getCreateUser());
@@ -163,33 +164,18 @@ public class HistoryService {
     }
 
     @Transactional
-    public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, String activityCode, List<UUID> studentGuids) {
-        Integer result = 0;
-        LocalDateTime updateDate = LocalDateTime.now();
+    public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, LocalDateTime updateDate, String activityCode, List<UUID> studentGuids) {
+        Integer historyRecordsCreated;
         if(studentGuids != null && !studentGuids.isEmpty()) {
-            Page<GraduationStudentRecordHistoryEntity> recordHistoryEntityPage = graduationStudentRecordHistoryRepository.findByBatchId(batchId, PageRequest.of(0, Integer.SIZE));
-            if(recordHistoryEntityPage == null || recordHistoryEntityPage.isEmpty()) {
-                int count = 0;
-                int total = studentGuids.size();
-                for (UUID studentGuid : studentGuids) {
-                    GraduationStudentRecordEntity entity = graduationStatusRepository.findByStudentID(studentGuid);
-                    if(entity != null) {
-                        GraduationStudentRecordEntity toBeSaved = new GraduationStudentRecordEntity();
-                        BeanUtils.copyProperties(entity, toBeSaved);
-                        toBeSaved.setBatchId(batchId);
-                        toBeSaved.setUpdateDate(updateDate);
-                        toBeSaved.setUpdateUser(updateUser);
-                        createStudentHistory(toBeSaved, activityCode, ++ count, total);
-                        result ++;
-                    }
-                }
-            }
+            Integer studentRecordsCreated = graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(batchId, studentGuids);
+            historyRecordsCreated = graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(batchId, studentGuids, activityCode, updateUser, updateDate);
+            assert Objects.equals(studentRecordsCreated, historyRecordsCreated);
         } else if(StringUtils.isBlank(activityCode) || StringUtils.equalsIgnoreCase(activityCode, "null")) {
-            result = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser, updateDate);
+            historyRecordsCreated = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser, updateDate);
         } else {
-            result = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, activityCode, updateUser, updateDate);
+            historyRecordsCreated = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, activityCode, updateUser, updateDate);
         }
-        return result;
+        return historyRecordsCreated;
     }
 
 }

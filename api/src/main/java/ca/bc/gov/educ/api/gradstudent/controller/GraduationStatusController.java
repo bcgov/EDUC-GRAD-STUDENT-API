@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
@@ -23,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -361,7 +361,8 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<ApiResponseModel<Integer>> updateStudentGradHistoryStatusDistributionRun(@PathVariable Long batchID, @RequestParam(required = false) String userName, @RequestParam(required = false) String activityCode, @RequestBody List<UUID> studentGuids) {
         logger.debug("Save Distribution student Grad history for Student ID");
-        return response.UPDATED(historyService.updateStudentRecordHistoryDistributionRun(batchID, userName, activityCode, studentGuids));
+        LocalDateTime updateDate = LocalDateTime.now();
+        return response.UPDATED(historyService.updateStudentRecordHistoryDistributionRun(batchID, userName, updateDate, activityCode, studentGuids));
     }
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_SCHOOL_REPORT)
@@ -403,8 +404,9 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.ARCHIVE_GRADUATION_STUDENT)
     @Operation(summary = "Get Students Count by mincode and status", description = "Get Students Count by mincode and status", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<Integer> archiveStudents(@RequestParam long batchId, @RequestParam(required = false) String studentStatus, @RequestBody List<String> schoolOfRecords) {
-        return response.GET(gradStatusService.archiveStudents(batchId, schoolOfRecords, studentStatus));
+    public ResponseEntity<Integer> archiveStudents(@RequestParam long batchId, @RequestParam(required = false) String studentStatus, @RequestParam(required = false) String userName, @RequestBody List<String> schoolOfRecords) {
+        LocalDateTime updateDate = LocalDateTime.now();
+        return response.GET(gradStatusService.archiveStudents(batchId, schoolOfRecords, studentStatus, userName, updateDate));
     }
 
     @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS)

@@ -118,7 +118,7 @@ public class DataConversionService {
             gradEntity.setUpdateDate(null);
             gradEntity.setUpdateUser(null);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-            historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE, 1, 1);
+            historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
             if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(requestDTO.getPen())) {
                 saveStudentGuidPenXref(gradEntity.getStudentID(), requestDTO.getPen());
             }
@@ -239,7 +239,7 @@ public class DataConversionService {
         targetObject.setUpdateUser(null);
         targetObject = graduationStatusRepository.saveAndFlush(targetObject);
         if (ongoingUpdate) {
-            historyService.createStudentHistory(targetObject, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE, 1, 1);
+            historyService.createStudentHistory(targetObject, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
         }
         if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(pen)) {
             saveStudentGuidPenXref(targetObject.getStudentID(), pen);
@@ -250,9 +250,9 @@ public class DataConversionService {
     private GraduationStudentRecordEntity handleNewGraduationStatus(GraduationStudentRecordEntity newObject, String pen, boolean ongoingUpdate) {
         newObject = graduationStatusRepository.saveAndFlush(newObject);
         if (ongoingUpdate) {
-            historyService.createStudentHistory(newObject, ADD_ONGOING_HISTORY_ACTIVITY_CODE, 1, 1);
+            historyService.createStudentHistory(newObject, ADD_ONGOING_HISTORY_ACTIVITY_CODE);
         } else {
-            historyService.createStudentHistory(newObject, DATA_CONVERSION_HISTORY_ACTIVITY_CODE, 1, 1);
+            historyService.createStudentHistory(newObject, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
         }
         if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(pen)) {
             saveStudentGuidPenXref(newObject.getStudentID(), pen);

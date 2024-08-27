@@ -202,7 +202,7 @@ public class GraduationStatusService {
             }
 
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-            historyService.createStudentHistory(gradEntity, GRAD_ALG, 1, 1);
+            historyService.createStudentHistory(gradEntity, GRAD_ALG);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
                     EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
 
@@ -272,7 +272,7 @@ public class GraduationStatusService {
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity.setUpdateUser(null);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-            historyService.createStudentHistory(gradEntity, USER_EDIT, 1, 1);
+            historyService.createStudentHistory(gradEntity, USER_EDIT);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
                     EventType.GRAD_STUDENT_UPDATED, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT, accessToken);
             if (gradStatusEvent != null) {
@@ -1110,7 +1110,7 @@ public class GraduationStatusService {
                     gradEntity.setSchoolAtGrad(null);
                     gradEntity.setUpdateUser(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
-                    historyService.createStudentHistory(gradEntity, USER_UNDO_CMPL, 1, 1);
+                    historyService.createStudentHistory(gradEntity, USER_UNDO_CMPL);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
                             EventType.GRAD_STUDENT_UNDO_COMPLETION, EventOutcome.GRAD_STATUS_UPDATED, USER_UNDO_CMPL, accessToken);
                     if (gradStatusEvent != null) {
@@ -1227,14 +1227,14 @@ public class GraduationStatusService {
             gradEntity.setUpdateDate(LocalDateTime.now());
             gradEntity.setBatchId(batchId);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-            historyService.createStudentHistory(gradEntity, activityCode, 1, 1);
+            historyService.createStudentHistory(gradEntity, activityCode);
             return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
     }
 
     @Retry(name = "generalpostcall")
-    public void saveStudentHistoryRecordArchiveStudentsRun(UUID studentID, Long batchId, String activityCode, int count, int total) {
+    public void saveStudentHistoryRecordArchiveStudentsRun(UUID studentID, Long batchId, String activityCode) {
         List<GraduationStudentRecordView> graduationStudentRecordViews = graduationStatusRepository.findByStudentIDIn(List.of(studentID));
         for(GraduationStudentRecordView st: graduationStudentRecordViews) {
             GraduationStudentRecordEntity toBeSaved = new GraduationStudentRecordEntity();
@@ -1243,7 +1243,7 @@ public class GraduationStatusService {
             toBeSaved.setUpdateUser(null);
             toBeSaved.setUpdateDate(null);
             toBeSaved.setBatchId(batchId);
-            historyService.createStudentHistory(toBeSaved, activityCode, count, total);
+            historyService.createStudentHistory(toBeSaved, activityCode);
         }
     }
 
@@ -1266,7 +1266,7 @@ public class GraduationStatusService {
             }
             gradEntity.setStudentProjectedGradData(projectedClob);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-            historyService.createStudentHistory(gradEntity, "GRADPROJECTED", 1, 1);
+            historyService.createStudentHistory(gradEntity, "GRADPROJECTED");
             return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
@@ -1395,26 +1395,19 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus) {
+    public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus, String user, LocalDateTime updateDate) {
         String recordStudentStatus = StringUtils.defaultString(studentStatus, "CUR");
-        Integer archivedStudentsCount = 0;
+        Integer archivedStudentsCount;
+        List<UUID> graduationStudentRecordGuids = new ArrayList<>();
         if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
-            List<UUID> graduationStudentRecordGuids = graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(schoolOfRecords, recordStudentStatus);
-            int count = 0;
-            int total = graduationStudentRecordGuids.size();
-            for(UUID graduationStudentRecordGuid: graduationStudentRecordGuids) {
-                saveStudentHistoryRecordArchiveStudentsRun(graduationStudentRecordGuid, batchId, "USERSTUDARC", ++ count, total);
-            }
-            archivedStudentsCount = graduationStatusRepository.archiveStudents(schoolOfRecords, recordStudentStatus, "ARC", batchId);
+            graduationStudentRecordGuids.addAll(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(schoolOfRecords, recordStudentStatus));
+            archivedStudentsCount = graduationStatusRepository.archiveStudents(schoolOfRecords, recordStudentStatus, "ARC", batchId, user);
         } else {
-            List<UUID> graduationStudentRecordGuids = graduationStatusRepository.findByStudentStatus(recordStudentStatus);
-            int count = 0;
-            int total = graduationStudentRecordGuids.size();
-            for(UUID graduationStudentRecordGuid: graduationStudentRecordGuids) {
-                saveStudentHistoryRecordArchiveStudentsRun(graduationStudentRecordGuid, batchId, "USERSTUDARC", ++ count, total);
-            }
-            archivedStudentsCount = graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId);
+            graduationStudentRecordGuids.addAll(graduationStatusRepository.findByStudentStatus(recordStudentStatus));
+            archivedStudentsCount = graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId, user);
         }
+        Integer historyRecordsUpdated = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, updateDate, "USERSTUDARC", graduationStudentRecordGuids);
+        assert Objects.equals(archivedStudentsCount, historyRecordsUpdated);
         return archivedStudentsCount;
     }
 

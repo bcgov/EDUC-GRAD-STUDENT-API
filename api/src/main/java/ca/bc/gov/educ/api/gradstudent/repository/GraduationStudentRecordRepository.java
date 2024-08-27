@@ -74,12 +74,12 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	Long countByStudentStatus(String studentStatus);
 
 	@Modifying
-	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = 'Batch Archive Process' where school_of_record in (:inSor) and student_status_code = :inStudStatFrom", nativeQuery=true)
-	Integer archiveStudents(List<String> inSor, String inStudStatFrom, String inStudStatTo, long batchId);
+	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = :userName where school_of_record in (:inSor) and student_status_code = :inStudStatFrom", nativeQuery=true)
+	Integer archiveStudents(List<String> inSor, String inStudStatFrom, String inStudStatTo, long batchId, String userName);
 
 	@Modifying
-	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = 'Batch Archive Process' where student_status_code = :inStudStatFrom", nativeQuery=true)
-	Integer archiveStudents(String inStudStatFrom, String inStudStatTo, long batchId);
+	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = :userName where student_status_code = :inStudStatFrom", nativeQuery=true)
+	Integer archiveStudents(String inStudStatFrom, String inStudStatTo, long batchId, String userName);
 
 	// Data Conversion
 	@Modifying
@@ -122,6 +122,10 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Modifying
 	@Query( "update GraduationStudentRecordEntity e set e.recalculateProjectedGrad = 'Y' where e.studentStatus = 'CUR' and e.programCompletionDate is null and (e.studentGrade = '12' or e.studentGrade = 'AD')")
 	void updateGradStudentRecalcFlagsForCurrentStudentsWithNullCompletion();
+
+	@Modifying
+	@Query( "update GraduationStudentRecordEntity e set e.batchId = :batchId where e.studentID in :studentIDs")
+	Integer updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(Long batchId, List<UUID> studentIDs);
 
 	/**
 	 * Find a GraduationStudentRecord By Student ID using generics. Pass an object with the
