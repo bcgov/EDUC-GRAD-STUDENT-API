@@ -26,10 +26,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.sql.Date;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -560,9 +558,12 @@ public class GraduationStatusControllerTest {
 
     @Test
     public void testUpdateStudentGradHistoryStatusDistributionRun() {
-        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "USER", "activityCode", List.of())).thenReturn(1);
-        graduationStatusController.updateStudentGradHistoryStatusDistributionRun(1L, "USER", "activityCode", List.of());
-        Mockito.verify(historyService).updateStudentRecordHistoryDistributionRun(1L, "USER", "activityCode", List.of());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date(System.currentTimeMillis()));
+        LocalDateTime updateDate = LocalDateTime.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE));
+        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "Batch Archive Process", updateDate, "activityCode", List.of())).thenReturn(1);
+        graduationStatusController.updateStudentGradHistoryStatusDistributionRun(1L, "Batch Archive Process", "activityCode", List.of());
+        Mockito.verify(historyService).updateStudentRecordHistoryDistributionRun(1L, "Batch Archive Process", updateDate, "activityCode", List.of());
     }
 
     @Test
@@ -635,9 +636,12 @@ public class GraduationStatusControllerTest {
     public void testArchiveStudents() {
         // ID
         String mincode = "123456789";
-        Mockito.when(graduationStatusService.archiveStudents(1L, List.of(mincode), "CUR")).thenReturn(1);
-        graduationStatusController.archiveStudents(1L, "CUR", List.of(mincode));
-        Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(mincode), "CUR");
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date(System.currentTimeMillis()));
+        LocalDateTime updateDate = LocalDateTime.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE));
+        Mockito.when(graduationStatusService.archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process", updateDate)).thenReturn(1);
+        graduationStatusController.archiveStudents(1L, "CUR", "Batch Archive Process", List.of(mincode));
+        Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process", updateDate);
     }
 
     @Test
