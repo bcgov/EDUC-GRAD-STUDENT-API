@@ -64,6 +64,7 @@ public class GraduationStatusServiceTest {
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
     @MockBean ReportGradStudentDataRepository reportGradStudentDataRepository;
     @MockBean StudentNonGradReasonRepository studentNonGradReasonRepository;
+    @MockBean GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
     @MockBean WebClient webClient;
@@ -3070,6 +3071,9 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         Mockito.when(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(List.of("12345678"), "CUR")).thenReturn(List.of(studentID));
         Mockito.when(graduationStatusRepository.archiveStudents(List.of("12345678"), "CUR", "ARC", 1L, "USER")).thenReturn(1);
+        Mockito.when(graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(1L, List.of(studentID))).thenReturn(1);
+        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "USER", updateDate, "USERSTUDARC", List.of(studentID))).thenReturn(1);
+
         Integer count = graduationStatusService.archiveStudents(1L, List.of("12345678"), "CUR", "USER", updateDate);
         assertThat(count).isNotNull().isEqualTo(1);
     }
@@ -3085,9 +3089,11 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setSchoolOfRecord("12345678");
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        Mockito.when(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(List.of("12345678"), "CUR")).thenReturn(List.of(studentID));
+        Mockito.when(graduationStatusRepository.findByStudentStatus("CUR")).thenReturn(List.of(studentID));
         Mockito.when(graduationStatusRepository.archiveStudents("CUR", "ARC", 1L, "USER")).thenReturn(1);
-        Integer count = graduationStatusService.archiveStudents(1L, new ArrayList<>(), "CUR", "USER", updateDate);
+        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "USER", updateDate, "USERSTUDARC", List.of(studentID))).thenReturn(1);
+
+        Integer count = graduationStatusService.archiveStudents(1L, List.of(), "CUR", "USER", updateDate);
         assertThat(count).isNotNull().isEqualTo(1);
     }
 

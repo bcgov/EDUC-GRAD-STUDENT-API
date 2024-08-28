@@ -316,6 +316,7 @@ public class HistoryServiceTest {
         when(graduationStudentRecordRepository.findByStudentID(studentID)).thenReturn(graduationStudentRecordEntity);
 
         when(graduationStudentRecordRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(4000L, List.of(studentID))).thenReturn(1);
+        when(graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(4000L, List.of(studentID), "activityCode", "USER", updateDate)).thenReturn(1);
         when(graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchId(4000L, "activityCode", "USER", updateDate)).thenReturn(1);
 
         var result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", updateDate, "activityCode", List.of(studentID));
