@@ -29,110 +29,116 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
     @Query(value="update GRADUATION_STUDENT_RECORD_HISTORY set HISTORY_ACTIVITY_CODE = :activityCode, UPDATE_USER = :updateUser, UPDATE_DATE = :updateDate where BATCH_ID = :batchId", nativeQuery=true)
     Integer updateGradStudentUpdateUser(@Param(value = "batchId") Long batchId, @Param(value = "activityCode") String activityCode, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
 
+    String insertGraduationStudentRecordHistoryByBatchIdSql = """
+            INSERT INTO GRADUATION_STUDENT_RECORD_HISTORY (
+                    GRADUATION_STUDENT_RECORD_HISTORY_ID,
+                    HISTORY_ACTIVITY_CODE,
+                    GRADUATION_STUDENT_RECORD_ID,
+                    GRADUATION_PROGRAM_CODE,
+                    GPA,
+                    STUDENT_STATUS_CODE,
+                    HONOURS_STANDING,
+                    PROGRAM_COMPLETION_DATE,
+                    RECALCULATE_GRAD_STATUS,
+                    SCHOOL_OF_RECORD,
+                    STUDENT_GRADE,
+                    SCHOOL_AT_GRADUATION,
+                    CREATE_USER,
+                    CREATE_DATE,
+                    UPDATE_USER,
+                    UPDATE_DATE,
+                    RECALCULATE_PROJECTED_GRAD,
+                    BATCH_ID,
+                    CONSUMER_EDUC_REQT_MET,
+                    STUDENT_CITIZENSHIP_CODE,
+                    ADULT_START_DATE,
+                    SCHOOL_OF_RECORD_ID,
+                    SCHOOL_AT_GRADUATION_ID
+                ) SELECT 
+                    SYS_GUID(),
+                    :activityCode,
+                    GRADUATION_STUDENT_RECORD_ID,
+                    GRADUATION_PROGRAM_CODE,
+                    GPA,
+                    STUDENT_STATUS_CODE,
+                    HONOURS_STANDING,
+                    PROGRAM_COMPLETION_DATE,
+                    RECALCULATE_GRAD_STATUS,
+                    SCHOOL_OF_RECORD,
+                    STUDENT_GRADE,
+                    SCHOOL_AT_GRADUATION,
+                    CREATE_USER,
+                    CREATE_DATE,
+                    :updateUser,
+                    :updateDate,
+                    RECALCULATE_PROJECTED_GRAD,
+                    BATCH_ID,
+                    CONSUMER_EDUC_REQT_MET,
+                    STUDENT_CITIZENSHIP_CODE,
+                    ADULT_START_DATE,
+                    SCHOOL_OF_RECORD_ID,
+                    SCHOOL_AT_GRADUATION_ID
+                FROM GRADUATION_STUDENT_RECORD
+                WHERE BATCH_ID = :batchId
+            """;
     @Modifying
-    @Query(value="INSERT INTO GRADUATION_STUDENT_RECORD_HISTORY (\n" +
-            "    GRADUATION_STUDENT_RECORD_HISTORY_ID,\n" +
-            "    HISTORY_ACTIVITY_CODE,\n" +
-            "    GRADUATION_STUDENT_RECORD_ID,\n" +
-            "    GRADUATION_PROGRAM_CODE,\n" +
-            "    GPA,\n" +
-            "    STUDENT_STATUS_CODE,\n" +
-            "    HONOURS_STANDING,\n" +
-            "    PROGRAM_COMPLETION_DATE,\n" +
-            "    RECALCULATE_GRAD_STATUS,\n" +
-            "    SCHOOL_OF_RECORD,\n" +
-            "    STUDENT_GRADE,\n" +
-            "    SCHOOL_AT_GRADUATION,\n" +
-            "    CREATE_USER,\n" +
-            "    CREATE_DATE,\n" +
-            "    UPDATE_USER,\n" +
-            "    UPDATE_DATE,\n" +
-            "    RECALCULATE_PROJECTED_GRAD,\n" +
-            "    BATCH_ID,\n" +
-            "    CONSUMER_EDUC_REQT_MET,\n" +
-            "    STUDENT_CITIZENSHIP_CODE,\n" +
-            "    ADULT_START_DATE,\n" +
-            "    SCHOOL_OF_RECORD_ID,\n" +
-            "    SCHOOL_AT_GRADUATION_ID\n" +
-            ") SELECT \n" +
-            "    SYS_GUID(),\n" +
-            "    :activityCode,\n" +
-            "    GRADUATION_STUDENT_RECORD_ID,\n" +
-            "    GRADUATION_PROGRAM_CODE,\n" +
-            "    GPA,\n" +
-            "    STUDENT_STATUS_CODE,\n" +
-            "    HONOURS_STANDING,\n" +
-            "    PROGRAM_COMPLETION_DATE,\n" +
-            "    RECALCULATE_GRAD_STATUS,\n" +
-            "    SCHOOL_OF_RECORD,\n" +
-            "    STUDENT_GRADE,\n" +
-            "    SCHOOL_AT_GRADUATION,\n" +
-            "    CREATE_USER,\n" +
-            "    CREATE_DATE,\n" +
-            "    :updateUser,\n" +
-            "    :updateDate,\n" +
-            "    RECALCULATE_PROJECTED_GRAD,\n" +
-            "    BATCH_ID,\n" +
-            "    CONSUMER_EDUC_REQT_MET,\n" +
-            "    STUDENT_CITIZENSHIP_CODE,\n" +
-            "    ADULT_START_DATE,\n" +
-            "    SCHOOL_OF_RECORD_ID,\n" +
-            "    SCHOOL_AT_GRADUATION_ID\n" +
-            "FROM GRADUATION_STUDENT_RECORD\n" +
-            "WHERE BATCH_ID = :batchId", nativeQuery=true)
+    @Query(value=insertGraduationStudentRecordHistoryByBatchIdSql, nativeQuery=true)
     Integer insertGraduationStudentRecordHistoryByBatchId(@Param(value = "batchId") Long batchId, @Param(value = "activityCode") String activityCode, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
 
+    String insertGraduationStudentRecordHistoryByBatchIdAndStudentIDsSql = """
+            INSERT INTO GRADUATION_STUDENT_RECORD_HISTORY (
+                GRADUATION_STUDENT_RECORD_HISTORY_ID,
+                HISTORY_ACTIVITY_CODE,
+                GRADUATION_STUDENT_RECORD_ID,
+                GRADUATION_PROGRAM_CODE,
+                GPA,
+                STUDENT_STATUS_CODE,
+                HONOURS_STANDING,
+                PROGRAM_COMPLETION_DATE,
+                RECALCULATE_GRAD_STATUS,
+                SCHOOL_OF_RECORD,
+                STUDENT_GRADE,
+                SCHOOL_AT_GRADUATION,
+                CREATE_USER,
+                CREATE_DATE,
+                UPDATE_USER,
+                UPDATE_DATE,
+                RECALCULATE_PROJECTED_GRAD,
+                BATCH_ID,
+                CONSUMER_EDUC_REQT_MET,
+                STUDENT_CITIZENSHIP_CODE,
+                ADULT_START_DATE,
+                SCHOOL_OF_RECORD_ID,
+                SCHOOL_AT_GRADUATION_ID
+            ) SELECT 
+                SYS_GUID(),
+                :activityCode,
+                GRADUATION_STUDENT_RECORD_ID,
+                GRADUATION_PROGRAM_CODE,
+                GPA,
+                STUDENT_STATUS_CODE,
+                HONOURS_STANDING,
+                PROGRAM_COMPLETION_DATE,
+                RECALCULATE_GRAD_STATUS,
+                SCHOOL_OF_RECORD,
+                STUDENT_GRADE,
+                SCHOOL_AT_GRADUATION,
+                CREATE_USER,
+                CREATE_DATE,
+                :updateUser,
+                :updateDate,
+                RECALCULATE_PROJECTED_GRAD,
+                BATCH_ID,
+                CONSUMER_EDUC_REQT_MET,
+                STUDENT_CITIZENSHIP_CODE,
+                ADULT_START_DATE,
+                SCHOOL_OF_RECORD_ID,
+                SCHOOL_AT_GRADUATION_ID
+            FROM GRADUATION_STUDENT_RECORD
+            WHERE BATCH_ID = :batchId and GRADUATION_STUDENT_RECORD_ID IN (:studentIDs)
+            """;
     @Modifying
-    @Query(value="INSERT INTO GRADUATION_STUDENT_RECORD_HISTORY (\n" +
-            "    GRADUATION_STUDENT_RECORD_HISTORY_ID,\n" +
-            "    HISTORY_ACTIVITY_CODE,\n" +
-            "    GRADUATION_STUDENT_RECORD_ID,\n" +
-            "    GRADUATION_PROGRAM_CODE,\n" +
-            "    GPA,\n" +
-            "    STUDENT_STATUS_CODE,\n" +
-            "    HONOURS_STANDING,\n" +
-            "    PROGRAM_COMPLETION_DATE,\n" +
-            "    RECALCULATE_GRAD_STATUS,\n" +
-            "    SCHOOL_OF_RECORD,\n" +
-            "    STUDENT_GRADE,\n" +
-            "    SCHOOL_AT_GRADUATION,\n" +
-            "    CREATE_USER,\n" +
-            "    CREATE_DATE,\n" +
-            "    UPDATE_USER,\n" +
-            "    UPDATE_DATE,\n" +
-            "    RECALCULATE_PROJECTED_GRAD,\n" +
-            "    BATCH_ID,\n" +
-            "    CONSUMER_EDUC_REQT_MET,\n" +
-            "    STUDENT_CITIZENSHIP_CODE,\n" +
-            "    ADULT_START_DATE,\n" +
-            "    SCHOOL_OF_RECORD_ID,\n" +
-            "    SCHOOL_AT_GRADUATION_ID\n" +
-            ") SELECT \n" +
-            "    SYS_GUID(),\n" +
-            "    :activityCode,\n" +
-            "    GRADUATION_STUDENT_RECORD_ID,\n" +
-            "    GRADUATION_PROGRAM_CODE,\n" +
-            "    GPA,\n" +
-            "    STUDENT_STATUS_CODE,\n" +
-            "    HONOURS_STANDING,\n" +
-            "    PROGRAM_COMPLETION_DATE,\n" +
-            "    RECALCULATE_GRAD_STATUS,\n" +
-            "    SCHOOL_OF_RECORD,\n" +
-            "    STUDENT_GRADE,\n" +
-            "    SCHOOL_AT_GRADUATION,\n" +
-            "    CREATE_USER,\n" +
-            "    CREATE_DATE,\n" +
-            "    :updateUser,\n" +
-            "    :updateDate,\n" +
-            "    RECALCULATE_PROJECTED_GRAD,\n" +
-            "    BATCH_ID,\n" +
-            "    CONSUMER_EDUC_REQT_MET,\n" +
-            "    STUDENT_CITIZENSHIP_CODE,\n" +
-            "    ADULT_START_DATE,\n" +
-            "    SCHOOL_OF_RECORD_ID,\n" +
-            "    SCHOOL_AT_GRADUATION_ID\n" +
-            "FROM GRADUATION_STUDENT_RECORD\n" +
-            "WHERE BATCH_ID = :batchId and GRADUATION_STUDENT_RECORD_ID IN (:studentIDs)", nativeQuery=true)
+    @Query(value=insertGraduationStudentRecordHistoryByBatchIdAndStudentIDsSql, nativeQuery=true)
     Integer insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(@Param(value = "batchId") Long batchId, @Param(value = "studentIDs") List<UUID> studentIDs, @Param(value = "activityCode") String activityCode, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
 
 }
