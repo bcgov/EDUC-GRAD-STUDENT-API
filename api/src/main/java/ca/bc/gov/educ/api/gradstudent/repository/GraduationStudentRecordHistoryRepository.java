@@ -29,7 +29,7 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
     @Query(value="update GRADUATION_STUDENT_RECORD_HISTORY set HISTORY_ACTIVITY_CODE = :activityCode, UPDATE_USER = :updateUser, UPDATE_DATE = :updateDate where BATCH_ID = :batchId", nativeQuery=true)
     Integer updateGradStudentUpdateUser(@Param(value = "batchId") Long batchId, @Param(value = "activityCode") String activityCode, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
 
-    String insertGraduationStudentRecordHistoryByBatchIdSql = """
+    String INSERT_INTO_GRADUATION_STUDENT_RECORD_HISTORY_BY_BATCH_ID_SQL = """
             INSERT INTO GRADUATION_STUDENT_RECORD_HISTORY (
                     GRADUATION_STUDENT_RECORD_HISTORY_ID,
                     HISTORY_ACTIVITY_CODE,
@@ -82,10 +82,10 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
                 WHERE BATCH_ID = :batchId
             """;
     @Modifying
-    @Query(value=insertGraduationStudentRecordHistoryByBatchIdSql, nativeQuery=true)
+    @Query(value= INSERT_INTO_GRADUATION_STUDENT_RECORD_HISTORY_BY_BATCH_ID_SQL, nativeQuery=true)
     Integer insertGraduationStudentRecordHistoryByBatchId(@Param(value = "batchId") Long batchId, @Param(value = "activityCode") String activityCode, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
 
-    String insertGraduationStudentRecordHistoryByBatchIdAndStudentIDsSql = """
+    String INSERT_INTO_GRADUATION_STUDENT_RECORD_HISTORY_BY_BATCH_ID_AND_STUDENT_ID_IN_SQL = """
             INSERT INTO GRADUATION_STUDENT_RECORD_HISTORY (
                 GRADUATION_STUDENT_RECORD_HISTORY_ID,
                 HISTORY_ACTIVITY_CODE,
@@ -138,7 +138,7 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
             WHERE BATCH_ID = :batchId and GRADUATION_STUDENT_RECORD_ID IN (:studentIDs)
             """;
     @Modifying
-    @Query(value=insertGraduationStudentRecordHistoryByBatchIdAndStudentIDsSql, nativeQuery=true)
+    @Query(value= INSERT_INTO_GRADUATION_STUDENT_RECORD_HISTORY_BY_BATCH_ID_AND_STUDENT_ID_IN_SQL, nativeQuery=true)
     Integer insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(@Param(value = "batchId") Long batchId, @Param(value = "studentIDs") List<UUID> studentIDs, @Param(value = "activityCode") String activityCode, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
 
 }
