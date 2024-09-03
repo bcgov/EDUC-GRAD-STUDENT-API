@@ -360,14 +360,11 @@ public class GraduationStatusController {
 
     @PutMapping(EducGradStudentApiConstants.GRADUATION_RECORD_HISTORY_BY_BATCH_ID_DISTRIBUTION_RUN)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
-    @Operation(summary = "Save Student Grad Status by Student ID for projected run", description = "Save Student Grad Status by Student ID for projected run", tags = { "Student Graduation Status" })
+    @Operation(summary = "Save Student Grad Status History by List of Student IDs", description = "Save Student Grad Status History by List of Student IDs", tags = { "Student Graduation History" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<ApiResponseModel<Integer>> updateStudentGradHistoryStatusDistributionRun(@PathVariable Long batchID, @RequestParam(required = false) String userName, @RequestParam(required = false) String activityCode, @RequestBody List<UUID> studentGuids) {
         logger.debug("Save Distribution student Grad history for Student ID");
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date(System.currentTimeMillis()));
-        LocalDateTime updateDate = LocalDateTime.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE));
-        return response.UPDATED(historyService.updateStudentRecordHistoryDistributionRun(batchID, userName, updateDate, activityCode, studentGuids));
+        return response.UPDATED(historyService.updateStudentRecordHistoryDistributionRun(batchID, userName, activityCode, studentGuids));
     }
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_SCHOOL_REPORT)

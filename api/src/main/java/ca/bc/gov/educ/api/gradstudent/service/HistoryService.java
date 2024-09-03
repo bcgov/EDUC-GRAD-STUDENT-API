@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -164,16 +163,16 @@ public class HistoryService {
     }
 
     @Transactional
-    public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, LocalDateTime updateDate, String activityCode, List<UUID> studentGuids) {
+    public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, String activityCode, List<UUID> studentGuids) {
         Integer historyRecordsCreated;
         if(studentGuids != null && !studentGuids.isEmpty()) {
             Integer studentRecordsCreated = graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(batchId, studentGuids);
-            historyRecordsCreated = graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(batchId, studentGuids, activityCode, updateUser, updateDate);
+            historyRecordsCreated = graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(batchId, studentGuids, activityCode, updateUser);
             assert Objects.equals(studentRecordsCreated, historyRecordsCreated);
         } else if(StringUtils.isBlank(activityCode) || StringUtils.equalsIgnoreCase(activityCode, "null")) {
-            historyRecordsCreated = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser, updateDate);
+            historyRecordsCreated = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser);
         } else {
-            historyRecordsCreated = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, activityCode, updateUser, updateDate);
+            historyRecordsCreated = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, activityCode, updateUser);
         }
         return historyRecordsCreated;
     }
