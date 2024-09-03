@@ -308,6 +308,10 @@ public class DataConversionService {
                 log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getSchoolOfRecord());
                 targetObject.setSchoolOfRecord(getStringValue(field.getValue()));
             }
+            case SCHOOL_OF_RECORD_ID -> {
+                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getSchoolOfRecordId());
+                targetObject.setSchoolOfRecordId(getGuidValue(field.getValue()));
+            }
             case GRAD_PROGRAM -> {
                 log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getProgram());
                 targetObject.setProgram(getStringValue(field.getValue()));
@@ -351,6 +355,11 @@ public class DataConversionService {
         if (value == null)
             return null;
         return (String) value;
+    }
+
+    private UUID getGuidValue(Object value) {
+        String strGuid = getStringValue(value);
+        return strGuid != null? UUID.fromString(strGuid) : null;
     }
 
     private StudentOptionalProgramEntity handleExistingOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, StudentOptionalProgramEntity gradEntity) {
