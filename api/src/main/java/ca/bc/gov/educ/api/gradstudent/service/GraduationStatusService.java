@@ -1406,7 +1406,7 @@ public class GraduationStatusService {
             graduationStudentRecordGuids.addAll(graduationStatusRepository.findByStudentStatus(recordStudentStatus));
             archivedStudentsCount = graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId, user);
         }
-        Integer historyRecordsUpdated = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, updateDate, "USERSTUDARC", graduationStudentRecordGuids);
+        Integer historyRecordsUpdated = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, "USERSTUDARC", graduationStudentRecordGuids);
         assert Objects.equals(archivedStudentsCount, historyRecordsUpdated);
         return archivedStudentsCount;
     }

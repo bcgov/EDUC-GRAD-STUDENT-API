@@ -558,12 +558,9 @@ public class GraduationStatusControllerTest {
 
     @Test
     public void testUpdateStudentGradHistoryStatusDistributionRun() {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date(System.currentTimeMillis()));
-        LocalDateTime updateDate = LocalDateTime.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE));
-        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "Batch Archive Process", updateDate, "activityCode", List.of())).thenReturn(1);
+        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "Batch Archive Process", "activityCode", List.of())).thenReturn(1);
         graduationStatusController.updateStudentGradHistoryStatusDistributionRun(1L, "Batch Archive Process", "activityCode", List.of());
-        Mockito.verify(historyService).updateStudentRecordHistoryDistributionRun(1L, "Batch Archive Process", updateDate, "activityCode", List.of());
+        Mockito.verify(historyService).updateStudentRecordHistoryDistributionRun(1L, "Batch Archive Process", "activityCode", List.of());
     }
 
     @Test
