@@ -63,7 +63,7 @@ public class GraduationStatusController {
         GraduationStudentRecord gradResponse = gradStatusService.getGraduationStatus(UUID.fromString(studentID),accessToken.replace(BEARER, ""));
         if(gradResponse != null) {
             return response.GET(gradResponse);
-        }else {
+        } else {
             return response.NO_CONTENT();
         }
     }
