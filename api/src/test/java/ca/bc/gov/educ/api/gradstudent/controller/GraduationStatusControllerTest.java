@@ -26,8 +26,10 @@ import org.springframework.http.ResponseEntity;
 
 import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -633,12 +635,9 @@ public class GraduationStatusControllerTest {
     public void testArchiveStudents() {
         // ID
         String mincode = "123456789";
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date(System.currentTimeMillis()));
-        LocalDateTime updateDate = LocalDateTime.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE));
-        Mockito.when(graduationStatusService.archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process", updateDate)).thenReturn(1);
+        Mockito.when(graduationStatusService.archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process")).thenReturn(1);
         graduationStatusController.archiveStudents(1L, "CUR", "Batch Archive Process", List.of(mincode));
-        Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process", updateDate);
+        Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process");
     }
 
     @Test

@@ -318,6 +318,7 @@ public class HistoryServiceTest {
         when(graduationStudentRecordRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(4000L, List.of(studentID))).thenReturn(1);
         when(graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(4000L, List.of(studentID), "activityCode", "USER")).thenReturn(1);
         when(graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchId(4000L, "activityCode", "USER")).thenReturn(1);
+        when(graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchId(4000L, "USERSTUDARC", "USER")).thenReturn(1);
 
         var result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "activityCode", List.of(studentID));
         assertThat(result).isNotNull().isEqualTo(1);
@@ -334,6 +335,9 @@ public class HistoryServiceTest {
         assertThat(result).isNotNull().isZero();
 
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "", List.of());
+        assertThat(result).isNotNull().isEqualTo(1);
+
+        result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "USERSTUDARC", List.of());
         assertThat(result).isNotNull().isEqualTo(1);
     }
 }

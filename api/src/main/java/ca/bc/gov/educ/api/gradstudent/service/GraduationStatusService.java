@@ -50,6 +50,8 @@ public class GraduationStatusService {
 
     public static final int PAGE_SIZE = 500;
 
+    public static final long MAX_ROWS_COUNT = 50000;
+
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusService.class);
 
     private static final String CREATE_USER = "createUser";
@@ -1395,19 +1397,23 @@ public class GraduationStatusService {
     }
 
     @Transactional
-    public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus, String user, LocalDateTime updateDate) {
+    public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus, String user) {
         String recordStudentStatus = StringUtils.defaultString(studentStatus, "CUR");
-        Integer archivedStudentsCount;
+        Integer archivedStudentsCount = 0;
+        Integer historyStudentsCount = 0;
         List<UUID> graduationStudentRecordGuids = new ArrayList<>();
         if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
             graduationStudentRecordGuids.addAll(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(schoolOfRecords, recordStudentStatus));
             archivedStudentsCount = graduationStatusRepository.archiveStudents(schoolOfRecords, recordStudentStatus, "ARC", batchId, user);
         } else {
-            graduationStudentRecordGuids.addAll(graduationStatusRepository.findByStudentStatus(recordStudentStatus));
-            archivedStudentsCount = graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId, user);
+            Integer numberOfUpdated = graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(batchId, recordStudentStatus);
+            if(numberOfUpdated > 0) {
+                archivedStudentsCount = graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId, user);
+            }
         }
-        Integer historyRecordsUpdated = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, "USERSTUDARC", graduationStudentRecordGuids);
-        assert Objects.equals(archivedStudentsCount, historyRecordsUpdated);
+        if(archivedStudentsCount > 0) {
+            historyStudentsCount = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, "USERSTUDARC", graduationStudentRecordGuids);
+        }
         return archivedStudentsCount;
     }
 

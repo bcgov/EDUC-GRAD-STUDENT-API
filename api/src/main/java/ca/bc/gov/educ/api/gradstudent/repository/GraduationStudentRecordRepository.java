@@ -56,6 +56,9 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
 	List<UUID> findByStudentStatus(String studentStatus);
 
+	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
+	Page<UUID> findByStudentStatus(String studentStatus, Pageable paging);
+
 	@Query("select distinct c.studentID from GraduationStudentRecordEntity c")
 	List<UUID> findAllStudentGuids();
 
@@ -126,6 +129,10 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Modifying
 	@Query( "update GraduationStudentRecordEntity e set e.batchId = :batchId where e.studentID in :studentIDs")
 	Integer updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(Long batchId, List<UUID> studentIDs);
+
+	@Modifying
+	@Query( "update GraduationStudentRecordEntity e set e.batchId = :batchId where e.studentStatus = :studentStatus")
+	Integer updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(Long batchId, String studentStatus);
 
 	/**
 	 * Find a GraduationStudentRecord By Student ID using generics. Pass an object with the

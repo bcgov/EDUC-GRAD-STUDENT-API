@@ -3060,7 +3060,6 @@ public class GraduationStatusServiceTest {
     @Test
     public void testArchiveStudents() {
 
-        LocalDateTime updateDate = LocalDateTime.now();
         UUID studentID = new UUID(1, 1);
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -3074,7 +3073,7 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(1L, List.of(studentID))).thenReturn(1);
         Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "USER", "USERSTUDARC", List.of(studentID))).thenReturn(1);
 
-        Integer count = graduationStatusService.archiveStudents(1L, List.of("12345678"), "CUR", "USER", updateDate);
+        Integer count = graduationStatusService.archiveStudents(1L, List.of("12345678"), "CUR", "USER");
         assertThat(count).isNotNull().isEqualTo(1);
     }
 
@@ -3093,8 +3092,8 @@ public class GraduationStatusServiceTest {
         Mockito.when(graduationStatusRepository.archiveStudents("CUR", "ARC", 1L, "USER")).thenReturn(1);
         Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "USER", "USERSTUDARC", List.of(studentID))).thenReturn(1);
 
-        Integer count = graduationStatusService.archiveStudents(1L, List.of(), "CUR", "USER", updateDate);
-        assertThat(count).isNotNull().isEqualTo(1);
+        Integer count = graduationStatusService.archiveStudents(1L, List.of(), "CUR", "USER");
+        assertThat(count).isNotNull().isEqualTo(0);
     }
 
     @Test

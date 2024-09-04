@@ -169,6 +169,8 @@ public class HistoryService {
             Integer studentRecordsCreated = graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(batchId, studentGuids);
             historyRecordsCreated = graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(batchId, studentGuids, activityCode, updateUser);
             assert Objects.equals(studentRecordsCreated, historyRecordsCreated);
+        } else if(StringUtils.equalsIgnoreCase(activityCode, "USERSTUDARC")) {
+            historyRecordsCreated = graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchId(batchId, activityCode, updateUser);
         } else if(StringUtils.isBlank(activityCode) || StringUtils.equalsIgnoreCase(activityCode, "null")) {
             historyRecordsCreated = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, updateUser);
         } else {
