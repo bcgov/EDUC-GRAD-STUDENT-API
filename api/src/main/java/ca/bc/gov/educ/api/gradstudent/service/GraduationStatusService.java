@@ -1400,7 +1400,7 @@ public class GraduationStatusService {
     public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus, String user) {
         String recordStudentStatus = StringUtils.defaultString(studentStatus, "CUR");
         Integer archivedStudentsCount = 0;
-        Integer historyStudentsCount = 0;
+        Integer auditHistoryStudentsCount = 0;
         List<UUID> graduationStudentRecordGuids = new ArrayList<>();
         if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
             graduationStudentRecordGuids.addAll(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(schoolOfRecords, recordStudentStatus));
@@ -1412,8 +1412,9 @@ public class GraduationStatusService {
             }
         }
         if(archivedStudentsCount > 0) {
-            historyStudentsCount = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, "USERSTUDARC", graduationStudentRecordGuids);
+            auditHistoryStudentsCount = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, "USERSTUDARC", graduationStudentRecordGuids);
         }
+        logger.debug("Archived {} students and {} student audit records created", archivedStudentsCount, auditHistoryStudentsCount);
         return archivedStudentsCount;
     }
 
