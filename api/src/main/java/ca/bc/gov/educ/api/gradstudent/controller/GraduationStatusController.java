@@ -23,9 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Date;
-import java.time.LocalDateTime;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -407,10 +404,7 @@ public class GraduationStatusController {
     @Operation(summary = "Get Students Count by mincode and status", description = "Get Students Count by mincode and status", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Integer> archiveStudents(@RequestParam long batchId, @RequestParam(required = false) String studentStatus, @RequestParam(required = false) String userName, @RequestBody List<String> schoolOfRecords) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date(System.currentTimeMillis()));
-        LocalDateTime updateDate = LocalDateTime.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE));
-        return response.GET(gradStatusService.archiveStudents(batchId, schoolOfRecords, studentStatus, userName, updateDate));
+        return response.GET(gradStatusService.archiveStudents(batchId, schoolOfRecords, studentStatus, userName));
     }
 
     @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS)
