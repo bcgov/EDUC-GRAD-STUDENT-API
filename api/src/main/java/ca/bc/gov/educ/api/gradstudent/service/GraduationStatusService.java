@@ -1414,7 +1414,6 @@ public class GraduationStatusService {
         if(archivedStudentsCount > 0) {
             historyStudentsCount = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, "USERSTUDARC", graduationStudentRecordGuids);
         }
-        assert Objects.equals(historyStudentsCount, archivedStudentsCount);
         return archivedStudentsCount;
     }
 
