@@ -107,8 +107,7 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
             "where gpx.STUDENT_GUID = :studentGuid", nativeQuery=true)
     long countStudentGuidPenXrefRecord(@Param("studentGuid") UUID studentGuid);
 
-    @Query(value="select STUDENT_GUID from STUDENT_GUID_PEN_XREF \n"
-            + "where STUDENT_PEN in (:pens)", nativeQuery = true)
+    @Query(value="select e.studentID from StudentGuidPenXrefEntity e where e.pen in (:pens)")
 	List<UUID> findStudentIDsByPenIn(@Param("pens") List<String> pens);
 
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus = :statusCode and c.studentID in :studentIDList")
