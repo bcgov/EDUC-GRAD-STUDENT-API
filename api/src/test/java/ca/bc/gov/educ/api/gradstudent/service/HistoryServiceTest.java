@@ -335,5 +335,8 @@ public class HistoryServiceTest {
 
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "", List.of());
         assertThat(result).isNotNull().isEqualTo(1);
+
+        result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "USERSTUDARC", List.of());
+        assertThat(result).isNotNull().isEqualTo(1);
     }
 }
