@@ -1118,6 +1118,13 @@ public class GraduationStatusService {
                     if (gradStatusEvent != null) {
                         gradStatusEventRepository.save(gradStatusEvent);
                     }
+                    List<StudentOptionalProgramEntity> studentOptionalProgramEntities = gradStudentOptionalProgramRepository.findByStudentID(studentID);
+                    for(StudentOptionalProgramEntity studentOptionalProgramEntity: studentOptionalProgramEntities) {
+                        studentOptionalProgramEntity.setOptionalProgramCompletionDate(null);
+                        studentOptionalProgramEntity.setStudentOptionalProgramData(null);
+                        gradStudentOptionalProgramRepository.save(studentOptionalProgramEntity);
+                        historyService.createStudentOptionalProgramHistory(studentOptionalProgramEntity,USER_UNDO_CMPL);
+                    }
                     return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), gradStatusEvent);
                 } else {
                     validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
