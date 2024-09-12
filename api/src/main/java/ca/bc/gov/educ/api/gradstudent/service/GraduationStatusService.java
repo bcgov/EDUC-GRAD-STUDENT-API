@@ -1122,6 +1122,8 @@ public class GraduationStatusService {
                     for(StudentOptionalProgramEntity studentOptionalProgramEntity: studentOptionalProgramEntities) {
                         studentOptionalProgramEntity.setOptionalProgramCompletionDate(null);
                         studentOptionalProgramEntity.setStudentOptionalProgramData(null);
+                        studentOptionalProgramEntity.setUpdateDate(LocalDateTime.now());
+                        studentOptionalProgramEntity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
                         gradStudentOptionalProgramRepository.save(studentOptionalProgramEntity);
                         historyService.createStudentOptionalProgramHistory(studentOptionalProgramEntity,USER_UNDO_CMPL);
                     }
