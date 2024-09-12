@@ -2030,6 +2030,13 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.save(responseGraduationStatus)).thenReturn(responseGraduationStatus);
 
+        StudentOptionalProgramEntity studentOptionalProgramEntity = new StudentOptionalProgramEntity();
+        studentOptionalProgramEntity.setId(UUID.randomUUID());
+        studentOptionalProgramEntity.setStudentID(studentID);
+        studentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        when(gradStudentOptionalProgramRepository.findByStudentID(studentID)).thenReturn(List.of(studentOptionalProgramEntity));
+
         var response = graduationStatusService.undoCompletionStudent(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
         assertThat(response).isNotNull();
 
