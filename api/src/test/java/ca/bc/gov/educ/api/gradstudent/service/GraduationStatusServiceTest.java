@@ -2036,6 +2036,7 @@ public class GraduationStatusServiceTest {
         studentOptionalProgramEntity.setOptionalProgramCompletionDate(new Date(System.currentTimeMillis()));
 
         when(gradStudentOptionalProgramRepository.findByStudentID(studentID)).thenReturn(List.of(studentOptionalProgramEntity));
+        doNothing().when(historyService).createStudentOptionalProgramHistory(any(), any());
 
         var response = graduationStatusService.undoCompletionStudent(studentID, ungradReasonCode,ungradReasonDesc, "accessToken");
         assertThat(response).isNotNull();
