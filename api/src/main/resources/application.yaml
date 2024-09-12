@@ -78,6 +78,7 @@ server:
     threads:
       worker: 128
       io: 16
+  max-http-request-header-size: 20000
   #port: ${HTTP_PORT}
   #tomcat:
     #connection-timeout: 200s
