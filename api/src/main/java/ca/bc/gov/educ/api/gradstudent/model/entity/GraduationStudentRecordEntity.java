@@ -1,9 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.model.entity;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import jakarta.persistence.*;
 import java.util.Date;
 import java.util.UUID;
 
@@ -77,6 +77,12 @@ public class GraduationStudentRecordEntity extends BaseEntity {
     @Lob
     @Column(name = "STUDENT_PROJECTED_GRAD_DATA", columnDefinition="CLOB")
     private String studentProjectedGradData;
+
+    @Column(name = "SCHOOL_OF_RECORD_ID", nullable = true)
+    private UUID schoolOfRecordId;
+
+    @Column(name = "SCHOOL_AT_GRADUATION_ID", nullable = true)
+    private UUID schoolAtGraduationId;
 
     @Transient
     private String legalFirstName;

@@ -22,6 +22,8 @@ public interface GraduationStudentRecordView {
     public String getStudentCitizenship();
     public Date getAdultStartDate();
     public String getStudentProjectedGradData() ;
+    public UUID getSchoolOfRecordId();
+    public UUID getSchoolAtGraduationId();
     public LocalDateTime getCreateDate();
     public LocalDateTime getUpdateDate();
 }

@@ -47,10 +47,42 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	List<GraduationStudentRecordView> findBySchoolOfRecordAndStudentStatus(String schoolOfRecord, String studentStatus);
 
+	@Query("select c.studentID from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords) and c.studentStatus=:studentStatus")
+	List<UUID> findBySchoolOfRecordInAndStudentStatus(List<String> schoolOfRecords, String studentStatus);
+
+	@Query("select c.studentID from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords)")
+	List<UUID> findBySchoolOfRecordIn(List<String> schoolOfRecords);
+
+	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
+	List<UUID> findByStudentStatus(String studentStatus);
+
+	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
+	Page<UUID> findByStudentStatus(String studentStatus, Pageable paging);
+
+	@Query("select distinct c.studentID from GraduationStudentRecordEntity c")
+	List<UUID> findAllStudentGuids();
+
 	List<GraduationStudentRecordView> findBySchoolOfRecordAndStudentStatusAndStudentGradeIn(String schoolOfRecord, String studentStatus, List<String> studentGrade);
 
 	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord=:schoolOfRecord and c.studentStatus='CUR' and (c.studentGrade='AD' or c.studentGrade='12')")
 	Integer countBySchoolOfRecordAmalgamated(String schoolOfRecord);
+
+	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords) and c.studentStatus=:studentStatus")
+	Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus);
+
+	@Query("select count(*) from GraduationStudentRecordEntity c where c.schoolOfRecord IN (:schoolOfRecords)")
+	Long countBySchoolOfRecords(List<String> schoolOfRecords);
+
+	@Query("select count(*) from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
+	Long countByStudentStatus(String studentStatus);
+
+	@Modifying
+	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = :userName where school_of_record in (:inSor) and student_status_code = :inStudStatFrom", nativeQuery=true)
+	Integer archiveStudents(List<String> inSor, String inStudStatFrom, String inStudStatTo, long batchId, String userName);
+
+	@Modifying
+	@Query(value="update graduation_student_record set student_status_code = :inStudStatTo, batch_id = :batchId, student_grad_data = json_transform(student_grad_data, SET '$.gradStatus.studentStatus' = :inStudStatTo IGNORE ON MISSING), update_date = SYSDATE, update_user = :userName where student_status_code = :inStudStatFrom", nativeQuery=true)
+	Integer archiveStudents(String inStudStatFrom, String inStudStatTo, long batchId, String userName);
 
 	// Data Conversion
 	@Modifying
@@ -75,9 +107,8 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
             "where gpx.STUDENT_GUID = :studentGuid", nativeQuery=true)
     long countStudentGuidPenXrefRecord(@Param("studentGuid") UUID studentGuid);
 
-    @Query(value="select STUDENT_GUID from STUDENT_GUID_PEN_XREF \n"
-            + "where STUDENT_PEN = :pen", nativeQuery = true)
-    byte[] findStudentID(@Param("pen") String pen);
+    @Query(value="select e.studentID from StudentGuidPenXrefEntity e where e.pen in (:pens)")
+	List<UUID> findStudentIDsByPenIn(@Param("pens") List<String> pens);
 
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus = :statusCode and c.studentID in :studentIDList")
 	List<UUID> filterGivenStudentsByStatusCode(@Param("studentIDList") List<UUID> studentIDs, @Param("statusCode") String statusCode);
@@ -93,6 +124,14 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Modifying
 	@Query( "update GraduationStudentRecordEntity e set e.recalculateProjectedGrad = 'Y' where e.studentStatus = 'CUR' and e.programCompletionDate is null and (e.studentGrade = '12' or e.studentGrade = 'AD')")
 	void updateGradStudentRecalcFlagsForCurrentStudentsWithNullCompletion();
+
+	@Modifying
+	@Query( "update GraduationStudentRecordEntity e set e.batchId = :batchId where e.studentID in :studentIDs")
+	Integer updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(Long batchId, List<UUID> studentIDs);
+
+	@Modifying
+	@Query( "update GraduationStudentRecordEntity e set e.batchId = :batchId where e.studentStatus = :studentStatus")
+	Integer updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(Long batchId, String studentStatus);
 
 	/**
 	 * Find a GraduationStudentRecord By Student ID using generics. Pass an object with the

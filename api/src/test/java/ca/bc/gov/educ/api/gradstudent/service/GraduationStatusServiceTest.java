@@ -53,8 +53,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 @ActiveProfiles("test")
 public class GraduationStatusServiceTest {
 
-    @Autowired
-    EducGradStudentApiConstants constants;
+    @Autowired EducGradStudentApiConstants constants;
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean GradStudentService gradStudentService;
     @MockBean HistoryService historyService;
@@ -65,6 +64,7 @@ public class GraduationStatusServiceTest {
     @MockBean StudentCareerProgramRepository gradStudentCareerProgramRepository;
     @MockBean ReportGradStudentDataRepository reportGradStudentDataRepository;
     @MockBean StudentNonGradReasonRepository studentNonGradReasonRepository;
+    @MockBean GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
     @MockBean WebClient webClient;
@@ -1530,6 +1530,8 @@ public class GraduationStatusServiceTest {
 
         Optional<GraduationStudentRecordEntity> optionalGraduationStudentRecordEntity = Optional.of(graduationStudentRecordEntity);
 
+        historyService.createStudentOptionalProgramHistory(gradStudentOptionalProgramEntity, "USER_DELETE");
+
         when(graduationStatusRepository.findById(studentID)).thenReturn(optionalGraduationStudentRecordEntity);
         when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
         doNothing().when(gradStudentOptionalProgramRepository).delete(gradStudentOptionalProgramEntity);
@@ -2214,8 +2216,128 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity2)).thenReturn(graduationStatusEntity2);
 
-        GraduationStudentRecord res =graduationStatusService.saveStudentRecordDistributionRun(studentID, batchId, "ACTIVITYCODE");
+        GraduationStudentRecord res =graduationStatusService.saveStudentRecordDistributionRun(studentID, batchId, "ACTIVITYCODE", "USER");
         assertThat(res).isNotNull();
+    }
+
+    @Test
+    public void testSaveStudentRecord_DistributionRun_2() {
+
+        GraduationStatusService graduationStatusServiceMock = mock(GraduationStatusService.class);
+
+        UUID studentID = new UUID(1, 1);
+        Long batchId = null;
+        GraduationStudentRecordView graduationStatusEntity = new GraduationStudentRecordView() {
+
+            @Override
+            public String getProgram() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getProgramCompletionDate() {
+                return null;
+            }
+
+            @Override
+            public String getGpa() {
+                return null;
+            }
+
+            @Override
+            public String getHonoursStanding() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateGradStatus() {
+                return null;
+            }
+
+            @Override
+            public String getSchoolOfRecord() {
+                return "12345678";
+            }
+
+            @Override
+            public String getStudentGrade() {
+                return null;
+            }
+
+            @Override
+            public String getStudentStatus() {
+                return "A";
+            }
+
+            @Override
+            public UUID getStudentID() {
+                return studentID;
+            }
+
+            @Override
+            public String getSchoolAtGrad() {
+                return null;
+            }
+
+            @Override
+            public String getRecalculateProjectedGrad() {
+                return null;
+            }
+
+            @Override
+            public Long getBatchId() {
+                return null;
+            }
+
+            @Override
+            public String getConsumerEducationRequirementMet() {
+                return null;
+            }
+
+            @Override
+            public String getStudentCitizenship() {
+                return null;
+            }
+
+            @Override
+            public java.util.Date getAdultStartDate() {
+                return null;
+            }
+
+            @Override
+            public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getCreateDate() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime getUpdateDate() {
+                return null;
+            }
+        };
+
+        when(graduationStatusRepository.findByStudentIDIn(List.of(studentID))).thenReturn(List.of(graduationStatusEntity));
+
+        doNothing().when(graduationStatusServiceMock).saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+        graduationStatusServiceMock.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+        Mockito.verify(graduationStatusServiceMock).saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+
+        graduationStatusService.saveStudentHistoryRecordArchiveStudentsRun(studentID, batchId, "ACTIVITYCODE");
+
     }
 
     @Test
@@ -2310,6 +2432,16 @@ public class GraduationStatusServiceTest {
 
             @Override
             public String getStudentProjectedGradData() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
                 return null;
             }
 
@@ -2788,6 +2920,16 @@ public class GraduationStatusServiceTest {
             }
 
             @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
+                return null;
+            }
+
+            @Override
             public LocalDateTime getCreateDate() {
                 return null;
             }
@@ -2892,6 +3034,69 @@ public class GraduationStatusServiceTest {
     }
 
     @Test
+    public void testCountBySchoolOfRecordsAndStudentStatus() {
+        Mockito.when(graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "CUR")).thenReturn(1L);
+        Long count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "CUR");
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.countByStudentStatus("CUR")).thenReturn(1L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), "CUR");
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.countBySchoolOfRecords(List.of("12345678"))).thenReturn(1L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), null);
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.countBySchoolOfRecords(List.of("12345678"))).thenReturn(1L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of("12345678"), "null");
+        assertThat(count).isNotNull().isEqualTo(1L);
+
+        Mockito.when(graduationStatusRepository.count()).thenReturn(2L);
+        count = graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), null);
+        assertThat(count).isNotNull().isEqualTo(2L);
+
+    }
+
+    @Test
+    public void testArchiveStudents() {
+
+        UUID studentID = new UUID(1, 1);
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        Mockito.when(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(List.of("12345678"), "CUR")).thenReturn(List.of(studentID));
+        Mockito.when(graduationStatusRepository.archiveStudents(List.of("12345678"), "CUR", "ARC", 1L, "USER")).thenReturn(1);
+        Mockito.when(graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(1L, List.of(studentID))).thenReturn(1);
+        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "USER", "USERSTUDARC", List.of(studentID))).thenReturn(1);
+
+        Integer count = graduationStatusService.archiveStudents(1L, List.of("12345678"), "CUR", "USER");
+        assertThat(count).isNotNull().isEqualTo(1);
+    }
+
+    @Test
+    public void testArchiveStudentEmpty() {
+        LocalDateTime updateDate = LocalDateTime.now();
+        UUID studentID = new UUID(1, 1);
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("12321321");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecord("12345678");
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        Mockito.when(graduationStatusRepository.findByStudentStatus("CUR")).thenReturn(List.of(studentID));
+        Mockito.when(graduationStatusRepository.archiveStudents("CUR", "ARC", 1L, "USER")).thenReturn(1);
+        Mockito.when(historyService.updateStudentRecordHistoryDistributionRun(1L, "USER", "USERSTUDARC", List.of(studentID))).thenReturn(1);
+
+        Integer count = graduationStatusService.archiveStudents(1L, List.of(), "CUR", "USER");
+        assertThat(count).isNotNull().isEqualTo(0);
+    }
+
+    @Test
     public void testGetStudentsForAmalgamatedSchoolReport() {
         List<UUID> res = amalgamatedReports("TVRNONGRAD",false);
         assertThat(res).isNotNull().hasSize(1);
@@ -2989,6 +3194,16 @@ public class GraduationStatusServiceTest {
             @Override
             public String getStudentProjectedGradData() {
                 return jsonTransformer.marshall(projectedRunClob);
+            }
+
+            @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
+                return null;
             }
 
             @Override

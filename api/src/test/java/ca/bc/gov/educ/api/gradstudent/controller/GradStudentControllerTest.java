@@ -1,6 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCreate;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearch;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentSearchRequest;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +15,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -132,6 +136,14 @@ public class GradStudentControllerTest {
         Mockito.when(gradStudentService.addNewPenFromStudentAPI(student, "accessToken")).thenReturn(student);
         gradStudentController.addNewPenFromStudentAPI(student, "accessToken");
         Mockito.verify(gradStudentService).addNewPenFromStudentAPI(student, "accessToken");
+    }
+
+    @Test
+    public void testSearchGraduationStudentRecords() {
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder().schoolOfRecords(List.of("12345678")).build();
+        Mockito.when(gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest)).thenReturn(List.of(UUID.randomUUID()));
+        gradStudentController.searchGraduationStudentRecords(searchRequest);
+        Mockito.verify(gradStudentService).getStudentIDsBySearchCriteriaOrAll(searchRequest);
     }
 
 }

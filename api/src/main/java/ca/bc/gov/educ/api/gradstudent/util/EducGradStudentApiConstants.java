@@ -20,11 +20,14 @@ public class EducGradStudentApiConstants {
     public static final String API_ROOT_MAPPING = "";
     public static final String API_VERSION = "v1";
     public static final String GRAD_STUDENT_API_ROOT_MAPPING = "/api/" + API_VERSION + "/student" ;
+    public static final String STUDENT_COUNT = "/count";
+    public static final String STUDENT_ARCHIVE = "/archive";
     public static final String GRAD_STUDENT_BY_PEN = "/{pen}";
     public static final String GRAD_STUDENT_BY_PEN_STUDENT_API = "/pen/{pen}";
     public static final String GRAD_STUDENT_DEMOG_BY_PEN = "/demog/pen/{pen}";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API = "/stdid/{studentID}";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_GRAD="/grad/{studentID}";
+    public static final String GRAD_STUDENT_BY_SEARCH_CRITERIAS = "/gradstudentbysearchcriteria";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_STUDENTIDS = "/multistudentids";
@@ -54,7 +57,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_STUDENT_ID_FOR_BATCH_RUN = "/batch/gradstudent/studentid/{studentID}";
     public static final String STUDENT_LIST_FOR_SCHOOL_REPORT = "/batch/schoolreport/{schoolOfRecord}";
     public static final String STUDENT_LIST_FOR_AMALGAMATED_SCHOOL_REPORT = "/amalgamated/schoolreport/{schoolOfRecord}/type/{type}";
-    public static final String STUDENT_COUNT_FOR_AMALGAMATED_SCHOOL_REPORT = "/amalgamated/schoolreport/{schoolOfRecord}/count";
+    public static final String STUDENT_COUNT_FOR_AMALGAMATED_SCHOOL_REPORT = "/amalgamated/schoolreport/{schoolOfRecord}" + STUDENT_COUNT;
     public static final String STUDENT_RECORD_STUDENT_ID_BATCH_RUN = "/batch/{studentID}";
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
     public static final String UNGRAD_STUDENT = "/undocompletionstudent/studentid/{studentID}";

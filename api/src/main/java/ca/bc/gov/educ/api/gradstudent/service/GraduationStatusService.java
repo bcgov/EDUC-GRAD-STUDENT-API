@@ -50,6 +50,8 @@ public class GraduationStatusService {
 
     public static final int PAGE_SIZE = 500;
 
+    public static final long MAX_ROWS_COUNT = 50000;
+
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusService.class);
 
     private static final String CREATE_USER = "createUser";
@@ -1219,18 +1221,32 @@ public class GraduationStatusService {
     }
 
     @Retry(name = "generalpostcall")
-    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId,String activityCode) {
+    public GraduationStudentRecord saveStudentRecordDistributionRun(UUID studentID, Long batchId, String activityCode, String username) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            gradEntity.setUpdateUser(null);
-            gradEntity.setUpdateDate(null);
+            gradEntity.setUpdateUser(StringUtils.isNotBlank(username) && !StringUtils.equalsIgnoreCase(username, "null") ? username : null);
+            gradEntity.setUpdateDate(LocalDateTime.now());
             gradEntity.setBatchId(batchId);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, activityCode);
             return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
+    }
+
+    @Retry(name = "generalpostcall")
+    public void saveStudentHistoryRecordArchiveStudentsRun(UUID studentID, Long batchId, String activityCode) {
+        List<GraduationStudentRecordView> graduationStudentRecordViews = graduationStatusRepository.findByStudentIDIn(List.of(studentID));
+        for(GraduationStudentRecordView st: graduationStudentRecordViews) {
+            GraduationStudentRecordEntity toBeSaved = new GraduationStudentRecordEntity();
+            BeanUtils.copyProperties(st, toBeSaved);
+            toBeSaved.setStudentStatus("ARC");
+            toBeSaved.setUpdateUser(null);
+            toBeSaved.setUpdateDate(null);
+            toBeSaved.setBatchId(batchId);
+            historyService.createStudentHistory(toBeSaved, activityCode);
+        }
     }
 
     @Retry(name = "generalpostcall")
@@ -1305,6 +1321,7 @@ public class GraduationStatusService {
         return result;
     }
 
+    @Generated
     private void processUUIDDataTasksAsync(List<Callable<Object>> tasks, List<UUID> result) {
         if(tasks.isEmpty()) return;
         List<Future<Object>> executionResult;
@@ -1338,7 +1355,7 @@ public class GraduationStatusService {
                 ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
                 ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
                 ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-            }else {
+            } else {
                 Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
                         .headers(h -> {
                             h.setBearerAuth(accessToken);
@@ -1367,6 +1384,38 @@ public class GraduationStatusService {
 
     public Integer countStudentsForAmalgamatedSchoolReport(String schoolOfRecord) {
         return graduationStatusRepository.countBySchoolOfRecordAmalgamated(schoolOfRecord);
+    }
+
+    public Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus) {
+        if(schoolOfRecords != null && !schoolOfRecords.isEmpty() && StringUtils.isNotBlank(studentStatus) && !StringUtils.equalsAnyIgnoreCase(studentStatus, "null")) {
+            return graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(schoolOfRecords, StringUtils.upperCase(studentStatus));
+        } else if(StringUtils.isNotBlank(studentStatus) && !StringUtils.equalsAnyIgnoreCase(studentStatus, "null")) {
+            return graduationStatusRepository.countByStudentStatus(StringUtils.upperCase(studentStatus));
+        } else {
+            return countBySchoolOfRecords(schoolOfRecords);
+        }
+    }
+
+    @Transactional
+    public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus, String user) {
+        String recordStudentStatus = StringUtils.defaultString(studentStatus, "CUR");
+        Integer archivedStudentsCount = 0;
+        Integer auditHistoryStudentsCount = 0;
+        List<UUID> graduationStudentRecordGuids = new ArrayList<>();
+        if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
+            graduationStudentRecordGuids.addAll(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(schoolOfRecords, recordStudentStatus));
+            archivedStudentsCount = graduationStatusRepository.archiveStudents(schoolOfRecords, recordStudentStatus, "ARC", batchId, user);
+        } else {
+            Integer numberOfUpdated = graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(batchId, recordStudentStatus);
+            if(numberOfUpdated > 0) {
+                archivedStudentsCount = graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId, user);
+            }
+        }
+        if(archivedStudentsCount > 0) {
+            auditHistoryStudentsCount = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, "USERSTUDARC", graduationStudentRecordGuids);
+        }
+        logger.debug("Archived {} students and {} student audit records created", archivedStudentsCount, auditHistoryStudentsCount);
+        return archivedStudentsCount;
     }
 
     public void updateStudentFlagReadyForBatchJobByStudentIDs(String batchJobType, List<UUID> studentIDs) {
@@ -1402,6 +1451,14 @@ public class GraduationStatusService {
             if (isUpdated) {
                 graduationStatusRepository.save(entity);
             }
+        }
+    }
+
+    private Long countBySchoolOfRecords(List<String> schoolOfRecords) {
+        if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
+            return graduationStatusRepository.countBySchoolOfRecords(schoolOfRecords);
+        } else {
+            return graduationStatusRepository.count();
         }
     }
 

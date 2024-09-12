@@ -423,6 +423,16 @@ public class GradStudentServiceTest {
             }
 
             @Override
+            public UUID getSchoolOfRecordId() {
+                return null;
+            }
+
+            @Override
+            public UUID getSchoolAtGraduationId() {
+                return null;
+            }
+
+            @Override
             public LocalDateTime getCreateDate() {
                 return null;
             }
@@ -432,9 +442,9 @@ public class GradStudentServiceTest {
                 return null;
             }
         };
+
         List<UUID> studentSubList = new ArrayList<>();
         studentSubList.add(graduationStatusView.getStudentID());
-
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
         when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
@@ -819,7 +829,23 @@ public class GradStudentServiceTest {
         assertThat(result.get(0)).isEqualTo(studentID1);
     }
 
+    @Test
+    public void testGetStudentIDsBySearchCriterias() {
+        List<UUID> result = List.of(UUID.randomUUID());
 
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .schoolOfRecords(List.of("12345678"))
+                .pens(List.of("12345678"))
+                .studentIDs(result)
+                .build();
+
+        when(graduationStatusRepository.findBySchoolOfRecordIn(searchRequest.getSchoolOfRecords())).thenReturn(result);
+        when(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens())).thenReturn(result);
+        when(graduationStatusRepository.findAllStudentGuids()).thenReturn(result);
+
+        List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
+        assertThat(results).isNotEmpty();
+    }
 
     @SneakyThrows
     protected Object createDataObjectFromJson(String jsonPath, Class<?> clazz) {
