@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class HistoryService {
@@ -164,11 +161,21 @@ public class HistoryService {
 
     @Transactional
     public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, String activityCode, List<UUID> studentGuids) {
-        Integer historyRecordsCreated;
+        Integer historyRecordsCreated = 0;
         if(studentGuids != null && !studentGuids.isEmpty()) {
-            Integer studentRecordsCreated = graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(batchId, studentGuids);
-            historyRecordsCreated = graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(batchId, studentGuids, activityCode, updateUser);
-            assert Objects.equals(studentRecordsCreated, historyRecordsCreated);
+            int partitionSize = 999;
+            List<List<UUID>> partitions = new LinkedList<>();
+            for (int i = 0; i < studentGuids.size(); i += partitionSize) {
+                partitions.add(studentGuids.subList(i, Math.min(i + partitionSize, studentGuids.size())));
+            }
+            logger.debug("Update Student Record History partitions length {}", partitions.size());
+            for (int i = 0; i < partitions.size(); i++) {
+                List<UUID> subList = partitions.get(i);
+                Integer studentRecordsCreatedPartition = graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentIDsIn(batchId, subList);
+                Integer historyRecordsCreatedPartition = graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchIdAndStudentIDs(batchId, subList, activityCode, updateUser);
+                assert Objects.equals(studentRecordsCreatedPartition, historyRecordsCreatedPartition);
+                historyRecordsCreated += historyRecordsCreatedPartition;
+            }
         } else if(StringUtils.equalsIgnoreCase(activityCode, "USERSTUDARC")) {
             historyRecordsCreated = graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByBatchId(batchId, activityCode, updateUser);
         } else if(StringUtils.isBlank(activityCode) || StringUtils.equalsIgnoreCase(activityCode, "null")) {
