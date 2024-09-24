@@ -349,10 +349,10 @@ public class DataConversionService {
     }
 
     private String getStringValue(Object value) {
-        if (value == null)
-            return null;
-        String str = (String) value;
-        return NULL_VALUE.equalsIgnoreCase(str)? null : str;
+        if (value instanceof String str) {
+            return NULL_VALUE.equalsIgnoreCase(str) ? null : str;
+        }
+        return null;
     }
 
     private StudentOptionalProgramEntity handleExistingOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, StudentOptionalProgramEntity gradEntity) {
