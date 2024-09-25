@@ -36,6 +36,7 @@ import java.util.UUID;
 @Service
 public class DataConversionService {
 
+    public static final String NULL_VALUE = "NULL"; // NULL String => Nullify (set to NULL)
     private static final String CREATE_USER = "createUser";
     private static final String CREATE_DATE = "createDate";
     public static final String DEFAULT_CREATED_BY = "DATA_CONV";
@@ -296,7 +297,7 @@ public class DataConversionService {
     }
 
     private void resetAdultStartDate(String currentProgram, String newProgram, GraduationStudentRecordEntity targetObject) {
-        // Only when 1950 adult program is channged to another, reset adultStartDate to null
+        // Only when 1950 adult program is changed to another, reset adultStartDate to null
         if (!StringUtils.equalsIgnoreCase(currentProgram, newProgram) && "1950".equalsIgnoreCase(currentProgram)) {
             targetObject.setAdultStartDate(null);
         }
@@ -348,9 +349,10 @@ public class DataConversionService {
     }
 
     private String getStringValue(Object value) {
-        if (value == null)
-            return null;
-        return (String) value;
+        if (value instanceof String str) {
+            return NULL_VALUE.equalsIgnoreCase(str) ? null : str;
+        }
+        return null;
     }
 
     private StudentOptionalProgramEntity handleExistingOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, StudentOptionalProgramEntity gradEntity) {
