@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
 @Service
-public class GraduationStatusService {
+public class GraduationStatusService extends GradBaseService {
 
     public static final int PAGE_SIZE = 500;
 
@@ -273,6 +273,7 @@ public class GraduationStatusService {
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity.setUpdateUser(null);
+            validateStudentStatusAndResetBatchFlags(gradEntity);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
@@ -668,7 +669,7 @@ public class GraduationStatusService {
         }
     }
 
-    private void validateStudentGrade(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
+    private void validateGradeAndStatusWithPENStudent(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
         Student studentObj = webClient.get()
                 .uri(String.format(constants.getPenStudentApiByStudentIdUrl(), sourceEntity.getStudentID()))
                 .headers(h -> {
@@ -768,12 +769,12 @@ public class GraduationStatusService {
         
         if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))) {
             hasDataChanged.recalculateAll();
-            validateStudentGrade(sourceEntity,existingEntity,accessToken);
+            validateGradeAndStatusWithPENStudent(sourceEntity,existingEntity,accessToken);
         }
 
         if (sourceEntity.getStudentStatus() != null && !sourceEntity.getStudentStatus().equalsIgnoreCase(existingEntity.getStudentStatus())) {
             hasDataChanged.recalculateAll();
-            validateStudentGrade(sourceEntity,existingEntity,accessToken);
+            validateGradeAndStatusWithPENStudent(sourceEntity,existingEntity,accessToken);
         }
 
         return hasDataChanged;
