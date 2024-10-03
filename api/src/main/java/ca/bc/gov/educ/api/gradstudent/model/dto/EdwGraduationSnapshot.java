@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.DEFAULT_DATE_FORMAT;
 
@@ -31,4 +32,5 @@ public class EdwGraduationSnapshot {
     private LocalDate sessionDate;
 
     private String schoolOfRecord;
+    private UUID schoolOfRecordId;
 }
