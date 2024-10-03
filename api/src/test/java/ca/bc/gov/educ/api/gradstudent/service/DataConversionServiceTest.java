@@ -131,7 +131,7 @@ public class DataConversionServiceTest {
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen("123456789");
-        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setStudentStatus("CUR");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
         graduationStatusEntity.setSchoolOfRecord(mincode);
@@ -181,7 +181,7 @@ public class DataConversionServiceTest {
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen(pen);
-        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setStudentStatus("CUR");
         graduationStatusEntity.setStudentGrade(oldGrade);
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram(oldProgram);
@@ -330,6 +330,68 @@ public class DataConversionServiceTest {
         String mincode = "12345678";
         String oldStatus = "ARC";
         String newStatus = "MER";
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
+        graduationStatusEntity.setStudentStatus(oldStatus);
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram("2018-EN");
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
+        requestDTO.setPen(pen);
+        requestDTO.setStudentID(studentID.toString());
+        requestDTO.setEventType(TraxEventType.UPD_STD_STATUS);
+
+        OngoingUpdateFieldDTO field = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.STUDENT_STATUS).value(newStatus)
+                .build();
+        requestDTO.getUpdateFields().add(field);
+
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
+        BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
+        savedGraduationStatus.setRecalculateGradStatus(null);
+        savedGraduationStatus.setRecalculateProjectedGrad(null);
+        savedGraduationStatus.setStudentGradData(null);
+        savedGraduationStatus.setStudentProjectedGradData(null);
+        savedGraduationStatus.setStudentStatus(newStatus);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+
+        when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
+        when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
+
+        var result = dataConversionService.updateGraduationStatusByFields(requestDTO, "accessToken");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
+        assertThat(result.getStudentStatus()).isEqualTo(newStatus);
+        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
+
+        assertThat(result.getStudentGradData()).isNull();
+        assertThat(result.getStudentProjectedGradData()).isNull();
+        assertThat(result.getRecalculateGradStatus()).isNull();
+        assertThat(result.getRecalculateProjectedGrad()).isNull();
+    }
+
+    @Test
+    public void testGraduationStudentRecordAsOngoingUpdateForStudentArchivedStatus() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
+        String mincode = "12345678";
+        String oldStatus = "CUR";
+        String newStatus = "ARC";
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
