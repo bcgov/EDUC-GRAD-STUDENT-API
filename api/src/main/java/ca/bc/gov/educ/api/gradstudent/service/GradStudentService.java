@@ -319,7 +319,6 @@ public class GradStudentService {
 				.retrieve().bodyToMono(School.class).block();
 		if (school != null) {
 			gradStu.setSchoolOfRecordName(school.getSchoolName());
-			gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
 		}
 		return gradStu;
 	}
@@ -346,7 +345,6 @@ public class GradStudentService {
 				gradStu.setTranscriptEligibility(school.getTranscriptEligibility());
 				gradStu.setCertificateEligibility(school.getCertificateEligibility());
 				gradStu.setSchoolOfRecordName(school.getSchoolName());
-				gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
 			}
 		}
 		return gradStu;

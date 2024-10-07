@@ -445,10 +445,10 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
 
-        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getSchoolOfRecord());
-        if(commonSchool == null) {
-            validation.addErrorAndStop("Common School with mincode %s not found", gradSearchStudent.getMincode());
-        }
+//        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getSchoolOfRecord());
+//        if(commonSchool == null) {
+//            validation.addErrorAndStop("Common School with mincode %s not found", gradSearchStudent.getMincode());
+//        }
 
         School school = getSchool(gradSearchStudent.getSchoolOfRecord(), accessToken);
         if(school == null) {
@@ -478,7 +478,7 @@ public class GraduationStatusService extends GradBaseService {
                     break;
             }
         }
-        assert commonSchool != null;
+//        assert commonSchool != null;
         assert school != null;
         return StudentDemographic.builder()
                 .studentID(gradSearchStudent.getStudentID())
@@ -510,8 +510,8 @@ public class GraduationStatusService extends GradBaseService {
                 .sccDate(sccDate)
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
                 .mincode(school.getMinCode())
-                .schoolCategory(commonSchool.getSchoolCategoryCode())
-                .schoolType("02".equalsIgnoreCase(commonSchool.getSchoolCategoryCode()) ? "02" : "")
+                .schoolCategory(school.getSchoolCategoryCode())
+                .schoolType("02".equalsIgnoreCase(school.getSchoolCategoryCode()) ? "02" : "")
                 .schoolName(school.getSchoolName())
                 .formerStudent(formerStudent)
                 .build();
@@ -535,15 +535,6 @@ public class GraduationStatusService extends GradBaseService {
             })
             .retrieve().bodyToMono(new ParameterizedTypeReference<List<CommonSchool>>() {
         }).block();
-    }
-
-    public CommonSchool getCommonSchool(String accessToken, String mincode) {
-        return webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
-                .retrieve().bodyToMono(CommonSchool.class).block();
     }
 
     private School getSchool(String minCode, String accessToken) {
