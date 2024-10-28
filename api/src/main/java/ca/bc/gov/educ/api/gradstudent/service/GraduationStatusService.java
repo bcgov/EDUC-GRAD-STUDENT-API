@@ -445,11 +445,6 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
 
-//        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getSchoolOfRecord());
-//        if(commonSchool == null) {
-//            validation.addErrorAndStop("Common School with mincode %s not found", gradSearchStudent.getMincode());
-//        }
-
         School school = getSchool(gradSearchStudent.getSchoolOfRecord(), accessToken);
         if(school == null) {
             validation.addErrorAndStop("School with mincode %s not found", gradSearchStudent.getMincode());
@@ -478,7 +473,6 @@ public class GraduationStatusService extends GradBaseService {
                     break;
             }
         }
-//        assert commonSchool != null;
         assert school != null;
         return StudentDemographic.builder()
                 .studentID(gradSearchStudent.getStudentID())
