@@ -27,7 +27,7 @@ class CommonControllerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   void testGetAllStudentGradeCodes_ShouldReturnCodes() throws Exception {
-    final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_STUDENT_GRADE_CODES";
+    final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_STUDENT_GRADE_CODES";
     final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
     this.mockMvc.perform(get(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GET_ALL_STUDENT_GRADE_CODES).with(mockAuthority)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(4)).andExpect(jsonPath("$[0].studentGradeCode").value("07"));
