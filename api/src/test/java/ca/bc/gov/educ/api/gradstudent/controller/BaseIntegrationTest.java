@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest(classes = {EducGradStudentApiApplication.class})
-@ActiveProfiles("test")
+@ActiveProfiles("integration-test")
 @AutoConfigureMockMvc
 public abstract class BaseIntegrationTest {
   
