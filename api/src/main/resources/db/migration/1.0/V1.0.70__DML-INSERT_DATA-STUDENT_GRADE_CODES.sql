@@ -62,4 +62,4 @@ INSERT INTO STUDENT_GRADE_CODE (STUDENT_GRADE_CODE,LABEL,DESCRIPTION,DISPLAY_ORD
 VALUES ('KH','Kindergarten Half','Kindergarten half-time, applicable only until 2012 (subgrade)',210,TIMESTAMP'2024-10-01 00:00:00.0',TIMESTAMP'2012-06-30 00:00:00.0', 'N');
 
 INSERT INTO STUDENT_GRADE_CODE (STUDENT_GRADE_CODE,LABEL,DESCRIPTION,DISPLAY_ORDER,EFFECTIVE_DATE,EXPIRY_DATE, EXPECTED)
-VALUES ('OT','Other','A historic grade code applied by TRAX when an unexpected grade code was submitted for a student',220,TIMESTAMP'2024-10-01 00:00:00.0',TIMESTAMP'2024-10-01 00:00:00.0', 'Y');
+VALUES ('OT','Other','A historic grade code applied by TRAX when an unexpected grade code was submitted for a student',220,TIMESTAMP'2024-10-01 00:00:00.0',TIMESTAMP'2024-10-01 00:00:00.0', 'N');
