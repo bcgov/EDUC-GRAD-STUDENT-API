@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -199,6 +200,18 @@ public class CommonController {
     public ResponseEntity<HistoryActivity> getSpecificHistoryActivityCode(@PathVariable String activityCode) {
         logger.debug("getSpecificHistoryActivityCode : ");
         return response.GET(commonService.getSpecificHistoryActivityCode(activityCode));
+    }
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_GRADE_CODES)
+    @PreAuthorize(PermissionsConstants.READ_STUDENT_GRADE_CODES)
+    @Transactional(readOnly = true)
+    @Operation(summary = "Find all active Student Grade Codes",
+            description = "Find all active Student Grade Codes", tags = {"Student Grade Code"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<StudentGradeCode>> getAllStudentGradeCodes() {
+        logger.debug("getAllStudentGradeCodes : ");
+        return response.GET(commonService.getAllStudentGradeCodes());
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_REPORT_DATA_BY_MINCODE)
