@@ -1,18 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.HistoryActivityTransformer;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentNoteTransformer;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentStatusTransformer;
-import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCareerProgramRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentStatusRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.*;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
@@ -51,6 +42,8 @@ public class CommonService {
 	final GradValidation validation;
 	final HistoryActivityRepository historyActivityRepository;
 	final HistoryActivityTransformer historyActivityTransformer;
+	final StudentGradeCodeRepository studentGradeCodeRepository;
+	final StudentGradeCodeTransformer studentGradeCodeTransformer;
 
 	@Autowired
 	public CommonService(EducGradStudentApiConstants constants,
@@ -65,7 +58,9 @@ public class CommonService {
 						 HistoryActivityRepository historyActivityRepository,
 						 HistoryActivityTransformer historyActivityTransformer,
 						 WebClient webClient,
-						 GradValidation validation) {
+						 GradValidation validation,
+						 StudentGradeCodeRepository studentGradeCodeRepository,
+						 StudentGradeCodeTransformer studentGradeCodeTransformer) {
 		this.constants = constants;
 		this.gradStudentCareerProgramRepository = gradStudentCareerProgramRepository;
 		this.gradStudentCareerProgramTransformer = gradStudentCareerProgramTransformer;
@@ -79,6 +74,8 @@ public class CommonService {
 		this.historyActivityTransformer = historyActivityTransformer;
 		this.webClient = webClient;
 		this.validation = validation;
+		this.studentGradeCodeRepository = studentGradeCodeRepository;
+		this.studentGradeCodeTransformer = studentGradeCodeTransformer;
 	}
 
 	@Transactional
@@ -234,5 +231,9 @@ public class CommonService {
 	@Transactional
 	public List<UUID> getDeceasedStudentIDs(List<UUID> studentIDs) {
 		return gradStudentService.getStudentIDsByStatusCode(studentIDs, "DEC");
+	}
+
+	public List<StudentGradeCode> getAllStudentGradeCodes() {
+		return studentGradeCodeRepository.findAll().stream().map(studentGradeCodeTransformer::transformToDTO).toList();
 	}
 }
