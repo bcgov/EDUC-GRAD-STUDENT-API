@@ -19,6 +19,8 @@ spring:
     hibernate:
       ddl-auto: create-drop
     generate-ddl: true
+  main:
+    allow-bean-definition-overriding: true
   mvc:
     log-request-details: true
   jackson:
@@ -31,8 +33,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master
-          jwk-set-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master/protocol/openid-connect/certs
+          issuer-uri: http://test
+          jwk-set-uri: http://test
 
 #Logging properties
 logging:
@@ -105,46 +107,46 @@ cron:
 endpoint:
   grad-trax-api:
     all-commonschools:
-      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/trax/school/common
+      url: http://test
     school-by-min-code:
       url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v2/trax/school-clob/%s
     district-by-district-code:
       url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v2/trax/district/%s
     commonschool-by-mincode:
-      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/trax/school/common/%s
+      url: http://test
   grad-program-api:
     optional_program_name_by_optional_program_id:
-      url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/optionalprograms/id/%s
+      url: http://test
     optional_program_id_by_program_code_optional_program_code:
-      url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/programmanagement/optionalprograms/%s/%s
+      url: http://test
     program_name_by_program_code:
-      url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/programs/%s
-    career_program-by-career-code: 
-      url: https://educ-grad-program-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/program/careerprogram/%s
+      url: http://test
+    career_program-by-career-code:
+      url: http://test
   grad-student-graduation-api:
     ungrad-reason: 
       ungrad-reason-by-reason-code: 
-        url: https://educ-grad-student-graduation-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/studentgraduation/ungrad/ungradreason/%s
+        url: http://test
     save-student-ungrad-reason:
-      url: https://educ-grad-student-graduation-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/studentgraduation/ungrad/studentungradreason/studentid/%s
+      url: http://test
   pen-student-api:
     by-studentid:
-      url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/%s
+      url: http://test
     search:
-      url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student/paginated
+      url: http://test
     by-pen:
-      url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student?pen=%s
+      url: http://test
     student:
-      url: https://student-api-75e61b-tools.apps.silver.devops.gov.bc.ca/api/v1/student
+      url: http://test
   grad-graduation-report-api:
     delete-student-achievement:
-      url: https://educ-grad-graduation-report-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/graduationreports/studentachievement/%s
+      url: http://test
     student-certificates:
-      url: https://educ-grad-graduation-report-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/graduationreports/studentcertificates?studentID=%s
+      url: http://test
     archive-student-achievement:
-      url: https://educ-grad-graduation-report-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v1/graduationreports/studentachievement/%s
+      url: http://test
   educ-school-api:
-    url: https://school-api-75e61b-dev.apps.silver.devops.gov.bc.ca/api/v1/schools
+    url: http://test
 
 
 #Splunk LogHelper
