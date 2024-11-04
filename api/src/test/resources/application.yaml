@@ -109,9 +109,9 @@ endpoint:
     all-commonschools:
       url: http://test
     school-by-min-code:
-      url: http://test
+      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v2/trax/school-clob/%s
     district-by-district-code:
-      url: http://test
+      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v2/trax/district/%s
     commonschool-by-mincode:
       url: http://test
   grad-program-api:
