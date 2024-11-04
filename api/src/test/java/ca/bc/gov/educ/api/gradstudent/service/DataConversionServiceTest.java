@@ -289,7 +289,7 @@ public class DataConversionServiceTest {
         OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
         requestDTO.setPen(pen);
         requestDTO.setStudentID(studentID.toString());
-        requestDTO.setEventType(TraxEventType.UPD_STD_STATUS);
+        requestDTO.setEventType(TraxEventType.UPD_GRAD);
 
         OngoingUpdateFieldDTO field = OngoingUpdateFieldDTO.builder()
                 .type(FieldType.STRING).name(FieldName.STUDENT_STATUS).value(newStatus)
@@ -323,6 +323,68 @@ public class DataConversionServiceTest {
     }
 
     @Test
+    public void testGraduationStudentRecordAsOngoingUpdateForBatchFlags() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
+        String mincode = "12345678";
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
+        graduationStatusEntity.setStudentStatus("CUR");
+        graduationStatusEntity.setRecalculateGradStatus(null);
+        graduationStatusEntity.setRecalculateProjectedGrad("Y");
+        graduationStatusEntity.setProgram("2018-EN");
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
+        requestDTO.setPen(pen);
+        requestDTO.setStudentID(studentID.toString());
+        requestDTO.setEventType(TraxEventType.COURSE);
+
+        OngoingUpdateFieldDTO field1 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.RECALC_GRAD_ALG).value("Y")
+                .build();
+        requestDTO.getUpdateFields().add(field1);
+
+        OngoingUpdateFieldDTO field2 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.RECALC_TVR).value("NULL")
+                .build();
+        requestDTO.getUpdateFields().add(field2);
+
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
+        BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
+        savedGraduationStatus.setRecalculateGradStatus("Y");
+        savedGraduationStatus.setRecalculateProjectedGrad(null);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+
+        when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
+        when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
+
+        var result = dataConversionService.updateGraduationStatusByFields(requestDTO, "accessToken");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
+
+        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
+
+        assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");
+        assertThat(result.getRecalculateProjectedGrad()).isNull();
+    }
+
+    @Test
     public void testGraduationStudentRecordAsOngoingUpdateForStudentMergedStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -345,7 +407,7 @@ public class DataConversionServiceTest {
         OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
         requestDTO.setPen(pen);
         requestDTO.setStudentID(studentID.toString());
-        requestDTO.setEventType(TraxEventType.UPD_STD_STATUS);
+        requestDTO.setEventType(TraxEventType.UPD_GRAD);
 
         OngoingUpdateFieldDTO field = OngoingUpdateFieldDTO.builder()
                 .type(FieldType.STRING).name(FieldName.STUDENT_STATUS).value(newStatus)
@@ -407,7 +469,7 @@ public class DataConversionServiceTest {
         OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
         requestDTO.setPen(pen);
         requestDTO.setStudentID(studentID.toString());
-        requestDTO.setEventType(TraxEventType.UPD_STD_STATUS);
+        requestDTO.setEventType(TraxEventType.UPD_GRAD);
 
         OngoingUpdateFieldDTO field = OngoingUpdateFieldDTO.builder()
                 .type(FieldType.STRING).name(FieldName.STUDENT_STATUS).value(newStatus)
