@@ -362,18 +362,14 @@ public class GraduationStatusService extends GradBaseService {
         }
 
         if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty()) {
-            List<CommonSchool> schools = new ArrayList<>(getSchools(accessToken));
-            for(Iterator<CommonSchool> it = schools.iterator(); it.hasNext();) {
-                CommonSchool school = it.next();
-                if(!searchRequest.getDistricts().contains(school.getDistNo())) {
+            List<School> schools = new ArrayList<>(getSchoolsByDistricts(searchRequest.getDistricts(), accessToken));
+            for(Iterator<School> it = schools.iterator(); it.hasNext();) {
+                School school = it.next();
+                List<String> schoolCategoryCodes = searchRequest.getSchoolCategoryCodes().stream().filter(StringUtils::isNotBlank).toList();
+                if(!schoolCategoryCodes.isEmpty() && !schoolCategoryCodes.contains(school.getSchoolCategoryCode())) {
                     it.remove();
                 } else {
-                    List<String> schoolCategoryCodes = searchRequest.getSchoolCategoryCodes().stream().filter(StringUtils::isNotBlank).toList();
-                    if(!schoolCategoryCodes.isEmpty() && !schoolCategoryCodes.contains(school.getSchoolCategoryCode())) {
-                        it.remove();
-                    } else {
-                        searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
-                    }
+                    searchRequest.getSchoolOfRecords().add(school.getMinCode());
                 }
             }
         }
@@ -521,13 +517,22 @@ public class GraduationStatusService extends GradBaseService {
                 }).block();
     }
 
-    public List<CommonSchool> getSchools(String accessToken) {
-        return webClient.get().uri((constants.getSchoolsSchoolApiUrl()))
+    public List<School> getSchoolsByDistricts(List<String> districts, String accessToken) {
+        List<School> results = new ArrayList<>();
+        for (String distNo : districts) {
+            results.addAll(getSchoolsByDistrictNumber(distNo, accessToken));
+        }
+        return results;
+    }
+
+    public List<School> getSchoolsByDistrictNumber(String distNo, String accessToken) {
+        return webClient.get()
+            .uri(String.format(constants.getSchoolsByDistrictNumberUrl(), distNo))
             .headers(h -> {
                 h.setBearerAuth(accessToken);
                 h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
             })
-            .retrieve().bodyToMono(new ParameterizedTypeReference<List<CommonSchool>>() {
+            .retrieve().bodyToMono(new ParameterizedTypeReference<List<School>>() {
         }).block();
     }
 

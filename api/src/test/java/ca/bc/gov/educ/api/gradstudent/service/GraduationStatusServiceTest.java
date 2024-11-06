@@ -1655,11 +1655,8 @@ public class GraduationStatusServiceTest {
         School school = new School();
         school.setMinCode(schoolOfRecord);
         school.setSchoolName("Test School");
-
-        CommonSchool commonSchool = new CommonSchool();
-        commonSchool.setSchlNo(schoolOfRecord);
-        commonSchool.setSchoolName(school.getSchoolName());
-        commonSchool.setSchoolCategoryCode("02");
+        school.setSchoolCategoryCode("02");
+        school.setSchoolCategoryCodeInstitute("INDEPEN");
 
         List<String> districts = new ArrayList<>();
         districts.add(distCode);
@@ -1724,20 +1721,14 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(),schoolOfRecord))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(CommonSchool.class)).thenReturn(Mono.just(commonSchool));
-
-        final ParameterizedTypeReference<List<CommonSchool>> commonSchoolsType = new ParameterizedTypeReference<>() {
+        final ParameterizedTypeReference<List<School>> schoolsType = new ParameterizedTypeReference<>() {
         };
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(constants.getSchoolsSchoolApiUrl())).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolsByDistrictNumberUrl(),distCode))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(commonSchoolsType)).thenReturn(Mono.just(List.of(commonSchool)));
+        when(this.responseMock.bodyToMono(schoolsType)).thenReturn(Mono.just(List.of(school)));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDistrictByDistrictCodeUrl(),distCode))).thenReturn(this.requestHeadersMock);
@@ -1804,11 +1795,8 @@ public class GraduationStatusServiceTest {
         School school = new School();
         school.setMinCode(schoolOfRecord);
         school.setSchoolName("Test School");
-
-        CommonSchool commonSchool = new CommonSchool();
-        commonSchool.setSchlNo(schoolOfRecord);
-        commonSchool.setSchoolName(school.getSchoolName());
-        commonSchool.setSchoolCategoryCode("02");
+        school.setSchoolCategoryCode("02");
+        school.setSchoolCategoryCodeInstitute("INDEPEN");
 
         List<String> districts = new ArrayList<>();
         districts.add(distCode);
@@ -1873,20 +1861,14 @@ public class GraduationStatusServiceTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(),schoolOfRecord))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(CommonSchool.class)).thenReturn(Mono.just(commonSchool));
-
-        final ParameterizedTypeReference<List<CommonSchool>> commonSchoolsType = new ParameterizedTypeReference<>() {
+        final ParameterizedTypeReference<List<School>> schoolsType = new ParameterizedTypeReference<>() {
         };
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(constants.getSchoolsSchoolApiUrl())).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolsByDistrictNumberUrl(),distCode))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(commonSchoolsType)).thenReturn(Mono.just(List.of(commonSchool)));
+        when(this.responseMock.bodyToMono(schoolsType)).thenReturn(Mono.just(List.of(school)));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDistrictByDistrictCodeUrl(),distCode))).thenReturn(this.requestHeadersMock);

@@ -524,11 +524,17 @@ public class GradStudentServiceTest {
         commonSchool.setSchoolName(schoolName);
         commonSchool.setSchoolCategoryCode("02");
 
+        School school = new School();
+        school.setMinCode(mincode);
+        school.setSchoolName(schoolName);
+        school.setSchoolCategoryCode("02");
+        school.setSchoolCategoryCodeInstitute("INDEPEN");
+
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(CommonSchool.class)).thenReturn(Mono.just(commonSchool));
+        when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
         GradStudentCertificates certificate = new GradStudentCertificates();
         certificate.setStudentID(studentID);
