@@ -1,9 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
@@ -23,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
@@ -63,10 +61,10 @@ public class GradStudentServiceTest {
     @MockBean
     CommonService commonService;
 
-    @MockBean
+    @Autowired
     WebClient webClient;
 
-    @MockBean
+    @Autowired
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
 
     @MockBean
@@ -77,11 +75,6 @@ public class GradStudentServiceTest {
     @Mock WebClient.RequestBodySpec requestBodyMock;
     @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
     @Mock WebClient.ResponseSpec responseMock;
-
-    // NATS
-    @MockBean NatsConnection natsConnection;
-    @MockBean Publisher publisher;
-    @MockBean Subscriber subscriber;
 
     @Before
     public void setUp() {
@@ -247,7 +240,7 @@ public class GradStudentServiceTest {
         when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         org.springframework.data.domain.Page<GraduationStudentRecordEntity> pagedResult = new PageImpl<>(List.of(graduationStatusEntity));
-        when(this.graduationStatusRepository.findAll(any(), any(Pageable.class))).thenReturn(pagedResult);
+        when(this.graduationStatusRepository.findAll(any(Example.class), any(Pageable.class))).thenReturn(pagedResult);
 
         RestResponsePage<Student> response = new RestResponsePage<>(List.of(student));
         final ParameterizedTypeReference<RestResponsePage<Student>> studentResponseType = new ParameterizedTypeReference<>() {

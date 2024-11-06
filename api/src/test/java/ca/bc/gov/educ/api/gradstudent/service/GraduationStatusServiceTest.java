@@ -1,10 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
@@ -67,19 +64,15 @@ public class GraduationStatusServiceTest {
     @MockBean GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
-    @MockBean WebClient webClient;
+    @Autowired WebClient webClient;
 
-    @MockBean
+    @Autowired
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
     @Mock WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
     @Mock WebClient.RequestBodySpec requestBodyMock;
     @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
     @Mock WebClient.ResponseSpec responseMock;
-    // NATS
-    @MockBean NatsConnection natsConnection;
-    @MockBean Publisher publisher;
-    @MockBean Subscriber subscriber;
 
     @MockBean
     GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;

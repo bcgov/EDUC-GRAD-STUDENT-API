@@ -3,12 +3,9 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 import ca.bc.gov.educ.api.gradstudent.constant.FieldName;
 import ca.bc.gov.educ.api.gradstudent.constant.FieldType;
 import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.DataConversionService;
-import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,16 +31,7 @@ public class DataConversionControllerTest {
     private DataConversionService dataConversionService;
 
     @Mock
-    private HistoryService historyService;
-
-    @Mock
     ResponseHelper responseHelper;
-
-    @Mock
-    GradValidation validation;
-
-    @Mock
-    Publisher publisher;
 
     @InjectMocks
     private DataConversionController dataConversionController;
@@ -148,7 +136,6 @@ public class DataConversionControllerTest {
         UUID gradStudentCareerProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
         String careerProgramCode = "Test";
-        String pen = "123456789";
 
         StudentCareerProgram studentCareerProgram = new StudentCareerProgram();
         studentCareerProgram.setId(gradStudentCareerProgramID);
@@ -186,7 +173,7 @@ public class DataConversionControllerTest {
 
         Mockito.doNothing().when(dataConversionService).deleteStudentCareerProgram(careerProgramCode, studentID);
         Mockito.when(responseHelper.DELETE(1)).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
-        var result = dataConversionController.deleteStudentCareerProgram(careerProgramCode.toString(), studentID.toString());
+        var result = dataConversionController.deleteStudentCareerProgram(careerProgramCode, studentID.toString());
         Mockito.verify(dataConversionService).deleteStudentCareerProgram(careerProgramCode, studentID);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
