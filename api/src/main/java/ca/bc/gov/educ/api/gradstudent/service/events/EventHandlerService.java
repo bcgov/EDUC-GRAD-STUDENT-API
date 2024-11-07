@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+import static ca.bc.gov.educ.api.gradstudent.constant.EventOutcome.STUDENTS_ARCHIVED;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.MESSAGE_PUBLISHED;
 import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.API_NAME;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
@@ -71,7 +72,9 @@ public class EventHandlerService {
       log.debug(NO_RECORD_SAGA_ID_EVENT_TYPE);
       log.trace(EVENT_PAYLOAD, event);
       ArchiveStudentsSagaData sagaData = JsonUtil.getJsonObjectFromString(ArchiveStudentsSagaData.class, event.getEventPayload());
-      this.graduationStatusService.archiveStudents(sagaData.getBatchId(), sagaData.getSchoolsOfRecords(), sagaData.getStudentStatusCode(), sagaData.getUpdateUser());
+      var numStudentsArchived = this.graduationStatusService.archiveStudents(sagaData.getBatchId(), sagaData.getSchoolsOfRecords(), sagaData.getStudentStatusCode(), sagaData.getUpdateUser());
+      event.setEventPayload(String.valueOf(numStudentsArchived));
+      event.setEventOutcome(STUDENTS_ARCHIVED);
       gradStatusEvent = this.createGradStatusEventRecord(event);
     } else {
       log.debug(RECORD_FOUND_FOR_SAGA_ID_EVENT_TYPE);
@@ -92,7 +95,7 @@ public class EventHandlerService {
             .eventType(event.getEventType().toString())
             .sagaId(event.getSagaId())
             .eventStatus(MESSAGE_PUBLISHED.toString())
-            .eventOutcome(event.getEventOutcome().toString())
+            .eventOutcome(String.valueOf(event.getEventOutcome()))
             .replyChannel(event.getReplyTo())
             .build();
   }

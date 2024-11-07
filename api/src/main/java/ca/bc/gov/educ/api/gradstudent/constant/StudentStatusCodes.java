@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.constant;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 
 @Getter
@@ -11,8 +12,7 @@ public enum StudentStatusCodes {
   ARCHIVED("ARC"),
   DECEASED("DEC"),
   MERGED("MER"),
-  TERMINATED("TER"),
-  PENDING_ARCHIVE("PEN");
+  TERMINATED("TER");
 
   private final String code;
   StudentStatusCodes(String code) {
@@ -20,6 +20,6 @@ public enum StudentStatusCodes {
   }
 
   public static Optional<StudentStatusCodes> findByValue(String value) {
-    return Arrays.stream(values()).filter(e -> Arrays.asList(e.code).contains(value)).findFirst();
+    return Arrays.stream(values()).filter(e -> Objects.equals(e.code, value)).findFirst();
   }
 }

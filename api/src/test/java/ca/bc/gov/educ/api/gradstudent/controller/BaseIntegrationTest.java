@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 import ca.bc.gov.educ.api.gradstudent.EducGradStudentApiApplication;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentStatusCodes;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ArchiveStudentsSagaData;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.SagaEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentGradeCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentGradeCodeRepository;
@@ -18,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.INITIATED;
 import static ca.bc.gov.educ.api.gradstudent.constant.SagaEnum.ARCHIVE_STUDENTS_SAGA;
@@ -60,7 +62,7 @@ public abstract class BaseIntegrationTest {
     return ArchiveStudentsSagaData.builder()
             .batchId(123456)
             .updateUser("TEST")
-            .studentStatusCode(StudentStatusCodes.ARCHIVED.getCode())
+            .studentStatusCode(StudentStatusCodes.CURRENT.getCode())
             .build();
   }
 
@@ -74,5 +76,13 @@ public abstract class BaseIntegrationTest {
             .status(IN_PROGRESS.toString())
             .sagaState(INITIATED.toString())
             .build();
+  }
+
+  protected GraduationStudentRecordEntity createMockGraduationStudentRecord() {
+    GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+    graduationStatusEntity.setStudentID(UUID.randomUUID());
+    graduationStatusEntity.setPen("123456789");
+    graduationStatusEntity.setStudentStatus("CUR");
+    return graduationStatusEntity;
   }
 }

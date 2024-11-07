@@ -82,6 +82,8 @@ class ArchiveStudentsOrchestratorTest extends BaseIntegrationTest {
     verify(messagePublisher, atMost(invocations + 1)).dispatchMessage(eq(GRAD_STUDENT_API_TOPIC.toString()), eventCaptor.capture());
     var newEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(eventCaptor.getValue()));
     assertThat(newEvent.getEventType()).isEqualTo(ARCHIVE_STUDENTS);
+    assertThat(newEvent.getBatchId()).isEqualTo(String.valueOf(batchId));
+    assertThat(newEvent.getSagaId()).isEqualTo(saga.getSagaId());
     var archiveStudentsEvent = JsonUtil.getJsonObjectFromString(ArchiveStudentsSagaData.class, newEvent.getEventPayload());
     assertThat(archiveStudentsEvent).isEqualTo(sagaData);
 
@@ -108,6 +110,8 @@ class ArchiveStudentsOrchestratorTest extends BaseIntegrationTest {
     verify(messagePublisher, atMost(invocations + 1)).dispatchMessage(eq(GRAD_BATCH_API_TOPIC.toString()), eventCaptor.capture());
     var newEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(eventCaptor.getValue()));
     assertThat(newEvent.getEventType()).isEqualTo(NOTIFY_ARCHIVE_STUDENT_BATCH_COMPLETED);
+    assertThat(newEvent.getBatchId()).isEqualTo(String.valueOf(batchId));
+    assertThat(newEvent.getSagaId()).isEqualTo(saga.getSagaId());
 
     var sagaFromDB = sagaService.findSagaById(saga.getSagaId());
     assertThat(sagaFromDB).isPresent();

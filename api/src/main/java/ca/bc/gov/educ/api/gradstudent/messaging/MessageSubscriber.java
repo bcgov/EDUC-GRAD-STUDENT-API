@@ -39,7 +39,6 @@ public class MessageSubscriber {
     this.connection = con;
     eventHandlers.forEach(handler -> {
       this.handlerMap.put(handler.getTopicToSubscribe(), handler);
-
       this.subscribeForSAGA(handler.getTopicToSubscribe(), handler);
     });
     this.constants = constants;
