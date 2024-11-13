@@ -7,6 +7,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.GradStatusPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,12 +27,16 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
     private final Connection natsConnection;
     private Dispatcher dispatcher;
     private final GraduationStatusService graduationStatusService;
+    public static final String RESPONDING_BACK_TO_NATS_ON_CHANNEL = "responding back to NATS on {} channel ";
+    public static final String PAYLOAD_LOG = "payload is :: {}";
+
+
 
     private static final String TOPIC = Topics.GRAD_STUDENT_API_FETCH_GRAD_STUDENT_TOPIC.toString();
     private static final Logger log = LoggerFactory.getLogger(FetchGradStudentRecordSubscriber.class);
 
     @Autowired
-    public FetchGradStudentRecordSubscriber(final Connection natsConnection, GraduationStatusService graduationStatusService) {
+    public FetchGradStudentRecordSubscriber(final Connection natsConnection, GraduationStatusService graduationStatusService, EducGradStudentApiConstants constants) {
         this.natsConnection = natsConnection;
         this.graduationStatusService = graduationStatusService;
     }
@@ -50,16 +55,16 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
 
         try {
             Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+            log.info("received GET_STUDENT event :: {}", event.getSagaId());
+            log.trace(PAYLOAD_LOG, event.getEventPayload());
             UUID studentId = JsonUtil.getJsonObjectFromString(UUID.class, event.getEventPayload());
             GradStudentRecord studentRecord = graduationStatusService.getGraduationStudentRecord(studentId);
             response = getResponse(studentRecord);
+            log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+            this.natsConnection.publish(message.getReplyTo(), response.getBytes());
         } catch (Exception e) {
-            response = getErrorResponse(e);
-            if(!(e instanceof EntityNotFoundException)){
-                log.error(String.format("NATS message exception at FetchGradStudentRecordSubscriber: %s when processing: %s", e.getMessage(), eventString));
-            }
+            log.error("Error while processing GET_STUDENT event", e);
         }
-        this.natsConnection.publish(message.getReplyTo(), response.getBytes());
     }
 
     private String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {
