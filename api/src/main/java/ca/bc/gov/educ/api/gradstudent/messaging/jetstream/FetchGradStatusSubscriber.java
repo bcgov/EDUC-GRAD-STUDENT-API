@@ -4,7 +4,6 @@ import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStatusPayload;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
