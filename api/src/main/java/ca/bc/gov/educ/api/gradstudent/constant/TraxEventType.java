@@ -10,7 +10,6 @@ public enum TraxEventType {
     NEWSTUDENT,
     UPD_DEMOG,
     UPD_GRAD,
-    UPD_STD_STATUS,
     XPROGRAM,
     ASSESSMENT,
     COURSE,
