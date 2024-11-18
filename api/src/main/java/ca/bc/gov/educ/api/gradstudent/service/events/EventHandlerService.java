@@ -14,7 +14,6 @@ import ca.bc.gov.educ.api.gradstudent.service.SagaService;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,14 +53,28 @@ public class EventHandlerService {
   public byte [] handleArchiveStudentsRequest(final Event event) throws JsonProcessingException {
     final ArchiveStudentsSagaData sagaData = JsonUtil.getJsonObjectFromString(ArchiveStudentsSagaData.class, event.getEventPayload());
     final var sagaInProgress = this.sagaService.findBySagaNameAndStatusNot(SagaEnum.ARCHIVE_STUDENTS_SAGA.toString(), SagaStatusEnum.COMPLETED.toString());
+
+    final Event newEvent = Event.builder()
+      .sagaId(event.getSagaId())
+      .eventType(event.getEventType()).build();
+
+    final GradStatusEvent gradStatusEvent;
     if (sagaInProgress.isPresent()) {
       log.trace("Archive saga is already in progress. Returning conflict for this event :: {}", event);
-      return "CONFLICT".getBytes();
+      newEvent.setEventOutcome(EventOutcome.FAILED_TO_START_ARCHIVE_STUDENTS_SAGA);
+      newEvent.setEventPayload("CONFLICT");
+      gradStatusEvent = createGradStatusEventRecord(newEvent);
+    } else {
+      Integer numStudentsToBeArchived = this.graduationStatusService.countStudentsInSchoolOfRecordsToBeArchived(sagaData.getSchoolsOfRecords(), sagaData.getStudentStatusCode());
+      newEvent.setEventOutcome(EventOutcome.ARCHIVE_STUDENTS_STARTED);
+      newEvent.setEventPayload(String.valueOf(numStudentsToBeArchived));
+      gradStatusEvent = createGradStatusEventRecord(newEvent);
+
+      var saga = this.archiveStudentsOrchestrator.createSaga(event.getEventPayload(), API_NAME, sagaData.getBatchId());
+      log.debug("Starting updateStudentDownstreamOrchestrator orchestrator :: {}", saga);
+      this.archiveStudentsOrchestrator.startSaga(saga);
     }
-    val saga = this.archiveStudentsOrchestrator.createSaga(event.getEventPayload(), API_NAME, sagaData.getBatchId());
-    log.debug("Starting updateStudentDownstreamOrchestrator orchestrator :: {}", saga);
-    this.archiveStudentsOrchestrator.startSaga(saga);
-    return "SUCCESS".getBytes();
+    return createResponseEvent(this.gradStatusEventRepository.save(gradStatusEvent));
   }
 
   @Transactional(propagation = REQUIRES_NEW)
@@ -101,7 +114,7 @@ public class EventHandlerService {
   }
 
   private byte[] createResponseEvent(GradStatusEvent event) throws JsonProcessingException {
-    val responseEvent = Event.builder()
+    var responseEvent = Event.builder()
             .sagaId(event.getSagaId())
             .eventType(EventType.valueOf(event.getEventType()))
             .eventOutcome(EventOutcome.valueOf(event.getEventOutcome()))

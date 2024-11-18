@@ -143,4 +143,8 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	 * @param <T>
 	 */
 	<T> T findByStudentID(UUID studentId, Class<T> type);
+
+	Integer countBySchoolOfRecordInAndStudentStatusEquals(List<String> schoolOfRecord, String studentStatus);
+
+	Integer countByStudentStatusEquals(String studentStatus);
 }

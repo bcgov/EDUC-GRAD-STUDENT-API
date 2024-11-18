@@ -21,11 +21,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.UUID;
 
-import static ca.bc.gov.educ.api.gradstudent.constant.EventOutcome.STUDENTS_ARCHIVED;
+import static ca.bc.gov.educ.api.gradstudent.constant.EventOutcome.*;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.ARCHIVE_STUDENTS;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.ARCHIVE_STUDENTS_REQUEST;
 import static ca.bc.gov.educ.api.gradstudent.constant.SagaEnum.ARCHIVE_STUDENTS_SAGA;
@@ -77,8 +76,14 @@ public class EventHandlerDelegatorServiceTest extends BaseIntegrationTest {
 
   @Test
   public void testHandleArchiveStudentsRequestEvent_givenValidPayload_whenSuccessfullyProcessed_shouldReturnSuccess() throws IOException {
+    var studentRecord1 = createMockGraduationStudentRecord();
+    var studentRecord2 = createMockGraduationStudentRecord();
+    var studentRecord3 = createMockGraduationStudentRecord();
+    var studentRecord4 = createMockGraduationStudentRecord();
+    studentRecord4.setStudentStatus(StudentStatusCodes.DECEASED.getCode());
+    this.gradStudentRepository.saveAll(Arrays.asList(studentRecord1, studentRecord2, studentRecord3, studentRecord4));
+
     var payload = getArchiveStudentsSagaData();
-    var expectedResponse = "SUCCESS".getBytes(StandardCharsets.UTF_8);
     final Event event = Event.builder()
             .eventType(ARCHIVE_STUDENTS_REQUEST)
             .replyTo(String.valueOf(GRAD_BATCH_API_TOPIC))
@@ -92,19 +97,23 @@ public class EventHandlerDelegatorServiceTest extends BaseIntegrationTest {
             .build();
     this.eventHandlerDelegatorService.handleEvent(event, message);
     verify(this.messagePublisher, atLeastOnce()).dispatchMessage(any(), this.eventCaptor.capture());
-    final var replyEvent = this.eventCaptor.getValue();
+    final var replyEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(this.eventCaptor.getValue()));
     var createdSagas = this.sagaRepository.findAll();
+
+    assertThat(replyEvent.getSagaId()).isNull();
+    assertThat(replyEvent.getEventType()).isEqualTo(ARCHIVE_STUDENTS_REQUEST);
+    assertThat(replyEvent.getEventOutcome()).isEqualTo(ARCHIVE_STUDENTS_STARTED);
+    assertThat(replyEvent.getEventPayload()).isEqualTo("3");
+
     assertThat(createdSagas).isNotEmpty().size().isEqualTo(1);
     assertThat(createdSagas.get(0).getSagaState()).isEqualTo(String.valueOf(ARCHIVE_STUDENTS));
     assertThat(createdSagas.get(0).getStatus()).isEqualTo(String.valueOf(IN_PROGRESS));
     assertThat(createdSagas.get(0).getSagaName()).isEqualTo(String.valueOf(ARCHIVE_STUDENTS_SAGA));
-    assertThat(replyEvent).isNotNull().isEqualTo(expectedResponse);
   }
 
   @Test
   public void testHandleArchiveStudentsRequestEvent_givenArchiveAlreadyInProgress_whenSuccessfullyProcessed_shouldReturnCONFLICT() throws IOException {
     var payload = getArchiveStudentsSagaData();
-    var expectedResponse = "CONFLICT".getBytes(StandardCharsets.UTF_8);
     final Event event = Event.builder()
             .eventType(ARCHIVE_STUDENTS_REQUEST)
             .replyTo(String.valueOf(GRAD_BATCH_API_TOPIC))
@@ -121,9 +130,12 @@ public class EventHandlerDelegatorServiceTest extends BaseIntegrationTest {
     this.sagaRepository.save(saga);
     this.eventHandlerDelegatorService.handleEvent(event, message);
     verify(this.messagePublisher, atLeastOnce()).dispatchMessage(any(), this.eventCaptor.capture());
-    final var replyEvent = this.eventCaptor.getValue();
+    final var replyEvent = JsonUtil.getJsonObjectFromString(Event.class, new String(this.eventCaptor.getValue()));
 
-    assertThat(replyEvent).isNotNull().isEqualTo(expectedResponse);
+    assertThat(replyEvent.getSagaId()).isNull();
+    assertThat(replyEvent.getEventType()).isEqualTo(ARCHIVE_STUDENTS_REQUEST);
+    assertThat(replyEvent.getEventOutcome()).isEqualTo(FAILED_TO_START_ARCHIVE_STUDENTS_SAGA);
+    assertThat(replyEvent.getEventPayload()).isEqualTo("CONFLICT");
   }
 
   @Test
