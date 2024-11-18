@@ -1425,6 +1425,15 @@ public class GraduationStatusService extends GradBaseService {
         }
     }
 
+    public Integer countStudentsInSchoolOfRecordsToBeArchived(List<String> schoolOfRecordList, String studentStatus) {
+        logger.debug("countStudentsToBeArchived");
+        if(schoolOfRecordList != null && !schoolOfRecordList.isEmpty()) {
+            return graduationStatusRepository.countBySchoolOfRecordInAndStudentStatusEquals(schoolOfRecordList, studentStatus);
+        } else {
+            return graduationStatusRepository.countByStudentStatusEquals(studentStatus);
+        }
+    }
+
     private void updateStudentFlagReadyForBatchJob(UUID studentID, String batchJobType) {
         logger.debug("updateStudentFlagReadyByJobType for studentID - {}", studentID);
         Optional<GraduationStudentRecordEntity> optional = graduationStatusRepository.findById(studentID);

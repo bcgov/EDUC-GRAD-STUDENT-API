@@ -3,10 +3,8 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import ca.bc.gov.educ.api.gradstudent.constant.FieldName;
 import ca.bc.gov.educ.api.gradstudent.constant.FieldType;
 import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
-import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
@@ -40,7 +38,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles("test")
-public class DataConversionServiceTest {
+class DataConversionServiceTest extends BaseIntegrationTest {
     @Autowired
     EducGradStudentApiConstants constants;
     @Autowired
@@ -65,10 +63,10 @@ public class DataConversionServiceTest {
 
     @MockBean
     GradValidation validation;
-    @MockBean
+    @Autowired
     WebClient webClient;
 
-    @MockBean
+    @Autowired
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
 
     @Mock
@@ -77,13 +75,6 @@ public class DataConversionServiceTest {
     @Mock WebClient.RequestBodySpec requestBodyMock;
     @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
     @Mock WebClient.ResponseSpec responseMock;
-    // NATS
-    @MockBean
-    NatsConnection natsConnection;
-    @MockBean
-    Publisher publisher;
-    @MockBean
-    Subscriber subscriber;
 
     @Test
     public void testGraduationStudentRecordAsNew() {
@@ -726,7 +717,6 @@ public class DataConversionServiceTest {
         UUID gradStudentCareerProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
         String careerProgramCode = "Test";
-        String pen = "123456789";
 
         StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgramID);

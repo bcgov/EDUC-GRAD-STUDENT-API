@@ -1,9 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
@@ -50,20 +47,13 @@ public class CommonServiceTest {
     @MockBean StudentNoteRepository studentNoteRepository;
     @MockBean StudentStatusRepository studentStatusRepository;
     @MockBean HistoryActivityRepository historyActivityRepository;
-    @MockBean WebClient webClient;
+    @Autowired WebClient webClient;
 
-    @MockBean
+    @Autowired
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
     @Mock WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
-    @Mock WebClient.RequestBodySpec requestBodyMock;
-    @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
     @Mock WebClient.ResponseSpec responseMock;
-
-    // NATS
-    @MockBean NatsConnection natsConnection;
-    @MockBean Publisher publisher;
-    @MockBean Subscriber subscriber;
 
     @Before
     public void setUp() {

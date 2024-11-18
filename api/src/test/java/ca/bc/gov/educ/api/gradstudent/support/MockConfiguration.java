@@ -1,5 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.support;
 
+import ca.bc.gov.educ.api.gradstudent.messaging.MessagePublisher;
+import ca.bc.gov.educ.api.gradstudent.messaging.MessageSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
@@ -16,7 +18,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * The type Mock configuration.
  */
-@Profile("integration-test")
+@Profile("test")
 @Configuration
 public class MockConfiguration {
 
@@ -48,6 +50,18 @@ public class MockConfiguration {
   @Primary
   public Subscriber subscriber() {
     return Mockito.mock(Subscriber.class);
+  }
+
+  @Bean
+  @Primary
+  public MessagePublisher messagePublisher() {
+    return Mockito.mock(MessagePublisher.class);
+  }
+
+  @Bean
+  @Primary
+  public MessageSubscriber messageSubscriber() {
+    return Mockito.mock(MessageSubscriber.class);
   }
 
   @Bean

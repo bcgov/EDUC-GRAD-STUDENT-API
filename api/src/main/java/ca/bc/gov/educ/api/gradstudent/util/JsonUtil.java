@@ -2,12 +2,15 @@ package ca.bc.gov.educ.api.gradstudent.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * The type Json util.
  */
+@Slf4j
 public class JsonUtil {
   public static final ObjectMapper mapper = new ObjectMapper();
 
@@ -60,5 +63,20 @@ public class JsonUtil {
    */
   public static <T> T getObjectFromJsonBytes(Class<T> clazz, byte[] payload) throws IOException {
     return mapper.readValue(payload, clazz);
+  }
+
+  /**
+   * Get json string optional.
+   *
+   * @param payload the payload
+   * @return the optional
+   */
+  public static Optional<String> getJsonString(Object payload){
+    try{
+      return Optional.ofNullable(mapper.writeValueAsString(payload));
+    }catch (final Exception ex){
+      log.error("Exception while converting object to JSON String :: {}", payload);
+    }
+    return Optional.empty();
   }
 }

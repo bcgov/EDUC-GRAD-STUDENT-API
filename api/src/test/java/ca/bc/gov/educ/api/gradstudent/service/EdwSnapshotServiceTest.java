@@ -1,9 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.EdwGraduationSnapshot;
 import ca.bc.gov.educ.api.gradstudent.model.entity.EdwGraduationSnapshotEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.EDWGraduationStatusTransformer;
@@ -49,19 +46,11 @@ public class EdwSnapshotServiceTest {
     @MockBean
     GradValidation validation;
 
-    @MockBean
+    @Autowired
     WebClient webClient;
 
-    @MockBean
+    @Autowired
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
-
-    // NATS
-    @MockBean
-    NatsConnection natsConnection;
-    @MockBean
-    Publisher publisher;
-    @MockBean
-    Subscriber subscriber;
 
     @Test
     public void testRetrieve() {
