@@ -120,14 +120,23 @@ public class DataConversionService extends GradBaseService {
             gradEntity.setUpdateDate(null);
             gradEntity.setUpdateUser(null);
             validateStudentStatusAndResetBatchFlags(gradEntity);
-            gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-            historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
+            if (isBatchFlagUpdatesOnly(eventType)) {
+                gradEntity = saveBatchFlagsWithAuditHistory(gradEntity.getStudentID(), gradEntity.getRecalculateGradStatus(),
+                        gradEntity.getRecalculateProjectedGrad(), UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
+            } else {
+                gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
+                historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
+            }
             if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(requestDTO.getPen())) {
                 saveStudentGuidPenXref(gradEntity.getStudentID(), requestDTO.getPen());
             }
             return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
+    }
+
+    private boolean isBatchFlagUpdatesOnly(TraxEventType eventType) {
+        return TraxEventType.NEWSTUDENT != eventType && TraxEventType.UPD_GRAD != eventType;
     }
 
     @Transactional
@@ -212,6 +221,15 @@ public class DataConversionService extends GradBaseService {
         } else {
             graduationStatusRepository.createStudentGuidPenXrefRecord(studentId, pen, DEFAULT_CREATED_BY, LocalDateTime.now());
         }
+    }
+
+    /**
+     * Update Batch Flags in Graduation Status for Ongoing Updates
+     */
+    private GraduationStudentRecordEntity saveBatchFlagsWithAuditHistory(UUID studentID, String recalculateGradStatus, String recalculateProjectedGrad, String historyActivityCode) {
+        graduationStatusRepository.updateGradStudentRecalculationAllFlags(studentID, recalculateGradStatus, recalculateProjectedGrad);
+        gradStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByStudentId(studentID, historyActivityCode);
+        return graduationStatusRepository.findByStudentID(studentID);
     }
 
     @Transactional
