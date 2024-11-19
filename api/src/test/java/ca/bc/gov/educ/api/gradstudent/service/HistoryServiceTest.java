@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
@@ -51,8 +52,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
-public class HistoryServiceTest {
+public class HistoryServiceTest extends BaseIntegrationTest {
 
     @Autowired EducGradStudentApiConstants constants;
     @Autowired HistoryService historyService;

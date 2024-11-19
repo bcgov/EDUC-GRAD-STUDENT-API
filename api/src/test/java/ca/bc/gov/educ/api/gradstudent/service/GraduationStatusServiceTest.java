@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
@@ -50,8 +51,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
-public class GraduationStatusServiceTest {
+public class GraduationStatusServiceTest extends BaseIntegrationTest {
 
     @Autowired EducGradStudentApiConstants constants;
     @Autowired GraduationStatusService graduationStatusService;
