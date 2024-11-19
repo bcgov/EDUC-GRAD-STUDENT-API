@@ -5,7 +5,6 @@ import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Generated;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
@@ -177,20 +176,6 @@ public class GraduationStatusService extends GradBaseService {
      */
     public GraduationStudentRecordGradStatus getGraduationStatusProjection(UUID studentID) throws EntityNotFoundException {
         GraduationStudentRecordGradStatus response = graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class);
-        if (response != null) {
-            return response;
-        }
-        throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
-    }
-
-    /**
-     * Returns a condensed version of GraduationStudentRecord for GDC
-     * @param studentID
-     * @return
-     * @throws EntityNotFoundException
-     */
-    public GradStudentRecord getGraduationStudentRecord(UUID studentID) {
-        GradStudentRecord response = graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class);
         if (response != null) {
             return response;
         }

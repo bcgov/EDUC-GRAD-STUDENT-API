@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStatusPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
@@ -26,7 +27,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
 
     private final Connection natsConnection;
     private Dispatcher dispatcher;
-    private final GraduationStatusService graduationStatusService;
+    private final GradStudentService gradStudentService;
     public static final String RESPONDING_BACK_TO_NATS_ON_CHANNEL = "responding back to NATS on {} channel ";
     public static final String PAYLOAD_LOG = "payload is :: {}";
 
@@ -36,9 +37,9 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
     private static final Logger log = LoggerFactory.getLogger(FetchGradStudentRecordSubscriber.class);
 
     @Autowired
-    public FetchGradStudentRecordSubscriber(final Connection natsConnection, GraduationStatusService graduationStatusService, EducGradStudentApiConstants constants) {
+    public FetchGradStudentRecordSubscriber(final Connection natsConnection, GradStudentService gradStudentService, EducGradStudentApiConstants constants) {
         this.natsConnection = natsConnection;
-        this.graduationStatusService = graduationStatusService;
+        this.gradStudentService = gradStudentService;
     }
 
     @PostConstruct
@@ -58,7 +59,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
             log.info("received GET_STUDENT event :: {}", event.getSagaId());
             log.trace(PAYLOAD_LOG, event.getEventPayload());
             UUID studentId = JsonUtil.getJsonObjectFromString(UUID.class, event.getEventPayload());
-            GradStudentRecord studentRecord = graduationStatusService.getGraduationStudentRecord(studentId);
+            GradStudentRecord studentRecord = gradStudentService.getGraduationStudentRecord(studentId);
             response = getResponse(studentRecord);
             log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
             this.natsConnection.publish(message.getReplyTo(), response.getBytes());
