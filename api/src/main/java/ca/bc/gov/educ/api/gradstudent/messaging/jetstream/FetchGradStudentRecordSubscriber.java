@@ -85,7 +85,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
             return JsonUtil.getJsonStringFromObject(gradStatusPayload);
         } catch (JsonProcessingException exc) {
             log.error("Error while serializing error response", exc);
-            return "{\"dob\": \"\", \"exception\": \"JSON Parsing exception\"}";
+            return "{\"program\": \"\", \"programCompletionDate\": \"\", \"schoolOfRecord\": \"\", \"exception\": \"JSON Parsing exception\"}";
         }
     }
 }
