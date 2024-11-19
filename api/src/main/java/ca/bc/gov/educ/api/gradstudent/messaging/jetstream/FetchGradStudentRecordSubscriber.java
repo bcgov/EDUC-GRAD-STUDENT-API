@@ -69,8 +69,9 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
 
     private String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {
         GradStudentRecordPayload gradStudentRecordPayload = GradStudentRecordPayload.builder()
-                .dob(studentRecord.getDob() != null ?
-                EducGradStudentApiUtils.formatDate(studentRecord.getDob()) : null)
+                .program(studentRecord.getProgram())
+                .programCompletionDate(studentRecord.getProgramCompletionDate() != null ? EducGradStudentApiUtils.formatDate(studentRecord.getProgramCompletionDate()) : null)
+                .schoolOfRecord(studentRecord.getSchoolOfRecord())
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
     }

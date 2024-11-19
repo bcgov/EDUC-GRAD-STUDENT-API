@@ -13,6 +13,8 @@ import java.util.UUID;
 public class GradStudentRecord {
 
     private UUID studentID;
-    private Date dob;
+    private String program;
+    private Date programCompletionDate;
+    private String schoolOfRecord;
 
 }
