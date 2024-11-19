@@ -7,7 +7,6 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.GradStatusPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
-import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
