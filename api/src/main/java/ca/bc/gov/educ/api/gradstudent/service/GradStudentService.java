@@ -1,6 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
@@ -50,6 +52,7 @@ public class GradStudentService {
     private static final String PAGE_NUMBER="pageNumber";
     private static final String PAGE_SIZE="pageSize";
     private static final String SEARCH_CRITERIA_LIST = "searchCriteriaList";
+	private static final String STD_NOT_FOUND_MSG = "Student with ID: %s not found";
 
 	final EducGradStudentApiConstants constants;
 	final WebClient webClient;
@@ -416,5 +419,19 @@ public class GradStudentService {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIn(searchRequest.getSchoolOfRecords()));
 		}
 		return result;
+	}
+
+	/**
+	 * Returns a condensed version of GraduationStudentRecord for GDC
+	 * @param studentID
+	 * @return
+	 * @throws EntityNotFoundException
+	 */
+	public GradStudentRecord getGraduationStudentRecord(UUID studentID) {
+		GradStudentRecord response = graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class);
+		if (response != null) {
+			return response;
+		}
+		throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
 	}
 }

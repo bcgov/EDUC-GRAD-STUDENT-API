@@ -1,10 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
@@ -41,6 +44,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -48,8 +53,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
-public class GradStudentServiceTest {
+public class GradStudentServiceTest extends BaseIntegrationTest {
 
     @Autowired
     EducGradStudentApiConstants constants;
@@ -851,6 +855,25 @@ public class GradStudentServiceTest {
 
         List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
         assertThat(results).isNotEmpty();
+    }
+
+    @Test
+    public void testGetGraduationStudentRecord_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(), "schoolOfRecord"));
+        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetGraduationStudentRecord_givenNotFound_ExpectEntityNotFoundExcetpion() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(null);
+        assertThrows(EntityNotFoundException.class, () -> {
+            gradStudentService.getGraduationStudentRecord(studentID);
+        });
     }
 
     @SneakyThrows
