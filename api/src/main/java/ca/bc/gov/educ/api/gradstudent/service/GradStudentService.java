@@ -298,6 +298,7 @@ public class GradStudentService {
 		GradSearchStudent gradStu = new GradSearchStudent();
 		BeanUtils.copyProperties(gradRecord, gradStu);
 		gradStu.setStudentID(gradRecord.getStudentID().toString());
+		gradStu.setSchoolOfRecordId(gradRecord.getSchoolOfRecordId() != null? gradRecord.getSchoolOfRecordId().toString() : null);
 		return populateGradStudent(gradStu, accessToken);
 	}
 
@@ -311,7 +312,7 @@ public class GradStudentService {
 		if(studentPen != null) {
 			BeanUtils.copyProperties(studentPen, gradStu);
 		}
-		School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord()))
+		School school = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
 				.headers(h -> {
 					h.setBearerAuth(accessToken);
 					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
@@ -333,9 +334,10 @@ public class GradStudentService {
 			gradStu.setStudentGrade(gradObj.getStudentGrade());
 			gradStu.setStudentStatus(gradObj.getStudentStatus());
 			gradStu.setSchoolOfRecord(gradObj.getSchoolOfRecord());
+			gradStu.setSchoolOfRecordId(gradObj.getSchoolOfRecordId() != null? gradObj.getSchoolOfRecordId().toString() : null);
 			gradStu.setStudentCitizenship(gradObj.getStudentCitizenship());
 		
-			School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord()))
+			School school = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
 				.headers(h -> {
 					h.setBearerAuth(accessToken);
 					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());

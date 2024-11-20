@@ -191,6 +191,7 @@ public class GraduationStatusServiceTest {
     public void testGetGraduationStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
         String mincode = "12345678";
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
@@ -203,6 +204,8 @@ public class GraduationStatusServiceTest {
         graduationStatusEntity.setSchoolAtGrad(mincode);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
 
         StudentStatus studentStatus = new StudentStatus();
         studentStatus.setCode("CUR");
@@ -213,6 +216,7 @@ public class GraduationStatusServiceTest {
         program.setProgramName("Graduation Program 2018");
 
         School school = new School();
+        school.setSchoolId(schoolId.toString());
         school.setMinCode(mincode);
         school.setSchoolName("Test School");
 
@@ -225,7 +229,7 @@ public class GraduationStatusServiceTest {
         when(responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -822,6 +826,7 @@ public class GraduationStatusServiceTest {
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
         School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(newMincode);
         school.setSchoolName("Test School");
         school.setOpenFlag("Y");
@@ -830,7 +835,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),newMincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -883,6 +888,7 @@ public class GraduationStatusServiceTest {
         savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
 
         School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(newMincode);
         school.setSchoolName("Test School");
         school.setOpenFlag("Y");
@@ -891,7 +897,7 @@ public class GraduationStatusServiceTest {
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),newMincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -1653,6 +1659,7 @@ public class GraduationStatusServiceTest {
         //schoolOfRecords.add(schoolOfRecord);
 
         School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(schoolOfRecord);
         school.setSchoolName("Test School");
         school.setSchoolCategoryCode("02");
@@ -1716,7 +1723,7 @@ public class GraduationStatusServiceTest {
         when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(student));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),schoolOfRecord))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -1793,6 +1800,7 @@ public class GraduationStatusServiceTest {
         schoolOfRecords.add(schoolOfRecord);
 
         School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(schoolOfRecord);
         school.setSchoolName("Test School");
         school.setSchoolCategoryCode("02");
@@ -1856,7 +1864,7 @@ public class GraduationStatusServiceTest {
         when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(student));
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),schoolOfRecord))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -2305,7 +2313,7 @@ public class GraduationStatusServiceTest {
             }
 
             @Override
-            public UUID getSchoolAtGraduationId() {
+            public UUID getSchoolAtGradId() {
                 return null;
             }
 
@@ -2431,7 +2439,7 @@ public class GraduationStatusServiceTest {
             }
 
             @Override
-            public UUID getSchoolAtGraduationId() {
+            public UUID getSchoolAtGradId() {
                 return null;
             }
 
@@ -2915,7 +2923,7 @@ public class GraduationStatusServiceTest {
             }
 
             @Override
-            public UUID getSchoolAtGraduationId() {
+            public UUID getSchoolAtGradId() {
                 return null;
             }
 
@@ -3192,7 +3200,7 @@ public class GraduationStatusServiceTest {
             }
 
             @Override
-            public UUID getSchoolAtGraduationId() {
+            public UUID getSchoolAtGradId() {
                 return null;
             }
 
