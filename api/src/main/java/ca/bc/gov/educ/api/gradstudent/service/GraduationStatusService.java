@@ -366,7 +366,7 @@ public class GraduationStatusService extends GradBaseService {
             for(Iterator<School> it = schools.iterator(); it.hasNext();) {
                 School school = it.next();
                 List<String> schoolCategoryCodes = searchRequest.getSchoolCategoryCodes().stream().filter(StringUtils::isNotBlank).toList();
-                if(!schoolCategoryCodes.isEmpty() && !schoolCategoryCodes.contains(school.getSchoolCategoryCode())) {
+                if(!schoolCategoryCodes.isEmpty() && !schoolCategoryCodes.contains(school.getSchoolCategoryLegacyCode())) {
                     it.remove();
                 } else {
                     searchRequest.getSchoolOfRecords().add(school.getMinCode());
@@ -500,8 +500,8 @@ public class GraduationStatusService extends GradBaseService {
                 .sccDate(sccDate)
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
                 .mincode(school.getMinCode())
-                .schoolCategory(school.getSchoolCategoryCode())
-                .schoolType("02".equalsIgnoreCase(school.getSchoolCategoryCode()) ? "02" : "")
+                .schoolCategory(school.getSchoolCategoryLegacyCode())
+                .schoolType("02".equalsIgnoreCase(school.getSchoolCategoryLegacyCode()) ? "02" : "")
                 .schoolName(school.getSchoolName())
                 .formerStudent(formerStudent)
                 .build();

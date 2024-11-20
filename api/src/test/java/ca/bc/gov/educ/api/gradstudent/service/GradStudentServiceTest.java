@@ -522,17 +522,12 @@ public class GradStudentServiceTest {
 
         when(this.graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
 
-        CommonSchool commonSchool = new CommonSchool();
-        commonSchool.setSchlNo(mincode);
-        commonSchool.setSchoolName(schoolName);
-        commonSchool.setSchoolCategoryCode("02");
-
         School school = new School();
         school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(mincode);
         school.setSchoolName(schoolName);
-        school.setSchoolCategoryCode("02");
-        school.setSchoolCategoryCodeInstitute("INDEPEN");
+        school.setSchoolCategoryLegacyCode("02");
+        school.setSchoolCategoryCode("INDEPEN");
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);

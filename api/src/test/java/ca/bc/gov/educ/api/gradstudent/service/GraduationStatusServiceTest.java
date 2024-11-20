@@ -1662,8 +1662,8 @@ public class GraduationStatusServiceTest {
         school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(schoolOfRecord);
         school.setSchoolName("Test School");
-        school.setSchoolCategoryCode("02");
-        school.setSchoolCategoryCodeInstitute("INDEPEN");
+        school.setSchoolCategoryLegacyCode("02");
+        school.setSchoolCategoryCode("INDEPEN");
 
         List<String> districts = new ArrayList<>();
         districts.add(distCode);
@@ -1803,8 +1803,8 @@ public class GraduationStatusServiceTest {
         school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(schoolOfRecord);
         school.setSchoolName("Test School");
-        school.setSchoolCategoryCode("02");
-        school.setSchoolCategoryCodeInstitute("INDEPEN");
+        school.setSchoolCategoryLegacyCode("02");
+        school.setSchoolCategoryCode("INDEPEN");
 
         List<String> districts = new ArrayList<>();
         districts.add(distCode);
