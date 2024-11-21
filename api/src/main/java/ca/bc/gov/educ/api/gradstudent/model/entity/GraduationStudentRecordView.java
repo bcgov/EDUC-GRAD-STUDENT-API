@@ -23,7 +23,7 @@ public interface GraduationStudentRecordView {
     public Date getAdultStartDate();
     public String getStudentProjectedGradData() ;
     public UUID getSchoolOfRecordId();
-    public UUID getSchoolAtGraduationId();
+    public UUID getSchoolAtGradId();
     public LocalDateTime getCreateDate();
     public LocalDateTime getUpdateDate();
 }

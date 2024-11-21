@@ -157,11 +157,12 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // School
         final School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(mincode);
         school.setSchoolName(schoolName);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -207,11 +208,12 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // School
         final School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(mincode);
         school.setSchoolName(schoolName);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -305,11 +307,12 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // School
         final School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(mincode);
         school.setSchoolName(schoolName);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -432,7 +435,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
             }
 
             @Override
-            public UUID getSchoolAtGraduationId() {
+            public UUID getSchoolAtGradId() {
                 return null;
             }
 
@@ -523,19 +526,15 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         when(this.graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
 
-        CommonSchool commonSchool = new CommonSchool();
-        commonSchool.setSchlNo(mincode);
-        commonSchool.setSchoolName(schoolName);
-        commonSchool.setSchoolCategoryCode("02");
-
         School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(mincode);
         school.setSchoolName(schoolName);
-        school.setSchoolCategoryCode("02");
-        school.setSchoolCategoryCodeInstitute("INDEPEN");
+        school.setSchoolCategoryLegacyCode("02");
+        school.setSchoolCategoryCode("INDEPEN");
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -621,11 +620,12 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // School
         final School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(mincode);
         school.setSchoolName(schoolName);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
@@ -713,11 +713,12 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // School
         final School school = new School();
+        school.setSchoolId(UUID.randomUUID().toString());
         school.setMinCode(mincode);
         school.setSchoolName(schoolName);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolByMincodeUrl(),mincode))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),school.getSchoolId()))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
