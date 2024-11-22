@@ -70,5 +70,8 @@ public class BaseEntity {
 		if (this.createDate == null) {
 			this.createDate = LocalDateTime.now();
 		}
+		if(this.updateDate == null) {
+			this.updateDate = LocalDateTime.now();
+		}
 	}
 }

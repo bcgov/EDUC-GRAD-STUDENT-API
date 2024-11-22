@@ -202,7 +202,7 @@ public class GraduationStatusService extends GradBaseService {
             if(batchId != null) {
                 resetBatchFlags(gradEntity, false);
             }
-
+            gradEntity.setUpdateUser(null);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, GRAD_ALG);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
@@ -1112,6 +1112,7 @@ public class GraduationStatusService extends GradBaseService {
                     gradEntity.setGpa(null);
                     gradEntity.setSchoolAtGrad(null);
                     gradEntity.setUpdateUser(null);
+                    gradEntity.setUpdateDate(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
                     historyService.createStudentHistory(gradEntity, USER_UNDO_CMPL);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
