@@ -58,11 +58,11 @@ public class JwtUtil {
 
   /**
    * Gets name string
-   * => If it is service account, get it from request header. Otherwise, get it from jwt token
+   * => If it is service account, get it from request header. Otherwise, get it from jwt
    *
    * @param jwt the JWT
    * @param request the Request Header
-   * @return the username string from jwt
+   * @return the username string
    */
   public static String getName(Jwt jwt, HttpServletRequest request) {
     StringBuilder sb = new StringBuilder();
