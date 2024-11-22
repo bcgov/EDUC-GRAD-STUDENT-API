@@ -82,16 +82,15 @@ public class GraduationStatusService extends GradBaseService {
     final HistoryService historyService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
+    final GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
-    GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
-
-    @Autowired
-    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentStatusRepository = studentStatusRepository;
         this.gradStatusEventRepository = gradStatusEventRepository;
+        this.graduationStudentRecordSearchRepository = graduationStudentRecordSearchRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
         this.gradStudentOptionalProgramRepository = gradStudentOptionalProgramRepository;
         this.gradStudentOptionalProgramTransformer = gradStudentOptionalProgramTransformer;
@@ -403,8 +402,8 @@ public class GraduationStatusService extends GradBaseService {
         Specification<GraduationStudentRecordSearchEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
         List<GraduationStudentRecordSearchEntity> results = graduationStudentRecordSearchRepository.findAll(Specification.where(spec));
         List<UUID> students = new ArrayList<>();
-        if (results != null && !results.isEmpty()) {
-            students = results.stream().map(GraduationStudentRecordSearchEntity::getStudentID).collect(Collectors.toList());
+        if (!results.isEmpty()) {
+            students = results.stream().map(GraduationStudentRecordSearchEntity::getStudentID).toList();
         }
         searchResult.setStudentIDs(students);
         return searchResult;
