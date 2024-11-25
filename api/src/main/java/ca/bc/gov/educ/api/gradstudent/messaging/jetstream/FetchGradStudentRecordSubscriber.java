@@ -3,7 +3,6 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
-import ca.bc.gov.educ.api.gradstudent.model.dc.GradStatusPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
@@ -29,9 +28,6 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
     private final GradStudentService gradStudentService;
     public static final String RESPONDING_BACK_TO_NATS_ON_CHANNEL = "responding back to NATS on {} channel ";
     public static final String PAYLOAD_LOG = "payload is :: {}";
-
-
-
     private static final String TOPIC = Topics.GRAD_STUDENT_API_FETCH_GRAD_STUDENT_TOPIC.toString();
     private static final Logger log = LoggerFactory.getLogger(FetchGradStudentRecordSubscriber.class);
 
@@ -61,10 +57,11 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
             GradStudentRecord studentRecord = gradStudentService.getGraduationStudentRecord(studentId);
             response = getResponse(studentRecord);
             log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-            this.natsConnection.publish(message.getReplyTo(), response.getBytes());
         } catch (Exception e) {
+            response = getErrorResponse(e);
             log.error("Error while processing GET_STUDENT event", e);
         }
+        this.natsConnection.publish(message.getReplyTo(), response.getBytes());
     }
 
     private String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {
@@ -72,20 +69,21 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
                 .program(studentRecord.getProgram())
                 .programCompletionDate(studentRecord.getProgramCompletionDate() != null ? EducGradStudentApiUtils.formatDate(studentRecord.getProgramCompletionDate()) : null)
                 .schoolOfRecord(studentRecord.getSchoolOfRecord())
+                .studentStatusCode(studentRecord.getStudentStatusCode())
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
     }
 
     private String getErrorResponse(Exception e) {
         String ex = (e instanceof EntityNotFoundException) ? "not found" : "error";
-        GradStatusPayload gradStatusPayload = GradStatusPayload.builder()
+        GradStudentRecordPayload gradStudentRecordPayload = GradStudentRecordPayload.builder()
                 .exception(ex)
                 .build();
         try {
-            return JsonUtil.getJsonStringFromObject(gradStatusPayload);
+            return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
         } catch (JsonProcessingException exc) {
             log.error("Error while serializing error response", exc);
-            return "{\"program\": \"\", \"programCompletionDate\": \"\", \"schoolOfRecord\": \"\", \"exception\": \"JSON Parsing exception\"}";
+            return "{\"program\": \"\", \"programCompletionDate\": \"\", \"schoolOfRecord\": \"\", \"studentStatusCode\": \"\", \"exception\": \"JSON Parsing exception\"}";
         }
     }
 }
