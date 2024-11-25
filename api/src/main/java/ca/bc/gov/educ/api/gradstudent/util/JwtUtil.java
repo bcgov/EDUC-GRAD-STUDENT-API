@@ -1,5 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -52,6 +54,38 @@ public class JwtUtil {
       sb.append(familyName);
     }
     return sb.toString();
+  }
+
+  /**
+   * Gets name string
+   * => If it is service account, get it from request header. Otherwise, get it from jwt
+   *
+   * @param jwt the JWT
+   * @param request the Request Header
+   * @return the username string
+   */
+  public static String getName(Jwt jwt, HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
+    if (isServiceAccount(jwt.getClaims())) {
+      sb.append(getUserNameString(request));
+    } else {
+      String givenName = (String) jwt.getClaims().get("given_name");
+      if (StringUtils.isNotBlank(givenName)) {
+        sb.append(givenName.charAt(0));
+      }
+      String familyName = (String) jwt.getClaims().get("family_name");
+      sb.append(familyName);
+    }
+    return sb.toString();
+  }
+
+  private static String getUserNameString(HttpServletRequest request) {
+    val username = request.getHeader(EducGradStudentApiConstants.USERNAME);
+    if (StringUtils.isNotBlank(username)) {
+      return username;
+    } else {
+      return "Batch Process";
+    }
   }
 
   private static boolean isServiceAccount(Map<String, Object> claims) {
