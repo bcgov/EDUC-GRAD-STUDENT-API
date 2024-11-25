@@ -141,15 +141,15 @@ public class GraduationStatusService extends GradBaseService {
             if (gradStatus.getProgram() != null) {
                 gradStatus.setProgramName(getProgramName(gradStatus.getProgram(), accessToken));
             }
-            if (gradStatus.getSchoolOfRecord() != null)
-                gradStatus.setSchoolName(getSchoolName(gradStatus.getSchoolOfRecord(), accessToken));
+            if (gradStatus.getSchoolOfRecordId() != null)
+                gradStatus.setSchoolName(getSchoolName(gradStatus.getSchoolOfRecordId().toString(), accessToken));
 
             if (gradStatus.getStudentStatus() != null) {
                 Optional<StudentStatusEntity> statusEntity = studentStatusRepository.findById(StringUtils.toRootUpperCase(gradStatus.getStudentStatus()));
                 statusEntity.ifPresent(studentStatusEntity -> gradStatus.setStudentStatusName(studentStatusEntity.getLabel()));
             }
-            if (gradStatus.getSchoolAtGrad() != null)
-                gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolAtGrad(), accessToken));
+            if (gradStatus.getSchoolAtGradId() != null)
+                gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolAtGradId().toString(), accessToken));
 
             List<StudentCareerProgramEntity> studentCareerProgramEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
             gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
@@ -366,7 +366,7 @@ public class GraduationStatusService extends GradBaseService {
             for(Iterator<School> it = schools.iterator(); it.hasNext();) {
                 School school = it.next();
                 List<String> schoolCategoryCodes = searchRequest.getSchoolCategoryCodes().stream().filter(StringUtils::isNotBlank).toList();
-                if(!schoolCategoryCodes.isEmpty() && !schoolCategoryCodes.contains(school.getSchoolCategoryCode())) {
+                if(!schoolCategoryCodes.isEmpty() && !schoolCategoryCodes.contains(school.getSchoolCategoryLegacyCode())) {
                     it.remove();
                 } else {
                     searchRequest.getSchoolOfRecords().add(school.getMinCode());
@@ -441,7 +441,7 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
 
-        School school = getSchool(gradSearchStudent.getSchoolOfRecord(), accessToken);
+        School school = getSchool(gradSearchStudent.getSchoolOfRecordId(), accessToken);
         if(school == null) {
             validation.addErrorAndStop("School with mincode %s not found", gradSearchStudent.getMincode());
         }
@@ -500,8 +500,8 @@ public class GraduationStatusService extends GradBaseService {
                 .sccDate(sccDate)
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
                 .mincode(school.getMinCode())
-                .schoolCategory(school.getSchoolCategoryCode())
-                .schoolType("02".equalsIgnoreCase(school.getSchoolCategoryCode()) ? "02" : "")
+                .schoolCategory(school.getSchoolCategoryLegacyCode())
+                .schoolType("02".equalsIgnoreCase(school.getSchoolCategoryLegacyCode()) ? "02" : "")
                 .schoolName(school.getSchoolName())
                 .formerStudent(formerStudent)
                 .build();
@@ -536,9 +536,9 @@ public class GraduationStatusService extends GradBaseService {
         }).block();
     }
 
-    private School getSchool(String minCode, String accessToken) {
+    private School getSchool(String schoolId, String accessToken) {
         return webClient.get()
-                .uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
+                .uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))
                 .headers(h -> {
                     h.setBearerAuth(accessToken);
                     h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
@@ -548,8 +548,8 @@ public class GraduationStatusService extends GradBaseService {
                 .block();
     }
 
-    private String getSchoolName(String minCode, String accessToken) {
-        School schObj = getSchool(minCode, accessToken);
+    private String getSchoolName(String schoolId, String accessToken) {
+        School schObj = getSchool(schoolId, accessToken);
         if (schObj != null)
             return schObj.getSchoolName();
         else
@@ -639,9 +639,9 @@ public class GraduationStatusService extends GradBaseService {
         }
     }
 
-    private void validateSchool(String minCode, String accessToken) {
+    private void validateSchool(UUID schoolId, String accessToken) {
         School schObj = webClient.get()
-                .uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
+                .uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))
                 .headers(h -> {
             h.setBearerAuth(accessToken);
             h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
@@ -651,10 +651,10 @@ public class GraduationStatusService extends GradBaseService {
                 .block();
         if (schObj == null) {
             validation.addError(
-                    String.format("Invalid School entered, School [%s] does not exist on the School table", minCode));
+                    String.format("Invalid School entered, SchoolId [%s] does not exist in institute.", schoolId));
         } else {
             if (schObj.getOpenFlag().equalsIgnoreCase("N")) {
-                validation.addWarning(String.format("This School [%s] is Closed", minCode));
+                validation.addWarning(String.format("This School [%s] is Closed", schoolId));
             }
         }
     }
@@ -747,14 +747,14 @@ public class GraduationStatusService extends GradBaseService {
             hasDataChanged.recalculateAll();
         }
         
-        if (sourceEntity.getSchoolOfRecord() != null && !sourceEntity.getSchoolOfRecord().equalsIgnoreCase(existingEntity.getSchoolOfRecord())) {
+        if (sourceEntity.getSchoolOfRecordId() != null && !sourceEntity.getSchoolOfRecordId().equals(existingEntity.getSchoolOfRecordId())) {
             hasDataChanged.recalculateAll();
-            validateSchool(sourceEntity.getSchoolOfRecord(), accessToken);
+            validateSchool(sourceEntity.getSchoolOfRecordId(), accessToken);
         }        
         
-        if (sourceEntity.getSchoolAtGrad() != null && !sourceEntity.getSchoolAtGrad().equalsIgnoreCase(existingEntity.getSchoolAtGrad())) {
+        if (sourceEntity.getSchoolAtGradId() != null && !sourceEntity.getSchoolAtGradId().equals(existingEntity.getSchoolAtGradId())) {
             hasDataChanged.recalculateAll();
-            validateSchool(sourceEntity.getSchoolAtGrad(), accessToken);
+            validateSchool(sourceEntity.getSchoolAtGradId(), accessToken);
         }
         
         if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))) {

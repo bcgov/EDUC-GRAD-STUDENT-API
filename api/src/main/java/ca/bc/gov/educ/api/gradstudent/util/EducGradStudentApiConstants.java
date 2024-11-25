@@ -140,8 +140,8 @@ public class EducGradStudentApiConstants {
     private String connectionName;
 
     //Endpoints
-    @Value("${endpoint.grad-trax-api.school-by-min-code.url}")
-    private String schoolByMincodeUrl;
+    @Value("${endpoint.grad-trax-api.school-clob-by-school-id.url}")
+    private String schoolClobBySchoolIdUrl;
 
     @Value("${endpoint.grad-trax-api.district-by-district-code.url}")
     private String districtByDistrictCodeUrl;
@@ -186,7 +186,7 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-graduation-report-api.archive-student-achievement.url}")
     private String archiveStudentAchievements;
 
-    @Value("${endpoint.grad-trax-api.all-schools-by-district.url}")
+    @Value("${endpoint.grad-trax-api.schools-by-district-code.url}")
     private String schoolsByDistrictNumberUrl;
     
     // Splunk LogHelper Enabled

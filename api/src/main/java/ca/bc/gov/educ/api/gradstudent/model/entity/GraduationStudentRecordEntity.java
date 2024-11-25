@@ -82,7 +82,7 @@ public class GraduationStudentRecordEntity extends BaseEntity {
     private UUID schoolOfRecordId;
 
     @Column(name = "SCHOOL_AT_GRADUATION_ID", nullable = true)
-    private UUID schoolAtGraduationId;
+    private UUID schoolAtGradId;
 
     @Transient
     private String legalFirstName;
