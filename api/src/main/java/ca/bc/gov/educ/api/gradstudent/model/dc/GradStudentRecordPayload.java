@@ -11,5 +11,6 @@ public class GradStudentRecordPayload {
     private String program;
     private String programCompletionDate;
     private String schoolOfRecord;
+    private String studentStatusCode;
 
 }
