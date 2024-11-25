@@ -16,5 +16,6 @@ public class GradStudentRecord {
     private String program;
     private Date programCompletionDate;
     private String schoolOfRecord;
+    private String studentStatusCode;
 
 }
