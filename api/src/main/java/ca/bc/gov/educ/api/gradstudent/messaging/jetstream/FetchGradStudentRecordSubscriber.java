@@ -66,10 +66,12 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
 
     private String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {
         GradStudentRecordPayload gradStudentRecordPayload = GradStudentRecordPayload.builder()
+                .studentID(String.valueOf(studentRecord.getStudentID()))
                 .program(studentRecord.getProgram())
                 .programCompletionDate(studentRecord.getProgramCompletionDate() != null ? EducGradStudentApiUtils.formatDate(studentRecord.getProgramCompletionDate()) : null)
                 .schoolOfRecord(studentRecord.getSchoolOfRecord())
                 .studentStatusCode(studentRecord.getStudentStatusCode())
+                .graduated(studentRecord.getGraduated().toString())
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
     }
@@ -83,7 +85,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
             return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
         } catch (JsonProcessingException exc) {
             log.error("Error while serializing error response", exc);
-            return "{\"program\": \"\", \"programCompletionDate\": \"\", \"schoolOfRecord\": \"\", \"studentStatusCode\": \"\", \"exception\": \"JSON Parsing exception\"}";
+            return "{\"studentID\": \"\", \"program\": \"\", \"programCompletionDate\": \"\", \"schoolOfRecord\": \"\", \"studentStatusCode\": \"\", \"graduated\": \"\", \"exception\": \"JSON Parsing exception\"}";
         }
     }
 }
