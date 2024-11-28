@@ -944,6 +944,26 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         assertThrows(EntityNotFoundException.class, () -> gradStudentService.getGraduationStudentRecord(studentID));
     }
 
+    @Test
+    public void testParseGraduationStatus_GivenNullInput_ExpectFalse() {
+        String studentProjectedGradData = null;
+        Boolean result = gradStudentService.parseGraduationStatus(studentProjectedGradData);
+        assertFalse("Expected false for null input", result);
+    }
+
+    @Test
+    public void testParseGraduationStatus_GivenEmptyInput_ExpectFalse() {
+        String studentProjectedGradData = "";
+        Boolean result = gradStudentService.parseGraduationStatus(studentProjectedGradData);
+        assertFalse("Expected false for empty input", result);
+    }
+
+    @Test
+    public void testParseGraduationStatus_GivenMalformedJson_ExpectFalse() {
+        String malformedJson = "{invalid-json}";
+        Boolean result = gradStudentService.parseGraduationStatus(malformedJson);
+        assertFalse("Expected false for malformed JSON", result);
+    }
 
     @SneakyThrows
     protected Object createDataObjectFromJson(String jsonPath, Class<?> clazz) {

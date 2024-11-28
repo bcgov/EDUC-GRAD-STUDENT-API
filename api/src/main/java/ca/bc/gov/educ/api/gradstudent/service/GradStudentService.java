@@ -440,7 +440,7 @@ public class GradStudentService {
 		throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
 	}
 
-	private Boolean parseGraduationStatus(String studentProjectedGradData) {
+	public Boolean parseGraduationStatus(String studentProjectedGradData) {
 		if (studentProjectedGradData == null || studentProjectedGradData.isEmpty()) {
 			return false;
 		}
