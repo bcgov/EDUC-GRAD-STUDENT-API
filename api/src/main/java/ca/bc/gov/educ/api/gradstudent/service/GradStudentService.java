@@ -9,6 +9,8 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransfor
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
@@ -432,8 +434,22 @@ public class GradStudentService {
 	public GradStudentRecord getGraduationStudentRecord(UUID studentID) {
 		GradStudentRecord response = graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class);
 		if (response != null) {
+			response.setGraduated(parseGraduationStatus(response.getStudentProjectedGradData()));
 			return response;
 		}
 		throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
+	}
+
+	private Boolean parseGraduationStatus(String studentProjectedGradData) {
+		if (studentProjectedGradData == null || studentProjectedGradData.isEmpty()) {
+			return false;
+		}
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode jsonNode = mapper.readTree(studentProjectedGradData);
+			return jsonNode.get("graduated").asBoolean();
+		} catch (JsonProcessingException e) {
+			return false;
+		}
 	}
 }
