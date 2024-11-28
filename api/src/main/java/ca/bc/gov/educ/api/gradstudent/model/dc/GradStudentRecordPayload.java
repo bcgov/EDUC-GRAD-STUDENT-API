@@ -7,10 +7,12 @@ import lombok.Data;
 @Builder
 public class GradStudentRecordPayload {
 
+    private String studentID;
     private String exception;
     private String program;
     private String programCompletionDate;
     private String schoolOfRecord;
     private String studentStatusCode;
+    private String graduated;
 
 }
