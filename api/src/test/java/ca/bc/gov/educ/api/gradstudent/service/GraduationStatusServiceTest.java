@@ -728,6 +728,7 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         assertThat(result.getStudentStatus()).isNull();
         assertThat(result.getProgram()).isNull();
         assertThat(result.getSchoolOfRecord()).isNull();
+        assertThat(result.getSchoolOfRecordId()).isNull();
         assertThat(result.getGpa()).isNull();
 
         assertThat(result.getRecalculateGradStatus()).isNull();
@@ -788,6 +789,7 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         assertThat(result.getStudentStatus()).isNull();
         assertThat(result.getProgram()).isNull();
         assertThat(result.getSchoolOfRecord()).isNull();
+        assertThat(result.getSchoolOfRecordId()).isNull();
         assertThat(result.getGpa()).isNull();
 
         assertThat(result.getRecalculateGradStatus()).isNull();
@@ -2039,6 +2041,7 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         assertThat(result.getHonoursStanding()).isNull();
         assertThat(result.getGpa()).isNull();
         assertThat(result.getSchoolAtGrad()).isNull();
+        assertThat(result.getSchoolAtGradId()).isNull();
     }
 
     @Test
