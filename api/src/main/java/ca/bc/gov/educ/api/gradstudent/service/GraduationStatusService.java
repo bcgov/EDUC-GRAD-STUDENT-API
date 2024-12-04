@@ -246,6 +246,7 @@ public class GraduationStatusService extends GradBaseService {
                     sourceObject.setHonoursStanding(null);
                     sourceObject.setGpa(null);
                     sourceObject.setSchoolAtGrad(null);
+                    sourceObject.setSchoolAtGradId(null);
                     archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
                 } else {
                     deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
@@ -1101,6 +1102,7 @@ public class GraduationStatusService extends GradBaseService {
                     gradEntity.setHonoursStanding(null);
                     gradEntity.setGpa(null);
                     gradEntity.setSchoolAtGrad(null);
+                    gradEntity.setSchoolAtGradId(null);
                     gradEntity.setUpdateUser(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
                     historyService.createStudentHistory(gradEntity, USER_UNDO_CMPL);
@@ -1213,6 +1215,7 @@ public class GraduationStatusService extends GradBaseService {
                 gradEnity.setHonoursStanding(null);
                 gradEnity.setGpa(null);
                 gradEnity.setSchoolAtGrad(null);
+                gradEnity.setSchoolAtGradId(null);
             }
             graduationStatusRepository.save(gradEnity);
             return true;
