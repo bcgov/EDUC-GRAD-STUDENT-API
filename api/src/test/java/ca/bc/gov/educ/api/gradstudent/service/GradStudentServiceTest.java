@@ -1,10 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
@@ -41,6 +44,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -48,8 +52,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
-public class GradStudentServiceTest {
+public class GradStudentServiceTest extends BaseIntegrationTest {
 
     @Autowired
     EducGradStudentApiConstants constants;
@@ -845,6 +848,114 @@ public class GradStudentServiceTest {
 
         List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
         assertThat(results).isNotEmpty();
+    }
+
+    @Test
+    public void testGetGraduationStudentRecord_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+        graduationStudentRecordEntity.setProgramCompletionDate(new java.util.Date());
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(), "schoolOfRecord", "studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", Boolean.TRUE));
+        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetGraduationStudentRecord_givenNotFound_ExpectEntityNotFoundExcetpion() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(null);
+        assertThrows(EntityNotFoundException.class, () -> {
+            gradStudentService.getGraduationStudentRecord(studentID);
+        });
+    }
+
+    @Test
+    public void testGetGraduationStudentRecord_GivenGraduatedTrue_ExpectGraduated() {
+        UUID studentID = UUID.randomUUID();
+        GradStudentRecord mockRecord = new GradStudentRecord(
+                studentID,
+                "2018-EN",
+                new java.util.Date(),
+                "schoolOfRecord",
+                "studentStatusCode",
+                "{\"nonGradReasons\":null,\"graduated\":true}",
+                true
+        );
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(mockRecord);
+
+        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+
+        assertNotNull(result);
+        assertTrue(result.getGraduated());
+    }
+
+    @Test
+    public void testGetGraduationStudentRecord_GivenGraduatedFalse_ExpectNotGraduated() {
+        UUID studentID = UUID.randomUUID();
+        GradStudentRecord mockRecord = new GradStudentRecord(
+            studentID,
+            "2018-EN",
+            new java.util.Date(),
+            "schoolOfRecord",
+            "studentStatusCode",
+            "{\"nonGradReasons\":[],\"graduated\":false}",
+                false
+        );
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(mockRecord);
+
+        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+
+        assertNotNull(result);
+        assertFalse(result.getGraduated());
+    }
+
+    @Test
+    public void testGetGraduationStudentRecord_GivenNullCLOBData_ExpectNotGraduated() {
+        UUID studentID = UUID.randomUUID();
+        GradStudentRecord mockRecord = new GradStudentRecord(
+                studentID,
+                "2018-EN",
+                new java.util.Date(),
+                "schoolOfRecord",
+                "studentStatusCode",
+                null,
+                false
+        );
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(mockRecord);
+
+        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+
+        assertNotNull(result);
+        assertFalse(result.getGraduated());
+    }
+
+    @Test
+    public void testGetGraduationStudentRecord_GivenRecordNotFound_ExpectEntityNotFoundException() {
+        UUID studentID = UUID.randomUUID();
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(null);
+
+        assertThrows(EntityNotFoundException.class, () -> gradStudentService.getGraduationStudentRecord(studentID));
+    }
+
+    @Test
+    public void testParseGraduationStatus_GivenNullInput_ExpectFalse() {
+        String studentProjectedGradData = null;
+        Boolean result = gradStudentService.parseGraduationStatus(studentProjectedGradData);
+        assertFalse("Expected false for null input", result);
+    }
+
+    @Test
+    public void testParseGraduationStatus_GivenEmptyInput_ExpectFalse() {
+        String studentProjectedGradData = "";
+        Boolean result = gradStudentService.parseGraduationStatus(studentProjectedGradData);
+        assertFalse("Expected false for empty input", result);
+    }
+
+    @Test
+    public void testParseGraduationStatus_GivenMalformedJson_ExpectFalse() {
+        String malformedJson = "{invalid-json}";
+        Boolean result = gradStudentService.parseGraduationStatus(malformedJson);
+        assertFalse("Expected false for malformed JSON", result);
     }
 
     @SneakyThrows

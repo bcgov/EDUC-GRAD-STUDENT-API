@@ -1,12 +1,16 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
@@ -50,6 +54,7 @@ public class GradStudentService {
     private static final String PAGE_NUMBER="pageNumber";
     private static final String PAGE_SIZE="pageSize";
     private static final String SEARCH_CRITERIA_LIST = "searchCriteriaList";
+	private static final String STD_NOT_FOUND_MSG = "Student with ID: %s not found";
 
 	final EducGradStudentApiConstants constants;
 	final WebClient webClient;
@@ -418,5 +423,33 @@ public class GradStudentService {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIn(searchRequest.getSchoolOfRecords()));
 		}
 		return result;
+	}
+
+	/**
+	 * Returns a condensed version of GraduationStudentRecord for GDC
+	 * @param studentID
+	 * @return
+	 * @throws EntityNotFoundException
+	 */
+	public GradStudentRecord getGraduationStudentRecord(UUID studentID) {
+		GradStudentRecord response = graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class);
+		if (response != null) {
+			response.setGraduated(parseGraduationStatus(response.getStudentProjectedGradData()));
+			return response;
+		}
+		throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
+	}
+
+	public Boolean parseGraduationStatus(String studentProjectedGradData) {
+		if (studentProjectedGradData == null || studentProjectedGradData.isEmpty()) {
+			return false;
+		}
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode jsonNode = mapper.readTree(studentProjectedGradData);
+			return jsonNode.get("graduated").asBoolean();
+		} catch (JsonProcessingException e) {
+			return false;
+		}
 	}
 }
