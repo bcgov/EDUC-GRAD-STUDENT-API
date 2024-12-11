@@ -16,7 +16,7 @@ public class GradStudentRecord {
     private String program;
     private Date programCompletionDate;
     private String schoolOfRecord;
-    private String studentStatusCode;
+    private String studentStatus;
     private String studentProjectedGradData;
     private Boolean graduated;
 
