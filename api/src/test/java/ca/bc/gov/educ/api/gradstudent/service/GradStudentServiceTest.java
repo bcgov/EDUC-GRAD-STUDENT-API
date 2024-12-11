@@ -855,7 +855,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         UUID studentID = UUID.randomUUID();
         GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
         graduationStudentRecordEntity.setProgramCompletionDate(new java.util.Date());
-        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(), "schoolOfRecord", "studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", Boolean.TRUE));
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(), "schoolOfRecord", "studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}"));
         GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
         assertNotNull(result);
     }
@@ -867,66 +867,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         assertThrows(EntityNotFoundException.class, () -> {
             gradStudentService.getGraduationStudentRecord(studentID);
         });
-    }
-
-    @Test
-    public void testGetGraduationStudentRecord_GivenGraduatedTrue_ExpectGraduated() {
-        UUID studentID = UUID.randomUUID();
-        GradStudentRecord mockRecord = new GradStudentRecord(
-                studentID,
-                "2018-EN",
-                new java.util.Date(),
-                "schoolOfRecord",
-                "studentStatusCode",
-                "{\"nonGradReasons\":null,\"graduated\":true}",
-                true
-        );
-        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(mockRecord);
-
-        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
-
-        assertNotNull(result);
-        assertTrue(result.getGraduated());
-    }
-
-    @Test
-    public void testGetGraduationStudentRecord_GivenGraduatedFalse_ExpectNotGraduated() {
-        UUID studentID = UUID.randomUUID();
-        GradStudentRecord mockRecord = new GradStudentRecord(
-            studentID,
-            "2018-EN",
-            new java.util.Date(),
-            "schoolOfRecord",
-            "studentStatusCode",
-            "{\"nonGradReasons\":[],\"graduated\":false}",
-                false
-        );
-        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(mockRecord);
-
-        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
-
-        assertNotNull(result);
-        assertFalse(result.getGraduated());
-    }
-
-    @Test
-    public void testGetGraduationStudentRecord_GivenNullCLOBData_ExpectNotGraduated() {
-        UUID studentID = UUID.randomUUID();
-        GradStudentRecord mockRecord = new GradStudentRecord(
-                studentID,
-                "2018-EN",
-                new java.util.Date(),
-                "schoolOfRecord",
-                "studentStatusCode",
-                null,
-                false
-        );
-        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(mockRecord);
-
-        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
-
-        assertNotNull(result);
-        assertFalse(result.getGraduated());
     }
 
     @Test
