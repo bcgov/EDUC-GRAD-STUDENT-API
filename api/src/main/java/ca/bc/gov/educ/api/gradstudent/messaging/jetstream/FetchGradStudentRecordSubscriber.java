@@ -53,7 +53,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
             Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
             log.info("received GET_STUDENT event :: {}", event.getSagaId());
             log.trace(PAYLOAD_LOG, event.getEventPayload());
-            UUID studentId = JsonUtil.getJsonObjectFromString(UUID.class, event.getEventPayload());
+            UUID studentId = UUID.fromString(event.getEventPayload());
             GradStudentRecord studentRecord = gradStudentService.getGraduationStudentRecord(studentId);
             response = getResponse(studentRecord);
             log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
