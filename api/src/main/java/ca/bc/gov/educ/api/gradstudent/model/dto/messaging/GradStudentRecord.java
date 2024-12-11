@@ -18,6 +18,5 @@ public class GradStudentRecord {
     private String schoolOfRecord;
     private String studentStatus;
     private String studentProjectedGradData;
-    private Boolean graduated;
 
 }

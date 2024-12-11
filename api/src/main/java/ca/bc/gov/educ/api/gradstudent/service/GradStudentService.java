@@ -434,7 +434,6 @@ public class GradStudentService {
 	public GradStudentRecord getGraduationStudentRecord(UUID studentID) {
 		GradStudentRecord response = graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class);
 		if (response != null) {
-			response.setGraduated(parseGraduationStatus(response.getStudentProjectedGradData()));
 			return response;
 		}
 		throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
