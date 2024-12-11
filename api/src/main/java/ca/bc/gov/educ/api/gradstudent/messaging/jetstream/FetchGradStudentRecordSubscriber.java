@@ -70,7 +70,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
                 .program(studentRecord.getProgram())
                 .programCompletionDate(studentRecord.getProgramCompletionDate() != null ? EducGradStudentApiUtils.formatDate(studentRecord.getProgramCompletionDate()) : null)
                 .schoolOfRecord(studentRecord.getSchoolOfRecord())
-                .studentStatusCode(studentRecord.getStudentStatusCode())
+                .studentStatusCode(studentRecord.getStudentStatus())
                 .graduated(studentRecord.getGraduated().toString())
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
