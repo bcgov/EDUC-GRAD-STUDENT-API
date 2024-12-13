@@ -41,7 +41,6 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
@@ -82,16 +81,15 @@ public class GraduationStatusService extends GradBaseService {
     final HistoryService historyService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
+    final GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
-    GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
-
-    @Autowired
-    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
         this.webClient = webClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentStatusRepository = studentStatusRepository;
         this.gradStatusEventRepository = gradStatusEventRepository;
+        this.graduationStudentRecordSearchRepository = graduationStudentRecordSearchRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
         this.gradStudentOptionalProgramRepository = gradStudentOptionalProgramRepository;
         this.gradStudentOptionalProgramTransformer = gradStudentOptionalProgramTransformer;
@@ -202,7 +200,7 @@ public class GraduationStatusService extends GradBaseService {
             if(batchId != null) {
                 resetBatchFlags(gradEntity, false);
             }
-
+            gradEntity.setUpdateUser(null);
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, GRAD_ALG);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
@@ -399,8 +397,8 @@ public class GraduationStatusService extends GradBaseService {
         Specification<GraduationStudentRecordSearchEntity> spec = new GraduationStudentRecordSearchSpecification(searchCriteria);
         List<GraduationStudentRecordSearchEntity> results = graduationStudentRecordSearchRepository.findAll(Specification.where(spec));
         List<UUID> students = new ArrayList<>();
-        if (results != null && !results.isEmpty()) {
-            students = results.stream().map(GraduationStudentRecordSearchEntity::getStudentID).collect(Collectors.toList());
+        if (!results.isEmpty()) {
+            students = results.stream().map(GraduationStudentRecordSearchEntity::getStudentID).toList();
         }
         searchResult.setStudentIDs(students);
         return searchResult;
@@ -1102,6 +1100,7 @@ public class GraduationStatusService extends GradBaseService {
                     gradEntity.setGpa(null);
                     gradEntity.setSchoolAtGrad(null);
                     gradEntity.setUpdateUser(null);
+                    gradEntity.setUpdateDate(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
                     historyService.createStudentHistory(gradEntity, USER_UNDO_CMPL);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,

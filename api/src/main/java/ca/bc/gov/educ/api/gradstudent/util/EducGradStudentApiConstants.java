@@ -15,6 +15,7 @@ public class EducGradStudentApiConstants {
     public static final String API_NAME = "GRAD-STUDENT-API";
     public static final String STREAM_NAME="GRAD_STATUS_EVENT_STREAM";
     public static final String CORRELATION_ID = "correlationID";
+    public static final String USERNAME = "username";
 
     //API end-point Mapping constants
     public static final String API_ROOT_MAPPING = "";
