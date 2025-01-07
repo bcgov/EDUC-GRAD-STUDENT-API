@@ -114,8 +114,6 @@ endpoint:
       url: http://test
     district-by-district-id:
       url: http://test
-    district-by-district-code:
-      url: http://test
   grad-program-api:
     optional_program_name_by_optional_program_id:
       url: http://test

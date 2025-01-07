@@ -96,16 +96,4 @@ public abstract class GradBaseService {
                 .block();
     }
 
-    protected District getDistrict(String districtCode, String accessToken) {
-        return getWebClient().get()
-                .uri(String.format(getConstants().getDistrictByDistrictCodeUrl(), districtCode))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
-                .retrieve()
-                .bodyToMono(District.class)
-                .block();
-    }
-
 }
