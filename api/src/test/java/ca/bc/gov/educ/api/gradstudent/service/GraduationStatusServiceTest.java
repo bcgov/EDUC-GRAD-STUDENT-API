@@ -38,7 +38,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -1006,6 +1008,79 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        assertThat(response).isNotNull();
+
+        var result = response.getLeft();
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(savedGraduationStatus.getStudentID());
+        assertThat(result.getPen()).isEqualTo(savedGraduationStatus.getPen());
+        assertThat(result.getStudentStatus()).isEqualTo(savedGraduationStatus.getStudentStatus());
+        assertThat(result.getProgram()).isEqualTo(savedGraduationStatus.getProgram());
+        assertThat(result.getSchoolAtGradId()).isEqualTo(savedGraduationStatus.getSchoolAtGradId());
+        assertThat(result.getGpa()).isEqualTo(savedGraduationStatus.getGpa());
+
+        assertThat(result.getRecalculateGradStatus()).isEqualTo(savedGraduationStatus.getRecalculateGradStatus());
+        assertThat(result.getProgramCompletionDate()).isEqualTo(input.getProgramCompletionDate());
+    }
+
+    @Test
+    public void testUpdateGraduationStatus_givenDifferentStudentStatus_whenStudentStatusIsValidated_thenReturnSuccess() throws JsonProcessingException {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
+        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
+        String studentStatus = "CUR";
+        String newStudentStatus = "ARC";
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
+        graduationStatusEntity.setStudentStatus(studentStatus);
+        graduationStatusEntity.setStudentGrade("AD");
+        graduationStatusEntity.setProgram("1950");
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
+        graduationStatusEntity.setGpa("3");
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        GraduationStudentRecord input = new GraduationStudentRecord();
+        BeanUtils.copyProperties(graduationStatusEntity, input);
+        input.setRecalculateGradStatus(null);
+        input.setStudentStatus(newStudentStatus);
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM" ));
+
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
+        BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
+        savedGraduationStatus.setRecalculateGradStatus("Y");
+        savedGraduationStatus.setStudentStatus(newStudentStatus);
+        savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+
+        Student std = new Student();
+        std.setPen(pen);
+        std.setLegalFirstName("Asdad");
+        std.setLegalMiddleNames("Adad");
+        std.setLegalLastName("sadad");
+        std.setMincode(mincode);
+        std.setStatusCode(newStudentStatus);
+
+        String dob = LocalDate.now().minusYears(15).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        std.setDob(dob);
+
+        Mockito.when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
+
+        when(this.webClient.get()).thenReturn(requestHeadersUriMock);
+        when(requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByStudentIdUrl(),studentID))).thenReturn(requestHeadersMock);
+        when(requestHeadersMock.headers(any(Consumer.class))).thenReturn(requestHeadersMock);
+        when(requestHeadersMock.retrieve()).thenReturn(responseMock);
+        when(responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(std));
 
         var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
         assertThat(response).isNotNull();
