@@ -94,11 +94,14 @@ public class CommonControllerTest {
     public void testGetReportGradStudentData() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID districtId = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
 
         ReportGradStudentData reportGradStudentData = new ReportGradStudentData();
         reportGradStudentData.setGraduationStudentRecordId(studentID);
         reportGradStudentData.setFirstName("Jonh");
-        reportGradStudentData.setSchoolOfRecordId(UUID.randomUUID());
+        reportGradStudentData.setSchoolOfRecordId(schoolId);
+        reportGradStudentData.setDistrictId(districtId);
 
         Mockito.when(gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentData));
         commonController.getStudentReportData(List.of(reportGradStudentData.getGraduationStudentRecordId()));
@@ -107,6 +110,10 @@ public class CommonControllerTest {
         Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReportBySchool(reportGradStudentData.getSchoolOfRecordId())).thenReturn(List.of(reportGradStudentData));
         commonController.getStudentReportDataForYearEndNonGrad(reportGradStudentData.getSchoolOfRecordId());
         Mockito.verify(gradStudentReportService).getGradStudentDataForNonGradYearEndReportBySchool(reportGradStudentData.getSchoolOfRecordId());
+
+        Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReportByDistrict(districtId)).thenReturn(List.of(reportGradStudentData));
+        commonController.getStudentReportDataForYearEndNonGradByDistrict(districtId);
+        Mockito.verify(gradStudentReportService).getGradStudentDataForNonGradYearEndReportByDistrict(districtId);
 
         Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReport()).thenReturn(List.of(reportGradStudentData));
         commonController.getStudentReportDataForYearEndNonGrad();

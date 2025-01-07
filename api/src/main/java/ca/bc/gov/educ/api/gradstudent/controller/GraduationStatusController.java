@@ -366,7 +366,7 @@ public class GraduationStatusController {
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_SCHOOL_REPORT)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
-    @Operation(summary = "Get Students For SchoolClob Report by schoolId", description = "Get Students For SchoolClob Report by schoolId", tags = { "Batch Algorithm" })
+    @Operation(summary = "Get Students For School Report by schoolId", description = "Get Students For School Report by schoolId", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<GraduationStudentRecord>> getStudentsForSchoolReport(@PathVariable UUID schoolId) {
         logger.debug("getStudentsForSchoolReport:");
@@ -375,7 +375,7 @@ public class GraduationStatusController {
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_AMALGAMATED_SCHOOL_REPORT)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
-    @Operation(summary = "Get Students For SchoolClob Report by schoolId", description = "Get Students For SchoolClob Report by schoolId", tags = { "Business" })
+    @Operation(summary = "Get Students For School Report by schoolId", description = "Get Students For School Report by schoolId", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<List<UUID>> getStudentsForAmalgamatedSchoolReport(@PathVariable UUID schoolId, @PathVariable String type) {
         logger.debug("getStudentsForSchoolReport:");
@@ -384,7 +384,7 @@ public class GraduationStatusController {
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_COUNT_FOR_AMALGAMATED_SCHOOL_REPORT)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
-    @Operation(summary = "Get Students Count For SchoolClob Report by schoolId", description = "Get Students Count For SchoolClob Report by schoolId", tags = { "Business" })
+    @Operation(summary = "Get Students Count For School Report by schoolId", description = "Get Students Count For School Report by schoolId", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<Integer> getStudentsCountForAmalgamatedSchoolReport(@PathVariable UUID schoolId) {
         logger.debug("getStudentsCountForAmalgamatedSchoolReport:");

@@ -89,6 +89,7 @@ public class EducGradStudentApiConstants {
     public static final String GET_ALL_STUDENT_REPORT_DATA = "/studentschoolreportdata";
     public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA = "/studentnongradreportdata";
     public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_BY_SCHOOL_ID = "/studentnongradreportdata/{schoolId}";
+    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_BY_DISTRICT_ID = "/studentnongradreportdata/district/{districtId}";
     public static final String GET_ALL_SCHOOL_NON_GRAD_REPORT_DATA = "/schoolnongradreportdata";
     public static final String GET_ALL_DISTRICT_NON_GRAD_REPORT_DATA = "/districtnongradreportdata";
     public static final String GET_DECEASED_STUDENT_ID = "/deceasedstudentid";

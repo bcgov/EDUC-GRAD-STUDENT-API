@@ -216,8 +216,8 @@ public class CommonController {
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_REPORT_DATA_BY_SCHOOL_ID)
     @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
-    @Operation(summary = "Find a Student Graduation Data by Institute SchoolClob Id",
-            description = "Find a Student Graduation Data by Institute SchoolClob Id", tags = {"Student Graduation Data for SchoolClob Reports"})
+    @Operation(summary = "Find a Student Graduation Data by Institute School Id",
+            description = "Find a Student Graduation Data by Institute School Id", tags = {"Student Graduation Data for School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataBySchoolId(@PathVariable UUID schoolId) {
@@ -228,7 +228,7 @@ public class CommonController {
     @PostMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_REPORT_DATA)
     @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
     @Operation(summary = "Find a Student Graduation Data by List of GUIDs",
-            description = "Find a Student Graduation Data by List of GUIDs", tags = {"Student Graduation Data for SchoolClob Reports"})
+            description = "Find a Student Graduation Data by List of GUIDs", tags = {"Student Graduation Data for School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportData(@RequestBody List<UUID> studentIds) {
@@ -238,8 +238,8 @@ public class CommonController {
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NON_GRAD_REPORT_DATA)
     @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
-    @Operation(summary = "Find a Student Graduation Data for Year End SchoolClob Report",
-            description = "Find a Student Graduation Data for Year End SchoolClob Report", tags = {"Student Graduation Data for SchoolClob Reports"})
+    @Operation(summary = "Find a Student Graduation Data for Year End School Report",
+            description = "Find a Student Graduation Data for Year End School Report", tags = {"Student Graduation Data for School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataForYearEndNonGrad() {
@@ -249,19 +249,30 @@ public class CommonController {
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_BY_SCHOOL_ID)
     @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
-    @Operation(summary = "Find a Student Graduation Data for Year End SchoolClob Report",
-            description = "Find a Student Graduation Data for Year End SchoolClob Report", tags = {"Student Graduation Data for SchoolClob Reports"})
+    @Operation(summary = "Find a Student Graduation Data for Year End School Report by School Id",
+            description = "Find a Student Graduation Data for Year End School Report by School Id", tags = {"Student Graduation Data for School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataForYearEndNonGrad(@PathVariable UUID schoolId) {
-        logger.debug("getStudentReportDataForYearEndNonGrad :");
+        logger.debug("getStudentReportDataForYearEndNonGrad By School");
         return response.GET(gradStudentReportService.getGradStudentDataForNonGradYearEndReportBySchool(schoolId));
+    }
+
+    @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_BY_DISTRICT_ID)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
+    @Operation(summary = "Find a Student Graduation Data for Year End School Report by District Id",
+            description = "Find a Student Graduation Data for Year End School Report by District Id", tags = {"Student Graduation Data for School Reports"})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
+    public ResponseEntity<List<ReportGradStudentData>> getStudentReportDataForYearEndNonGradByDistrict(@PathVariable UUID districtId) {
+        logger.debug("getStudentReportDataForYearEndNonGrad By District:");
+        return response.GET(gradStudentReportService.getGradStudentDataForNonGradYearEndReportByDistrict(districtId));
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_SCHOOL_NON_GRAD_REPORT_DATA)
     @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
-    @Operation(summary = "Find Schools for Year End SchoolClob Report",
-            description = "Find Schools for Year End SchoolClob Report", tags = {"Schools for Year End SchoolClob Reports"})
+    @Operation(summary = "Find Schools for Year End School Report",
+            description = "Find Schools for Year End School Report", tags = {"Schools for Year End School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<UUID>> getSchoolReportDataForYearEndNonGrad() {
@@ -271,8 +282,8 @@ public class CommonController {
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_DISTRICT_NON_GRAD_REPORT_DATA)
     @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
-    @Operation(summary = "Find Schools for Year End SchoolClob Report",
-            description = "Find Schools for Year End SchoolClob Report", tags = {"Schools for Year End SchoolClob Reports"})
+    @Operation(summary = "Find Schools for Year End School Report",
+            description = "Find Schools for Year End School Report", tags = {"Schools for Year End School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<UUID>> getDistrictReportDataForYearEndNonGrad(@RequestHeader(name="Authorization") String accessToken) {
@@ -283,7 +294,7 @@ public class CommonController {
     @PostMapping(EducGradStudentApiConstants.GET_DECEASED_STUDENT_ID)
     @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_STATUS)
     @Operation(summary = "Find Deceased Student IDs by List of GUIDs",
-            description = "Find Deceased Student IDs by List of GUIDs", tags = {"Student Graduation Data for SchoolClob Reports"})
+            description = "Find Deceased Student IDs by List of GUIDs", tags = {"Student Graduation Data for School Reports"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "204", description = "NO CONTENT.")})
     public ResponseEntity<List<UUID>> getDeceasedStudentIDs(@RequestBody List<UUID> studentIds) {

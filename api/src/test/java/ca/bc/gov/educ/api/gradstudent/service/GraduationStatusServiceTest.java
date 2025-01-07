@@ -2875,7 +2875,7 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
             }
         });
 
-        result = gradStudentReportService.getGradStudentDataForNonGradYearEndReportBySchool(graduationStatusEntity.getSchoolOfRecordId());
+        result = gradStudentReportService.getGradStudentDataForNonGradYearEndReportByDistrict(districtId);
         assertThat(result).isNotEmpty().hasSize(1);
 
         assertThrows("Invalid schoolId: null", IllegalArgumentException.class, () -> {
