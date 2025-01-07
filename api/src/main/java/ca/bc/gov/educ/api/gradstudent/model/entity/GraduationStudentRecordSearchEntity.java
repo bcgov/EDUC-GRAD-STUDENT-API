@@ -26,12 +26,12 @@ public class GraduationStudentRecordSearchEntity {
     
     @Column(name = "PROGRAM_COMPLETION_DATE", nullable = true)
     private Date programCompletionDate;
-    
-    @Column(name = "SCHOOL_OF_RECORD", nullable = true)
-    private String schoolOfRecord;
 
-    @Column(name = "SCHOOL_AT_GRADUATION", nullable = true)
-    private String schoolAtGraduation;
+    @Column(name = "SCHOOL_OF_RECORD_ID", nullable = true)
+    private String schoolOfRecordId;
+
+    @Column(name = "SCHOOL_AT_GRADUATION_ID", nullable = true)
+    private String schoolAtGradId;
     
     @Column(name = "STUDENT_STATUS_CODE", nullable = false)
     private String studentStatus;

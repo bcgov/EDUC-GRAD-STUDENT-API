@@ -13,9 +13,9 @@ import java.util.UUID;
 @Table(name = "GRADUATION_STUDENT_RECORD")
 public class GraduationStudentRecordEntity extends BaseEntity {
 
-    public GraduationStudentRecordEntity(String gradProgram, String schoolOfRecord) {
+    public GraduationStudentRecordEntity(String gradProgram, UUID schoolOfRecordId) {
 		this.program = gradProgram;
-		this.schoolOfRecord = schoolOfRecord;
+		this.schoolOfRecordId = schoolOfRecordId;
 	}
 
 	public GraduationStudentRecordEntity() {

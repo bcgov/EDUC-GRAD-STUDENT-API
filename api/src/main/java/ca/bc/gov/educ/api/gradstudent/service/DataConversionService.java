@@ -417,5 +417,14 @@ public class DataConversionService extends GradBaseService {
         return sourceObject;
     }
 
+    @Override
+    protected WebClient getWebClient() {
+        return webClient;
+    }
+
+    @Override
+    protected EducGradStudentApiConstants getConstants() {
+        return constants;
+    }
 
 }

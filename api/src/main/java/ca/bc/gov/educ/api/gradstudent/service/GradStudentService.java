@@ -121,7 +121,7 @@ public class GradStudentService {
 		List<GradSearchStudent> gradStudentList = new ArrayList<>();
 		List<SearchCriteria> criteriaList = new ArrayList<>();
 		ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreNullValues();
-		Example<GraduationStudentRecordEntity> exampleQuery = Example.of(new GraduationStudentRecordEntity(studentSearchRequest.getGradProgram(),studentSearchRequest.getSchoolOfRecord()), matcher);
+		Example<GraduationStudentRecordEntity> exampleQuery = Example.of(new GraduationStudentRecordEntity(studentSearchRequest.getGradProgram(),studentSearchRequest.getSchoolId()), matcher);
 		Page<GraduationStudentRecordEntity> pagedResult = graduationStatusRepository.findAll(exampleQuery,paging);
 		List<GraduationStudentRecordEntity> studList = pagedResult.getContent();
 		if(!studList.isEmpty()) {
@@ -317,14 +317,14 @@ public class GradStudentService {
 		if(studentPen != null) {
 			BeanUtils.copyProperties(studentPen, gradStu);
 		}
-		School school = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
+		SchoolClob schoolClob = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
 				.headers(h -> {
 					h.setBearerAuth(accessToken);
 					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
 				})
-				.retrieve().bodyToMono(School.class).block();
-		if (school != null) {
-			gradStu.setSchoolOfRecordName(school.getSchoolName());
+				.retrieve().bodyToMono(SchoolClob.class).block();
+		if (schoolClob != null) {
+			gradStu.setSchoolOfRecordName(schoolClob.getSchoolName());
 		}
 		return gradStu;
 	}
@@ -342,16 +342,16 @@ public class GradStudentService {
 			gradStu.setSchoolOfRecordId(gradObj.getSchoolOfRecordId() != null? gradObj.getSchoolOfRecordId().toString() : null);
 			gradStu.setStudentCitizenship(gradObj.getStudentCitizenship());
 		
-			School school = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
+			SchoolClob schoolClob = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
 				.headers(h -> {
 					h.setBearerAuth(accessToken);
 					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
 				})
-				.retrieve().bodyToMono(School.class).block();
-			if (school != null) {
-				gradStu.setTranscriptEligibility(school.getTranscriptEligibility());
-				gradStu.setCertificateEligibility(school.getCertificateEligibility());
-				gradStu.setSchoolOfRecordName(school.getSchoolName());
+				.retrieve().bodyToMono(SchoolClob.class).block();
+			if (schoolClob != null) {
+				gradStu.setTranscriptEligibility(schoolClob.getTranscriptEligibility());
+				gradStu.setCertificateEligibility(schoolClob.getCertificateEligibility());
+				gradStu.setSchoolOfRecordName(schoolClob.getSchoolName());
 			}
 		}
 		return gradStu;
@@ -419,8 +419,8 @@ public class GradStudentService {
 		if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
 			result.addAll(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens()));
 		}
-		if(searchRequest.getSchoolOfRecords() != null && !searchRequest.getSchoolOfRecords().isEmpty()) {
-			result.addAll(graduationStatusRepository.findBySchoolOfRecordIn(searchRequest.getSchoolOfRecords()));
+		if(searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
+			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));
 		}
 		return result;
 	}

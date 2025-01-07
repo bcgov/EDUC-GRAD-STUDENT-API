@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -19,7 +20,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -42,7 +42,6 @@ public class CommonServiceTest extends BaseIntegrationTest {
     @Autowired GradStudentReportService gradStudentReportService;
     @MockBean  ReportGradStudentDataRepository reportGradStudentDataRepository;
     @MockBean  ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
-    @MockBean ReportGradDistrictYearEndRepository reportGradDistrictYearEndRepository;
 
     @MockBean GradStudentService gradStudentService;
     @MockBean GraduationStatusService graduationStatusService;
@@ -77,37 +76,54 @@ public class CommonServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void testGetReportGradStudentDataByMincode() {
+    public void testGetReportGradStudentDataBySchoolId() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
 
         ReportGradStudentDataEntity reportGradStudentDataEntity = new ReportGradStudentDataEntity();
         reportGradStudentDataEntity.setGraduationStudentRecordId(studentID);
+        reportGradStudentDataEntity.setSchoolOfRecordId(schoolId);
         reportGradStudentDataEntity.setFirstName("Jonh");
 
-        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeAscSchoolNameAscLastNameAsc("005")).thenReturn(List.of(reportGradStudentDataEntity));
-        var result = gradStudentReportService.getGradStudentDataByMincode("03939000");
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityBySchoolOfRecordIdOrderBySchoolNameAscLastNameAsc(schoolId)).thenReturn(List.of(reportGradStudentDataEntity));
+        var result = gradStudentReportService.getGradStudentDataBySchoolId(schoolId);
         assertThat(result).isNotNull();
 
         ReportGradSchoolYearEndEntity schoolYearEndEntity = new ReportGradSchoolYearEndEntity();
-        schoolYearEndEntity.setMincode(reportGradStudentDataEntity.getMincode());
+        schoolYearEndEntity.setSchoolId(reportGradStudentDataEntity.getSchoolOfRecordId());
 
         when(reportGradSchoolYearEndRepository.findAll()).thenReturn(List.of(schoolYearEndEntity));
-        var minCodes = gradStudentReportService.getGradSchoolsForNonGradYearEndReport();
-        assertThat(minCodes).isNotNull();
-
+        var schoolIds = gradStudentReportService.getGradSchoolsForNonGradYearEndReport();
+        assertThat(schoolIds).hasSize(1);
+        assertThat(schoolIds.get(0)).isEqualTo(schoolId);
     }
 
     @Test
-    public void testGetReportGradStudentDataByDistcode() {
+    public void testGetReportGradStudentDataByDistrict() {
+        UUID schoolId = UUID.randomUUID();
+        UUID districtId = UUID.randomUUID();
 
-        ReportGradDistrictYearEndEntity districtYearEndEntity = new ReportGradDistrictYearEndEntity();
+        ReportGradSchoolYearEndEntity districtYearEndEntity = new ReportGradSchoolYearEndEntity();
         districtYearEndEntity.setMincode("03939000");
+        districtYearEndEntity.setSchoolId(schoolId);
 
-        when(reportGradDistrictYearEndRepository.findAll()).thenReturn(List.of(districtYearEndEntity));
-        var minCodes = gradStudentReportService.getGradDistrictsForNonGradYearEndReport();
-        assertThat(minCodes).isNotNull();
+        School school = new School();
+        school.setSchoolId(districtYearEndEntity.getSchoolId().toString());
+        school.setMincode(districtYearEndEntity.getMincode());
+        school.setDistrictId(districtId.toString());
 
+        when(reportGradSchoolYearEndRepository.findAll()).thenReturn(List.of(districtYearEndEntity));
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolBySchoolIdUrl(), schoolId))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
+
+        var districtIds = gradStudentReportService.getGradDistrictsForNonGradYearEndReport("accessToken");
+        assertThat(districtIds).hasSize(1);
+        assertThat(districtIds.get(0)).isEqualTo(districtId);
     }
 
     @Test
@@ -119,7 +135,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
         reportGradStudentDataEntity.setGraduationStudentRecordId(studentID);
         reportGradStudentDataEntity.setFirstName("Jonh");
 
-        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentDataEntity));
+        when(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderBySchoolNameAscLastNameAsc(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentDataEntity));
         var result = gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentDataEntity.getGraduationStudentRecordId()));
         assertThat(result).isNotNull();
 
@@ -311,7 +327,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		List<StudentStatusEntity> gradStudentStatusList = new ArrayList<>();
 		StudentStatusEntity obj = new StudentStatusEntity();
 		obj.setCode("DC");
-		obj.setDescription("Data Correction by School");
+		obj.setDescription("Data Correction by SchoolClob");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
 		obj.setCreateDate(LocalDateTime.now());
@@ -335,14 +351,14 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		String reasonCode = "DC";
 		StudentStatus obj = new StudentStatus();
 		obj.setCode("DC");
-		obj.setDescription("Data Correction by School");
+		obj.setDescription("Data Correction by SchoolClob");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
 		obj.setCreateDate(LocalDateTime.now());
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by School");
+		objEntity.setDescription("Data Correction by SchoolClob");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -365,14 +381,14 @@ public class CommonServiceTest extends BaseIntegrationTest {
 	public void testCreateStudentStatus() {
 		StudentStatus obj = new StudentStatus();
 		obj.setCode("DC");
-		obj.setDescription("Data Correction by School");
+		obj.setDescription("Data Correction by SchoolClob");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
 		obj.setCreateDate(LocalDateTime.now());
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by School");
+		objEntity.setDescription("Data Correction by SchoolClob");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -388,14 +404,14 @@ public class CommonServiceTest extends BaseIntegrationTest {
 	public void testCreateStudentStatus_codeAlreadyExists() {
 		StudentStatus obj = new StudentStatus();
 		obj.setCode("DC");
-		obj.setDescription("Data Correction by School");
+		obj.setDescription("Data Correction by SchoolClob");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
 		obj.setCreateDate(LocalDateTime.now());
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by School");
+		objEntity.setDescription("Data Correction by SchoolClob");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -418,7 +434,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by School");
+		objEntity.setDescription("Data Correction by SchoolClob");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -441,7 +457,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by School");
+		objEntity.setDescription("Data Correction by SchoolClob");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
@@ -462,7 +478,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by School");
+		objEntity.setDescription("Data Correction by SchoolClob");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -501,7 +517,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
         List<HistoryActivityCodeEntity> gradHistoryActivityList = new ArrayList<>();
         HistoryActivityCodeEntity obj = new HistoryActivityCodeEntity();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by School");
+        obj.setDescription("Data Correction by SchoolClob");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
@@ -524,14 +540,14 @@ public class CommonServiceTest extends BaseIntegrationTest {
         String reasonCode = "DC";
         HistoryActivity obj = new HistoryActivity();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by School");
+        obj.setDescription("Data Correction by SchoolClob");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
         obj.setUpdateDate(LocalDateTime.now());
         HistoryActivityCodeEntity objEntity = new HistoryActivityCodeEntity();
         objEntity.setCode("DC");
-        objEntity.setDescription("Data Correction by School");
+        objEntity.setDescription("Data Correction by SchoolClob");
         objEntity.setCreateUser("GRADUATION");
         objEntity.setUpdateUser("GRADUATION");
         objEntity.setCreateDate(LocalDateTime.now());

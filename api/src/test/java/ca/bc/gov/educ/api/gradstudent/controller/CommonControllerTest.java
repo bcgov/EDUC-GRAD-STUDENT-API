@@ -59,13 +59,13 @@ public class CommonControllerTest {
         ReportGradStudentData reportGradStudentData = new ReportGradStudentData();
         reportGradStudentData.setGraduationStudentRecordId(studentID);
         reportGradStudentData.setFirstName("Jonh");
-        reportGradStudentData.setMincode("03939000");
+        reportGradStudentData.setSchoolOfRecordId(UUID.randomUUID());
 
-        Mockito.when(gradStudentReportService.getGradStudentDataByMincode(reportGradStudentData.getMincode())).thenReturn(List.of(reportGradStudentData));
-        commonController.getStudentReportDataByMincode(reportGradStudentData.getMincode());
-        Mockito.verify(gradStudentReportService).getGradStudentDataByMincode(reportGradStudentData.getMincode());
+        Mockito.when(gradStudentReportService.getGradStudentDataBySchoolId(reportGradStudentData.getSchoolOfRecordId())).thenReturn(List.of(reportGradStudentData));
+        commonController.getStudentReportDataBySchoolId(reportGradStudentData.getSchoolOfRecordId());
+        Mockito.verify(gradStudentReportService).getGradStudentDataBySchoolId(reportGradStudentData.getSchoolOfRecordId());
 
-        Mockito.when(gradStudentReportService.getGradSchoolsForNonGradYearEndReport()).thenReturn(List.of(reportGradStudentData.getMincode()));
+        Mockito.when(gradStudentReportService.getGradSchoolsForNonGradYearEndReport()).thenReturn(List.of(reportGradStudentData.getSchoolOfRecordId()));
         commonController.getSchoolReportDataForYearEndNonGrad();
         Mockito.verify(gradStudentReportService).getGradSchoolsForNonGradYearEndReport();
     }
@@ -78,15 +78,15 @@ public class CommonControllerTest {
         ReportGradStudentData reportGradStudentData = new ReportGradStudentData();
         reportGradStudentData.setGraduationStudentRecordId(studentID);
         reportGradStudentData.setFirstName("Jonh");
-        reportGradStudentData.setMincode("005");
+        reportGradStudentData.setSchoolOfRecordId(UUID.randomUUID());
 
-        Mockito.when(gradStudentReportService.getGradStudentDataByMincode(reportGradStudentData.getMincode())).thenReturn(List.of(reportGradStudentData));
-        commonController.getStudentReportDataByMincode(reportGradStudentData.getMincode());
-        Mockito.verify(gradStudentReportService).getGradStudentDataByMincode(reportGradStudentData.getMincode());
+        Mockito.when(gradStudentReportService.getGradStudentDataBySchoolId(reportGradStudentData.getSchoolOfRecordId())).thenReturn(List.of(reportGradStudentData));
+        commonController.getStudentReportDataBySchoolId(reportGradStudentData.getSchoolOfRecordId());
+        Mockito.verify(gradStudentReportService).getGradStudentDataBySchoolId(reportGradStudentData.getSchoolOfRecordId());
 
-        Mockito.when(gradStudentReportService.getGradDistrictsForNonGradYearEndReport()).thenReturn(List.of(reportGradStudentData.getMincode()));
-        commonController.getDistrictReportDataForYearEndNonGrad();
-        Mockito.verify(gradStudentReportService).getGradDistrictsForNonGradYearEndReport();
+        Mockito.when(gradStudentReportService.getGradDistrictsForNonGradYearEndReport("accessToken")).thenReturn(List.of(reportGradStudentData.getSchoolOfRecordId()));
+        commonController.getDistrictReportDataForYearEndNonGrad("accessToken");
+        Mockito.verify(gradStudentReportService).getGradDistrictsForNonGradYearEndReport("accessToken");
     }
 
 
@@ -98,15 +98,15 @@ public class CommonControllerTest {
         ReportGradStudentData reportGradStudentData = new ReportGradStudentData();
         reportGradStudentData.setGraduationStudentRecordId(studentID);
         reportGradStudentData.setFirstName("Jonh");
-        reportGradStudentData.setMincode("005");
+        reportGradStudentData.setSchoolOfRecordId(UUID.randomUUID());
 
         Mockito.when(gradStudentReportService.getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()))).thenReturn(List.of(reportGradStudentData));
         commonController.getStudentReportData(List.of(reportGradStudentData.getGraduationStudentRecordId()));
         Mockito.verify(gradStudentReportService).getGradStudentDataByStudentGuids(List.of(reportGradStudentData.getGraduationStudentRecordId()));
 
-        Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReport(reportGradStudentData.getMincode())).thenReturn(List.of(reportGradStudentData));
-        commonController.getStudentReportDataForYearEndNonGrad(reportGradStudentData.getMincode());
-        Mockito.verify(gradStudentReportService).getGradStudentDataForNonGradYearEndReport(reportGradStudentData.getMincode());
+        Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReportBySchool(reportGradStudentData.getSchoolOfRecordId())).thenReturn(List.of(reportGradStudentData));
+        commonController.getStudentReportDataForYearEndNonGrad(reportGradStudentData.getSchoolOfRecordId());
+        Mockito.verify(gradStudentReportService).getGradStudentDataForNonGradYearEndReportBySchool(reportGradStudentData.getSchoolOfRecordId());
 
         Mockito.when(gradStudentReportService.getGradStudentDataForNonGradYearEndReport()).thenReturn(List.of(reportGradStudentData));
         commonController.getStudentReportDataForYearEndNonGrad();
@@ -225,7 +225,7 @@ public class CommonControllerTest {
         List<StudentStatus> studentStatusList = new ArrayList<>();
         StudentStatus obj = new StudentStatus();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by School");
+        obj.setDescription("Data Correction by SchoolClob");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
@@ -249,7 +249,7 @@ public class CommonControllerTest {
         String requirementType = "DC";
         StudentStatus obj = new StudentStatus();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by School");
+        obj.setDescription("Data Correction by SchoolClob");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
@@ -271,7 +271,7 @@ public class CommonControllerTest {
     public void testCreateStudentStatus() {
         StudentStatus obj = new StudentStatus();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by School");
+        obj.setDescription("Data Correction by SchoolClob");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
@@ -285,7 +285,7 @@ public class CommonControllerTest {
     public void testUpdateStudentStatus() {
         StudentStatus obj = new StudentStatus();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by School");
+        obj.setDescription("Data Correction by SchoolClob");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());

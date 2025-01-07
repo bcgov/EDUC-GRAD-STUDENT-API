@@ -19,6 +19,8 @@ public class GraduationStudentRecordDistribution extends BaseModel{
     private String legalLastName;
     private String schoolOfRecord;
     private String schoolAtGrad;
+    private UUID schoolOfRecordId;
+    private UUID schoolAtGradId;
     private String programCompletionDate;
     private String honoursStanding;
     private String program;

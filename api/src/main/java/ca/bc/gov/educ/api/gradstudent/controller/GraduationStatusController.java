@@ -366,45 +366,45 @@ public class GraduationStatusController {
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_SCHOOL_REPORT)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
-    @Operation(summary = "Get Students For School Report by mincode", description = "Get Students For School Report by mincode", tags = { "Batch Algorithm" })
+    @Operation(summary = "Get Students For SchoolClob Report by schoolId", description = "Get Students For SchoolClob Report by schoolId", tags = { "Batch Algorithm" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForSchoolReport(@PathVariable String schoolOfRecord) {
+    public ResponseEntity<List<GraduationStudentRecord>> getStudentsForSchoolReport(@PathVariable UUID schoolId) {
         logger.debug("getStudentsForSchoolReport:");
-        return response.GET(gradStatusService.getStudentsForSchoolReport(schoolOfRecord));
+        return response.GET(gradStatusService.getStudentsForSchoolReport(schoolId));
     }
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_LIST_FOR_AMALGAMATED_SCHOOL_REPORT)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
-    @Operation(summary = "Get Students For School Report by mincode", description = "Get Students For School Report by mincode", tags = { "Business" })
+    @Operation(summary = "Get Students For SchoolClob Report by schoolId", description = "Get Students For SchoolClob Report by schoolId", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<List<UUID>> getStudentsForAmalgamatedSchoolReport(@PathVariable String schoolOfRecord, @PathVariable String type) {
+    public ResponseEntity<List<UUID>> getStudentsForAmalgamatedSchoolReport(@PathVariable UUID schoolId, @PathVariable String type) {
         logger.debug("getStudentsForSchoolReport:");
-        return response.GET(gradStatusService.getStudentsForAmalgamatedSchoolReport(schoolOfRecord,type));
+        return response.GET(gradStatusService.getStudentsForAmalgamatedSchoolReport(schoolId,type));
     }
 
     @GetMapping (EducGradStudentApiConstants.STUDENT_COUNT_FOR_AMALGAMATED_SCHOOL_REPORT)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
-    @Operation(summary = "Get Students Count For School Report by mincode", description = "Get Students Count For School Report by mincode", tags = { "Business" })
+    @Operation(summary = "Get Students Count For SchoolClob Report by schoolId", description = "Get Students Count For SchoolClob Report by schoolId", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<Integer> getStudentsCountForAmalgamatedSchoolReport(@PathVariable String schoolOfRecord) {
+    public ResponseEntity<Integer> getStudentsCountForAmalgamatedSchoolReport(@PathVariable UUID schoolId) {
         logger.debug("getStudentsCountForAmalgamatedSchoolReport:");
-        return response.GET(gradStatusService.countStudentsForAmalgamatedSchoolReport(schoolOfRecord));
+        return response.GET(gradStatusService.countStudentsForAmalgamatedSchoolReport(schoolId));
     }
 
     @PostMapping (EducGradStudentApiConstants.STUDENT_COUNT)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
-    @Operation(summary = "Get Students Count by mincode and status", description = "Get Students Count by mincode and status", tags = { "Business" })
+    @Operation(summary = "Get Students Count by schoolId and status", description = "Get Students Count by schoolId and status", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<Long> getStudentsCount(@RequestParam(required = false) String studentStatus, @RequestBody List<String> schoolOfRecords) {
-        return response.GET(gradStatusService.countBySchoolOfRecordsAndStudentStatus(schoolOfRecords, studentStatus));
+    public ResponseEntity<Long> getStudentsCount(@RequestParam(required = false) String studentStatus, @RequestBody List<UUID> schoolIds) {
+        return response.GET(gradStatusService.countBySchoolOfRecordIdsAndStudentStatus(schoolIds, studentStatus));
     }
 
     @PostMapping (EducGradStudentApiConstants.STUDENT_ARCHIVE)
     @PreAuthorize(PermissionsConstants.ARCHIVE_GRADUATION_STUDENT)
     @Operation(summary = "Get Students Count by mincode and status", description = "Get Students Count by mincode and status", tags = { "Business" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<Integer> archiveStudents(@RequestParam long batchId, @RequestParam(required = false) String studentStatus, @RequestParam(required = false) String userName, @RequestBody List<String> schoolOfRecords) {
-        return response.GET(gradStatusService.archiveStudents(batchId, schoolOfRecords, studentStatus, userName));
+    public ResponseEntity<Integer> archiveStudents(@RequestParam long batchId, @RequestParam(required = false) String studentStatus, @RequestParam(required = false) String userName, @RequestBody List<UUID> schoolIds) {
+        return response.GET(gradStatusService.archiveStudents(batchId, schoolIds, studentStatus, userName));
     }
 
     @PostMapping (EducGradStudentApiConstants.UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS)

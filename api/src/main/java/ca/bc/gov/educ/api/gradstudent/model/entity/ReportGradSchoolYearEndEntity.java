@@ -6,6 +6,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -17,5 +18,8 @@ public class ReportGradSchoolYearEndEntity implements Serializable {
     @jakarta.persistence.Id
     @Column(name = "MINCODE")
     private String mincode;
+
+    @Column(name = "SCHOOL_ID")
+    private UUID schoolId;
 
 }
