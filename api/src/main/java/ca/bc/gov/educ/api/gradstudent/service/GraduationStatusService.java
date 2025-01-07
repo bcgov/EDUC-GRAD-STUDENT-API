@@ -448,7 +448,7 @@ public class GraduationStatusService extends GradBaseService {
                     UUID.fromString(gradSearchStudent.getSchoolOfRecordId()) : null, accessToken);
         }
         if(schoolClob == null) {
-            validation.addErrorAndStop("SchoolClob with schoolId %s not found", gradSearchStudent.getSchoolOfRecordId());
+            validation.addErrorAndStop("School with schoolId %s not found", gradSearchStudent.getSchoolOfRecordId());
         }
 
         String englishCert = "";
@@ -521,37 +521,6 @@ public class GraduationStatusService extends GradBaseService {
                 .retrieve().bodyToMono(new ParameterizedTypeReference<List<GradStudentCertificates>>() {
                 }).block();
     }
-
-//    public List<SchoolClob> getSchoolsByDistricts(List<String> districts, String accessToken) {
-//        List<SchoolClob> results = new ArrayList<>();
-//        for (String distNo : districts) {
-//            results.addAll(getSchoolsByDistrictNumber(distNo, accessToken));
-//        }
-//        return results;
-//    }
-//
-//    public List<SchoolClob> getSchoolsByDistrictNumber(String distNo, String accessToken) {
-//        return webClient.get()
-//            .uri(String.format(constants.getSchoolsByDistrictNumberUrl(), distNo))
-//            .headers(h -> {
-//                h.setBearerAuth(accessToken);
-//                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-//            })
-//            .retrieve().bodyToMono(new ParameterizedTypeReference<List<SchoolClob>>() {
-//        }).block();
-//    }
-//
-//    private SchoolClob getSchoolClob(String schoolId, String accessToken) {
-//        return webClient.get()
-//                .uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))
-//                .headers(h -> {
-//                    h.setBearerAuth(accessToken);
-//                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-//                })
-//                .retrieve()
-//                .bodyToMono(SchoolClob.class)
-//                .block();
-//    }
 
     private String getSchoolName(UUID schoolId, String accessToken) {
         School schObj = getSchool(schoolId, accessToken);
@@ -644,10 +613,10 @@ public class GraduationStatusService extends GradBaseService {
                 .block();
         if (schObj == null) {
             validation.addError(
-                    String.format("Invalid SchoolClob entered, SchoolId [%s] does not exist in institute.", schoolId));
+                    String.format("Invalid School entered, SchoolId [%s] does not exist in institute.", schoolId));
         } else {
             if (schObj.getOpenFlag().equalsIgnoreCase("N")) {
-                validation.addWarning(String.format("This SchoolClob [%s] is Closed", schoolId));
+                validation.addWarning(String.format("This School [%s] is Closed", schoolId));
             }
         }
     }

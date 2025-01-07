@@ -16,7 +16,7 @@ import java.util.List;
 @JsonIgnoreProperties
 public class GraduationData {
     private GradSearchStudent gradStudent;
-    private SchoolClob schoolClob;
+    private SchoolClob school;
     private String gradMessage;
     private List<GradRequirement> nonGradReasons;
     private boolean dualDogwood;

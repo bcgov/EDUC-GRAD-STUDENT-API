@@ -106,7 +106,8 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String gradStatus = "A";
         final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test SchoolClob";
+        final UUID schoolId = UUID.randomUUID();
+        final String schoolName = "Test School";
 
         final Student student = new Student();
         student.setStudentID(studentID.toString());
@@ -140,6 +141,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentGrade(stdGrade);
         graduationStatus.setProgram(program);
         graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
 
         // Graduation Status Entity
         final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
@@ -149,18 +151,19 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
         when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // SchoolClob
         final SchoolClob schoolClob = new SchoolClob();
-        schoolClob.setSchoolId(UUID.randomUUID().toString());
+        schoolClob.setSchoolId(schoolId.toString());
         schoolClob.setMinCode(mincode);
         schoolClob.setSchoolName(schoolName);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolClob.getSchoolId()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
@@ -202,16 +205,17 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String gradStatus = "A";
         final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test SchoolClob";
+        final UUID schoolId = UUID.randomUUID();
+        final String schoolName = "Test School";
 
         // SchoolClob
         final SchoolClob schoolClob = new SchoolClob();
-        schoolClob.setSchoolId(UUID.randomUUID().toString());
+        schoolClob.setSchoolId(schoolId.toString());
         schoolClob.setMinCode(mincode);
         schoolClob.setSchoolName(schoolName);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolClob.getSchoolId()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
@@ -237,6 +241,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentGrade(stdGrade);
         graduationStatus.setProgram(program);
         graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
 
         // Graduation Status Entity
         final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
@@ -246,6 +251,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
         when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
@@ -264,7 +270,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         when(this.responseMock.bodyToMono(studentResponseType)).thenReturn(Mono.just(response));
 
         StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder().legalFirstName(legalFirstName).legalLastName(legalFirstName)
-                .mincode(mincode).gradProgram(program).build();
+                .mincode(mincode).schoolId(schoolId).gradProgram(program).build();
         var result = gradStudentService.getGRADStudents(studentSearchRequest, 1, 5, "accessToken");
 
         assertThat(result).isNotNull();
@@ -280,6 +286,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         assertThat(responseStudent.getProgram()).isEqualTo(program);
         assertThat(responseStudent.getStudentStatus()).isEqualTo(gradStatus);
         assertThat(responseStudent.getStudentGrade()).isEqualTo(stdGrade);
+        assertThat(responseStudent.getSchoolOfRecordId()).isEqualTo(schoolId.toString());
         assertThat(responseStudent.getSchoolOfRecordName()).isEqualTo(schoolName);
         // extra
         assertThat(responseStudent.getGradeCode()).isEqualTo(student.getGradeCode());
@@ -301,16 +308,17 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String gradStatus = "A";
         final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test SchoolClob";
+        final UUID schoolId = UUID.randomUUID();
+        final String schoolName = "Test School";
 
         // SchoolClob
         final SchoolClob schoolClob = new SchoolClob();
-        schoolClob.setSchoolId(UUID.randomUUID().toString());
+        schoolClob.setSchoolId(schoolId.toString());
         schoolClob.setMinCode(mincode);
         schoolClob.setSchoolName(schoolName);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolClob.getSchoolId()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
@@ -336,6 +344,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentGrade(stdGrade);
         graduationStatus.setProgram(program);
         graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
 
         // Graduation Status Entity
         final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
@@ -345,6 +354,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         final GraduationStudentRecordView graduationStatusView = new GraduationStudentRecordView() {
             @Override
@@ -429,7 +439,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
             @Override
             public UUID getSchoolOfRecordId() {
-                return null;
+                return schoolId;
             }
 
             @Override
@@ -485,6 +495,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         assertThat(responseStudent.getProgram()).isEqualTo(program);
         assertThat(responseStudent.getStudentStatus()).isEqualTo(gradStatus);
         assertThat(responseStudent.getStudentGrade()).isEqualTo(stdGrade);
+        assertThat(responseStudent.getSchoolOfRecordId()).isEqualTo(schoolId.toString());
         assertThat(responseStudent.getSchoolOfRecordName()).isEqualTo(schoolName);
         // extra
         assertThat(responseStudent.getGradeCode()).isEqualTo(student.getGradeCode());
@@ -508,7 +519,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String stdGrade = "12";
         final String mincode = "12345678";
         final UUID schoolId = UUID.randomUUID();
-        final String schoolName = "Test SchoolClob";
+        final String schoolName = "Test School";
 
         String graduationData = readFile("json/studentGradData.json");
 
@@ -560,6 +571,134 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testStudentDemographics_whenCertificateType_isE() {
+        testGetStudentByPenFromStudentAPI();
+
+        final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
+        final String pen = "123456789";
+        final String firstName = "FirstName";
+        final String lastName = "LastName";
+        final String program = "2018-EN";
+        final String gradStatus = "A";
+        final String stdGrade = "12";
+        final String mincode = "12345678";
+        final UUID schoolId = UUID.randomUUID();
+        final String schoolName = "Test School";
+
+        String graduationData = readFile("json/studentGradData.json");
+
+        // Graduation Status Entity
+        final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
+        graduationStatusEntity.setStudentStatus(gradStatus);
+        graduationStatusEntity.setStudentGrade(stdGrade);
+        graduationStatusEntity.setProgram(program);
+        graduationStatusEntity.setProgramCompletionDate(new Date());
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setStudentGradData(graduationData);
+
+        when(this.graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+
+        SchoolClob schoolClob = new SchoolClob();
+        schoolClob.setSchoolId(schoolId.toString());
+        schoolClob.setMinCode(mincode);
+        schoolClob.setSchoolName(schoolName);
+        schoolClob.setSchoolCategoryLegacyCode("02");
+        schoolClob.setSchoolCategoryCode("INDEPEND");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),schoolId))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
+
+        GradStudentCertificates certificate = new GradStudentCertificates();
+        certificate.setStudentID(studentID);
+        certificate.setPen(pen);
+        certificate.setGradCertificateTypeCode("E");
+        certificate.setDistributionDate(new Date());
+
+        final ParameterizedTypeReference<List<GradStudentCertificates>> certificatesType = new ParameterizedTypeReference<>() {
+        };
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getStudentCertificates(), studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(certificatesType)).thenReturn(Mono.just(List.of(certificate)));
+
+        var studentDemog = graduationStatusService.getStudentDemographics(pen, "accessToken");
+        assertThat(studentDemog).isNotNull();
+
+    }
+
+    @Test
+    public void testStudentDemographics_whenCertificateType_isF() {
+        testGetStudentByPenFromStudentAPI();
+
+        final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
+        final String pen = "123456789";
+        final String firstName = "FirstName";
+        final String lastName = "LastName";
+        final String program = "2018-EN";
+        final String gradStatus = "A";
+        final String stdGrade = "12";
+        final String mincode = "12345678";
+        final UUID schoolId = UUID.randomUUID();
+        final String schoolName = "Test School";
+
+        String graduationData = readFile("json/studentGradData.json");
+
+        // Graduation Status Entity
+        final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
+        graduationStatusEntity.setStudentStatus(gradStatus);
+        graduationStatusEntity.setStudentGrade(stdGrade);
+        graduationStatusEntity.setProgram(program);
+        graduationStatusEntity.setProgramCompletionDate(new Date());
+        graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setStudentGradData(graduationData);
+
+        when(this.graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+
+        SchoolClob schoolClob = new SchoolClob();
+        schoolClob.setSchoolId(schoolId.toString());
+        schoolClob.setMinCode(mincode);
+        schoolClob.setSchoolName(schoolName);
+        schoolClob.setSchoolCategoryLegacyCode("02");
+        schoolClob.setSchoolCategoryCode("INDEPEND");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),schoolId))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
+
+        GradStudentCertificates certificate = new GradStudentCertificates();
+        certificate.setStudentID(studentID);
+        certificate.setPen(pen);
+        certificate.setGradCertificateTypeCode("F");
+        certificate.setDistributionDate(new Date());
+
+        final ParameterizedTypeReference<List<GradStudentCertificates>> certificatesType = new ParameterizedTypeReference<>() {
+        };
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getStudentCertificates(), studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(certificatesType)).thenReturn(Mono.just(List.of(certificate)));
+
+        var studentDemog = graduationStatusService.getStudentDemographics(pen, "accessToken");
+        assertThat(studentDemog).isNotNull();
+
+    }
+
+    @Test
     public void testGetStudentByPenFromStudentAPI() {
         // ID
         final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
@@ -571,7 +710,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String stdGrade = "12";
         final String mincode = "12345678";
         final UUID schoolId = UUID.randomUUID();
-        final String schoolName = "Test SchoolClob";
+        final String schoolName = "Test School";
 
         // Grad Student
         final Student student = new Student();
@@ -669,7 +808,8 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String gradStatus = "A";
         final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test SchoolClob";
+        final UUID schoolId = UUID.randomUUID();
+        final String schoolName = "Test School";
 
         // Grad Student
         final Student student = new Student();
@@ -701,6 +841,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentGrade(stdGrade);
         graduationStatus.setProgram(program);
         graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
 
         // Graduation Status Entity
         final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
@@ -710,18 +851,19 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setSchoolOfRecord(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
         when(this.graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(graduationStatusEntity)).thenReturn(graduationStatus);
 
         // SchoolClob
         final SchoolClob schoolClob = new SchoolClob();
-        schoolClob.setSchoolId(UUID.randomUUID().toString());
+        schoolClob.setSchoolId(schoolId.toString());
         schoolClob.setMinCode(mincode);
         schoolClob.setSchoolName(schoolName);
 
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolClob.getSchoolId()))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
@@ -735,12 +877,13 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         assertThat(result.getStudentGrade()).isEqualTo(stdGrade);
         assertThat(result.getStudentStatus()).isEqualTo(gradStatus);
         assertThat(result.getSchoolOfRecord()).isEqualTo(mincode);
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(schoolId.toString());
         assertThat(result.getSchoolOfRecordName()).isEqualTo(schoolName);
+        assertThat(result.getMincode()).isEqualTo(student.getMincode());
         // extra
         assertThat(result.getUsualFirstName()).isEqualTo(student.getUsualFirstName());
         assertThat(result.getUsualLastName()).isEqualTo(student.getUsualLastName());
         assertThat(result.getPen()).isEqualTo(student.getPen());
-        assertThat(result.getMincode()).isEqualTo(student.getMincode());
         assertThat(result.getDob()).isEqualTo(student.getDob());
         assertThat(result.getSexCode()).isEqualTo(student.getSexCode());
         assertThat(result.getGenderCode()).isEqualTo(student.getGenderCode());
@@ -760,7 +903,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String gradStatus = "A";
         final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test SchoolClob";
+        final String schoolName = "Test School";
 
         // Grad Student
         final StudentCreate student = new StudentCreate();

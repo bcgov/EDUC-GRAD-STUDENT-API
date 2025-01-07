@@ -327,7 +327,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		List<StudentStatusEntity> gradStudentStatusList = new ArrayList<>();
 		StudentStatusEntity obj = new StudentStatusEntity();
 		obj.setCode("DC");
-		obj.setDescription("Data Correction by SchoolClob");
+		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
 		obj.setCreateDate(LocalDateTime.now());
@@ -351,14 +351,14 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		String reasonCode = "DC";
 		StudentStatus obj = new StudentStatus();
 		obj.setCode("DC");
-		obj.setDescription("Data Correction by SchoolClob");
+		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
 		obj.setCreateDate(LocalDateTime.now());
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by SchoolClob");
+		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -381,14 +381,14 @@ public class CommonServiceTest extends BaseIntegrationTest {
 	public void testCreateStudentStatus() {
 		StudentStatus obj = new StudentStatus();
 		obj.setCode("DC");
-		obj.setDescription("Data Correction by SchoolClob");
+		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
 		obj.setCreateDate(LocalDateTime.now());
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by SchoolClob");
+		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -404,14 +404,14 @@ public class CommonServiceTest extends BaseIntegrationTest {
 	public void testCreateStudentStatus_codeAlreadyExists() {
 		StudentStatus obj = new StudentStatus();
 		obj.setCode("DC");
-		obj.setDescription("Data Correction by SchoolClob");
+		obj.setDescription("Data Correction by School");
 		obj.setCreateUser("GRADUATION");
 		obj.setUpdateUser("GRADUATION");
 		obj.setCreateDate(LocalDateTime.now());
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by SchoolClob");
+		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -434,7 +434,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by SchoolClob");
+		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -457,7 +457,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by SchoolClob");
+		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
 		Optional<StudentStatusEntity> ent = Optional.of(objEntity);
@@ -478,7 +478,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 		obj.setUpdateDate(LocalDateTime.now());
 		StudentStatusEntity objEntity = new StudentStatusEntity();
 		objEntity.setCode("DC");
-		objEntity.setDescription("Data Correction by SchoolClob");
+		objEntity.setDescription("Data Correction by School");
 		objEntity.setCreateUser("GRADUATION");
 		objEntity.setUpdateUser("GRADUATION");
 		objEntity.setCreateDate(LocalDateTime.now());
@@ -517,7 +517,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
         List<HistoryActivityCodeEntity> gradHistoryActivityList = new ArrayList<>();
         HistoryActivityCodeEntity obj = new HistoryActivityCodeEntity();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by SchoolClob");
+        obj.setDescription("Data Correction by School");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
@@ -540,14 +540,14 @@ public class CommonServiceTest extends BaseIntegrationTest {
         String reasonCode = "DC";
         HistoryActivity obj = new HistoryActivity();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by SchoolClob");
+        obj.setDescription("Data Correction by School");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
         obj.setUpdateDate(LocalDateTime.now());
         HistoryActivityCodeEntity objEntity = new HistoryActivityCodeEntity();
         objEntity.setCode("DC");
-        objEntity.setDescription("Data Correction by SchoolClob");
+        objEntity.setDescription("Data Correction by School");
         objEntity.setCreateUser("GRADUATION");
         objEntity.setUpdateUser("GRADUATION");
         objEntity.setCreateDate(LocalDateTime.now());

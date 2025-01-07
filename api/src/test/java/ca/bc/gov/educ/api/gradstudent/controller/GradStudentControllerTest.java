@@ -45,7 +45,7 @@ public class GradStudentControllerTest {
         final String gradStatus = "A";
         final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test SchoolClob";
+        final String schoolName = "Test School";
 
         // Grad Search Students
         final GradSearchStudent gradSearchStudent = new GradSearchStudent();
@@ -84,7 +84,7 @@ public class GradStudentControllerTest {
         final String gradStatus = "A";
         final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test SchoolClob";
+        final String schoolName = "Test School";
 
         // Grad Search Students
         final GradSearchStudent gradSearchStudent = new GradSearchStudent();
@@ -113,7 +113,7 @@ public class GradStudentControllerTest {
         final String gradStatus = "A";
         final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test SchoolClob";
+        final String schoolName = "Test School";
 
         // Grad Student
         final StudentCreate student = new StudentCreate();

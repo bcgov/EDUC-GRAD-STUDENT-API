@@ -232,7 +232,7 @@ public class CommonControllerTest {
         List<StudentStatus> studentStatusList = new ArrayList<>();
         StudentStatus obj = new StudentStatus();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by SchoolClob");
+        obj.setDescription("Data Correction by School");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
@@ -256,7 +256,7 @@ public class CommonControllerTest {
         String requirementType = "DC";
         StudentStatus obj = new StudentStatus();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by SchoolClob");
+        obj.setDescription("Data Correction by School");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
@@ -278,7 +278,7 @@ public class CommonControllerTest {
     public void testCreateStudentStatus() {
         StudentStatus obj = new StudentStatus();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by SchoolClob");
+        obj.setDescription("Data Correction by School");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
@@ -292,7 +292,7 @@ public class CommonControllerTest {
     public void testUpdateStudentStatus() {
         StudentStatus obj = new StudentStatus();
         obj.setCode("DC");
-        obj.setDescription("Data Correction by SchoolClob");
+        obj.setDescription("Data Correction by School");
         obj.setCreateUser("GRADUATION");
         obj.setUpdateUser("GRADUATION");
         obj.setCreateDate(LocalDateTime.now());
