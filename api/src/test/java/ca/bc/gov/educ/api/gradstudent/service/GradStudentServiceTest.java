@@ -140,7 +140,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentStatus(gradStatus);
         graduationStatus.setStudentGrade(stdGrade);
         graduationStatus.setProgram(program);
-        graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolOfRecordId(schoolId);
 
         // Graduation Status Entity
@@ -150,7 +149,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus(gradStatus);
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
-        graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
@@ -240,7 +238,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentStatus(gradStatus);
         graduationStatus.setStudentGrade(stdGrade);
         graduationStatus.setProgram(program);
-        graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolOfRecordId(schoolId);
 
         // Graduation Status Entity
@@ -250,7 +247,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus(gradStatus);
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
-        graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
@@ -343,7 +339,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentStatus(gradStatus);
         graduationStatus.setStudentGrade(stdGrade);
         graduationStatus.setProgram(program);
-        graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolOfRecordId(schoolId);
 
         // Graduation Status Entity
@@ -353,7 +348,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus(gradStatus);
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
-        graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         final GraduationStudentRecordView graduationStatusView = new GraduationStudentRecordView() {
@@ -383,11 +377,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
             }
 
             @Override
-            public String getSchoolOfRecord() {
-                return mincode;
-            }
-
-            @Override
             public String getStudentGrade() {
                 return stdGrade;
             }
@@ -400,11 +389,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
             @Override
             public UUID getStudentID() {
                 return studentID;
-            }
-
-            @Override
-            public String getSchoolAtGrad() {
-                return null;
             }
 
             @Override
@@ -517,7 +501,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
-        final String mincode = "12345678";
         final UUID schoolId = UUID.randomUUID();
         final String schoolName = "Test School";
 
@@ -531,7 +514,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setProgramCompletionDate(new Date());
-        graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolOfRecordId(schoolId);
         graduationStatusEntity.setStudentGradData(graduationData);
 
@@ -539,7 +521,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         SchoolClob schoolClob = new SchoolClob();
         schoolClob.setSchoolId(schoolId.toString());
-        schoolClob.setMinCode(mincode);
+        schoolClob.setMinCode("12345678");
         schoolClob.setSchoolName(schoolName);
         schoolClob.setSchoolCategoryLegacyCode("02");
         schoolClob.setSchoolCategoryCode("INDEPEND");
@@ -581,7 +563,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
-        final String mincode = "12345678";
         final UUID schoolId = UUID.randomUUID();
         final String schoolName = "Test School";
 
@@ -595,7 +576,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setProgramCompletionDate(new Date());
-        graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolOfRecordId(schoolId);
         graduationStatusEntity.setStudentGradData(graduationData);
 
@@ -603,7 +583,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         SchoolClob schoolClob = new SchoolClob();
         schoolClob.setSchoolId(schoolId.toString());
-        schoolClob.setMinCode(mincode);
+        schoolClob.setMinCode("12345678");
         schoolClob.setSchoolName(schoolName);
         schoolClob.setSchoolCategoryLegacyCode("02");
         schoolClob.setSchoolCategoryCode("INDEPEND");
@@ -645,7 +625,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
-        final String mincode = "12345678";
         final UUID schoolId = UUID.randomUUID();
         final String schoolName = "Test School";
 
@@ -659,7 +638,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setProgramCompletionDate(new Date());
-        graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolOfRecordId(schoolId);
         graduationStatusEntity.setStudentGradData(graduationData);
 
@@ -667,7 +645,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         SchoolClob schoolClob = new SchoolClob();
         schoolClob.setSchoolId(schoolId.toString());
-        schoolClob.setMinCode(mincode);
+        schoolClob.setMinCode("12345678");
         schoolClob.setSchoolName(schoolName);
         schoolClob.setSchoolCategoryLegacyCode("02");
         schoolClob.setSchoolCategoryCode("INDEPEND");
@@ -744,7 +722,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentStatus(gradStatus);
         graduationStatus.setStudentGrade(stdGrade);
         graduationStatus.setProgram(program);
-        graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolOfRecordId(schoolId);
 
         // Graduation Status Entity
@@ -754,7 +731,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus(gradStatus);
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
-        graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
@@ -840,7 +816,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentStatus(gradStatus);
         graduationStatus.setStudentGrade(stdGrade);
         graduationStatus.setProgram(program);
-        graduationStatus.setSchoolOfRecord(mincode);
         graduationStatus.setSchoolOfRecordId(schoolId);
 
         // Graduation Status Entity
@@ -850,7 +825,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus(gradStatus);
         graduationStatusEntity.setStudentGrade(stdGrade);
         graduationStatusEntity.setProgram(program);
-        graduationStatusEntity.setSchoolOfRecord(mincode);
         graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         when(this.graduationStatusRepository.findByStudentID(studentID)).thenReturn(graduationStatusEntity);
@@ -939,16 +913,17 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     public void testGetStudentInfoFromGRAD() {
         // ID
         final UUID studentID = UUID.randomUUID();
+        final UUID schoolId = UUID.randomUUID();
 
         // Grad Student
         GraduationStudentRecordEntity rec = new GraduationStudentRecordEntity();
         rec.setStudentID(studentID);
         rec.setProgram("2018-EN");
-        rec.setSchoolOfRecord("31121121");
+        rec.setSchoolOfRecordId(schoolId);
         GraduationStudentRecordDistribution rec2 = new GraduationStudentRecordDistribution();
         rec2.setStudentID(studentID);
         rec2.setProgram("2018-EN");
-        rec2.setSchoolOfRecord("31121121");
+        rec2.setSchoolOfRecordId(schoolId);
 
 
         Mockito.when(graduationStatusRepository.findByStudentID(UUID.fromString(studentID.toString()))).thenReturn(rec);

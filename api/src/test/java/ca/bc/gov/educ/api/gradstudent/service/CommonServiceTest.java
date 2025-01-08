@@ -105,12 +105,11 @@ public class CommonServiceTest extends BaseIntegrationTest {
         UUID districtId = UUID.randomUUID();
 
         ReportGradSchoolYearEndEntity districtYearEndEntity = new ReportGradSchoolYearEndEntity();
-        districtYearEndEntity.setMincode("03939000");
         districtYearEndEntity.setSchoolId(schoolId);
 
         School school = new School();
         school.setSchoolId(districtYearEndEntity.getSchoolId().toString());
-        school.setMincode(districtYearEndEntity.getMincode());
+        school.setMincode("12345678");
         school.setDistrictId(districtId.toString());
 
         when(reportGradSchoolYearEndRepository.findAll()).thenReturn(List.of(districtYearEndEntity));

@@ -27,7 +27,7 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.recalculateProjectedGrad=:recalculateProjectedGrad")
 	List<UUID> findByRecalculateProjectedGradForBatch(String recalculateProjectedGrad);
 
-	@Query("select new ca.bc.gov.educ.api.gradstudent.model.dto.BatchGraduationStudentRecord(c.program,c.programCompletionDate,c.schoolOfRecord,c.schoolOfRecordId, c.studentID) from GraduationStudentRecordEntity c where c.studentID=:studentID")
+	@Query("select new ca.bc.gov.educ.api.gradstudent.model.dto.BatchGraduationStudentRecord(c.program,c.programCompletionDate,c.schoolOfRecordId, c.studentID) from GraduationStudentRecordEntity c where c.studentID=:studentID")
 	Optional<BatchGraduationStudentRecord> findByStudentIDForBatch(UUID studentID);
 
 	GraduationStudentRecordEntity findByStudentID(UUID studentID);

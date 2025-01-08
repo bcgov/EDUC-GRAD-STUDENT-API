@@ -245,7 +245,6 @@ public class GraduationStatusService extends GradBaseService {
                     sourceObject.setProgramCompletionDate(null);
                     sourceObject.setHonoursStanding(null);
                     sourceObject.setGpa(null);
-                    sourceObject.setSchoolAtGrad(null);
                     sourceObject.setSchoolAtGradId(null);
                     archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
                 } else {
@@ -1062,7 +1061,6 @@ public class GraduationStatusService extends GradBaseService {
                     gradEntity.setProgramCompletionDate(null);
                     gradEntity.setHonoursStanding(null);
                     gradEntity.setGpa(null);
-                    gradEntity.setSchoolAtGrad(null);
                     gradEntity.setSchoolAtGradId(null);
                     gradEntity.setUpdateUser(null);
                     gradEntity.setUpdateDate(null);
@@ -1151,6 +1149,18 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
         GradStatusEventPayloadDTO eventPayload = EducGradStudentApiUtils.transform(graduationStudentRecord);
+        if (graduationStudentRecord.getSchoolOfRecordId() != null) {
+            School schoolOfRecord = getSchool(graduationStudentRecord.getSchoolOfRecordId(), accessToken);
+            if (schoolOfRecord != null) {
+                eventPayload.setSchoolOfRecord(schoolOfRecord.getMincode());
+            }
+        }
+        if (graduationStudentRecord.getSchoolAtGradId() != null) {
+            School schoolAtGrad = getSchool(graduationStudentRecord.getSchoolAtGradId(), accessToken);
+            if (schoolAtGrad != null) {
+                eventPayload.setSchoolOfRecord(schoolAtGrad.getMincode());
+            }
+        }
         String jsonString = JsonUtil.getJsonStringFromObject(eventPayload);
         return GradStatusEvent.builder()
                 .createDate(LocalDateTime.now())
@@ -1176,7 +1186,6 @@ public class GraduationStatusService extends GradBaseService {
                 gradEnity.setProgramCompletionDate(null);
                 gradEnity.setHonoursStanding(null);
                 gradEnity.setGpa(null);
-                gradEnity.setSchoolAtGrad(null);
                 gradEnity.setSchoolAtGradId(null);
             }
             graduationStatusRepository.save(gradEnity);

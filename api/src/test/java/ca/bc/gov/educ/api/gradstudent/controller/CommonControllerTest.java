@@ -346,7 +346,7 @@ public class CommonControllerTest {
     public void testCreateStudentGradOptionalProgram() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStudentRecord = new GraduationStudentRecord();
         graduationStudentRecord.setStudentID(studentID);
@@ -355,8 +355,8 @@ public class CommonControllerTest {
         graduationStudentRecord.setStudentStatus("A");
         graduationStudentRecord.setRecalculateGradStatus("Y");
         graduationStudentRecord.setProgram("2018-EN");
-        graduationStudentRecord.setSchoolOfRecord(mincode);
-        graduationStudentRecord.setSchoolAtGrad(mincode);
+        graduationStudentRecord.setSchoolOfRecordId(schoolId);
+        graduationStudentRecord.setSchoolAtGradId(schoolId);
         graduationStudentRecord.setGpa("4");
         graduationStudentRecord.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
@@ -388,7 +388,7 @@ public class CommonControllerTest {
     public void testCreateStudentGradCareerProgram() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
         String careerProgramCode = "XA";
 
         GraduationStudentRecord graduationStudentRecord = new GraduationStudentRecord();
@@ -398,8 +398,8 @@ public class CommonControllerTest {
         graduationStudentRecord.setStudentStatus("A");
         graduationStudentRecord.setRecalculateGradStatus("Y");
         graduationStudentRecord.setProgram("2018-EN");
-        graduationStudentRecord.setSchoolOfRecord(mincode);
-        graduationStudentRecord.setSchoolAtGrad(mincode);
+        graduationStudentRecord.setSchoolOfRecordId(schoolId);
+        graduationStudentRecord.setSchoolAtGradId(schoolId);
         graduationStudentRecord.setGpa("4");
         graduationStudentRecord.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
@@ -425,7 +425,7 @@ public class CommonControllerTest {
         // ID
         UUID studentID = UUID.randomUUID();
         UUID optionalProgramID = UUID.randomUUID();
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStudentRecord = new GraduationStudentRecord();
         graduationStudentRecord.setStudentID(studentID);
@@ -434,8 +434,8 @@ public class CommonControllerTest {
         graduationStudentRecord.setStudentStatus("A");
         graduationStudentRecord.setRecalculateGradStatus("Y");
         graduationStudentRecord.setProgram("2018-EN");
-        graduationStudentRecord.setSchoolOfRecord(mincode);
-        graduationStudentRecord.setSchoolAtGrad(mincode);
+        graduationStudentRecord.setSchoolOfRecordId(schoolId);
+        graduationStudentRecord.setSchoolAtGradId(schoolId);
         graduationStudentRecord.setGpa("4");
         graduationStudentRecord.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
@@ -453,7 +453,7 @@ public class CommonControllerTest {
     public void testDeleteStudentGradCareerProgram() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
         String careerProgramCode = "XA";
 
         GraduationStudentRecord graduationStudentRecord = new GraduationStudentRecord();
@@ -463,8 +463,8 @@ public class CommonControllerTest {
         graduationStudentRecord.setStudentStatus("A");
         graduationStudentRecord.setRecalculateGradStatus("Y");
         graduationStudentRecord.setProgram("2018-EN");
-        graduationStudentRecord.setSchoolOfRecord(mincode);
-        graduationStudentRecord.setSchoolAtGrad(mincode);
+        graduationStudentRecord.setSchoolOfRecordId(schoolId);
+        graduationStudentRecord.setSchoolAtGradId(schoolId);
         graduationStudentRecord.setGpa("4");
         graduationStudentRecord.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 

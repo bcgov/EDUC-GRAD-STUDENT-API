@@ -110,8 +110,6 @@ public class GraduationStatusTransformer {
         GraduationStudentRecord ent = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
         distObj.setProgram(ent.getProgram());
         distObj.setHonoursStanding(ent.getHonoursStanding());
-        distObj.setSchoolOfRecord(ent.getSchoolOfRecord());
-        distObj.setSchoolAtGrad(ent.getSchoolAtGrad());
         distObj.setSchoolOfRecordId(ent.getSchoolOfRecordId());
         distObj.setSchoolAtGradId(ent.getSchoolAtGradId());
         distObj.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));

@@ -338,7 +338,6 @@ public class GradStudentService {
 			gradStu.setProgram(gradObj.getProgram());
 			gradStu.setStudentGrade(gradObj.getStudentGrade());
 			gradStu.setStudentStatus(gradObj.getStudentStatus());
-			gradStu.setSchoolOfRecord(gradObj.getSchoolOfRecord());
 			gradStu.setSchoolOfRecordId(gradObj.getSchoolOfRecordId() != null? gradObj.getSchoolOfRecordId().toString() : null);
 			gradStu.setStudentCitizenship(gradObj.getStudentCitizenship());
 		
@@ -349,6 +348,7 @@ public class GradStudentService {
 				})
 				.retrieve().bodyToMono(SchoolClob.class).block();
 			if (schoolClob != null) {
+				gradStu.setSchoolOfRecord(schoolClob.getMinCode());
 				gradStu.setTranscriptEligibility(schoolClob.getTranscriptEligibility());
 				gradStu.setCertificateEligibility(schoolClob.getCertificateEligibility());
 				gradStu.setSchoolOfRecordName(schoolClob.getSchoolName());

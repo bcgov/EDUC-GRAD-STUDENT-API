@@ -178,8 +178,6 @@ public class EducGradStudentApiUtils {
         return GradStatusEventPayloadDTO.builder()
                 .pen(graduationStudentRecord.getPen())
                 .program(graduationStudentRecord.getProgram())
-                .schoolOfRecord(graduationStudentRecord.getSchoolOfRecord())
-                .schoolAtGrad(graduationStudentRecord.getSchoolAtGrad())
                 .programCompletionDate(graduationStudentRecord.getProgramCompletionDate() != null?
                         EducGradStudentApiUtils.getProgramCompletionDate(graduationStudentRecord.getProgramCompletionDate()) : null)
                 .studentGrade(graduationStudentRecord.getStudentGrade())

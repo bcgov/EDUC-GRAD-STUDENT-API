@@ -16,9 +16,6 @@ public class ReportGradSchoolYearEndEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @jakarta.persistence.Id
-    @Column(name = "MINCODE")
-    private String mincode;
-
     @Column(name = "SCHOOL_ID")
     private UUID schoolId;
 
