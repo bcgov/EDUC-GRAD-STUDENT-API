@@ -1116,4 +1116,16 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         var result = dataConversionService.saveStudentOptionalProgram(studentOptionalProgramReq, "123");
         assertThat(result).isNull();
     }
+
+    @Test
+    public void testWebClient_returnsSuccessfully() {
+        var result = dataConversionService.getWebClient();
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    public void testApiConstants_returnsSuccessfully() {
+        var result = dataConversionService.getConstants();
+        assertThat(result).isNotNull();
+    }
 }
