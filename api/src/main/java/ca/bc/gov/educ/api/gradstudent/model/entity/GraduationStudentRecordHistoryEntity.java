@@ -45,9 +45,6 @@ public class GraduationStudentRecordHistoryEntity extends BaseEntity {
     @Column(name = "RECALCULATE_GRAD_STATUS", nullable = true)
     private String recalculateGradStatus;
     
-    @Column(name = "SCHOOL_OF_RECORD", nullable = true)
-    private String schoolOfRecord;
-    
     @Column(name = "STUDENT_GRADE", nullable = true)
     private String studentGrade;
     
@@ -56,9 +53,6 @@ public class GraduationStudentRecordHistoryEntity extends BaseEntity {
     
     @Column(name = "GRADUATION_STUDENT_RECORD_ID", nullable = false)
     private UUID studentID;
-    
-    @Column(name = "SCHOOL_AT_GRADUATION", nullable = true)
-    private String schoolAtGrad;
 
     @Column(name = "RECALCULATE_PROJECTED_GRAD", nullable = true)
     private String recalculateProjectedGrad;

@@ -57,9 +57,9 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_RECALCULATE = "/recalculate";
     public static final String GRAD_STUDENT_PROJECTED_RUN = "/projected";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_FOR_BATCH_RUN = "/batch/gradstudent/studentid/{studentID}";
-    public static final String STUDENT_LIST_FOR_SCHOOL_REPORT = "/batch/schoolreport/{schoolOfRecord}";
-    public static final String STUDENT_LIST_FOR_AMALGAMATED_SCHOOL_REPORT = "/amalgamated/schoolreport/{schoolOfRecord}/type/{type}";
-    public static final String STUDENT_COUNT_FOR_AMALGAMATED_SCHOOL_REPORT = "/amalgamated/schoolreport/{schoolOfRecord}" + STUDENT_COUNT;
+    public static final String STUDENT_LIST_FOR_SCHOOL_REPORT = "/batch/schoolreport/{schoolId}";
+    public static final String STUDENT_LIST_FOR_AMALGAMATED_SCHOOL_REPORT = "/amalgamated/schoolreport/{schoolId}/type/{type}";
+    public static final String STUDENT_COUNT_FOR_AMALGAMATED_SCHOOL_REPORT = "/amalgamated/schoolreport/{schoolId}" + STUDENT_COUNT;
     public static final String STUDENT_RECORD_STUDENT_ID_BATCH_RUN = "/batch/{studentID}";
     public static final String GET_STUDENT_STATUS_BY_STATUS_CODE_MAPPING = "/checkstudentstatus/{statusCode}";
     public static final String UNGRAD_STUDENT = "/undocompletionstudent/studentid/{studentID}";
@@ -85,10 +85,11 @@ public class EducGradStudentApiConstants {
     public static final String GET_ALL_STUDENT_STATUS_MAPPING = "/studentstatus";
     public static final String GET_ALL_STUDENT_STATUS_BY_CODE_MAPPING = "/studentstatus/{statusCode}";
     public static final String STUDENT_ALGORITHM_DATA = "/algorithmdata/{studentID}";
-    public static final String GET_ALL_STUDENT_REPORT_DATA_BY_MINCODE = "/studentschoolreportdata/{mincode}";
+    public static final String GET_ALL_STUDENT_REPORT_DATA_BY_SCHOOL_ID = "/studentschoolreportdata/{schoolId}";
     public static final String GET_ALL_STUDENT_REPORT_DATA = "/studentschoolreportdata";
     public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA = "/studentnongradreportdata";
-    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_MINCODE = "/studentnongradreportdata/{mincode}";
+    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_BY_SCHOOL_ID = "/studentnongradreportdata/{schoolId}";
+    public static final String GET_ALL_STUDENT_NON_GRAD_REPORT_DATA_BY_DISTRICT_ID = "/studentnongradreportdata/district/{districtId}";
     public static final String GET_ALL_SCHOOL_NON_GRAD_REPORT_DATA = "/schoolnongradreportdata";
     public static final String GET_ALL_DISTRICT_NON_GRAD_REPORT_DATA = "/districtnongradreportdata";
     public static final String GET_DECEASED_STUDENT_ID = "/deceasedstudentid";
@@ -144,8 +145,11 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-trax-api.school-clob-by-school-id.url}")
     private String schoolClobBySchoolIdUrl;
 
-    @Value("${endpoint.grad-trax-api.district-by-district-code.url}")
-    private String districtByDistrictCodeUrl;
+    @Value("${endpoint.grad-trax-api.school-by-school-id.url}")
+    private String schoolBySchoolIdUrl;
+
+    @Value("${endpoint.grad-trax-api.district-by-district-id.url}")
+    private String districtByDistrictIdUrl;
 
     @Value("${endpoint.grad-program-api.career_program-by-career-code.url}")
     private String careerProgramByCodeUrl;
@@ -187,8 +191,8 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-graduation-report-api.archive-student-achievement.url}")
     private String archiveStudentAchievements;
 
-    @Value("${endpoint.grad-trax-api.schools-by-district-code.url}")
-    private String schoolsByDistrictNumberUrl;
+    @Value("${endpoint.grad-trax-api.search-schools-by-district-id.url}")
+    private String schoolsByDistrictIdUrl;
     
     // Splunk LogHelper Enabled
     @Value("${splunk.log-helper.enabled}")

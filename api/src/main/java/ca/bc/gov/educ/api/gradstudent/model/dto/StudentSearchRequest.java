@@ -24,20 +24,20 @@ public class StudentSearchRequest implements Serializable {
     String usualMiddleNames;
     String gender;
     String mincode;
+    UUID schoolId;
     String localID;
     String birthdateFrom;
     String birthdateTo;
-    String schoolOfRecord;
     String gradProgram;
 
-    private List<String> schoolOfRecords = new ArrayList<>();
-    private List<String> districts = new ArrayList<>();
-    private List<String> schoolCategoryCodes = new ArrayList<>();
-    private List<String> pens = new ArrayList<>();
-    private List<String> programs = new ArrayList<>();
-    private List<UUID> studentIDs = new ArrayList<>();
-    private List<String> statuses = new ArrayList<>();
-    private List<String> reportTypes = new ArrayList();
+    private List<UUID> schoolIds;
+    private List<UUID> districtIds;
+    private List<String> schoolCategoryCodes;
+    private List<String> pens;
+    private List<String> programs;
+    private List<UUID> studentIDs;
+    private List<String> statuses;
+    private List<String> reportTypes;
 
     @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
     LocalDate gradDateFrom;
@@ -47,18 +47,18 @@ public class StudentSearchRequest implements Serializable {
     Boolean validateInput;
     String activityCode;
 
-    public List<String> getSchoolOfRecords() {
-        if(schoolOfRecords == null) {
-            schoolOfRecords = new ArrayList<>();
+    public List<UUID> getSchoolIds() {
+        if(schoolIds == null) {
+            schoolIds = new ArrayList<>();
         }
-        return schoolOfRecords;
+        return schoolIds;
     }
 
-    public List<String> getDistricts() {
-        if(districts == null) {
-            districts = new ArrayList<>();
+    public List<UUID> getDistrictIds() {
+        if(districtIds == null) {
+            districtIds = new ArrayList<>();
         }
-        return districts;
+        return districtIds;
     }
 
     public List<String> getSchoolCategoryCodes() {
@@ -88,8 +88,8 @@ public class StudentSearchRequest implements Serializable {
 
     @JsonIgnore
     public boolean isEmpty() {
-        return  (schoolOfRecords == null || schoolOfRecords.isEmpty()) &&
-                (districts == null || districts.isEmpty()) &&
+        return  (schoolIds == null || schoolIds.isEmpty()) &&
+                (districtIds == null || districtIds.isEmpty()) &&
                 (schoolCategoryCodes == null || schoolCategoryCodes.isEmpty()) &&
                 (pens == null || pens.isEmpty()) &&
                 (studentIDs == null || studentIDs.isEmpty());

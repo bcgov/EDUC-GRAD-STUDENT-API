@@ -52,7 +52,7 @@ public class DataConversionControllerTest {
     public void testSaveStudentGradStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
@@ -60,8 +60,8 @@ public class DataConversionControllerTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
         graduationStatus.setProgram("2018-EN");
-        graduationStatus.setSchoolOfRecord(mincode);
-        graduationStatus.setSchoolAtGrad(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setSchoolAtGradId(schoolId);
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
@@ -79,7 +79,7 @@ public class DataConversionControllerTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
@@ -87,8 +87,8 @@ public class DataConversionControllerTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
         graduationStatus.setProgram("2018-PF");
-        graduationStatus.setSchoolOfRecord(mincode);
-        graduationStatus.setSchoolAtGrad(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setSchoolAtGradId(schoolId);
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 

@@ -1,13 +1,11 @@
 {
-  "schoolOfRecords": [
-    "06299164",
-    "04444000",
-    "00807013"
+  "schoolIds": [
+    "d9f808b8-2818-ff46-24a7-b8dbb563cad5",
+    "ddf1ba81-4a65-d0a6-e501-5037a8ad82c4",
+    "973ff13d-c951-2f10-e494-b35612e1a9a2"
   ],
-  "districts": [
-    "062",
-    "034",
-    "044"
+  "districtIds": [
+    "cd96cc28-d688-efe3-cdae-ffcdbe05f096"
   ],
   "schoolCategoryCodes": [
     "02",

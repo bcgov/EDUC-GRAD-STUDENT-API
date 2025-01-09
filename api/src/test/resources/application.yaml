@@ -106,11 +106,13 @@ cron:
 #Endpoint properties
 endpoint:
   grad-trax-api:
-    schools-by-district-code:
+    search-schools-by-district-id:
       url: http://test
     school-clob-by-school-id:
       url: http://test
-    district-by-district-code:
+    school-by-school-id:
+      url: http://test
+    district-by-district-id:
       url: http://test
   grad-program-api:
     optional_program_name_by_optional_program_id:

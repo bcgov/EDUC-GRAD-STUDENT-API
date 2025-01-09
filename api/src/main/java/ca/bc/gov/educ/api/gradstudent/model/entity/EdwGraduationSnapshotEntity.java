@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -34,5 +35,7 @@ public class EdwGraduationSnapshotEntity {
     private LocalDate sessionDate;
     @Column(name = "SCHOOL_OF_RECORD", nullable = true)
     private String schoolOfRecord;
+    @Column(name = "SCHOOL_OF_RECORD_ID", nullable = true)
+    private UUID schoolOfRecordId;
 
 }

@@ -325,10 +325,6 @@ public class DataConversionService extends GradBaseService {
 
     private void populate(OngoingUpdateFieldDTO field, GraduationStudentRecordEntity targetObject) {
         switch (field.getName()) {
-            case SCHOOL_OF_RECORD -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getSchoolOfRecord());
-                targetObject.setSchoolOfRecord(getStringValue(field.getValue()));
-            }
             case SCHOOL_OF_RECORD_ID -> {
                 log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getSchoolOfRecordId());
                 targetObject.setSchoolOfRecordId(getGuidValue(field.getValue()));
@@ -417,5 +413,14 @@ public class DataConversionService extends GradBaseService {
         return sourceObject;
     }
 
+    @Override
+    protected WebClient getWebClient() {
+        return webClient;
+    }
+
+    @Override
+    protected EducGradStudentApiConstants getConstants() {
+        return constants;
+    }
 
 }

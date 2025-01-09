@@ -14,12 +14,12 @@ public class BatchGraduationStudentRecord {
 	private UUID studentID;
 	private String program;
 	private String programCompletionDate;
-	private String schoolOfRecord;
+	private UUID schoolOfRecordId;
 
-	public BatchGraduationStudentRecord(String program, Date programCompletionDate, String schoolOfRecord, UUID studentID) {
+	public BatchGraduationStudentRecord(String program, Date programCompletionDate, UUID schoolOfRecordId, UUID studentID) {
 		this.program = program;
 		this.programCompletionDate = EducGradStudentApiUtils.formatDate(programCompletionDate, PROGRAM_COMPLETION_DATE_FORMAT);
-		this.schoolOfRecord = schoolOfRecord;
+		this.schoolOfRecordId = schoolOfRecordId;
 		this.studentID = studentID;
 	}
 }

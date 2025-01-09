@@ -20,8 +20,8 @@ public class GraduationStudentRecordSearchSpecification implements Specification
     private static final Logger logger = LoggerFactory.getLogger(GraduationStudentRecordSearchSpecification.class);
     private static final String PROGRAM_COMPLETION_DATE = "programCompletionDate";
     private static final String STUDENT_STATUS = "studentStatus";
-    private static final String SCHOOL_AT_GRADUATION = "schoolAtGraduation";
-    private static final String SCHOOL_OF_RECORD = "schoolOfRecord";
+    private static final String SCHOOL_AT_GRAD_ID = "schoolAtGradId";
+    private static final String SCHOOL_OF_RECORD_ID = "schoolOfRecordId";
 
     private final GraduationStudentRecordSearchCriteria searchCriteria;
 
@@ -37,7 +37,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
         Predicate curStatusOptional;
         if (searchCriteria.getStudentIds() != null && !searchCriteria.getStudentIds().isEmpty()) {
             curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER"));
-            return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentUUIDs()),
+            return criteriaBuilder.and(root.get("studentID").as(UUID.class).in(searchCriteria.getStudentIds()),
                     curStatusOptional
             );
         }
@@ -60,7 +60,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             );
         }
         Predicate schoolOfRecordPredicate = criteriaBuilder.and();
-        if (searchCriteria.getSchoolOfRecords() != null && !searchCriteria.getSchoolOfRecords().isEmpty()) {
+        if (searchCriteria.getSchoolIds() != null && !searchCriteria.getSchoolIds().isEmpty()) {
             /***
             Predicate schoolAtGraduationIsNull = criteriaBuilder.isNull(root.get(SCHOOL_AT_GRADUATION));
             Predicate schoolAtGraduationIsNotNull = criteriaBuilder.isNotNull(root.get(SCHOOL_AT_GRADUATION));
@@ -72,9 +72,9 @@ public class GraduationStudentRecordSearchSpecification implements Specification
             schoolOfRecordPredicate = criteriaBuilder.and(curStatusOptional, datesRangePredicate, finalPredicate);
              ***/
             if(certDist) {
-                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_AT_GRADUATION).in(searchCriteria.getSchoolOfRecords()));
+                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_AT_GRAD_ID).as(UUID.class).in(searchCriteria.getSchoolIds()));
             } else {
-                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_OF_RECORD).in(searchCriteria.getSchoolOfRecords()));
+                schoolOfRecordPredicate = criteriaBuilder.and(root.get(SCHOOL_OF_RECORD_ID).as(UUID.class).in(searchCriteria.getSchoolIds()));
             }
         }
         Predicate programPredicate = criteriaBuilder.and();
