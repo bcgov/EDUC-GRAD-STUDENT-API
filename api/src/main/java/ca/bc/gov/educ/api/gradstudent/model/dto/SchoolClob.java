@@ -23,30 +23,6 @@ public class SchoolClob {
 	private String openFlag;
 	private String schoolCategoryCode;
 	private String schoolCategoryLegacyCode;
-    
-	public String getSchoolName() {
-		return  schoolName != null ? schoolName.trim(): null;
-	}
-	
-	public String getDistrictName() {
-		return districtName != null ? districtName.trim(): null;
-	}
-	
-	public String getAddress1() {
-		return address1 != null ? address1.trim(): null;
-	}
-
-	public String getAddress2() {
-		return address2 != null ? address2.trim(): null;
-	}
-
-	public String getCity() {
-		return city != null ? city.trim(): null;
-	}
-	
-	public String getPostal() {
-		return postal != null ? postal.trim(): null;
-	}
 
 	@Override
 	public String toString() {
