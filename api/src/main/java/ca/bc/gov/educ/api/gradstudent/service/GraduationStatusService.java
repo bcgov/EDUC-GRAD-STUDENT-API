@@ -1149,18 +1149,6 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
         GradStatusEventPayloadDTO eventPayload = EducGradStudentApiUtils.transform(graduationStudentRecord);
-        if (graduationStudentRecord.getSchoolOfRecordId() != null) {
-            School schoolOfRecord = getSchool(graduationStudentRecord.getSchoolOfRecordId(), accessToken);
-            if (schoolOfRecord != null) {
-                eventPayload.setSchoolOfRecord(schoolOfRecord.getMincode());
-            }
-        }
-        if (graduationStudentRecord.getSchoolAtGradId() != null) {
-            School schoolAtGrad = getSchool(graduationStudentRecord.getSchoolAtGradId(), accessToken);
-            if (schoolAtGrad != null) {
-                eventPayload.setSchoolOfRecord(schoolAtGrad.getMincode());
-            }
-        }
         String jsonString = JsonUtil.getJsonStringFromObject(eventPayload);
         return GradStatusEvent.builder()
                 .createDate(LocalDateTime.now())
