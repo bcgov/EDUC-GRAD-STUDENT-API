@@ -417,11 +417,12 @@ public class GraduationStatusService extends GradBaseService {
 
         String gradDate = null;
         String formerStudent = "F";
+        GraduationStudentRecordEntity graduationStudentRecordEntity = null;
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
+        GraduationData graduationData = null;
         if(graduationStudentRecordEntityOptional.isPresent()) {
-            GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
+            graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
             long sessionInterval = Integer.MAX_VALUE;
-            GraduationData graduationData = null;
             if(StringUtils.isNotBlank(graduationStudentRecordEntity.getStudentGradData())) {
                 try {
                     graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(graduationStudentRecordEntity.getStudentGradData(), GraduationData.class);
@@ -474,6 +475,10 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
         assert schoolClob != null;
+        assert graduationStudentRecordEntity != null;
+        School school = getSchool(graduationStudentRecordEntity.getSchoolAtGradId(), accessToken);
+        assert school != null;
+        String schoolMincode = (school.getMincode() != null && !school.getMincode().isEmpty() ? school.getMincode() : null);
         return StudentDemographic.builder()
                 .studentID(gradSearchStudent.getStudentID())
                 .pen(pen)
@@ -503,7 +508,7 @@ public class GraduationStatusService extends GradBaseService {
                 .englishCert(englishCert)
                 .sccDate(sccDate)
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
-                .mincode(schoolClob.getMinCode())
+                .mincode(schoolMincode)
                 .schoolCategory(schoolClob.getSchoolCategoryLegacyCode())
                 .schoolType("02".equalsIgnoreCase(schoolClob.getSchoolCategoryLegacyCode()) ? "02" : "")
                 .schoolName(schoolClob.getSchoolName())
