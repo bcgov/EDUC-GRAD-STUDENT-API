@@ -620,6 +620,16 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(certificatesType)).thenReturn(Mono.just(List.of(certificate)));
 
+        School school = new School();
+        school.setSchoolId(schoolId.toString());
+        school.setMincode("07171040");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolBySchoolIdUrl(), graduationStatusEntity.getSchoolAtGradId(), "accessToken"))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
+
         var studentDemog = graduationStatusService.getStudentDemographics(pen, "accessToken");
         assertThat(studentDemog).isNotNull();
 
@@ -681,6 +691,16 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(certificatesType)).thenReturn(Mono.just(List.of(certificate)));
+
+        School school = new School();
+        school.setSchoolId(schoolId.toString());
+        school.setMincode("07171040");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolBySchoolIdUrl(), graduationStatusEntity.getSchoolAtGradId(), "accessToken"))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
         var studentDemog = graduationStatusService.getStudentDemographics(pen, "accessToken");
         assertThat(studentDemog).isNotNull();
