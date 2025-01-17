@@ -35,8 +35,8 @@
         <shedlock.version>4.38.0</shedlock.version>
         <nats.version>2.11.0</nats.version>
         <resilience4j.version>1.7.1</resilience4j.version>
-        <guava.version>32.0.1-jre</guava.version>
-        <log4j.version>2.18.0</log4j.version>
+        <guava.version>33.4.0-jre</guava.version>
+        <log4j.version>2.20.0</log4j.version>
     </properties>
 
     <parent>
@@ -205,7 +205,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>8.5.13</version>
+            <version>11.2.0</version>
         </dependency>
         <dependency>
             <groupId>io.github.resilience4j</groupId>
@@ -265,7 +265,7 @@
         <plugin>
           <groupId>org.hibernate.orm.tooling</groupId>
           <artifactId>hibernate-enhance-maven-plugin</artifactId>
-          <version>6.1.7.Final</version>
+          <version>6.6.4.Final</version>
         </plugin>
         <plugin>
           <groupId>org.springframework.boot</groupId>
@@ -357,7 +357,7 @@
           <plugin>
             <groupId>org.hibernate.orm.tooling</groupId>
             <artifactId>hibernate-enhance-maven-plugin</artifactId>
-            <version>6.1.7.Final</version>
+            <version>6.6.4.Final</version>
             <executions>
               <execution>
                 <configuration>
