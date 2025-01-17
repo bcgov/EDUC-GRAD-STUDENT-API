@@ -7,6 +7,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
@@ -496,13 +497,12 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
         final String pen = "123456789";
-        final String firstName = "FirstName";
-        final String lastName = "LastName";
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
         final UUID schoolId = UUID.randomUUID();
         final String schoolName = "Test School";
+        final UUID schoolAtGradID = UUID.randomUUID();
 
         String graduationData = readFile("json/studentGradData.json");
 
@@ -515,6 +515,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setProgram(program);
         graduationStatusEntity.setProgramCompletionDate(new Date());
         graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolAtGradID);
         graduationStatusEntity.setStudentGradData(graduationData);
 
         when(this.graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
@@ -546,6 +547,16 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(certificatesType)).thenReturn(Mono.just(List.of(certificate)));
+
+        School school = new School();
+        school.setSchoolId(schoolId.toString());
+        school.setMincode("07171040");
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolBySchoolIdUrl(), graduationStatusEntity.getSchoolAtGradId(), "accessToken"))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
         var studentDemog = graduationStatusService.getStudentDemographics(pen, "accessToken");
         assertThat(studentDemog).isNotNull();
