@@ -92,7 +92,9 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
     @After
     public void tearDown() {
-
+        /**
+         * Placeholder method
+         */
     }
 
     @Test
@@ -170,9 +172,8 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         var result = gradStudentService.getStudentFromStudentAPI(studentSearchRequest, 1, 10, "accessToken");
 
         assertThat(result).isNotNull();
-        assertThat(result.getGradSearchStudents().isEmpty()).isFalse();
-        assertThat(result.getGradSearchStudents().size()).isEqualTo(1);
-        assertThat(result.getNumber()).isEqualTo(0);
+        assertThat(result.getGradSearchStudents()).isNotEmpty().hasSize(1);
+        assertThat(result.getNumber()).isZero();
         assertThat(result.getNumberOfElements()).isEqualTo(1);
 
         GradSearchStudent responseStudent = result.getGradSearchStudents().get(0);
@@ -270,9 +271,8 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         var result = gradStudentService.getGRADStudents(studentSearchRequest, 1, 5, "accessToken");
 
         assertThat(result).isNotNull();
-        assertThat(result.getGradSearchStudents().isEmpty()).isFalse();
-        assertThat(result.getGradSearchStudents().size()).isEqualTo(1);
-        assertThat(result.getNumber()).isEqualTo(0);
+        assertThat(result.getGradSearchStudents()).isNotEmpty().hasSize(1);
+        assertThat(result.getNumber()).isZero();
         assertThat(result.getNumberOfElements()).isEqualTo(1);
 
         GradSearchStudent responseStudent = result.getGradSearchStudents().get(0);
@@ -469,8 +469,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         var result = gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest, "accessToken");
 
         assertThat(result).isNotNull();
-        assertThat(result.getGradSearchStudents().isEmpty()).isFalse();
-        assertThat(result.getGradSearchStudents().size()).isEqualTo(1);
+        assertThat(result.getGradSearchStudents()).isNotEmpty().hasSize(1);
 
         GradSearchStudent responseStudent = result.getGradSearchStudents().get(0);
         assertThat(responseStudent.getStudentID()).isEqualTo(studentID.toString());
@@ -496,8 +495,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
         final String pen = "123456789";
-        final String firstName = "FirstName";
-        final String lastName = "LastName";
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
@@ -558,8 +555,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
         final String pen = "123456789";
-        final String firstName = "FirstName";
-        final String lastName = "LastName";
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
@@ -620,8 +615,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
         final String pen = "123456789";
-        final String firstName = "FirstName";
-        final String lastName = "LastName";
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
@@ -750,8 +743,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         var result = gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken");
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(1);
+        assertThat(result).isNotNull().hasSize(1);
 
         GradSearchStudent responseStd = result.get(0);
         assertThat(responseStd.getStudentID()).isEqualTo(studentID.toString());
@@ -873,11 +865,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final String pen = "123456789";
         final String firstName = "FirstName";
         final String lastName = "LastName";
-        final String program = "2018-EN";
-        final String gradStatus = "A";
-        final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test School";
 
         // Grad Student
         final StudentCreate student = new StudentCreate();
