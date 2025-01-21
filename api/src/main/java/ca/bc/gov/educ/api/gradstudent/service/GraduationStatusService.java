@@ -476,11 +476,11 @@ public class GraduationStatusService extends GradBaseService {
         }
 
 
-        if(graduationStudentRecordEntity == null && graduationStudentRecordEntity.getSchoolAtGradId() == null) {
+        if(graduationStudentRecordEntity == null) {
             validation.addErrorAndStop("Student Id %s not found", gradSearchStudent.getStudentID());
         }
         School school = getSchool(graduationStudentRecordEntity.getSchoolAtGradId(), accessToken);
-        if(school == null && school.getMincode() == null || school.getMincode().isEmpty()) {
+        if(school == null) {
             validation.addErrorAndStop("School with school at graduation Id %s not found", graduationStudentRecordEntity.getSchoolAtGradId());
         }
         String schoolMincode = (school.getMincode() != null && !school.getMincode().isEmpty() ? school.getMincode() : null);
