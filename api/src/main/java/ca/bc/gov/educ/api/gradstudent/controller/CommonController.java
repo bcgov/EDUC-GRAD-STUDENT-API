@@ -13,9 +13,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +29,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
 @OpenAPIDefinition(info = @Info(title = "API for Common endpoints.", description = "This API is for Reading Common endpoints.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_UNGRAD_REASONS_DATA","READ_GRAD_STUDENT_CAREER_DATA"})})
+@AllArgsConstructor
 public class CommonController {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonController.class);
@@ -36,19 +37,14 @@ public class CommonController {
     private static final String STATUS_CODE = "Status Code";
     private static final String BEARER = "Bearer ";
 
-    @Autowired
     CommonService commonService;
 
-    @Autowired
     GradStudentReportService gradStudentReportService;
 
-    @Autowired
     GraduationStatusService graduationStatusService;
     
-    @Autowired
 	GradValidation validation;
     
-    @Autowired
 	ResponseHelper response;
     
     @GetMapping(EducGradStudentApiConstants.GET_STUDENT_CAREER_PROGRAM_BY_CAREER_PROGRAM_CODE_MAPPING)
@@ -67,7 +63,7 @@ public class CommonController {
     public ResponseEntity<List<StudentCareerProgram>> getAllStudentCareerProgramsList(@PathVariable String studentID,
                                                                                       @RequestHeader(name="Authorization") String accessToken) {
     	logger.debug("getAllStudentCareerProgramsList : ");
-        return response.GET(commonService.getAllGradStudentCareerProgramList(studentID,accessToken.replace("Bearer ", "")));
+        return response.GET(commonService.getAllGradStudentCareerProgramList(studentID,accessToken.replace(BEARER, "")));
     }
     
     @GetMapping(EducGradStudentApiConstants.GET_ALL_STUDENT_NOTES_MAPPING)
@@ -178,7 +174,7 @@ public class CommonController {
     public ResponseEntity<GradStudentAlgorithmData> getStudentGradStatusForAlgorithm(@PathVariable String studentID,
                                                                                      @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("Get Student Grad Status for studentID");
-        return response.GET(commonService.getGradStudentAlgorithmData(studentID,accessToken.replace("Bearer ", "")));
+        return response.GET(commonService.getGradStudentAlgorithmData(studentID,accessToken.replace(BEARER, "")));
     }
 
     @GetMapping(EducGradStudentApiConstants.GET_ALL_HISTORY_ACTIVITY_MAPPING)

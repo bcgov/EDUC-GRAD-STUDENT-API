@@ -148,7 +148,6 @@ public class DataConversionControllerTest {
         UUID gradStudentCareerProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
         String careerProgramCode = "Test";
-        String pen = "123456789";
 
         StudentCareerProgram studentCareerProgram = new StudentCareerProgram();
         studentCareerProgram.setId(gradStudentCareerProgramID);
@@ -186,7 +185,7 @@ public class DataConversionControllerTest {
 
         Mockito.doNothing().when(dataConversionService).deleteStudentCareerProgram(careerProgramCode, studentID);
         Mockito.when(responseHelper.DELETE(1)).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
-        var result = dataConversionController.deleteStudentCareerProgram(careerProgramCode.toString(), studentID.toString());
+        var result = dataConversionController.deleteStudentCareerProgram(careerProgramCode, studentID.toString());
         Mockito.verify(dataConversionService).deleteStudentCareerProgram(careerProgramCode, studentID);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);

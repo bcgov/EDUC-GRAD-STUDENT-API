@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class DataConversionServiceTest extends BaseIntegrationTest {
+class DataConversionServiceTest extends BaseIntegrationTest {
     @Autowired
     EducGradStudentApiConstants constants;
     @Autowired
@@ -128,7 +128,6 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
     public void testGraduationStudentRecordAsUpdate() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
         UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
@@ -902,7 +901,6 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         UUID gradStudentCareerProgramID = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
         String careerProgramCode = "Test";
-        String pen = "123456789";
 
         StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
         gradStudentCareerProgramEntity.setId(gradStudentCareerProgramID);

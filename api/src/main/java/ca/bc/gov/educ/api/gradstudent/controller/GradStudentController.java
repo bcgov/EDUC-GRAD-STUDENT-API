@@ -27,6 +27,7 @@ public class GradStudentController {
 
     @SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(GradStudentController.class);
+	private static final String BEARER = "Bearer ";
 
     private final GradStudentService gradStudentService;
 
@@ -56,7 +57,7 @@ public class GradStudentController {
 			.usualFirstName(usualFirstName).usualLastName(usualLastName).usualMiddleNames(usualMiddleNames)
 			.gender(gender).mincode(mincode).localID(localID).birthdateFrom(birthdateFrom).birthdateTo(birthdateTo)
 			.build();
-        return gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest,accessToken.replaceAll("Bearer ", ""));
+        return gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest,accessToken.replace(BEARER, ""));
 		
 	}
 	
@@ -93,7 +94,7 @@ public class GradStudentController {
 	@Operation(summary = "Search For Students by PEN", description = "Search for Student Demographics by PEN", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public List<GradSearchStudent> getGradStudentByPenFromStudentAPI(@PathVariable String pen, @RequestHeader(name="Authorization") String accessToken) {
-    	 return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken.replaceAll("Bearer ", ""));
+    	 return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken.replace(BEARER, ""));
     }
     
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API)
@@ -101,7 +102,7 @@ public class GradStudentController {
 	@Operation(summary = "GET Student by STUDENT ID", description = "Get Student Demographics by Student ID", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public GradSearchStudent getGradStudentByStudentIDFromStudentAPI(@PathVariable String studentID, @RequestHeader(name="Authorization") String accessToken) {
-    	return gradStudentService.getStudentByStudentIDFromStudentAPI(studentID,accessToken.replaceAll("Bearer ", ""));
+    	return gradStudentService.getStudentByStudentIDFromStudentAPI(studentID,accessToken.replace(BEARER, ""));
     }
 
 	@GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_GRAD)
@@ -115,7 +116,7 @@ public class GradStudentController {
     @PostMapping
 	@PreAuthorize("hasAuthority('SCOPE_WRITE_STUDENT')")
     public Student addNewPenFromStudentAPI(@Validated @RequestBody StudentCreate student, @RequestHeader(name="Authorization") String accessToken) {
-		return gradStudentService.addNewPenFromStudentAPI(student, accessToken.replaceAll("Bearer ", ""));
+		return gradStudentService.addNewPenFromStudentAPI(student, accessToken.replace(BEARER, ""));
 	}
 
 	@PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_BY_SEARCH_CRITERIAS)

@@ -53,7 +53,8 @@ public class CommonServiceTest extends BaseIntegrationTest {
 
     @MockBean
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
-    @Mock WebClient.RequestHeadersSpec requestHeadersMock;
+    @Mock
+    WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock WebClient.RequestHeadersUriSpec requestHeadersUriMock;
     @Mock WebClient.RequestBodySpec requestBodyMock;
     @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
@@ -72,7 +73,9 @@ public class CommonServiceTest extends BaseIntegrationTest {
 
     @After
     public void tearDown() {
-
+        /**
+         * Placeholder method
+         */
     }
 
     @Test
@@ -195,8 +198,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 
         var result = commonService.getAllGradStudentCareerProgramList(studentID.toString(), "accessToken");
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2);
+        assertThat(result).isNotNull().hasSize(2);
         assertThat(result.get(0).getStudentID()).isEqualTo(studentID);
         assertThat(result.get(0).getCareerProgramCode()).isEqualTo(gradCareerProgram.getCode());
         assertThat(result.get(0).getCareerProgramName()).isEqualTo(gradCareerProgram.getDescription());
@@ -230,8 +232,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 
         var result = commonService.getAllStudentNotes(studentID);
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2);
+        assertThat(result).isNotNull().hasSize(2);
         assertThat(result.get(0).getStudentID()).isEqualTo(studentID.toString());
         assertThat(result.get(1).getStudentID()).isEqualTo(studentID.toString());
     }
@@ -317,7 +318,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
 
         var result = commonService.deleteNote(noteID);
 
-        assertThat(result).isEqualTo(0);
+        assertThat(result).isZero();
 
     }
     
@@ -531,7 +532,8 @@ public class CommonServiceTest extends BaseIntegrationTest {
         obj.setUpdateDate(LocalDateTime.now());
         gradHistoryActivityList.add(obj);
         Mockito.when(historyActivityRepository.findAll()).thenReturn(gradHistoryActivityList);
-        commonService.getAllHistoryActivityCodeList();
+        List<HistoryActivity> result = commonService.getAllHistoryActivityCodeList();
+        assertThat(result).isNotNull().hasSize(2);
     }
 
     @Test
@@ -553,14 +555,16 @@ public class CommonServiceTest extends BaseIntegrationTest {
         objEntity.setUpdateDate(LocalDateTime.now());
         Optional<HistoryActivityCodeEntity> ent = Optional.of(objEntity);
         Mockito.when(historyActivityRepository.findById(reasonCode)).thenReturn(ent);
-        commonService.getSpecificHistoryActivityCode(reasonCode);
+        HistoryActivity  historyActivity = commonService.getSpecificHistoryActivityCode(reasonCode);
+        assertThat(historyActivity).isNotNull();
     }
 
     @Test
     public void testGetSpecificHistoryActivityCodeReturnsNull() {
         String reasonCode = "DC";
-        Mockito.when(historyActivityRepository.findById(reasonCode)).thenReturn(Optional.empty());
-        commonService.getSpecificHistoryActivityCode(reasonCode);
+        when(historyActivityRepository.findById(reasonCode)).thenReturn(Optional.empty());
+        HistoryActivity  historyActivity = commonService.getSpecificHistoryActivityCode(reasonCode);
+        assertThat(historyActivity).isNull();
     }
 
     @Test

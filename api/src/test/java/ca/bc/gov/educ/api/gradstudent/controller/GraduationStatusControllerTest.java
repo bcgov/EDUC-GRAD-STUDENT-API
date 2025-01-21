@@ -535,7 +535,6 @@ public class GraduationStatusControllerTest {
     @Test
     public void testGetStudentHistoryByBatchID() {
         // ID
-        String historyID = UUID.randomUUID().toString();
         UUID studentID = UUID.randomUUID();
         UUID schoolId = UUID.randomUUID();
 
@@ -664,7 +663,6 @@ public class GraduationStatusControllerTest {
         UUID studentID = UUID.randomUUID();
         UUID schoolId = UUID.randomUUID();
         String batchJobType = "REGALG";
-        String mincode = "123456789";
 
         StudentList stList = new StudentList();
         stList.setStudentids(Arrays.asList(studentID));

@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.MESSAGE_PUBLISHED;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 class JetStreamEventHandlerServiceTest extends BaseIntegrationTest {
@@ -60,7 +61,9 @@ class JetStreamEventHandlerServiceTest extends BaseIntegrationTest {
 
     @AfterEach
     public void tearDown() {
-
+        /**
+         * Placeholder method
+         */
     }
 
     @Test
@@ -84,6 +87,8 @@ class JetStreamEventHandlerServiceTest extends BaseIntegrationTest {
         Mockito.when(gradStatusEventRepository.save(gradStatusEvent)).thenReturn(responseGradStatusEvent);
 
         jetStreamEventHandlerService.updateEventStatus(choreographedEvent);
+        Optional<GradStatusEvent> gradStatusEvents = gradStatusEventRepository.findById(eventId);
+        assertThat(gradStatusEvents).isNotEmpty();
     }
 
 }

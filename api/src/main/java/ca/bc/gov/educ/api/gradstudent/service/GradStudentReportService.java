@@ -9,10 +9,10 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.ReportGradStudentTransfo
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradSchoolYearEndRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -26,19 +26,19 @@ import java.util.concurrent.*;
 import static ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService.PAGE_SIZE;
 
 @Service
+@AllArgsConstructor
 public class GradStudentReportService extends GradBaseService {
 
     private static final Logger logger = LoggerFactory.getLogger(GradStudentReportService.class);
 
-    @Autowired
     ReportGradStudentDataRepository reportGradStudentDataRepository;
-    @Autowired
+
     ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
-    @Autowired
+
     ReportGradStudentTransformer reportGradStudentTransformer;
-    @Autowired
+
     EducGradStudentApiConstants constants;
-    @Autowired
+
     WebClient webClient;
 
     public List<ReportGradStudentData> getGradStudentDataBySchoolId(UUID schoolId) {

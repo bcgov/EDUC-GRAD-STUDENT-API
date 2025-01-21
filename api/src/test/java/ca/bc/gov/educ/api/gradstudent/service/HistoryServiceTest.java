@@ -81,7 +81,9 @@ public class HistoryServiceTest extends BaseIntegrationTest {
 
     @After
     public void tearDown() {
-
+        /**
+         * Placeholder method
+         */
     }
 
     @Test
@@ -103,8 +105,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
         histList.add(graduationStatusEntity);
         when(graduationStudentRecordHistoryRepository.findByStudentID(studentID)).thenReturn(histList);
         var result = historyService.getStudentEditHistory(studentID);
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(1);
+        assertThat(result).isNotNull().hasSize(1);
     }
 
     @Test
@@ -138,8 +139,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
         when(studentOptionalProgramHistoryRepository.findByStudentID(studentID)).thenReturn(histList);
         when(historyActivityRepository.findById("GRADALG")).thenReturn(Optional.of(ent));
         var result = historyService.getStudentOptionalProgramEditHistory(studentID,"accessToken");
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(1);
+        assertThat(result).isNotNull().hasSize(1);
 
     }
 
