@@ -417,12 +417,11 @@ public class GraduationStatusService extends GradBaseService {
 
         String gradDate = null;
         String formerStudent = "F";
-        GraduationStudentRecordEntity graduationStudentRecordEntity = null;
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
-        GraduationData graduationData = null;
         if(graduationStudentRecordEntityOptional.isPresent()) {
-            graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
+            GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
             long sessionInterval = Integer.MAX_VALUE;
+            GraduationData graduationData = null;
             if(StringUtils.isNotBlank(graduationStudentRecordEntity.getStudentGradData())) {
                 try {
                     graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(graduationStudentRecordEntity.getStudentGradData(), GraduationData.class);
@@ -474,16 +473,7 @@ public class GraduationStatusService extends GradBaseService {
                     break;
             }
         }
-
-
-        if(graduationStudentRecordEntity == null) {
-            validation.addErrorAndStop("Student Id %s not found", gradSearchStudent.getStudentID());
-        }
-        School school = getSchool(graduationStudentRecordEntity.getSchoolAtGradId(), accessToken);
-        if(school == null) {
-            validation.addErrorAndStop("School with school at graduation Id %s not found", graduationStudentRecordEntity.getSchoolAtGradId());
-        }
-        String schoolMincode = (school.getMincode() != null && !school.getMincode().isEmpty() ? school.getMincode() : null);
+        assert schoolClob != null;
         return StudentDemographic.builder()
                 .studentID(gradSearchStudent.getStudentID())
                 .pen(pen)
@@ -513,7 +503,7 @@ public class GraduationStatusService extends GradBaseService {
                 .englishCert(englishCert)
                 .sccDate(sccDate)
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
-                .mincode(schoolMincode)
+                .mincode(schoolClob.getMinCode())
                 .schoolCategory(schoolClob.getSchoolCategoryLegacyCode())
                 .schoolType("02".equalsIgnoreCase(schoolClob.getSchoolCategoryLegacyCode()) ? "02" : "")
                 .schoolName(schoolClob.getSchoolName())
