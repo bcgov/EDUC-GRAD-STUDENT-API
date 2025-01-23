@@ -417,9 +417,10 @@ public class GraduationStatusService extends GradBaseService {
 
         String gradDate = null;
         String formerStudent = "F";
+        GraduationStudentRecordEntity graduationStudentRecordEntity = null;
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
         if(graduationStudentRecordEntityOptional.isPresent()) {
-            GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
+            graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
             long sessionInterval = Integer.MAX_VALUE;
             GraduationData graduationData = null;
             if(StringUtils.isNotBlank(graduationStudentRecordEntity.getStudentGradData())) {
@@ -441,13 +442,15 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
 
-        SchoolClob schoolClob = null;
-        if (StringUtils.isNotBlank(gradSearchStudent.getSchoolOfRecordId())) {
-            schoolClob = getSchoolClob(StringUtils.isNotBlank(gradSearchStudent.getSchoolOfRecordId())?
-                    UUID.fromString(gradSearchStudent.getSchoolOfRecordId()) : null, accessToken);
+        if(graduationStudentRecordEntity == null) {
+            validation.addErrorAndStop("Student record  with student Id %s not found", gradSearchStudent.getStudentID());
         }
+
+        UUID schoolId = graduationStudentRecordEntity.getSchoolAtGradId() != null && !graduationStudentRecordEntity.getSchoolAtGradId().equals(graduationStudentRecordEntity.getSchoolOfRecordId())?
+                graduationStudentRecordEntity.getSchoolAtGradId() : graduationStudentRecordEntity.getSchoolOfRecordId();
+        SchoolClob schoolClob = getSchoolClob(schoolId, accessToken);
         if(schoolClob == null) {
-            validation.addErrorAndStop("School with schoolId %s not found", gradSearchStudent.getSchoolOfRecordId());
+            validation.addErrorAndStop("School with schoolId %s not found", schoolId);
         }
 
         String englishCert = "";
