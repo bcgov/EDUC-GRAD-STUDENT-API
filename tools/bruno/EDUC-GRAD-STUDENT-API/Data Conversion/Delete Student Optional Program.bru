@@ -1,0 +1,16 @@
+meta {
+  name: Delete Student Optional Program
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/student/conv/studentoptionalprogram/:optionalProgramID/:studentID
+  body: none
+  auth: none
+}
+
+params:path {
+  optionalProgramID: 
+  studentID: 
+}

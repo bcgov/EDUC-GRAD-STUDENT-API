@@ -1,0 +1,15 @@
+meta {
+  name: Get Student NonGrad Reason by Student ID
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/pen/:pen/nongrad-reason
+  body: none
+  auth: none
+}
+
+params:path {
+  pen: 
+}

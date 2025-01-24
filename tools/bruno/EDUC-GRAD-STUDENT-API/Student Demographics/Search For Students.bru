@@ -1,0 +1,29 @@
+meta {
+  name: Search For Students
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/gradstudentsearch
+  body: none
+  auth: none
+}
+
+params:query {
+  ~legalFirstName: 
+  ~legalLastName: 
+  ~legalMiddleNames: 
+  ~usualFirstName: 
+  ~usualLastName: 
+  ~usualMiddleNames: 
+  ~gender: 
+  ~mincode: 
+  ~localID: 
+  ~birthdateFrom: 
+  ~birthdateTo: 
+}
+
+headers {
+  Authorization: 
+}

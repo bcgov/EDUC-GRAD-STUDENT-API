@@ -1,0 +1,15 @@
+meta {
+  name: Find a Student Graduation Data for Year End School Report by District Id
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/studentnongradreportdata/district/:districtId
+  body: none
+  auth: none
+}
+
+params:path {
+  districtId: 
+}

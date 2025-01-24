@@ -1,0 +1,19 @@
+meta {
+  name: Update Student Grad Status by Student ID
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/gradstudent/studentid/:studentID
+  body: json
+  auth: none
+}
+
+params:path {
+  studentID: 
+}
+
+headers {
+  Authorization: 
+}

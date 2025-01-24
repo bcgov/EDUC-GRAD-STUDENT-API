@@ -1,0 +1,23 @@
+meta {
+  name: Create Student Notes
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/studentnotes
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "createUser": "",
+    "createDate": "",
+    "updateUser": "",
+    "updateDate": "",
+    "id": "",
+    "note": "",
+    "studentID": ""
+  }
+}

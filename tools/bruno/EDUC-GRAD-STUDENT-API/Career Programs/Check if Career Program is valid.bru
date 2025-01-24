@@ -1,0 +1,15 @@
+meta {
+  name: Check if Career Program is valid
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/career/:cpCode
+  body: none
+  auth: none
+}
+
+params:path {
+  cpCode: 
+}

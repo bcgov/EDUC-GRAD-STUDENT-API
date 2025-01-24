@@ -1,0 +1,20 @@
+meta {
+  name: Delete a Student Career Program by Student ID and Career Program Code
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/student/:studentID/careerPrograms/:careerProgramCode
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+  careerProgramCode: 
+}
+
+headers {
+  Authorization: 
+}
