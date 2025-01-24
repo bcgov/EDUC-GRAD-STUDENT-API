@@ -180,6 +180,8 @@ public class EducGradStudentApiUtils {
                 .program(graduationStudentRecord.getProgram())
                 .programCompletionDate(graduationStudentRecord.getProgramCompletionDate() != null?
                         EducGradStudentApiUtils.getProgramCompletionDate(graduationStudentRecord.getProgramCompletionDate()) : null)
+                .schoolOfRecordId(graduationStudentRecord.getSchoolOfRecordId())
+                .schoolAtGradId(graduationStudentRecord.getSchoolAtGradId())
                 .studentGrade(graduationStudentRecord.getStudentGrade())
                 .studentStatus(graduationStudentRecord.getStudentStatus())
                 .honoursStanding(graduationStudentRecord.getHonoursStanding())
