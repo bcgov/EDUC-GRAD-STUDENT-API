@@ -1,0 +1,26 @@
+meta {
+  name: Save Graduation Status Snapshot for EDW
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/edw/snapshot
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "gradYear": "",
+    "pen": "",
+    "graduationFlag": "",
+    "honoursStanding": "",
+    "gpa": "",
+    "graduatedDate": "",
+    "runDate": "",
+    "sessionDate": "",
+    "schoolOfRecord": "",
+    "schoolOfRecordId": ""
+  }
+}

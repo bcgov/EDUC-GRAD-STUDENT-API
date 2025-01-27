@@ -1,0 +1,20 @@
+meta {
+  name: Find all Student Optional Grad Status by Student ID-Optional PROGRAM ID
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/optionalprogram/:studentID/:optionalProgramID
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+  optionalProgramID: 
+}
+
+headers {
+  Authorization: 
+}

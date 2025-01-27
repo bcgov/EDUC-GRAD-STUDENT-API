@@ -1,0 +1,15 @@
+meta {
+  name: Find a History Activity Code by Code
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/historyactivity/:activityCode
+  body: none
+  auth: none
+}
+
+params:path {
+  activityCode: 
+}

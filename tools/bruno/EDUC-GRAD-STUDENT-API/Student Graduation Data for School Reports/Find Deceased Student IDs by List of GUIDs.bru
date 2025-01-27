@@ -1,0 +1,17 @@
+meta {
+  name: Find Deceased Student IDs by List of GUIDs
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/deceasedstudentid
+  body: json
+  auth: none
+}
+
+body:json {
+  [
+    {}
+  ]
+}

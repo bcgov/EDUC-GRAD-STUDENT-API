@@ -1,0 +1,15 @@
+meta {
+  name: GET Student by STUDENT ID
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/grad/:studentID
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+}

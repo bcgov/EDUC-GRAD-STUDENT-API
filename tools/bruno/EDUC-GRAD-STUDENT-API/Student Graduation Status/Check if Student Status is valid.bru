@@ -1,0 +1,15 @@
+meta {
+  name: Check if Student Status is valid
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/checkstudentstatus/:statusCode
+  body: none
+  auth: none
+}
+
+params:path {
+  statusCode: 
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Save Student Grad Status by Student ID
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/studentid/:studentID
+  body: json
+  auth: none
+}
+
+params:query {
+  ~batchId: 
+}
+
+params:path {
+  studentID: 
+}
+
+headers {
+  Authorization: 
+}

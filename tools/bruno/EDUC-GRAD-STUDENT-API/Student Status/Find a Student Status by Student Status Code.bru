@@ -1,0 +1,15 @@
+meta {
+  name: Find a Student Status by Student Status Code
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/studentstatus/:statusCode
+  body: none
+  auth: none
+}
+
+params:path {
+  statusCode: 
+}

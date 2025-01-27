@@ -1,0 +1,24 @@
+meta {
+  name: Get history for a Batch ID
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/studentHistory/batchid/:batchId
+  body: none
+  auth: none
+}
+
+params:query {
+  ~pageNumber: 
+  ~pageSize: 
+}
+
+params:path {
+  batchId: 
+}
+
+headers {
+  Authorization: 
+}

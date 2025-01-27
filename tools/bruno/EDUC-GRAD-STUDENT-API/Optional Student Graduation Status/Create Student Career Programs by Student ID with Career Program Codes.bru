@@ -1,0 +1,29 @@
+meta {
+  name: Create Student Career Programs by Student ID with Career Program Codes
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/:studentID/careerPrograms
+  body: json
+  auth: none
+}
+
+params:path {
+  studentID: 
+}
+
+headers {
+  Authorization: 
+}
+
+body:json {
+  {
+    "createUser": "",
+    "createDate": "",
+    "updateUser": "",
+    "updateDate": "",
+    "careerProgramCodes": []
+  }
+}

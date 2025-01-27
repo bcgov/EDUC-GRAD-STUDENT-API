@@ -1,0 +1,19 @@
+meta {
+  name: Get Student Optional Program History by ID
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/studentOptionalProgramHistory/historyid/:historyID
+  body: none
+  auth: none
+}
+
+params:path {
+  historyID: 
+}
+
+headers {
+  Authorization: 
+}

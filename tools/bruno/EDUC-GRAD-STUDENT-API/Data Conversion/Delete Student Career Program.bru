@@ -1,0 +1,16 @@
+meta {
+  name: Delete Student Career Program
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/student/conv/studentcareerprogram/:careerProgramCode/:studentID
+  body: none
+  auth: none
+}
+
+params:path {
+  careerProgramCode: 
+  studentID: 
+}

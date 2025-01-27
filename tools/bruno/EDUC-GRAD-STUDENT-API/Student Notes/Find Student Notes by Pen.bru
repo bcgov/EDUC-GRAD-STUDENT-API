@@ -1,0 +1,15 @@
+meta {
+  name: Find Student Notes by Pen
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/studentnotes/studentid/:studentID
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Update Student Flag ready for batch by Batch Job Type and Student IDs
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/multistudentids/batchflag/jobtype/:batchJobType
+  body: json
+  auth: none
+}
+
+params:path {
+  batchJobType: 
+}

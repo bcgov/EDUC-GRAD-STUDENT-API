@@ -1,0 +1,19 @@
+meta {
+  name: Find Student Career Program by Student ID
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/studentcareerprogram/studentid/:studentID
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+}
+
+headers {
+  Authorization: 
+}

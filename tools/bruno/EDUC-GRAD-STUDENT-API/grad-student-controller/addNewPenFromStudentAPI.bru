@@ -1,0 +1,49 @@
+meta {
+  name: addNewPenFromStudentAPI
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: 
+}
+
+body:json {
+  {
+    "studentID": "",
+    "pen": "",
+    "legalFirstName": "",
+    "legalMiddleNames": "",
+    "legalLastName": "",
+    "dob": "",
+    "sexCode": "",
+    "genderCode": "",
+    "citizenship": "",
+    "usualFirstName": "",
+    "usualMiddleNames": "",
+    "usualLastName": "",
+    "email": "",
+    "emailVerified": "",
+    "deceasedDate": "",
+    "postalCode": "",
+    "mincode": "",
+    "localID": "",
+    "gradeCode": "",
+    "gradeYear": "",
+    "demogCode": "",
+    "statusCode": "",
+    "memo": "",
+    "trueStudentID": "",
+    "createUser": "",
+    "updateUser": "",
+    "createDate": "",
+    "updateDate": "",
+    "historyActivityCode": ""
+  }
+}
