@@ -11,7 +11,6 @@ public class GradStudentRecordPayload {
     private String exception;
     private String program;
     private String programCompletionDate;
-    private String schoolOfRecord;
     private String schoolOfRecordId;
     private String studentStatusCode;
     private String graduated;
