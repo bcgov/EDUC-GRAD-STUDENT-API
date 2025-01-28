@@ -15,7 +15,6 @@ public class GradStudentRecord {
     private UUID studentID;
     private String program;
     private Date programCompletionDate;
-    private String schoolOfRecord;
     private UUID schoolOfRecordId;
     private String studentStatus;
     private String studentProjectedGradData;
