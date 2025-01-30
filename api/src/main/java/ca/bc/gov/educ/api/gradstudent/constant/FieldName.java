@@ -8,6 +8,8 @@ public enum FieldName {
     STUDENT_GRADE,
     CITIZENSHIP,
     STUDENT_STATUS,
+    GRAD_ALG_CLOB,
+    TVR_CLOB,
 
     RECALC_GRAD_ALG,
     RECALC_TVR

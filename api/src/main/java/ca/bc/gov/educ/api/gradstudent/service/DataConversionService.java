@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.FieldName;
+import ca.bc.gov.educ.api.gradstudent.constant.FieldType;
 import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -10,9 +11,7 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgram
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import ca.bc.gov.educ.api.gradstudent.util.*;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Initial Student Loads
@@ -36,7 +32,6 @@ import java.util.UUID;
 @Service
 public class DataConversionService extends GradBaseService {
 
-    public static final String NULL_VALUE = "NULL"; // NULL String => Nullify (set to NULL)
     private static final String CREATE_USER = "createUser";
     private static final String CREATE_DATE = "createDate";
     public static final String DEFAULT_CREATED_BY = "DATA_CONV";
@@ -45,7 +40,9 @@ public class DataConversionService extends GradBaseService {
     private static final String ADD_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXADD";
     private static final String UPDATE_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXUPDATE";
     private static final String DELETE_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXDELETE";
-    private static final String ONGOING_UPDATE_FIELD_STR = " ==> {} for old value={}";
+    private static final String ONGOING_UPDATE_FIELD_STR = " {} for old value={}";
+
+    private static final String UPDATE_FIELD_STR = " ==> Update Field [{}]={}";
 
     final WebClient webClient;
     final GraduationStudentRecordRepository graduationStatusRepository;
@@ -116,27 +113,15 @@ public class DataConversionService extends GradBaseService {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            populateOngoingUpdateFields(requestDTO.getUpdateFields(), gradEntity, accessToken);
-            gradEntity.setUpdateDate(null);
-            gradEntity.setUpdateUser(null);
-            validateStudentStatusAndResetBatchFlags(gradEntity);
-            if (isBatchFlagUpdatesOnly(eventType)) {
-                gradEntity = saveBatchFlagsWithAuditHistory(gradEntity.getStudentID(), gradEntity.getRecalculateGradStatus(),
-                        gradEntity.getRecalculateProjectedGrad(), UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
-            } else {
-                gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
-                historyService.createStudentHistory(gradEntity, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
-            }
+            Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap = populateOngoingUpdateFields(requestDTO.getUpdateFields(), gradEntity, accessToken);
+            validateStudentStatusAndResetBatchFlags(gradEntity, updateFieldsMap);
+            gradEntity = saveUpdateFields(studentID, updateFieldsMap, getUsername());
             if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(requestDTO.getPen())) {
-                saveStudentGuidPenXref(gradEntity.getStudentID(), requestDTO.getPen());
+                saveStudentGuidPenXref(studentID, requestDTO.getPen());
             }
             return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         }
         return null;
-    }
-
-    private boolean isBatchFlagUpdatesOnly(TraxEventType eventType) {
-        return TraxEventType.NEWSTUDENT != eventType && TraxEventType.UPD_GRAD != eventType;
     }
 
     @Transactional
@@ -223,15 +208,6 @@ public class DataConversionService extends GradBaseService {
         }
     }
 
-    /**
-     * Update Batch Flags in Graduation Status for Ongoing Updates
-     */
-    private GraduationStudentRecordEntity saveBatchFlagsWithAuditHistory(UUID studentID, String recalculateGradStatus, String recalculateProjectedGrad, String historyActivityCode) {
-        graduationStatusRepository.updateGradStudentRecalculationAllFlags(studentID, recalculateGradStatus, recalculateProjectedGrad);
-        gradStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByStudentId(studentID, historyActivityCode);
-        return graduationStatusRepository.findByStudentID(studentID);
-    }
-
     @Transactional
     public void deleteGraduationStatus(UUID studentID) {
         // graduation_student_record
@@ -281,103 +257,192 @@ public class DataConversionService extends GradBaseService {
         return newObject;
     }
 
-    private void populateOngoingUpdateFields(List<OngoingUpdateFieldDTO> fields, GraduationStudentRecordEntity targetObject, String accessToken) {
+    private Map<FieldName, OngoingUpdateFieldDTO> populateOngoingUpdateFields(List<OngoingUpdateFieldDTO> fields, GraduationStudentRecordEntity gradEntity, String accessToken) {
+        Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap = new EnumMap<>(FieldName.class);
         fields.forEach(f -> {
+            populate(f, updateFieldsMap, gradEntity);
             if (f.getName() == FieldName.GRAD_PROGRAM) {
                 String newProgram = getStringValue(f.getValue());
-                String currentProgram = targetObject.getProgram();
-                handleStudentAchievements(currentProgram, newProgram, targetObject, accessToken);
-                resetAdultStartDate(currentProgram, newProgram, targetObject);
+                String currentProgram = gradEntity.getProgram();
+                handleStudentAchievements(currentProgram, newProgram, gradEntity.getStudentID(), updateFieldsMap, accessToken);
+                resetAdultStartDate(currentProgram, newProgram, updateFieldsMap);
             } else if (f.getName() == FieldName.STUDENT_STATUS) {
                 String newStatus = getStringValue(f.getValue());
                 if ("MER".equals(newStatus)) {
-                    targetObject.setStudentGradData(null);
-                    targetObject.setStudentProjectedGradData(null);
-                    targetObject.setRecalculateGradStatus(null);
-                    targetObject.setRecalculateProjectedGrad(null);
-                    log.info(" {} ==> {}: Delete Student Achievements.", targetObject.getStudentStatus(), newStatus);
-                    graduationStatusService.deleteStudentAchievements(targetObject.getStudentID(), accessToken);
+                    addUpdateFieldIntoMap(updateFieldsMap, FieldName.GRAD_ALG_CLOB, FieldType.STRING, NULL_VALUE);
+                    addUpdateFieldIntoMap(updateFieldsMap, FieldName.TVR_CLOB, FieldType.STRING, NULL_VALUE);
+                    addUpdateFieldIntoMap(updateFieldsMap, FieldName.RECALC_GRAD_ALG, FieldType.STRING, NULL_VALUE);
+                    addUpdateFieldIntoMap(updateFieldsMap, FieldName.RECALC_TVR, FieldType.STRING, NULL_VALUE);
+                    log.info(" {} ==> {}: Delete Student Achievements.", gradEntity.getStudentStatus(), newStatus);
+                    graduationStatusService.deleteStudentAchievements(gradEntity.getStudentID(), accessToken);
                 }
             }
-            populate(f, targetObject);
         });
+        return updateFieldsMap;
     }
 
-    private void handleStudentAchievements(String currentProgram, String newProgram, GraduationStudentRecordEntity targetObject, String accessToken) {
+    private GraduationStudentRecordEntity saveUpdateFields(UUID studentID, Map<FieldName, OngoingUpdateFieldDTO> fieldsMap, String updateUser) {
+        fieldsMap.forEach((f, v) -> performUpdateField(studentID, v, updateUser));
+        gradStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByStudentId(studentID, UPDATE_ONGOING_HISTORY_ACTIVITY_CODE);
+        return graduationStatusRepository.findByStudentID(studentID);
+    }
+
+    private void handleStudentAchievements(String currentProgram, String newProgram, UUID studentID, Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap, String accessToken) {
         if (!StringUtils.equalsIgnoreCase(currentProgram, newProgram)) {
             if("SCCP".equalsIgnoreCase(currentProgram)) {
                 log.info(" {} ==> {}: Archive Student Achievements and SLP_DATE is set to null.", currentProgram, newProgram);
-                targetObject.setProgramCompletionDate(null);
-                graduationStatusService.archiveStudentAchievements(targetObject.getStudentID(),accessToken);
+                addUpdateFieldIntoMap(updateFieldsMap, FieldName.SLP_DATE, FieldType.STRING, NULL_VALUE);
+                graduationStatusService.archiveStudentAchievements(studentID,accessToken);
             } else {
                 log.info(" {} ==> {}: Delete Student Achievements.", currentProgram, newProgram);
-                graduationStatusService.deleteStudentAchievements(targetObject.getStudentID(), accessToken);
+                graduationStatusService.deleteStudentAchievements(studentID, accessToken);
             }
         }
     }
 
-    private void resetAdultStartDate(String currentProgram, String newProgram, GraduationStudentRecordEntity targetObject) {
+    private void resetAdultStartDate(String currentProgram, String newProgram, Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap) {
         // Only when 1950 adult program is changed to another, reset adultStartDate to null
         if (!StringUtils.equalsIgnoreCase(currentProgram, newProgram) && "1950".equalsIgnoreCase(currentProgram)) {
-            targetObject.setAdultStartDate(null);
+            addUpdateFieldIntoMap(updateFieldsMap, FieldName.ADULT_START_DATE, FieldType.DATE, NULL_VALUE);
         }
     }
 
-    private void populate(OngoingUpdateFieldDTO field, GraduationStudentRecordEntity targetObject) {
+    private void populate(OngoingUpdateFieldDTO field, Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap, GraduationStudentRecordEntity currentEntity) {
         switch (field.getName()) {
             case SCHOOL_OF_RECORD_ID -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getSchoolOfRecordId());
-                targetObject.setSchoolOfRecordId(getGuidValue(field.getValue()));
+                UUID newSchoolId = getGuidValue(field.getValue());
+                if (!currentEntity.getSchoolOfRecordId().equals(newSchoolId)) {
+                    log.info(ONGOING_UPDATE_FIELD_STR, field, currentEntity.getSchoolOfRecordId());
+                    addUpdateFieldIntoMap(updateFieldsMap,field);
+                }
             }
             case GRAD_PROGRAM -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getProgram());
-                targetObject.setProgram(getStringValue(field.getValue()));
+                String newProgram = getStringValue(field.getValue());
+                if (!StringUtils.equalsIgnoreCase(newProgram, currentEntity.getProgram())) {
+                    log.info(ONGOING_UPDATE_FIELD_STR, field, currentEntity.getProgram());
+                    addUpdateFieldIntoMap(updateFieldsMap,field);
+                }
             }
             case ADULT_START_DATE -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, EducGradStudentApiUtils.formatDate(targetObject.getAdultStartDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT));
-                // date format: yyyy-MM-dd
-                Date adultStartDate = EducGradStudentApiUtils.parseDate((String) field.getValue());
-                targetObject.setAdultStartDate(adultStartDate);
+                String newAdultStartDate = getStringValue(field.getValue());
+                String adultStartDate = currentEntity.getAdultStartDate() != null? EducGradStudentApiUtils.formatDate(currentEntity.getAdultStartDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT) : null;
+                if (!StringUtils.equalsIgnoreCase(newAdultStartDate, adultStartDate)) {
+                    log.info(ONGOING_UPDATE_FIELD_STR, field, adultStartDate);
+                    addUpdateFieldIntoMap(updateFieldsMap,field);
+                }
             }
             case SLP_DATE -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, EducGradStudentApiUtils.formatDate(targetObject.getProgramCompletionDate(), EducGradStudentApiConstants.PROGRAM_COMPLETION_DATE_FORMAT));
-                // date format: yyyy/MM
-                Date programCompletionDate = EducGradStudentApiUtils.parsingProgramCompletionDate((String) field.getValue());
-                targetObject.setProgramCompletionDate(programCompletionDate);
+                String newProgramCompletionDate = getStringValue(field.getValue());
+                String programCompletionDate = currentEntity.getProgramCompletionDate() != null? EducGradStudentApiUtils.formatDate(currentEntity.getProgramCompletionDate(), EducGradStudentApiConstants.PROGRAM_COMPLETION_DATE_FORMAT) : null;
+                if (!StringUtils.equalsIgnoreCase(newProgramCompletionDate, programCompletionDate)) {
+                    log.info(ONGOING_UPDATE_FIELD_STR, field, programCompletionDate);
+                    addUpdateFieldIntoMap(updateFieldsMap,field);
+                }
             }
             case STUDENT_GRADE -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getStudentGrade());
-                targetObject.setStudentGrade(getStringValue(field.getValue()));
+                String newStudentGrade = getStringValue(field.getValue());
+                if (!StringUtils.equalsIgnoreCase(newStudentGrade, currentEntity.getStudentGrade())) {
+                    log.info(ONGOING_UPDATE_FIELD_STR, field, currentEntity.getStudentGrade());
+                    addUpdateFieldIntoMap(updateFieldsMap,field);
+                }
             }
             case CITIZENSHIP -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getStudentCitizenship());
-                targetObject.setStudentCitizenship(getStringValue(field.getValue()));
+                String newCitizenship = getStringValue(field.getValue());
+                if (!StringUtils.equalsIgnoreCase(newCitizenship, currentEntity.getStudentCitizenship())) {
+                    log.info(ONGOING_UPDATE_FIELD_STR, field, currentEntity.getStudentCitizenship());
+                    addUpdateFieldIntoMap(updateFieldsMap,field);
+                }
             }
             case STUDENT_STATUS -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getStudentStatus());
-                targetObject.setStudentStatus(getStringValue(field.getValue()));
+                String newStudentStatus = getStringValue(field.getValue());
+                if (!StringUtils.equalsIgnoreCase(newStudentStatus, currentEntity.getStudentStatus())) {
+                    log.info(ONGOING_UPDATE_FIELD_STR, field, currentEntity.getStudentStatus());
+                    addUpdateFieldIntoMap(updateFieldsMap,field);
+                }
             }
             case RECALC_GRAD_ALG -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getRecalculateGradStatus());
-                targetObject.setRecalculateGradStatus(getStringValue(field.getValue()));
+                log.info(ONGOING_UPDATE_FIELD_STR, field, currentEntity.getRecalculateGradStatus());
+                addUpdateFieldIntoMap(updateFieldsMap,field);
             }
             case RECALC_TVR -> {
-                log.info(ONGOING_UPDATE_FIELD_STR, field, targetObject.getRecalculateProjectedGrad());
-                targetObject.setRecalculateProjectedGrad(getStringValue(field.getValue()));
+                log.info(ONGOING_UPDATE_FIELD_STR, field, currentEntity.getRecalculateProjectedGrad());
+                addUpdateFieldIntoMap(updateFieldsMap,field);
             }
         }
     }
 
-    private String getStringValue(Object value) {
-        if (value instanceof String str) {
-            return NULL_VALUE.equalsIgnoreCase(str) ? null : str;
+    private void performUpdateField(UUID studentID, OngoingUpdateFieldDTO field, String updateUser) {
+        switch (field.getName()) {
+            case SCHOOL_OF_RECORD_ID -> {
+                UUID schoolId = getGuidValue(field.getValue());
+                log.info(UPDATE_FIELD_STR, field.getName(), schoolId);
+                graduationStatusRepository.updateSchoolOfRecordId(studentID, schoolId, updateUser, LocalDateTime.now());
+            }
+            case GRAD_PROGRAM -> {
+                String program = getStringValue(field.getValue());
+                log.info(UPDATE_FIELD_STR, field.getName(), program);
+                graduationStatusRepository.updateGradProgram(studentID, program, updateUser, LocalDateTime.now());
+            }
+            case ADULT_START_DATE -> {
+                String dateStr = getStringValue(field.getValue());
+                if (dateStr != null) {
+                    // date format: yyyy-MM-dd
+                    Date adultStartDate = EducGradStudentApiUtils.parseDate(dateStr);
+                    log.info(UPDATE_FIELD_STR, field.getName(), EducGradStudentApiUtils.formatDate(adultStartDate, EducGradStudentApiConstants.DEFAULT_DATE_FORMAT));
+                    graduationStatusRepository.updateAdultStartDate(studentID, adultStartDate, updateUser, LocalDateTime.now());
+                } else {
+                    log.info(UPDATE_FIELD_STR, field.getName(), null);
+                    graduationStatusRepository.updateAdultStartDate(studentID, null, updateUser, LocalDateTime.now());
+                }
+            }
+            case SLP_DATE -> {
+                String dateStr = getStringValue(field.getValue());
+                if (dateStr != null) {
+                    // date format: yyyy/MM
+                    Date programCompletionDate = EducGradStudentApiUtils.parsingProgramCompletionDate(dateStr);
+                    log.info(UPDATE_FIELD_STR, field.getName(), EducGradStudentApiUtils.formatDate(programCompletionDate, EducGradStudentApiConstants.PROGRAM_COMPLETION_DATE_FORMAT));
+                    graduationStatusRepository.updateProgramCompletionDate(studentID, programCompletionDate, updateUser, LocalDateTime.now());
+                } else {
+                    log.info(UPDATE_FIELD_STR, field.getName(), null);
+                    graduationStatusRepository.updateProgramCompletionDate(studentID, null, updateUser, LocalDateTime.now());
+                }
+            }
+            case STUDENT_GRADE -> {
+                String grade = getStringValue(field.getValue());
+                log.info(UPDATE_FIELD_STR, field.getName(), grade);
+                graduationStatusRepository.updateStudentGrade(studentID, grade, updateUser, LocalDateTime.now());
+            }
+            case CITIZENSHIP -> {
+                String citizenship = getStringValue(field.getValue());
+                log.info(UPDATE_FIELD_STR, field.getName(), citizenship);
+                graduationStatusRepository.updateStudentCitizenship(studentID, citizenship, updateUser, LocalDateTime.now());
+            }
+            case STUDENT_STATUS -> {
+                String studentStatus = getStringValue(field.getValue());
+                log.info(UPDATE_FIELD_STR, field.getName(), studentStatus);
+                graduationStatusRepository.updateStudentStatus(studentID, studentStatus, updateUser, LocalDateTime.now());
+            }
+            case GRAD_ALG_CLOB -> {
+                String gradStatusClob = getStringValue(field.getValue());
+                log.info(UPDATE_FIELD_STR, field.getName(), gradStatusClob);
+                graduationStatusRepository.updateGradStatusClob(studentID, gradStatusClob, updateUser, LocalDateTime.now());
+            }
+            case TVR_CLOB -> {
+                String projectedGradClob = getStringValue(field.getValue());
+                log.info(UPDATE_FIELD_STR, field.getName(), projectedGradClob);
+                graduationStatusRepository.updateProjectedGradClob(studentID, projectedGradClob, updateUser, LocalDateTime.now());
+            }
+            case RECALC_GRAD_ALG -> {
+                String recalculateGradAlg = getStringValue(field.getValue());
+                log.info(UPDATE_FIELD_STR, field.getName(), recalculateGradAlg);
+                graduationStatusRepository.updateRecalculateGradStatusFlag(studentID, recalculateGradAlg, updateUser, LocalDateTime.now());
+            }
+            case RECALC_TVR -> {
+                String recalculateTvrRun = getStringValue(field.getValue());
+                log.info(UPDATE_FIELD_STR, field.getName(), recalculateTvrRun);
+                graduationStatusRepository.updateRecalculateProjectedGradFlag(studentID, recalculateTvrRun, updateUser, LocalDateTime.now());
+            }
         }
-        return null;
-    }
-
-    private UUID getGuidValue(Object value) {
-        String strGuid = getStringValue(value);
-        return strGuid != null? UUID.fromString(strGuid) : null;
     }
 
     private StudentOptionalProgramEntity handleExistingOptionalProgram(StudentOptionalProgramRequestDTO studentOptionalProgramReq, StudentOptionalProgramEntity gradEntity) {

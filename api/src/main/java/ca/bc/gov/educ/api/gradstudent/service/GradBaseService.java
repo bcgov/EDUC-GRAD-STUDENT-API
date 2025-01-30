@@ -1,16 +1,21 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.FieldName;
+import ca.bc.gov.educ.api.gradstudent.constant.FieldType;
+import ca.bc.gov.educ.api.gradstudent.model.dto.OngoingUpdateFieldDTO;
 import ca.bc.gov.educ.api.gradstudent.model.dto.SchoolClob;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public abstract class GradBaseService {
@@ -19,25 +24,52 @@ public abstract class GradBaseService {
     public static final String STUDENT_STATUS_MERGED = "MER";
     public static final String STUDENT_STATUS_TERMINATED = "TER";
 
+    // NULL Value
+    public static final String NULL_VALUE = "NULL"; // NULL String => Nullify (set to NULL)
+
 
     protected abstract WebClient getWebClient();
 
     protected abstract EducGradStudentApiConstants getConstants();
 
     protected void validateStudentStatusAndResetBatchFlags(GraduationStudentRecordEntity gradEntity) {
-        String currentStudentStatus = gradEntity.getStudentStatus();
+        String studentStatus = gradEntity.getStudentStatus();
         // GRAD2-2934
         // 1. If a student in GRAD is ARC/TER then do not set TVR flag when their other data changes
         // 2. If a student in GRAD is changed to ARC/TER then set TVR flag to NULL
-        if (STUDENT_STATUS_ARCHIVED.equalsIgnoreCase(currentStudentStatus) || STUDENT_STATUS_TERMINATED.equalsIgnoreCase(currentStudentStatus)) {
+        if (STUDENT_STATUS_ARCHIVED.equalsIgnoreCase(studentStatus) || STUDENT_STATUS_TERMINATED.equalsIgnoreCase(studentStatus)) {
             gradEntity.setRecalculateProjectedGrad(null);
         }
         // GRAD2-2922 & GRAD2-2950
         // 1. If a student in GRAD is MER then do not set Transcript & TVR flags  when their other data changes
         // 2. If a student in GRAD is changed to MER then set Transcript & TVR flags to NULL
-        if (STUDENT_STATUS_MERGED.equalsIgnoreCase(currentStudentStatus)) {
+        if (STUDENT_STATUS_MERGED.equalsIgnoreCase(studentStatus)) {
             gradEntity.setRecalculateGradStatus(null);
             gradEntity.setRecalculateProjectedGrad(null);
+        }
+    }
+
+    protected void validateStudentStatusAndResetBatchFlags(GraduationStudentRecordEntity gradEntity, Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap) {
+        String studentStatus = null;
+        if (updateFieldsMap.containsKey(FieldName.STUDENT_STATUS)) {
+            OngoingUpdateFieldDTO studentStatusFieldDTO = updateFieldsMap.get(FieldName.STUDENT_STATUS);
+            studentStatus = getStringValue(studentStatusFieldDTO.getValue());
+        }
+        if (studentStatus == null) {
+            studentStatus = gradEntity.getStudentStatus();
+        }
+        // GRAD2-2934
+        // 1. If a student in GRAD is ARC/TER then do not set TVR flag when their other data changes
+        // 2. If a student in GRAD is changed to ARC/TER then set TVR flag to NULL
+        if (STUDENT_STATUS_ARCHIVED.equalsIgnoreCase(studentStatus) || STUDENT_STATUS_TERMINATED.equalsIgnoreCase(studentStatus)) {
+            addUpdateFieldIntoMap(updateFieldsMap, FieldName.RECALC_TVR, FieldType.STRING, NULL_VALUE);
+        }
+        // GRAD2-2922 & GRAD2-2950
+        // 1. If a student in GRAD is MER then do not set Transcript & TVR flags  when their other data changes
+        // 2. If a student in GRAD is changed to MER then set Transcript & TVR flags to NULL
+        if (STUDENT_STATUS_MERGED.equalsIgnoreCase(studentStatus)) {
+            addUpdateFieldIntoMap(updateFieldsMap, FieldName.RECALC_GRAD_ALG, FieldType.STRING, NULL_VALUE);
+            addUpdateFieldIntoMap(updateFieldsMap, FieldName.RECALC_TVR, FieldType.STRING, NULL_VALUE);
         }
     }
 
@@ -94,6 +126,42 @@ public abstract class GradBaseService {
                 .retrieve()
                 .bodyToMono(District.class)
                 .block();
+    }
+
+    protected void addUpdateFieldIntoMap(Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap, FieldName fieldName, FieldType type, Object value) {
+        OngoingUpdateFieldDTO newFieldDTO = OngoingUpdateFieldDTO.builder()
+                .type(type).name(fieldName).value(value)
+                .build();
+        addUpdateFieldIntoMap(updateFieldsMap, newFieldDTO);
+    }
+
+    protected void addUpdateFieldIntoMap(Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap, OngoingUpdateFieldDTO updateFieldDTO) {
+        if (updateFieldsMap.containsKey(updateFieldDTO.getName())) {
+            OngoingUpdateFieldDTO updateField = updateFieldsMap.get(updateFieldDTO.getName());
+            updateField.setValue(updateFieldDTO.getValue());
+        } else {
+            updateFieldsMap.put(updateFieldDTO.getName(), updateFieldDTO);
+        }
+    }
+
+    protected String getStringValue(Object value) {
+        if (value instanceof String str) {
+            return NULL_VALUE.equalsIgnoreCase(str) ? null : str;
+        }
+        return null;
+    }
+
+    protected UUID getGuidValue(Object value) {
+        String strGuid = getStringValue(value);
+        return strGuid != null? UUID.fromString(strGuid) : null;
+    }
+
+    protected String getUsername() {
+        String username = ThreadLocalStateUtil.getCurrentUser();
+        if (StringUtils.isBlank(username)) {
+            username = EducGradStudentApiConstants.DEFAULT_UPDATED_BY;
+        }
+        return username;
     }
 
 }
