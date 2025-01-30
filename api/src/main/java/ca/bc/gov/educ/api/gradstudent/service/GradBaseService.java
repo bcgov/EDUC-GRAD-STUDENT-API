@@ -62,15 +62,12 @@ public abstract class GradBaseService {
         // 1. If a student in GRAD is ARC/TER then do not set TVR flag when their other data changes
         // 2. If a student in GRAD is changed to ARC/TER then set TVR flag to NULL
         if (STUDENT_STATUS_ARCHIVED.equalsIgnoreCase(studentStatus) || STUDENT_STATUS_TERMINATED.equalsIgnoreCase(studentStatus)) {
-            //gradEntity.setRecalculateProjectedGrad(null);
             addUpdateFieldIntoMap(updateFieldsMap, FieldName.RECALC_TVR, FieldType.STRING, NULL_VALUE);
         }
         // GRAD2-2922 & GRAD2-2950
         // 1. If a student in GRAD is MER then do not set Transcript & TVR flags  when their other data changes
         // 2. If a student in GRAD is changed to MER then set Transcript & TVR flags to NULL
         if (STUDENT_STATUS_MERGED.equalsIgnoreCase(studentStatus)) {
-//            gradEntity.setRecalculateGradStatus(null);
-//            gradEntity.setRecalculateProjectedGrad(null);
             addUpdateFieldIntoMap(updateFieldsMap, FieldName.RECALC_GRAD_ALG, FieldType.STRING, NULL_VALUE);
             addUpdateFieldIntoMap(updateFieldsMap, FieldName.RECALC_TVR, FieldType.STRING, NULL_VALUE);
         }

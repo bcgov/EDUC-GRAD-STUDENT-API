@@ -258,7 +258,7 @@ public class DataConversionService extends GradBaseService {
     }
 
     private Map<FieldName, OngoingUpdateFieldDTO> populateOngoingUpdateFields(List<OngoingUpdateFieldDTO> fields, GraduationStudentRecordEntity gradEntity, String accessToken) {
-        Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap = new HashMap<>();
+        Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap = new EnumMap<>(FieldName.class);
         fields.forEach(f -> {
             populate(f, updateFieldsMap, gradEntity);
             if (f.getName() == FieldName.GRAD_PROGRAM) {
