@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -112,6 +113,61 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus = :statusCode and c.studentID in :studentIDList")
 	List<UUID> filterGivenStudentsByStatusCode(@Param("studentIDList") List<UUID> studentIDs, @Param("statusCode") String statusCode);
+
+	// Student Status
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.studentStatus = :statusCode, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateStudentStatus(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "statusCode") String statusCode, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// Student Grade
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.studentGrade = :studentGrade, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateStudentGrade(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "studentGrade") String studentGrade, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// GRAD Program
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.program = :gradProgramCode, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateGradProgram(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "gradProgramCode") String gradProgramCode, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// School of Record ID
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.schoolOfRecordId = :schoolGuid, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateSchoolOfRecordId(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "schoolGuid") UUID schoolGuid, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// Citizenship
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.studentCitizenship = :citizenshipCode, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateStudentCitizenship(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "citizenshipCode") String citizenshipCode, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// Adult Start Date
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.adultStartDate = :adultStartDate, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateAdultStartDate(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "adultStartDate") Date adultStartDate, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// Program Completion Date
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.programCompletionDate = :programCompletionDate, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateProgramCompletionDate(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "programCompletionDate") Date programCompletionDate, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// Graduation Status Clob Data
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.studentGradData = :gradStatusClob, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateGradStatusClob(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "gradStatusClob") String gradStatusClob, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// Projected Graduation Status Clob Data
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.studentProjectedGradData = :projectedGradClob, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateProjectedGradClob(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "projectedGradClob") String projectedGradClob, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// Recalculate Graduation Status Flag
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.recalculateGradStatus = :recalculateGradStatus, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateRecalculateGradStatusFlag(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "recalculateGradStatus") String recalculateGradStatus, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
+
+	// Recalculate Projected Graduation Flag
+	@Modifying
+	@Query("update GraduationStudentRecordEntity e set e.recalculateProjectedGrad = :recalculateProjectedGrad, e.updateUser = :updateUser, e.updateDate = :updateDate where e.studentID = :studentGuid")
+	void updateRecalculateProjectedGradFlag(@Param(value = "studentGuid") UUID studentGuid, @Param(value = "recalculateProjectedGrad") String recalculateProjectedGrad, @Param(value = "updateUser") String updateUser, @Param(value = "updateDate") LocalDateTime updateDate);
 
 	@Modifying
 	@Query("update GraduationStudentRecordEntity e set e.recalculateGradStatus = :recalculateGradStatus, e.recalculateProjectedGrad = :recalculateProjectedGrad where e.studentID = :studentGuid")

@@ -244,7 +244,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         savedGraduationStatus.setSchoolOfRecordId(newSchoolId);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -354,7 +354,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         savedGraduationStatus.setAdultStartDate(DateUtils.toDate(newAdultStartDate));
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -416,7 +416,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         savedGraduationStatus.setStudentStatus(newStatus);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -537,7 +537,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         savedGraduationStatus.setStudentStatus(newStatus);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -599,7 +599,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         savedGraduationStatus.setStudentStatus(newStatus);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -660,11 +660,11 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus(null);
-        savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+        savedGraduationStatus.setProgramCompletionDate(null);
         savedGraduationStatus.setProgram(newProgram);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getArchiveStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -683,7 +683,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getRecalculateGradStatus()).isNull();
-        assertThat(result.getProgramCompletionDate()).isEqualTo(field1.getValue());
+        assertThat(result.getProgramCompletionDate()).isNull();
     }
 
     @Test
