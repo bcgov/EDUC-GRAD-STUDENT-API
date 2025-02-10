@@ -92,6 +92,18 @@ public abstract class GradBaseService {
                 }).block();
     }
 
+    protected List<School> getSchoolsBySchoolCategoryCodes(List<String> schoolCategoryCodes, String accessToken) {
+        return getWebClient().get()
+                .uri(String.format(getConstants().getSchoolsByCategoryCodeUrl(), String.join(",", schoolCategoryCodes)))
+                .headers(h -> {
+                    h.setBearerAuth(accessToken);
+                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
+                })
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<School>>() {
+                }).block();
+    }
+
     protected School getSchool(UUID schoolId, String accessToken) {
         return getWebClient().get()
                 .uri(String.format(getConstants().getSchoolBySchoolIdUrl(), schoolId))
