@@ -162,6 +162,8 @@ endpoint:
   grad-trax-api:
     search-schools-by-district-id:
       url: ${GRAD_TRAX_API}api/v2/trax/school/search?districtId=%s
+    search-schools-by-category-code:
+      url: ${GRAD_TRAX_API}api/v2/trax/school/search?schoolCategoryCodes=%s
     school-clob-by-school-id:
       url: ${GRAD_TRAX_API}api/v2/trax/school-clob/%s
     school-by-school-id:

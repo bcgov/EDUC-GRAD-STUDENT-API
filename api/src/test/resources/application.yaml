@@ -108,6 +108,8 @@ endpoint:
   grad-trax-api:
     search-schools-by-district-id:
       url: http://test
+    search-schools-by-category-code:
+      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v2/trax/school/search?schoolCategoryCodes=%s
     school-clob-by-school-id:
       url: http://test
     school-by-school-id:

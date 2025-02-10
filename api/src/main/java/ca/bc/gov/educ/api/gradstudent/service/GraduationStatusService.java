@@ -372,7 +372,14 @@ public class GraduationStatusService extends GradBaseService {
                     searchRequest.getSchoolIds().add(UUID.fromString(school.getSchoolId()));
                 }
             }
+        } else if(searchRequest.getSchoolCategoryCodes() != null && !searchRequest.getSchoolCategoryCodes().isEmpty()) {
+            List<School> schools = new ArrayList<>(getSchoolsBySchoolCategoryCodes(searchRequest.getSchoolCategoryCodes(), accessToken));
+            List<UUID> schoolIds = schools.stream()
+                .map(school -> UUID.fromString(school.getSchoolId()))
+                .toList();
+            searchRequest.getSchoolIds().addAll(schoolIds);
         }
+
         if(searchRequest.getSchoolId() != null && !searchRequest.getSchoolIds().contains(searchRequest.getSchoolId())) {
             searchRequest.getSchoolIds().add(searchRequest.getSchoolId());
         }

@@ -193,6 +193,9 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.grad-trax-api.search-schools-by-district-id.url}")
     private String schoolsByDistrictIdUrl;
+
+    @Value("${endpoint.grad-trax-api.search-schools-by-category-code.url}")
+    private String schoolsByCategoryCodeUrl;
     
     // Splunk LogHelper Enabled
     @Value("${splunk.log-helper.enabled}")

@@ -2169,6 +2169,33 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testSearchGraduationStudentRecords_givenSchoolCategoryCodes() {
+        String accessToken = "accessToken";
+        List<String> schoolCategoryCodes = List.of("INDEPEND");
+        UUID schoolId = UUID.randomUUID();
+
+        School school = new School();
+        school.setSchoolId(schoolId.toString());
+        school.setSchoolCategoryCode("INDEPEND");
+
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+            .schoolCategoryCodes(schoolCategoryCodes)
+            .schoolIds(new ArrayList<>())
+            .build();
+
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(anyString())).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(new ParameterizedTypeReference<List<School>>() {})).thenReturn(Mono.just(List.of(school)));
+
+        GraduationStudentRecordSearchResult result = graduationStatusService.searchGraduationStudentRecords(searchRequest, accessToken);
+
+        assertThat(result).isNotNull();
+        assertThat(searchRequest.getSchoolIds()).contains(schoolId);
+    }
+
+    @Test
     public void testGetStudentStatus() {
         String statusCode = "A";
 
