@@ -1319,29 +1319,18 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     private GraduationStudentRecord processReceivedStudent(GraduationStudentRecord ent,String accessToken) {
-        try {
-            if(ent.getStudentGradData() != null) {
-                GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-
-                ent.setPen(existingData.getGradStudent().getPen());
-                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-            } else {
-                Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+        Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
                         .headers(h -> {
                             h.setBearerAuth(accessToken);
                             h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
                         }).retrieve().bodyToMono(Student.class).block();
-                if(stuData != null) {
-                    ent.setPen(stuData.getPen());
-                    ent.setLegalFirstName(stuData.getLegalFirstName());
-                    ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
-                    ent.setLegalLastName(stuData.getLegalLastName());
-                }
-            }
-        } catch (JsonProcessingException e) {
-            logger.debug("Parsing Error {}",e.getOriginalMessage());
+        if(stuData != null) {
+            ent.setPen(stuData.getPen());
+            ent.setLegalFirstName(stuData.getLegalFirstName());
+            ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
+            ent.setLegalLastName(stuData.getLegalLastName());
+        } else {
+            logger.info("Unable to fetch student details for ID: {}", ent.getStudentID());
         }
         return ent;
     }

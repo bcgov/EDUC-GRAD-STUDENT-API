@@ -105,7 +105,7 @@ public class GraduationStatusTransformer {
         return gradStatusEntity;
     }
 
-    public GraduationStudentRecordDistribution tToDForDistribution(GraduationStudentRecordEntity gradStatusEntity) {
+    public GraduationStudentRecordDistribution tToDForDistribution(GraduationStudentRecordEntity gradStatusEntity, GradSearchStudent gradSearchStudent) {
         GraduationStudentRecordDistribution distObj = new GraduationStudentRecordDistribution();
         GraduationStudentRecord ent = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
         distObj.setProgram(ent.getProgram());
@@ -115,15 +115,17 @@ public class GraduationStatusTransformer {
         distObj.setProgramCompletionDate(EducGradStudentApiUtils.parseDateFromString(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
         distObj.setStudentID(ent.getStudentID());
         distObj.setStudentCitizenship(ent.getStudentCitizenship());
+        if(gradSearchStudent != null) {
+            distObj.setPen(gradSearchStudent.getPen());
+            distObj.setLegalFirstName(gradSearchStudent.getLegalFirstName());
+            distObj.setLegalMiddleNames(gradSearchStudent.getLegalMiddleNames());
+            distObj.setLegalLastName(gradSearchStudent.getLegalLastName());
+            distObj.setStudentGrade(gradSearchStudent.getStudentGrade());
+        }
         if(ent.getStudentGradData() != null) {
             GraduationData existingData = (GraduationData)jsonTransformer.unmarshall(ent.getStudentGradData(), GraduationData.class);
             if(existingData != null) {
-                distObj.setPen(existingData.getGradStudent().getPen());
-                distObj.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                distObj.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                distObj.setLegalLastName(existingData.getGradStudent().getLegalLastName());
                 distObj.setNonGradReasons(existingData.getNonGradReasons());
-                distObj.setStudentGrade(existingData.getGradStudent().getStudentGrade());
             }
         }
         return distObj;
