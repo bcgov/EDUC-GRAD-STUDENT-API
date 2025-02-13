@@ -927,8 +927,8 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
 
         Mockito.when(graduationStatusRepository.findByStudentID(UUID.fromString(studentID.toString()))).thenReturn(rec);
-        when(this.graduationStatusTransformer.tToDForDistribution(rec)).thenReturn(rec2);
-        var result = gradStudentService.getStudentByStudentIDFromGrad(studentID.toString());
+        when(this.graduationStatusTransformer.tToDForDistribution(rec, gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), "accessToken"))).thenReturn(rec2);
+        var result = gradStudentService.getStudentByStudentIDFromGrad(studentID.toString(), "accessToken");
         assertThat(result).isNotNull();
         assertThat(result.getProgram()).isEqualTo("2018-EN");
     }
