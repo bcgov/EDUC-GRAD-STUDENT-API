@@ -2,6 +2,8 @@ package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.ReportGradStudentData;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
+import ca.bc.gov.educ.api.gradstudent.util.JsonTransformer;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,6 +28,9 @@ class ReportGradStudentTransformerTest {
   @Mock
   private ModelMapper modelMapper;
 
+  @Mock
+  private JsonTransformer jsonTransformer;
+
   @InjectMocks
   private ReportGradStudentTransformer transformer;
 
@@ -39,6 +44,9 @@ class ReportGradStudentTransformerTest {
 
     ReportGradStudentData dto = new ReportGradStudentData();
     when(modelMapper.map(entity, ReportGradStudentData.class)).thenReturn(dto);
+
+    TypeFactory typeFactory = TypeFactory.defaultInstance();
+    when(jsonTransformer.getTypeFactory()).thenReturn(typeFactory);
   }
 
   private static Stream<Arguments> provideDistrictIds() {
