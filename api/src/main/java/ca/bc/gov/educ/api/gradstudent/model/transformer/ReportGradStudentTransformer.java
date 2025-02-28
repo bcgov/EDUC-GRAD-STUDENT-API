@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Component
@@ -46,6 +47,9 @@ public class ReportGradStudentTransformer {
 		List<ReportGradStudentData> result = new ArrayList<>();
         for (ReportGradStudentDataEntity entity : studentStatusEntities) {
             ReportGradStudentData data = modelMapper.map(entity, ReportGradStudentData.class);
+            if(StringUtils.isNotBlank(entity.getDistrictId())) {
+                data.setDistrictId(UUID.fromString(entity.getDistrictId()));
+            }
             if (StringUtils.isNotBlank(entity.getCertificateTypeCodes())) {
                 List<CertificateType> types = (List<CertificateType>)jsonTransformer.unmarshall(entity.getCertificateTypeCodes(), typeFactory.constructCollectionType(List.class, CertificateType.class));
                 if (!types.isEmpty()) {
