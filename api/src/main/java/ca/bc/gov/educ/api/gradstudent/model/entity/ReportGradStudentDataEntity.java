@@ -28,7 +28,7 @@ public class ReportGradStudentDataEntity implements Serializable {
     private UUID schoolAtGradId;
 
     @Column(name = "DISTRICT_ID")
-    private UUID districtId;
+    private String districtId;
 
     @Column(name = "PEN")
     private String pen;
