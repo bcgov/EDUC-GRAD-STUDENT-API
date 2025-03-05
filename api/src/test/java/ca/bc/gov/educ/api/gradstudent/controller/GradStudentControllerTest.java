@@ -140,7 +140,7 @@ public class GradStudentControllerTest {
 
     @Test
     public void testSearchGraduationStudentRecords() {
-        StudentSearchRequest searchRequest = StudentSearchRequest.builder().schoolOfRecords(List.of("12345678")).build();
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder().schoolIds(List.of(UUID.randomUUID())).build();
         Mockito.when(gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest)).thenReturn(List.of(UUID.randomUUID()));
         gradStudentController.searchGraduationStudentRecords(searchRequest);
         Mockito.verify(gradStudentService).getStudentIDsBySearchCriteriaOrAll(searchRequest);

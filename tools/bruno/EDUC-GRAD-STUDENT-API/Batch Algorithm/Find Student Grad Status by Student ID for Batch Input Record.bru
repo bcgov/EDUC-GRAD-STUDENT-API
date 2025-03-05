@@ -1,0 +1,15 @@
+meta {
+  name: Find Student Grad Status by Student ID for Batch Input Record
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/batch/gradstudent/studentid/:studentID
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+}

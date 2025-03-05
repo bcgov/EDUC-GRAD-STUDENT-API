@@ -1,0 +1,17 @@
+meta {
+  name: Find Student Grad Status by Student ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/studentid/:studentID
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+}
+
+

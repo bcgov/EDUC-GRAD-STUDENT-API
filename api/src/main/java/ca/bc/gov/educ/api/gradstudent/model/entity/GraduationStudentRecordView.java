@@ -11,11 +11,9 @@ public interface GraduationStudentRecordView {
     public String getGpa();
     public String getHonoursStanding();
     public String getRecalculateGradStatus();
-    public String getSchoolOfRecord();
     public String getStudentGrade();
     public String getStudentStatus();
     public UUID getStudentID();
-    public String getSchoolAtGrad();
     public String getRecalculateProjectedGrad();
     public Long getBatchId();
     public String getConsumerEducationRequirementMet();
@@ -23,7 +21,7 @@ public interface GraduationStudentRecordView {
     public Date getAdultStartDate();
     public String getStudentProjectedGradData() ;
     public UUID getSchoolOfRecordId();
-    public UUID getSchoolAtGraduationId();
+    public UUID getSchoolAtGradId();
     public LocalDateTime getCreateDate();
     public LocalDateTime getUpdateDate();
 }

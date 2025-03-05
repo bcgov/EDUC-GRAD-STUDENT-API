@@ -21,17 +21,14 @@ public class ReportGradStudentDataEntity implements Serializable {
     @Column(name = "GRADUATION_STUDENT_RECORD_ID", nullable = false)
     private UUID graduationStudentRecordId;
 
-    @Column(name = "MINCODE")
-    private String mincode;
+    @Column(name = "SCHOOL_OF_RECORD_ID")
+    private UUID schoolOfRecordId;
 
-    @Column(name = "MINCODE_AT_GRAD")
-    private String mincodeAtGrad;
+    @Column(name = "SCHOOL_AT_GRAD_ID")
+    private UUID schoolAtGradId;
 
-    @Column(name = "DISTRICT_CODE")
-    private String distcode;
-
-    @Column(name = "DISTRICT_CODE_AT_GRAD")
-    private String distcodeAtGrad;
+    @Column(name = "DISTRICT_ID")
+    private String districtId;
 
     @Column(name = "PEN")
     private String pen;

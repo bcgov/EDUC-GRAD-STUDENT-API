@@ -1,0 +1,21 @@
+meta {
+  name: Save Student Grad Status by Student ID for projected run
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/distribution/studentid/:studentID
+  body: none
+  auth: none
+}
+
+params:query {
+  ~batchId: 
+  ~activityCode: 
+  ~username: 
+}
+
+params:path {
+  studentID: 
+}

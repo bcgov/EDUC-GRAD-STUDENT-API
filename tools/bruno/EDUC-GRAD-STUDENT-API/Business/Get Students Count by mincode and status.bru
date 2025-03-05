@@ -1,0 +1,23 @@
+meta {
+  name: Get Students Count by mincode and status
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/archive
+  body: json
+  auth: none
+}
+
+params:query {
+  batchId: 
+  ~studentStatus: 
+  ~userName: 
+}
+
+body:json {
+  [
+    {}
+  ]
+}

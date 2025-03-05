@@ -1,0 +1,17 @@
+meta {
+  name: Find a Student Graduation Data by List of GUIDs
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/studentschoolreportdata
+  body: json
+  auth: none
+}
+
+body:json {
+  [
+    {}
+  ]
+}

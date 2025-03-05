@@ -1,0 +1,30 @@
+meta {
+  name: Update-Create Student Optional Program
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/conv/studentoptionalprogram
+  body: json
+  auth: none
+}
+
+
+
+body:json {
+  {
+    "createUser": "",
+    "createDate": "",
+    "updateUser": "",
+    "updateDate": "",
+    "id": "",
+    "pen": "",
+    "optionalProgramID": "",
+    "studentOptionalProgramData": "",
+    "optionalProgramCompletionDate": "",
+    "optionalProgramCode": "",
+    "mainProgramCode": "",
+    "studentID": ""
+  }
+}

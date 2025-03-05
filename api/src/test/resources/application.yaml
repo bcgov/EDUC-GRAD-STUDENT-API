@@ -106,13 +106,15 @@ cron:
 #Endpoint properties
 endpoint:
   grad-trax-api:
-    all-commonschools:
+    search-schools-by-district-id:
       url: http://test
-    school-by-min-code:
+    search-schools-by-category-code:
+      url: https://educ-grad-trax-api-77c02f-dev.apps.silver.devops.gov.bc.ca/api/v2/trax/school/search?schoolCategoryCodes=%s
+    school-clob-by-school-id:
       url: http://test
-    district-by-district-code:
+    school-by-school-id:
       url: http://test
-    commonschool-by-mincode:
+    district-by-district-id:
       url: http://test
   grad-program-api:
     optional_program_name_by_optional_program_id:

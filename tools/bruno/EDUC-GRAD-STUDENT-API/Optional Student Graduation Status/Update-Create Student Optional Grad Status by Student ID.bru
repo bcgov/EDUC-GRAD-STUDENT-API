@@ -1,0 +1,28 @@
+meta {
+  name: Update-Create Student Optional Grad Status by Student ID
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/gradstudent/optionalprogram
+  body: json
+  auth: none
+}
+
+
+
+body:json {
+  {
+    "createUser": "",
+    "createDate": "",
+    "updateUser": "",
+    "updateDate": "",
+    "id": "",
+    "pen": "",
+    "optionalProgramCompletionDate": "",
+    "optionalProgramCode": "",
+    "mainProgramCode": "",
+    "studentID": ""
+  }
+}

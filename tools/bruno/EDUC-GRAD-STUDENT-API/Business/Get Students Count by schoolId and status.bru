@@ -1,0 +1,21 @@
+meta {
+  name: Get Students Count by schoolId and status
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/count
+  body: json
+  auth: none
+}
+
+params:query {
+  ~studentStatus: 
+}
+
+body:json {
+  [
+    {}
+  ]
+}

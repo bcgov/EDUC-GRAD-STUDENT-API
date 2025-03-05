@@ -58,7 +58,7 @@ public class GraduationStatusControllerTest {
     public void testGetStudentGradStatus() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
@@ -66,8 +66,8 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
         graduationStatus.setProgram("2018-EN");
-        graduationStatus.setSchoolOfRecord(mincode);
-        graduationStatus.setSchoolAtGrad(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setSchoolAtGradId(schoolId);
         graduationStatus.setGpa("4");
 
 
@@ -93,7 +93,7 @@ public class GraduationStatusControllerTest {
     public void testGetStudentGradStatusForAlgorithm() {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
@@ -101,8 +101,8 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
         graduationStatus.setProgram("2018-EN");
-        graduationStatus.setSchoolOfRecord(mincode);
-        graduationStatus.setSchoolAtGrad(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setSchoolAtGradId(schoolId);
         graduationStatus.setGpa("4");
 
         Mockito.when(graduationStatusService.getGraduationStatusForAlgorithm(studentID)).thenReturn(graduationStatus);
@@ -114,7 +114,7 @@ public class GraduationStatusControllerTest {
     public void testSaveStudentGradStatus() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
@@ -122,8 +122,8 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
         graduationStatus.setProgram("2018-EN");
-        graduationStatus.setSchoolOfRecord(mincode);
-        graduationStatus.setSchoolAtGrad(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setSchoolAtGradId(schoolId);
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
@@ -138,18 +138,18 @@ public class GraduationStatusControllerTest {
 
     @Test
         public void testUpdateStudentGradStatus() throws JsonProcessingException {
-            // ID
-            UUID studentID = UUID.randomUUID();
-            String mincode = "12345678";
+        // ID
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
 
-            GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
-            graduationStatus.setStudentID(studentID);
-            graduationStatus.setPen("123456789");
-            graduationStatus.setStudentStatus("A");
-            graduationStatus.setRecalculateGradStatus("Y");
-            graduationStatus.setProgram("2018-EN");
-            graduationStatus.setSchoolOfRecord(mincode);
-        graduationStatus.setSchoolAtGrad(mincode);
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setPen("123456789");
+        graduationStatus.setStudentStatus("A");
+        graduationStatus.setRecalculateGradStatus("Y");
+        graduationStatus.setProgram("2018-EN");
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setSchoolAtGradId(schoolId);
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
@@ -301,7 +301,7 @@ public class GraduationStatusControllerTest {
     public void testSearchGraduationStudentRecords() {
 
         UUID studentID = UUID.randomUUID();
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
@@ -309,8 +309,8 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
         graduationStatus.setProgram("1950");
-        graduationStatus.setSchoolOfRecord(mincode);
-        graduationStatus.setSchoolAtGrad(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setSchoolAtGradId(schoolId);
         graduationStatus.setGpa("4");
 
         GraduationStudentRecordSearchResult searchResult = new GraduationStudentRecordSearchResult();
@@ -318,12 +318,12 @@ public class GraduationStatusControllerTest {
 
         List<String> pens = new ArrayList<>();
 
-        List<String> schoolOfRecords = new ArrayList<>();
-        schoolOfRecords.add("06299164");
-        schoolOfRecords.add("03838000");
+        List<UUID> schoolIds = new ArrayList<>();
+        schoolIds.add(schoolId);
+        schoolIds.add(UUID.randomUUID());
 
-        List<String> districts = new ArrayList<>();
-        districts.add("044");
+        List<UUID> districtIds = new ArrayList<>();
+        districtIds.add(UUID.randomUUID());
 
         List<String> programs = new ArrayList<>();
         programs.add("1950");
@@ -333,8 +333,8 @@ public class GraduationStatusControllerTest {
 
         StudentSearchRequest searchRequest = StudentSearchRequest.builder()
                 .pens(pens)
-                .schoolOfRecords(schoolOfRecords)
-                .districts(districts)
+                .schoolIds(schoolIds)
+                .districtIds(districtIds)
                 .programs(programs)
                 .gradDateFrom(gradDateFrom)
                 .gradDateTo(gradDateTo)
@@ -374,6 +374,7 @@ public class GraduationStatusControllerTest {
     public void testUgradStudent() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
         String pen = "123456789";
         String ungradReasonCode = "NM";
         String ungradReasonDesc = "FDSS";
@@ -382,7 +383,7 @@ public class GraduationStatusControllerTest {
         graduationStatus.setStudentID(studentID);
         graduationStatus.setPen(pen);
         graduationStatus.setStudentStatus("A");
-        graduationStatus.setSchoolOfRecord("12345678");
+        graduationStatus.setSchoolOfRecordId(schoolId);
         graduationStatus.setRecalculateGradStatus("Y");
 
         StudentUndoCompletionReason responseStudentUngradReasons = new StudentUndoCompletionReason();
@@ -412,11 +413,12 @@ public class GraduationStatusControllerTest {
     public void testSaveStudentRecord_ProjectedGradRun() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setStudentStatus("A");
-        graduationStatus.setSchoolOfRecord("12345678");
+        graduationStatus.setSchoolOfRecordId(schoolId);
         graduationStatus.setRecalculateGradStatus("Y");
         ProjectedRunClob projectedRunClob = new ProjectedRunClob();
         projectedRunClob.setGraduated(true);
@@ -431,11 +433,12 @@ public class GraduationStatusControllerTest {
     public void testSaveStudentRecord_DsitributionRun() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
         graduationStatus.setStudentStatus("A");
-        graduationStatus.setSchoolOfRecord("12345678");
+        graduationStatus.setSchoolOfRecordId(schoolId);
         graduationStatus.setRecalculateGradStatus("Y");
 
         Mockito.when(graduationStatusService.saveStudentRecordDistributionRun(studentID,null,"ACTIVITYCODE", "USER")).thenReturn(graduationStatus);
@@ -456,13 +459,14 @@ public class GraduationStatusControllerTest {
     public void testGetStudentHistory() {
         // ID
         String studentID = UUID.randomUUID().toString();
+        UUID schoolId = UUID.randomUUID();
         List<GraduationStudentRecordHistory> histList = new ArrayList<>();
         GraduationStudentRecordHistory graduationStatusEntity = new GraduationStudentRecordHistory();
         graduationStatusEntity.setStudentID(UUID.fromString(studentID));
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
         graduationStatusEntity.setActivityCode("GRADALG");
@@ -495,12 +499,14 @@ public class GraduationStatusControllerTest {
         // ID
         String historyID = UUID.randomUUID().toString();
         String studentID = UUID.randomUUID().toString();
+        UUID schoolId = UUID.randomUUID();
+
         GraduationStudentRecordHistory graduationStatusEntity = new GraduationStudentRecordHistory();
         graduationStatusEntity.setStudentID(UUID.fromString(studentID));
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
         graduationStatusEntity.setActivityCode("GRADALG");
@@ -531,13 +537,15 @@ public class GraduationStatusControllerTest {
         // ID
         String historyID = UUID.randomUUID().toString();
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
         List<GraduationStudentRecordHistory> histList = new ArrayList<>();
         GraduationStudentRecordHistory graduationStatusEntity = new GraduationStudentRecordHistory();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
         graduationStatusEntity.setActivityCode("GRADALG");
@@ -568,10 +576,11 @@ public class GraduationStatusControllerTest {
     @Test
     public void testGetStudentsForSchoolReport() {
         // ID
-        String mincode = "123456789";
+        UUID schoolId = UUID.randomUUID();
+
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(new UUID(1,1));
-        graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
         GraduationData gradData = new GraduationData();
         GradSearchStudent gS = new GradSearchStudent();
         gS.setPen("123123123123");
@@ -585,66 +594,65 @@ public class GraduationStatusControllerTest {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        Mockito.when(graduationStatusService.getStudentsForSchoolReport(mincode)).thenReturn(List.of(graduationStatus));
-        graduationStatusController.getStudentsForSchoolReport(mincode);
-        Mockito.verify(graduationStatusService).getStudentsForSchoolReport(mincode);
+        Mockito.when(graduationStatusService.getStudentsForSchoolReport(schoolId)).thenReturn(List.of(graduationStatus));
+        graduationStatusController.getStudentsForSchoolReport(schoolId);
+        Mockito.verify(graduationStatusService).getStudentsForSchoolReport(schoolId);
     }
 
     @Test
     public void testGetStudentsForAmalgamatedSchoolReport() {
         // ID
-        String mincode = "123456789";
+        UUID schoolId = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        Mockito.when(graduationStatusService.getStudentsForAmalgamatedSchoolReport(mincode,"TVRNONGRAD")).thenReturn(List.of(studentID));
-        graduationStatusController.getStudentsForAmalgamatedSchoolReport(mincode,"TVRNONGRAD");
-        Mockito.verify(graduationStatusService).getStudentsForAmalgamatedSchoolReport(mincode,"TVRNONGRAD");
+        Mockito.when(graduationStatusService.getStudentsForAmalgamatedSchoolReport(schoolId,"TVRNONGRAD")).thenReturn(List.of(studentID));
+        graduationStatusController.getStudentsForAmalgamatedSchoolReport(schoolId,"TVRNONGRAD");
+        Mockito.verify(graduationStatusService).getStudentsForAmalgamatedSchoolReport(schoolId,"TVRNONGRAD");
     }
 
     @Test
     public void testGetStudentsCountForAmalgamatedSchoolReport() {
         // ID
-        String mincode = "123456789";
-        UUID studentID = UUID.randomUUID();
-        Mockito.when(graduationStatusService.countStudentsForAmalgamatedSchoolReport(mincode)).thenReturn(1);
-        graduationStatusController.getStudentsCountForAmalgamatedSchoolReport(mincode);
-        Mockito.verify(graduationStatusService).countStudentsForAmalgamatedSchoolReport(mincode);
+        UUID schoolId = UUID.randomUUID();
+        Mockito.when(graduationStatusService.countStudentsForAmalgamatedSchoolReport(schoolId)).thenReturn(1);
+        graduationStatusController.getStudentsCountForAmalgamatedSchoolReport(schoolId);
+        Mockito.verify(graduationStatusService).countStudentsForAmalgamatedSchoolReport(schoolId);
     }
 
     @Test
     public void testGetStudentsCount() {
         // ID
-        String mincode = "123456789";
-        Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(mincode), "CUR")).thenReturn(1L);
-        graduationStatusController.getStudentsCount("CUR", List.of(mincode));
-        Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(mincode), "CUR");
+        UUID schoolId = UUID.randomUUID();
+        Mockito.when(graduationStatusService.countBySchoolOfRecordIdsAndStudentStatus(List.of(schoolId), "CUR")).thenReturn(1L);
+        graduationStatusController.getStudentsCount("CUR", List.of(schoolId));
+        Mockito.verify(graduationStatusService).countBySchoolOfRecordIdsAndStudentStatus(List.of(schoolId), "CUR");
 
-        Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), "CUR")).thenReturn(1L);
+        Mockito.when(graduationStatusService.countBySchoolOfRecordIdsAndStudentStatus(List.of(), "CUR")).thenReturn(1L);
         graduationStatusController.getStudentsCount("CUR", List.of());
-        Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(), "CUR");
+        Mockito.verify(graduationStatusService).countBySchoolOfRecordIdsAndStudentStatus(List.of(), "CUR");
 
-        Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(mincode), null)).thenReturn(1L);
-        graduationStatusController.getStudentsCount(null, List.of(mincode));
-        Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(mincode), null);
+        Mockito.when(graduationStatusService.countBySchoolOfRecordIdsAndStudentStatus(List.of(schoolId), null)).thenReturn(1L);
+        graduationStatusController.getStudentsCount(null, List.of(schoolId));
+        Mockito.verify(graduationStatusService).countBySchoolOfRecordIdsAndStudentStatus(List.of(schoolId), null);
 
-        Mockito.when(graduationStatusService.countBySchoolOfRecordsAndStudentStatus(List.of(), null)).thenReturn(1L);
+        Mockito.when(graduationStatusService.countBySchoolOfRecordIdsAndStudentStatus(List.of(), null)).thenReturn(1L);
         graduationStatusController.getStudentsCount(null, List.of());
-        Mockito.verify(graduationStatusService).countBySchoolOfRecordsAndStudentStatus(List.of(), null);
+        Mockito.verify(graduationStatusService).countBySchoolOfRecordIdsAndStudentStatus(List.of(), null);
     }
 
     @Test
     public void testArchiveStudents() {
         // ID
-        String mincode = "123456789";
-        Mockito.when(graduationStatusService.archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process")).thenReturn(1);
-        graduationStatusController.archiveStudents(1L, "CUR", "Batch Archive Process", List.of(mincode));
-        Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(mincode), "CUR", "Batch Archive Process");
+        UUID schoolId = UUID.randomUUID();
+        Mockito.when(graduationStatusService.archiveStudents(1L, List.of(schoolId), "CUR", "Batch Archive Process")).thenReturn(1);
+        graduationStatusController.archiveStudents(1L, "CUR", "Batch Archive Process", List.of(schoolId));
+        Mockito.verify(graduationStatusService).archiveStudents(1L, List.of(schoolId), "CUR", "Batch Archive Process");
     }
 
     @Test
     public void testGetStudentForBatch() {
-        String mincode = "123456789";
+        UUID schoolId = UUID.randomUUID();
         UUID studentID = UUID.randomUUID();
-        BatchGraduationStudentRecord batchGraduationStudentRecord = new BatchGraduationStudentRecord("2018-EN", null, mincode, studentID);
+        BatchGraduationStudentRecord batchGraduationStudentRecord = new BatchGraduationStudentRecord("2018-EN", null, schoolId, studentID);
         Mockito.when(graduationStatusService.getStudentForBatch(studentID)).thenReturn(batchGraduationStudentRecord);
         graduationStatusController.getStudentForBatch(studentID.toString());
         Mockito.verify(graduationStatusService).getStudentForBatch(studentID);
@@ -654,6 +662,7 @@ public class GraduationStatusControllerTest {
     @Test
     public void testUpdateStudentFlagReadyForBatchJobByStudentIDs() {
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
         String batchJobType = "REGALG";
         String mincode = "123456789";
 
@@ -662,7 +671,7 @@ public class GraduationStatusControllerTest {
 
         GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
         graduationStatus.setStudentID(studentID);
-        graduationStatus.setSchoolOfRecord(mincode);
+        graduationStatus.setSchoolOfRecordId(schoolId);
         graduationStatus.setStudentStatus("CUR");
         graduationStatus.setStudentGrade("12");
         graduationStatus.setGpa("4");

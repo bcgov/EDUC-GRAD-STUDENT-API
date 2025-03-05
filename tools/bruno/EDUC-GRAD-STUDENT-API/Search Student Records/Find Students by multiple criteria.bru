@@ -1,0 +1,43 @@
+meta {
+  name: Find Students by multiple criteria
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/studentlistsearch
+  body: json
+  auth: none
+}
+
+
+
+body:json {
+  {
+    "legalFirstName": "",
+    "legalLastName": "",
+    "legalMiddleNames": "",
+    "usualFirstName": "",
+    "usualLastName": "",
+    "usualMiddleNames": "",
+    "gender": "",
+    "mincode": "",
+    "schoolId": "",
+    "localID": "",
+    "birthdateFrom": "",
+    "birthdateTo": "",
+    "gradProgram": "",
+    "schoolIds": [],
+    "districtIds": [],
+    "schoolCategoryCodes": [],
+    "pens": [],
+    "programs": [],
+    "studentIDs": [],
+    "statuses": [],
+    "reportTypes": [],
+    "gradDateFrom": "",
+    "gradDateTo": "",
+    "validateInput": "",
+    "activityCode": ""
+  }
+}

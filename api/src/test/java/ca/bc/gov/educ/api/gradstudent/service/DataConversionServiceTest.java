@@ -11,6 +11,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
+import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -23,12 +24,13 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -96,8 +98,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
         graduationStatus.setProgram("2018-EN");
-        graduationStatus.setSchoolOfRecord(null);
-        graduationStatus.setSchoolAtGrad(null);
+        graduationStatus.setSchoolOfRecordId(null);
+        graduationStatus.setSchoolAtGradId(null);
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
@@ -115,7 +117,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
-        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(graduationStatusEntity.getSchoolOfRecordId());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getRecalculateGradStatus()).isEqualTo(graduationStatus.getRecalculateGradStatus());
@@ -127,6 +129,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -134,8 +137,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus("CUR");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord(mincode);
-        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
@@ -159,7 +162,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
-        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(graduationStatusEntity.getSchoolOfRecordId());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getRecalculateGradStatus()).isNull();
@@ -171,8 +174,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        String oldMincode = "12312312";
-        String newMincode = "12345678";
+        UUID oldSchoolId = UUID.randomUUID();
+        UUID newSchoolId = UUID.randomUUID();
         String oldProgram = "2018-EN";
         String newProgram = "2018-PF";
         String oldGrade = "12";
@@ -185,8 +188,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentGrade(oldGrade);
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram(oldProgram);
-        graduationStatusEntity.setSchoolOfRecord(oldMincode);
-        graduationStatusEntity.setSchoolAtGrad(oldMincode);
+        graduationStatusEntity.setSchoolOfRecordId(oldSchoolId);
+        graduationStatusEntity.setSchoolAtGradId(oldSchoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
@@ -216,7 +219,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         requestDTO.getUpdateFields().add(field4);
 
         OngoingUpdateFieldDTO field5 = OngoingUpdateFieldDTO.builder()
-                .type(FieldType.STRING).name(FieldName.SCHOOL_OF_RECORD).value(newMincode)
+                .type(FieldType.GUID).name(FieldName.SCHOOL_OF_RECORD_ID).value(newSchoolId)
                 .build();
         requestDTO.getUpdateFields().add(field5);
 
@@ -238,10 +241,10 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         savedGraduationStatus.setProgram(newProgram);
         savedGraduationStatus.setStudentGrade(newGrade);
         savedGraduationStatus.setStudentCitizenship("C");
-        savedGraduationStatus.setSchoolOfRecord(newMincode);
+        savedGraduationStatus.setSchoolOfRecordId(newSchoolId);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -261,7 +264,118 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getProgram()).isEqualTo(field2.getValue());
         assertThat(result.getStudentGrade()).isEqualTo(field3.getValue());
         assertThat(result.getStudentCitizenship()).isEqualTo(field4.getValue());
-        assertThat(result.getSchoolOfRecord()).isEqualTo(field5.getValue());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(field5.getValue());
+        assertThat(result.getRecalculateGradStatus()).isNull();
+        assertThat(result.getRecalculateProjectedGrad()).isEqualTo("Y");
+    }
+
+    @Test
+    public void testGraduationStudentRecordAsOngoingUpdateForAdultStartDate() {
+        // ID
+        UUID studentID = UUID.randomUUID();
+        String pen = "123456789";
+        UUID oldSchoolId = UUID.randomUUID();
+        UUID newSchoolId = UUID.randomUUID();
+        String oldProgram = "2018-EN";
+        String newProgram = "1950";
+        String oldGrade = "12";
+        String newGrade = "AD";
+        LocalDate oldAdultStartDate = LocalDate.now().minusYears(18);
+        LocalDate newAdultStartDate = LocalDate.now().minusYears(15);
+        String newAdultStartDateStr = newAdultStartDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen(pen);
+        graduationStatusEntity.setStudentStatus("CUR");
+        graduationStatusEntity.setStudentGrade(oldGrade);
+        graduationStatusEntity.setRecalculateGradStatus("Y");
+        graduationStatusEntity.setProgram(oldProgram);
+        graduationStatusEntity.setSchoolOfRecordId(oldSchoolId);
+        graduationStatusEntity.setSchoolAtGradId(oldSchoolId);
+        graduationStatusEntity.setGpa("4");
+        graduationStatusEntity.setAdultStartDate(DateUtils.toDate(oldAdultStartDate));
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        OngoingUpdateRequestDTO requestDTO = new OngoingUpdateRequestDTO();
+        requestDTO.setPen(pen);
+        requestDTO.setStudentID(studentID.toString());
+        requestDTO.setEventType(TraxEventType.UPD_GRAD);
+
+        OngoingUpdateFieldDTO field1 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.DATE).name(FieldName.SLP_DATE).value(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM"))
+                .build();
+        requestDTO.getUpdateFields().add(field1);
+
+        OngoingUpdateFieldDTO field2 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.GRAD_PROGRAM).value(newProgram)
+                .build();
+        requestDTO.getUpdateFields().add(field2);
+
+        OngoingUpdateFieldDTO field3 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.STUDENT_GRADE).value(newGrade)
+                .build();
+        requestDTO.getUpdateFields().add(field3);
+
+        OngoingUpdateFieldDTO field4 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.CITIZENSHIP).value("C")
+                .build();
+        requestDTO.getUpdateFields().add(field4);
+
+        OngoingUpdateFieldDTO field5 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.GUID).name(FieldName.SCHOOL_OF_RECORD_ID).value(newSchoolId)
+                .build();
+        requestDTO.getUpdateFields().add(field5);
+
+        OngoingUpdateFieldDTO field6 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.DATE).name(FieldName.ADULT_START_DATE).value(newAdultStartDateStr)
+                .build();
+        requestDTO.getUpdateFields().add(field6);
+
+        OngoingUpdateFieldDTO field7 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.RECALC_GRAD_ALG).value(null)
+                .build();
+        requestDTO.getUpdateFields().add(field7);
+
+        OngoingUpdateFieldDTO field8 = OngoingUpdateFieldDTO.builder()
+                .type(FieldType.STRING).name(FieldName.RECALC_TVR).value("Y")
+                .build();
+        requestDTO.getUpdateFields().add(field8);
+
+        GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
+        BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
+        savedGraduationStatus.setRecalculateGradStatus(null);
+        savedGraduationStatus.setRecalculateProjectedGrad("Y");
+        savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+        savedGraduationStatus.setProgram(newProgram);
+        savedGraduationStatus.setStudentGrade(newGrade);
+        savedGraduationStatus.setStudentCitizenship("C");
+        savedGraduationStatus.setSchoolOfRecordId(newSchoolId);
+        savedGraduationStatus.setAdultStartDate(DateUtils.toDate(newAdultStartDate));
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
+
+        when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
+        when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
+        when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
+        when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
+
+        var result = dataConversionService.updateGraduationStatusByFields(requestDTO, "accessToken");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
+        assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
+        assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
+
+        assertThat(result.getProgramCompletionDate()).isEqualTo(field1.getValue());
+        assertThat(result.getProgram()).isEqualTo(field2.getValue());
+        assertThat(result.getStudentGrade()).isEqualTo(field3.getValue());
+        assertThat(result.getStudentCitizenship()).isEqualTo(field4.getValue());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(field5.getValue());
+        assertThat(result.getAdultStartDate()).isEqualTo(DateUtils.toDate(newAdultStartDate));
         assertThat(result.getRecalculateGradStatus()).isNull();
         assertThat(result.getRecalculateProjectedGrad()).isEqualTo("Y");
     }
@@ -271,7 +385,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
         String oldStatus = "ARC";
         String newStatus = "CUR";
 
@@ -281,8 +395,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus(oldStatus);
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord(mincode);
-        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
@@ -302,7 +416,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         savedGraduationStatus.setStudentStatus(newStatus);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -316,7 +430,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(newStatus);
-        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(graduationStatusEntity.getSchoolOfRecordId());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getRecalculateGradStatus()).isNull();
@@ -327,7 +441,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
@@ -336,8 +450,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setRecalculateGradStatus(null);
         graduationStatusEntity.setRecalculateProjectedGrad("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord(mincode);
-        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
@@ -377,7 +491,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
 
-        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(graduationStatusEntity.getSchoolOfRecordId());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getRecalculateGradStatus()).isEqualTo("Y");
@@ -389,7 +503,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
         String oldStatus = "ARC";
         String newStatus = "MER";
 
@@ -399,8 +513,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus(oldStatus);
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord(mincode);
-        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
@@ -423,7 +537,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         savedGraduationStatus.setStudentStatus(newStatus);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -437,7 +551,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(newStatus);
-        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(graduationStatusEntity.getSchoolOfRecordId());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getStudentGradData()).isNull();
@@ -451,7 +565,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
         String oldStatus = "CUR";
         String newStatus = "ARC";
 
@@ -461,8 +575,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus(oldStatus);
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord(mincode);
-        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
@@ -485,7 +599,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         savedGraduationStatus.setStudentStatus(newStatus);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getDeleteStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -499,7 +613,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(newStatus);
-        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(graduationStatusEntity.getSchoolOfRecordId());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getStudentGradData()).isNull();
@@ -513,7 +627,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         // ID
         UUID studentID = UUID.randomUUID();
         String pen = "123456789";
-        String mincode = "12345678";
+        UUID schoolId = UUID.randomUUID();
         String oldProgram = "SCCP";
         String newProgram = "2018-EN";
 
@@ -523,8 +637,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram(oldProgram);
-        graduationStatusEntity.setSchoolOfRecord(mincode);
-        graduationStatusEntity.setSchoolAtGrad(mincode);
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
@@ -546,11 +660,11 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         GraduationStudentRecordEntity savedGraduationStatus = new GraduationStudentRecordEntity();
         BeanUtils.copyProperties(graduationStatusEntity, savedGraduationStatus);
         savedGraduationStatus.setRecalculateGradStatus(null);
-        savedGraduationStatus.setProgramCompletionDate(graduationStatusEntity.getProgramCompletionDate());
+        savedGraduationStatus.setProgramCompletionDate(null);
         savedGraduationStatus.setProgram(newProgram);
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
+        when(graduationStatusRepository.findByStudentID(studentID)).thenReturn(savedGraduationStatus);
 
         when(this.webClient.delete()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(String.format(constants.getArchiveStudentAchievements(),studentID))).thenReturn(this.requestHeadersMock);
@@ -565,11 +679,11 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(newProgram);
-        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(graduationStatusEntity.getSchoolOfRecordId());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getRecalculateGradStatus()).isNull();
-        assertThat(result.getProgramCompletionDate()).isEqualTo(field1.getValue());
+        assertThat(result.getProgramCompletionDate()).isNull();
     }
 
     @Test
@@ -583,8 +697,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         graduationStatus.setStudentStatus("A");
         graduationStatus.setRecalculateGradStatus("Y");
         graduationStatus.setProgram("2018-EN");
-        graduationStatus.setSchoolOfRecord(null);
-        graduationStatus.setSchoolAtGrad(null);
+        graduationStatus.setSchoolOfRecordId(null);
+        graduationStatus.setSchoolAtGradId(null);
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
@@ -602,7 +716,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(result.getProgram()).isEqualTo(graduationStatusEntity.getProgram());
-        assertThat(result.getSchoolOfRecord()).isEqualTo(graduationStatusEntity.getSchoolOfRecord());
+        assertThat(result.getSchoolOfRecordId()).isEqualTo(graduationStatusEntity.getSchoolOfRecordId());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
 
         assertThat(result.getRecalculateGradStatus()).isEqualTo(graduationStatus.getRecalculateGradStatus());
@@ -956,5 +1070,17 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
 
         var result = dataConversionService.saveStudentOptionalProgram(studentOptionalProgramReq, "123");
         assertThat(result).isNull();
+    }
+
+    @Test
+    public void testWebClient_returnsSuccessfully() {
+        var result = dataConversionService.getWebClient();
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    public void testApiConstants_returnsSuccessfully() {
+        var result = dataConversionService.getConstants();
+        assertThat(result).isNotNull();
     }
 }

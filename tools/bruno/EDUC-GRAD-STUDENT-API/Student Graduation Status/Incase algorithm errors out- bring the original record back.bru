@@ -1,0 +1,19 @@
+meta {
+  name: Incase algorithm errors out- bring the original record back
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/algorithmerror/:studentID
+  body: none
+  auth: none
+}
+
+params:query {
+  ~isGraduated: 
+}
+
+params:path {
+  studentID: 
+}

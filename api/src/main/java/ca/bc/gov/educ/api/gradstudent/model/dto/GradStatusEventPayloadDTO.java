@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -13,8 +15,8 @@ public class GradStatusEventPayloadDTO {
     private String pen;
     private String program;
     private String programCompletionDate;
-    private String schoolOfRecord;
-    private String schoolAtGrad;
+    private UUID schoolOfRecordId;
+    private UUID schoolAtGradId;
     private String studentGrade;
     private String studentStatus;
     private String honoursStanding;

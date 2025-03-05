@@ -1,0 +1,18 @@
+meta {
+  name: Create a Student Optional Program by Student ID and Optional Program ID
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/:studentID/optionalPrograms/:optionalProgramID
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+  optionalProgramID: 
+}
+
+

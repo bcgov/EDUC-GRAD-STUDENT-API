@@ -1,0 +1,22 @@
+meta {
+  name: Ungrad Student Grad Status by STudent ID
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/undocompletionstudent/studentid/:studentID
+  body: none
+  auth: none
+}
+
+params:query {
+  ~ungradReasonCode: 
+  ~ungradReasonDesc: 
+}
+
+params:path {
+  studentID: 
+}
+
+

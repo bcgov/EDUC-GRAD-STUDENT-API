@@ -11,20 +11,20 @@ import java.util.UUID;
 
 public interface ReportGradStudentDataRepository extends JpaRepository<ReportGradStudentDataEntity, UUID> {
 
-    List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByMincodeStartsWithOrderByMincodeAscSchoolNameAscLastNameAsc(String minCode);
+    List<ReportGradStudentDataEntity> findReportGradStudentDataEntityBySchoolOfRecordIdOrderBySchoolNameAscLastNameAsc(UUID schoolOfRecordId);
 
-    List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderByMincodeAscSchoolNameAscLastNameAsc(List<UUID> graduationStudentRecordId);
+    List<ReportGradStudentDataEntity> findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderBySchoolNameAscLastNameAsc(List<UUID> graduationStudentRecordId);
 
     @Query("select c from ReportGradStudentDataEntity c where c.graduationStudentRecordId in (" +
             " select s.studentID from GraduationStudentRecordEntity s where s.programCompletionDate is null and s.studentStatus='CUR' and (s.studentGrade='AD' or s.studentGrade='12'))")
     Page<ReportGradStudentDataEntity> findReportGradStudentDataEntityByProgramCompletionDateAndStudentStatusAndStudentGrade(Pageable page);
 
-    @Query("select c from ReportGradStudentDataEntity c where c.mincode = :minCode and c.graduationStudentRecordId in (" +
+    @Query("select c from ReportGradStudentDataEntity c where c.schoolOfRecordId = :schoolOfRecordId and c.graduationStudentRecordId in (" +
             " select s.studentID from GraduationStudentRecordEntity s where s.programCompletionDate is null and s.studentStatus='CUR' and (s.studentGrade='AD' or s.studentGrade='12'))")
-    Page<ReportGradStudentDataEntity> findReportGradStudentDataEntityByMincodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(String minCode, Pageable page);
+    Page<ReportGradStudentDataEntity> findReportGradStudentDataEntityBySchoolOfRecordIdAndProgramCompletionDateAndStudentStatusAndStudentGrade(UUID schoolOfRecordId, Pageable page);
 
-    @Query("select c from ReportGradStudentDataEntity c where c.distcode = :distCode and c.graduationStudentRecordId in (" +
+    @Query("select c from ReportGradStudentDataEntity c where c.districtId = :districtId and c.graduationStudentRecordId in (" +
             " select s.studentID from GraduationStudentRecordEntity s where s.programCompletionDate is null and s.studentStatus='CUR' and (s.studentGrade='AD' or s.studentGrade='12'))")
-    Page<ReportGradStudentDataEntity> findReportGradStudentDataEntityByDistcodeAndProgramCompletionDateAndStudentStatusAndStudentGrade(String distCode, Pageable page);
+    Page<ReportGradStudentDataEntity> findReportGradStudentDataEntityByDistrictIdAndProgramCompletionDateAndStudentStatusAndStudentGrade(UUID districtId, Pageable page);
 
 }

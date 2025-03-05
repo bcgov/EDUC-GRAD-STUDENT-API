@@ -1,0 +1,15 @@
+meta {
+  name: Get history for a ID
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/studentHistory/historyid/:historyID
+  body: none
+  auth: none
+}
+
+params:path {
+  historyID: 
+}

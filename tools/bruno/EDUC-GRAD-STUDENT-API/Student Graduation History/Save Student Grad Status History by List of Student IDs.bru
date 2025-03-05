@@ -1,0 +1,26 @@
+meta {
+  name: Save Student Grad Status History by List of Student IDs
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/api/v1/student/distribution/batchid/:batchID
+  body: json
+  auth: none
+}
+
+params:query {
+  ~userName: 
+  ~activityCode: 
+}
+
+params:path {
+  batchID: 
+}
+
+body:json {
+  [
+    {}
+  ]
+}

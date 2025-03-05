@@ -121,7 +121,7 @@ public class GradStudentService {
 		List<GradSearchStudent> gradStudentList = new ArrayList<>();
 		List<SearchCriteria> criteriaList = new ArrayList<>();
 		ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreNullValues();
-		Example<GraduationStudentRecordEntity> exampleQuery = Example.of(new GraduationStudentRecordEntity(studentSearchRequest.getGradProgram(),studentSearchRequest.getSchoolOfRecord()), matcher);
+		Example<GraduationStudentRecordEntity> exampleQuery = Example.of(new GraduationStudentRecordEntity(studentSearchRequest.getGradProgram(),studentSearchRequest.getSchoolId()), matcher);
 		Page<GraduationStudentRecordEntity> pagedResult = graduationStatusRepository.findAll(exampleQuery,paging);
 		List<GraduationStudentRecordEntity> studList = pagedResult.getContent();
 		if(!studList.isEmpty()) {
@@ -303,6 +303,7 @@ public class GradStudentService {
 		GradSearchStudent gradStu = new GradSearchStudent();
 		BeanUtils.copyProperties(gradRecord, gradStu);
 		gradStu.setStudentID(gradRecord.getStudentID().toString());
+		gradStu.setSchoolOfRecordId(gradRecord.getSchoolOfRecordId() != null? gradRecord.getSchoolOfRecordId().toString() : null);
 		return populateGradStudent(gradStu, accessToken);
 	}
 
@@ -316,15 +317,14 @@ public class GradStudentService {
 		if(studentPen != null) {
 			BeanUtils.copyProperties(studentPen, gradStu);
 		}
-		School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord()))
+		SchoolClob schoolClob = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
 				.headers(h -> {
 					h.setBearerAuth(accessToken);
 					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
 				})
-				.retrieve().bodyToMono(School.class).block();
-		if (school != null) {
-			gradStu.setSchoolOfRecordName(school.getSchoolName());
-			gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
+				.retrieve().bodyToMono(SchoolClob.class).block();
+		if (schoolClob != null) {
+			gradStu.setSchoolOfRecordName(schoolClob.getSchoolName());
 		}
 		return gradStu;
 	}
@@ -338,20 +338,20 @@ public class GradStudentService {
 			gradStu.setProgram(gradObj.getProgram());
 			gradStu.setStudentGrade(gradObj.getStudentGrade());
 			gradStu.setStudentStatus(gradObj.getStudentStatus());
-			gradStu.setSchoolOfRecord(gradObj.getSchoolOfRecord());
+			gradStu.setSchoolOfRecordId(gradObj.getSchoolOfRecordId() != null? gradObj.getSchoolOfRecordId().toString() : null);
 			gradStu.setStudentCitizenship(gradObj.getStudentCitizenship());
 		
-			School school = webClient.get().uri(String.format(constants.getSchoolByMincodeUrl(), gradStu.getSchoolOfRecord()))
+			SchoolClob schoolClob = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
 				.headers(h -> {
 					h.setBearerAuth(accessToken);
 					h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
 				})
-				.retrieve().bodyToMono(School.class).block();
-			if (school != null) {
-				gradStu.setTranscriptEligibility(school.getTranscriptEligibility());
-				gradStu.setCertificateEligibility(school.getCertificateEligibility());
-				gradStu.setSchoolOfRecordName(school.getSchoolName());
-				gradStu.setSchoolOfRecordindependentAffiliation(school.getIndependentAffiliation());
+				.retrieve().bodyToMono(SchoolClob.class).block();
+			if (schoolClob != null) {
+				gradStu.setSchoolOfRecord(schoolClob.getMinCode());
+				gradStu.setTranscriptEligibility(schoolClob.getTranscriptEligibility());
+				gradStu.setCertificateEligibility(schoolClob.getCertificateEligibility());
+				gradStu.setSchoolOfRecordName(schoolClob.getSchoolName());
 			}
 		}
 		return gradStu;
@@ -419,8 +419,8 @@ public class GradStudentService {
 		if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
 			result.addAll(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens()));
 		}
-		if(searchRequest.getSchoolOfRecords() != null && !searchRequest.getSchoolOfRecords().isEmpty()) {
-			result.addAll(graduationStatusRepository.findBySchoolOfRecordIn(searchRequest.getSchoolOfRecords()));
+		if(searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
+			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));
 		}
 		return result;
 	}

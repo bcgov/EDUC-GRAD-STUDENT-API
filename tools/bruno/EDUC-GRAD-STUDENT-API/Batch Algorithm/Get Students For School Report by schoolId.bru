@@ -1,0 +1,15 @@
+meta {
+  name: Get Students For School Report by schoolId
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/batch/schoolreport/:schoolId
+  body: none
+  auth: none
+}
+
+params:path {
+  schoolId: 
+}

@@ -82,6 +82,11 @@ server:
   #port: ${HTTP_PORT}
   #tomcat:
     #connection-timeout: 200s
+  compression:
+    enabled: ${ENABLE_COMPRESSION}
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,text/css,text/javascript,application/javascript
+    min-response-size: 2048
+    excluded-user-agents: MSIE 6.0,UCBrowser
 
 #API Documentation
 springdoc:
@@ -155,14 +160,16 @@ resilience4j.retry:
 #Endpoint properties
 endpoint:
   grad-trax-api:
-    all-commonschools:
-      url: ${GRAD_TRAX_API}api/v1/trax/school/common
-    school-by-min-code:
-      url: ${GRAD_TRAX_API}api/v1/trax/school/%s
-    district-by-district-code:
-      url: ${GRAD_TRAX_API}api/v1/trax/district/%s
-    commonschool-by-mincode:
-      url: ${GRAD_TRAX_API}api/v1/trax/school/common/%s
+    search-schools-by-district-id:
+      url: ${GRAD_TRAX_API}api/v2/trax/school/search?districtId=%s
+    search-schools-by-category-code:
+      url: ${GRAD_TRAX_API}api/v2/trax/school/search?schoolCategoryCodes=%s
+    school-clob-by-school-id:
+      url: ${GRAD_TRAX_API}api/v2/trax/school-clob/%s
+    school-by-school-id:
+      url: ${GRAD_TRAX_API}api/v2/trax/school/%s
+    district-by-district-id:
+      url: ${GRAD_TRAX_API}api/v2/trax/district/%s
 
   grad-program-api:
     optional_program_name_by_optional_program_id:

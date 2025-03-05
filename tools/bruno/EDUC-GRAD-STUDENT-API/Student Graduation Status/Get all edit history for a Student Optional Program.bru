@@ -1,0 +1,17 @@
+meta {
+  name: Get all edit history for a Student Optional Program
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/studentOptionalProgramHistory/:studentID
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+}
+
+

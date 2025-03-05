@@ -32,13 +32,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.sql.Date;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -90,6 +88,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
     public void testGetStudentEditHistory() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
 
         List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
         GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
@@ -97,7 +96,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
         graduationStatusEntity.setActivityCode("GRADALG");
@@ -147,11 +146,12 @@ public class HistoryServiceTest extends BaseIntegrationTest {
     @Test
     public void testCreateStudentHistory() {
         UUID studentID = new UUID(1, 1);
+        UUID schoolId = UUID.randomUUID();
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen("12321321");
         graduationStatusEntity.setStudentStatus("A");
-        graduationStatusEntity.setSchoolOfRecord("12345678");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
 
         when(graduationStudentRecordRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
 
@@ -164,13 +164,14 @@ public class HistoryServiceTest extends BaseIntegrationTest {
     public void testGetStudentHistoryByHistoryID() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
         UUID historyID = UUID.randomUUID();
         GraduationStudentRecordHistoryEntity graduationStatusEntity = new GraduationStudentRecordHistoryEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setStudentStatus("A");
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
         graduationStatusEntity.setActivityCode("GRADALG");
@@ -219,6 +220,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
     public void testGetStudentHistoryByBatchID() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
         List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
 
         Student std = new Student();
@@ -251,7 +253,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
         }
         graduationStatusEntity.setRecalculateGradStatus("Y");
         graduationStatusEntity.setProgram("2018-EN");
-        graduationStatusEntity.setSchoolOfRecord("223333");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
         graduationStatusEntity.setGpa("4");
         graduationStatusEntity.setHistoryID(new UUID(1,1));
         graduationStatusEntity.setActivityCode("GRADALG");
@@ -273,8 +275,8 @@ public class HistoryServiceTest extends BaseIntegrationTest {
     public void testUpdateStudentRecordHistoryDistributionRun() {
         // ID
         UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
         List<GraduationStudentRecordHistoryEntity> histList = new ArrayList<>();
-        LocalDateTime updateDate = LocalDateTime.now();
 
         Student std = new Student();
         std.setPen("123123");
@@ -295,7 +297,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
         graduationStudentRecordHistoryEntity.setStudentStatus("A");
         graduationStudentRecordHistoryEntity.setRecalculateGradStatus("Y");
         graduationStudentRecordHistoryEntity.setProgram("2018-EN");
-        graduationStudentRecordHistoryEntity.setSchoolOfRecord("223333");
+        graduationStudentRecordHistoryEntity.setSchoolOfRecordId(schoolId);
         graduationStudentRecordHistoryEntity.setGpa("4");
         graduationStudentRecordHistoryEntity.setHistoryID(new UUID(1,1));
         graduationStudentRecordHistoryEntity.setActivityCode("GRADALG");

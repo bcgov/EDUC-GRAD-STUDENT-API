@@ -1,0 +1,15 @@
+meta {
+  name: Get Students Count For School Report by schoolId
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/amalgamated/schoolreport/:schoolId/count
+  body: none
+  auth: none
+}
+
+params:path {
+  schoolId: 
+}

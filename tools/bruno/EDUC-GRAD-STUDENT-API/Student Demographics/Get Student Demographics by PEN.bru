@@ -1,0 +1,17 @@
+meta {
+  name: Get Student Demographics by PEN
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/demog/pen/:pen
+  body: none
+  auth: none
+}
+
+params:path {
+  pen: 
+}
+
+

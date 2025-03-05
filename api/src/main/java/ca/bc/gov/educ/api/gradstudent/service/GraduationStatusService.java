@@ -5,6 +5,8 @@ import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Generated;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgramTransformer;
@@ -139,15 +141,15 @@ public class GraduationStatusService extends GradBaseService {
             if (gradStatus.getProgram() != null) {
                 gradStatus.setProgramName(getProgramName(gradStatus.getProgram(), accessToken));
             }
-            if (gradStatus.getSchoolOfRecord() != null)
-                gradStatus.setSchoolName(getSchoolName(gradStatus.getSchoolOfRecord(), accessToken));
+            if (gradStatus.getSchoolOfRecordId() != null)
+                gradStatus.setSchoolName(getSchoolName(gradStatus.getSchoolOfRecordId(), accessToken));
 
             if (gradStatus.getStudentStatus() != null) {
                 Optional<StudentStatusEntity> statusEntity = studentStatusRepository.findById(StringUtils.toRootUpperCase(gradStatus.getStudentStatus()));
                 statusEntity.ifPresent(studentStatusEntity -> gradStatus.setStudentStatusName(studentStatusEntity.getLabel()));
             }
-            if (gradStatus.getSchoolAtGrad() != null)
-                gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolAtGrad(), accessToken));
+            if (gradStatus.getSchoolAtGradId() != null)
+                gradStatus.setSchoolAtGradName(getSchoolName(gradStatus.getSchoolAtGradId(), accessToken));
 
             List<StudentCareerProgramEntity> studentCareerProgramEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
             gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
@@ -243,7 +245,7 @@ public class GraduationStatusService extends GradBaseService {
                     sourceObject.setProgramCompletionDate(null);
                     sourceObject.setHonoursStanding(null);
                     sourceObject.setGpa(null);
-                    sourceObject.setSchoolAtGrad(null);
+                    sourceObject.setSchoolAtGradId(null);
                     archiveStudentAchievements(sourceObject.getStudentID(),accessToken);
                 } else {
                     deleteStudentAchievements(sourceObject.getStudentID(), accessToken);
@@ -291,7 +293,7 @@ public class GraduationStatusService extends GradBaseService {
     public GraduationStudentRecordSearchResult searchGraduationStudentRecords(final StudentSearchRequest searchRequest, final String accessToken) {
         final GraduationStudentRecordSearchResult searchResult = new GraduationStudentRecordSearchResult();
 
-        List<String> studentIds = new ArrayList<>();
+        List<UUID> studentIds = new ArrayList<>();
         if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
             for(String pen: searchRequest.getPens()) {
                 List<GradSearchStudent> students = gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken);
@@ -304,7 +306,7 @@ public class GraduationStatusService extends GradBaseService {
                         }
                     }
                     if(!"MER".equalsIgnoreCase(st.getStudentStatus())) {
-                        studentIds.add(st.getStudentID());
+                        studentIds.add(UUID.fromString(st.getStudentID()));
                         switch(st.getStudentStatus()) {
                             case "ARC": {
                                 String errorString = String.format(GraduationStudentRecordSearchResult.STUDENT_STATUS_VALIDATION_WARNING, "ARC");
@@ -332,20 +334,20 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
 
-        if(searchRequest.getSchoolOfRecords() != null && !searchRequest.getSchoolOfRecords().isEmpty() && Boolean.TRUE.equals(searchRequest.getValidateInput())) {
-            for(String schoolOfRecord: searchRequest.getSchoolOfRecords()) {
-                String schoolName = getSchoolName(schoolOfRecord, accessToken);
+        if(searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty() && Boolean.TRUE.equals(searchRequest.getValidateInput())) {
+            for(UUID schoolId: searchRequest.getSchoolIds()) {
+                String schoolName = getSchoolName(schoolId, accessToken);
                 if(schoolName == null) {
-                    searchResult.addError(GraduationStudentRecordSearchResult.MINCODE_VALIDATION_ERROR, schoolOfRecord);
+                    searchResult.addError(GraduationStudentRecordSearchResult.SCHOOL_VALIDATION_ERROR, schoolId.toString());
                 }
             }
         }
 
-        if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty() && Boolean.TRUE.equals(searchRequest.getValidateInput())) {
-            for(String district: searchRequest.getDistricts()) {
-                String districtName = getDistrictName(district, accessToken);
+        if(searchRequest.getDistrictIds() != null && !searchRequest.getDistrictIds().isEmpty() && Boolean.TRUE.equals(searchRequest.getValidateInput())) {
+            for(UUID districtId: searchRequest.getDistrictIds()) {
+                String districtName = getDistrictName(districtId, accessToken);
                 if(districtName == null) {
-                    searchResult.addError(GraduationStudentRecordSearchResult.DISTRICT_VALIDATION_ERROR, district);
+                    searchResult.addError(GraduationStudentRecordSearchResult.DISTRICT_VALIDATION_ERROR, districtId.toString());
                 }
             }
         }
@@ -359,31 +361,34 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
 
-        if(searchRequest.getDistricts() != null && !searchRequest.getDistricts().isEmpty()) {
-            List<CommonSchool> schools = new ArrayList<>(getSchools(accessToken));
-            for(Iterator<CommonSchool> it = schools.iterator(); it.hasNext();) {
-                CommonSchool school = it.next();
-                if(!searchRequest.getDistricts().contains(school.getDistNo())) {
+        if(searchRequest.getDistrictIds() != null && !searchRequest.getDistrictIds().isEmpty()) {
+            List<School> schools = new ArrayList<>(getSchoolsByDistricts(searchRequest.getDistrictIds(), accessToken));
+            for(Iterator<School> it = schools.iterator(); it.hasNext();) {
+                School school = it.next();
+                List<String> schoolCategoryCodes = searchRequest.getSchoolCategoryCodes().stream().filter(StringUtils::isNotBlank).toList();
+                if(!schoolCategoryCodes.isEmpty() && !schoolCategoryCodes.contains(school.getSchoolCategoryCode())) {
                     it.remove();
                 } else {
-                    List<String> schoolCategoryCodes = searchRequest.getSchoolCategoryCodes().stream().filter(StringUtils::isNotBlank).toList();
-                    if(!schoolCategoryCodes.isEmpty() && !schoolCategoryCodes.contains(school.getSchoolCategoryCode())) {
-                        it.remove();
-                    } else {
-                        searchRequest.getSchoolOfRecords().add(school.getDistNo() + school.getSchlNo());
-                    }
+                    searchRequest.getSchoolIds().add(UUID.fromString(school.getSchoolId()));
                 }
             }
+        } else if(searchRequest.getSchoolCategoryCodes() != null && !searchRequest.getSchoolCategoryCodes().isEmpty()) {
+            List<School> schools = new ArrayList<>(getSchoolsBySchoolCategoryCodes(searchRequest.getSchoolCategoryCodes(), accessToken));
+            List<UUID> schoolIds = schools.stream()
+                .map(school -> UUID.fromString(school.getSchoolId()))
+                .toList();
+            searchRequest.getSchoolIds().addAll(schoolIds);
         }
-        if(!StringUtils.isBlank(searchRequest.getSchoolOfRecord()) && !searchRequest.getSchoolOfRecords().contains(searchRequest.getSchoolOfRecord())) {
-            searchRequest.getSchoolOfRecords().add(searchRequest.getSchoolOfRecord());
+
+        if(searchRequest.getSchoolId() != null && !searchRequest.getSchoolIds().contains(searchRequest.getSchoolId())) {
+            searchRequest.getSchoolIds().add(searchRequest.getSchoolId());
         }
         if(!StringUtils.isBlank(searchRequest.getGradProgram()) && !searchRequest.getPrograms().contains(searchRequest.getGradProgram())) {
             searchRequest.getPrograms().add(searchRequest.getGradProgram());
         }
         // validate the search criteria that has any values to avoid bringing up all students
         if (studentIds.isEmpty()
-            && searchRequest.getSchoolOfRecords().isEmpty()
+            && searchRequest.getSchoolIds().isEmpty()
             && searchRequest.getPrograms().isEmpty()
             && searchRequest.getGradDateFrom() == null && searchRequest.getGradDateTo() == null) {
             searchResult.setStudentIDs(new ArrayList<>());
@@ -391,7 +396,7 @@ public class GraduationStatusService extends GradBaseService {
         }
         GraduationStudentRecordSearchCriteria searchCriteria = GraduationStudentRecordSearchCriteria.builder()
                 .studentIds(studentIds)
-                .schoolOfRecords(searchRequest.getSchoolOfRecords())
+                .schoolIds(searchRequest.getSchoolIds())
                 .programs(searchRequest.getPrograms())
                 .gradDateFrom(searchRequest.getGradDateFrom())
                 .gradDateTo(searchRequest.getGradDateTo())
@@ -419,9 +424,10 @@ public class GraduationStatusService extends GradBaseService {
 
         String gradDate = null;
         String formerStudent = "F";
+        GraduationStudentRecordEntity graduationStudentRecordEntity = null;
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findById(UUID.fromString(gradSearchStudent.getStudentID()));
         if(graduationStudentRecordEntityOptional.isPresent()) {
-            GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
+            graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
             long sessionInterval = Integer.MAX_VALUE;
             GraduationData graduationData = null;
             if(StringUtils.isNotBlank(graduationStudentRecordEntity.getStudentGradData())) {
@@ -443,14 +449,15 @@ public class GraduationStatusService extends GradBaseService {
             }
         }
 
-        CommonSchool commonSchool = getCommonSchool(accessToken, gradSearchStudent.getSchoolOfRecord());
-        if(commonSchool == null) {
-            validation.addErrorAndStop("Common School with mincode %s not found", gradSearchStudent.getMincode());
+        if(graduationStudentRecordEntity == null) {
+            validation.addErrorAndStop("Student record  with student Id %s not found", gradSearchStudent.getStudentID());
         }
 
-        School school = getSchool(gradSearchStudent.getSchoolOfRecord(), accessToken);
-        if(school == null) {
-            validation.addErrorAndStop("School with mincode %s not found", gradSearchStudent.getMincode());
+        UUID schoolId = graduationStudentRecordEntity.getSchoolAtGradId() != null && !graduationStudentRecordEntity.getSchoolAtGradId().equals(graduationStudentRecordEntity.getSchoolOfRecordId())?
+                graduationStudentRecordEntity.getSchoolAtGradId() : graduationStudentRecordEntity.getSchoolOfRecordId();
+        SchoolClob schoolClob = getSchoolClob(schoolId, accessToken);
+        if(schoolClob == null) {
+            validation.addErrorAndStop("School with schoolId %s not found", schoolId);
         }
 
         String englishCert = "";
@@ -460,8 +467,8 @@ public class GraduationStatusService extends GradBaseService {
         List<GradStudentCertificates> gradStudentCertificates = getGradStudentCertificates(gradSearchStudent.getStudentID(), accessToken);
         for(GradStudentCertificates certificates: gradStudentCertificates) {
             String certificateTypeCode = certificates.getGradCertificateTypeCode();
-            dogwood = (gradDate != null && school != null && "Y".equalsIgnoreCase(school.getCertificateEligibility())) ? "Y" : "N";
-            sccDate = "SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && school != null && "Y".equalsIgnoreCase(school.getCertificateEligibility()) ? gradDate : null;
+            dogwood = (gradDate != null && schoolClob != null && "Y".equalsIgnoreCase(schoolClob.getCertificateEligibility())) ? "Y" : "N";
+            sccDate = "SCCP".equalsIgnoreCase(gradSearchStudent.getProgram()) && schoolClob != null && "Y".equalsIgnoreCase(schoolClob.getCertificateEligibility()) ? gradDate : null;
             switch(certificateTypeCode) {
                 case "E":
                     englishCert = certificateTypeCode;
@@ -476,8 +483,7 @@ public class GraduationStatusService extends GradBaseService {
                     break;
             }
         }
-        assert commonSchool != null;
-        assert school != null;
+        assert schoolClob != null;
         return StudentDemographic.builder()
                 .studentID(gradSearchStudent.getStudentID())
                 .pen(pen)
@@ -507,10 +513,10 @@ public class GraduationStatusService extends GradBaseService {
                 .englishCert(englishCert)
                 .sccDate(sccDate)
                 .transcriptEligibility(gradSearchStudent.getTranscriptEligibility())
-                .mincode(school.getMinCode())
-                .schoolCategory(commonSchool.getSchoolCategoryCode())
-                .schoolType("02".equalsIgnoreCase(commonSchool.getSchoolCategoryCode()) ? "02" : "")
-                .schoolName(school.getSchoolName())
+                .mincode(schoolClob.getMinCode())
+                .schoolCategory(schoolClob.getSchoolCategoryLegacyCode())
+                .schoolType("02".equalsIgnoreCase(schoolClob.getSchoolCategoryLegacyCode()) ? "02" : "")
+                .schoolName(schoolClob.getSchoolName())
                 .formerStudent(formerStudent)
                 .build();
     }
@@ -525,61 +531,18 @@ public class GraduationStatusService extends GradBaseService {
                 }).block();
     }
 
-    public List<CommonSchool> getSchools(String accessToken) {
-        return webClient.get().uri((constants.getSchoolsSchoolApiUrl()))
-            .headers(h -> {
-                h.setBearerAuth(accessToken);
-                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-            })
-            .retrieve().bodyToMono(new ParameterizedTypeReference<List<CommonSchool>>() {
-        }).block();
-    }
-
-    public CommonSchool getCommonSchool(String accessToken, String mincode) {
-        return webClient.get().uri(String.format(constants.getSchoolByMincodeSchoolApiUrl(), mincode))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
-                .retrieve().bodyToMono(CommonSchool.class).block();
-    }
-
-    private School getSchool(String minCode, String accessToken) {
-        return webClient.get()
-                .uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
-                .retrieve()
-                .bodyToMono(School.class)
-                .block();
-    }
-
-    private String getSchoolName(String minCode, String accessToken) {
-        School schObj = getSchool(minCode, accessToken);
+    private String getSchoolName(UUID schoolId, String accessToken) {
+        School schObj = getSchool(schoolId, accessToken);
         if (schObj != null)
-            return schObj.getSchoolName();
+            return schObj.getDisplayName();
         else
             return null;
     }
 
-    private District getDistrict(String districtCode, String accessToken) {
-        return webClient.get()
-                .uri(String.format(constants.getDistrictByDistrictCodeUrl(), districtCode))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
-                .retrieve()
-                .bodyToMono(District.class)
-                .block();
-    }
-
-    private String getDistrictName(String districtCode, String accessToken) {
-        District distObj = getDistrict(districtCode, accessToken);
+    private String getDistrictName(UUID districtId, String accessToken) {
+        District distObj = getDistrict(districtId, accessToken);
         if (distObj != null)
-            return distObj.getDistrictName();
+            return distObj.getDisplayName();
         else
             return null;
     }
@@ -647,22 +610,22 @@ public class GraduationStatusService extends GradBaseService {
         }
     }
 
-    private void validateSchool(String minCode, String accessToken) {
-        School schObj = webClient.get()
-                .uri(String.format(constants.getSchoolByMincodeUrl(), minCode))
+    private void validateSchool(UUID schoolId, String accessToken) {
+        SchoolClob schObj = webClient.get()
+                .uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))
                 .headers(h -> {
             h.setBearerAuth(accessToken);
             h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
         })
                 .retrieve()
-                .bodyToMono(School.class)
+                .bodyToMono(SchoolClob.class)
                 .block();
         if (schObj == null) {
             validation.addError(
-                    String.format("Invalid School entered, School [%s] does not exist on the School table", minCode));
+                    String.format("Invalid School entered, SchoolId [%s] does not exist in institute.", schoolId));
         } else {
             if (schObj.getOpenFlag().equalsIgnoreCase("N")) {
-                validation.addWarning(String.format("This School [%s] is Closed", minCode));
+                validation.addWarning(String.format("This School [%s] is Closed", schoolId));
             }
         }
     }
@@ -755,14 +718,14 @@ public class GraduationStatusService extends GradBaseService {
             hasDataChanged.recalculateAll();
         }
         
-        if (sourceEntity.getSchoolOfRecord() != null && !sourceEntity.getSchoolOfRecord().equalsIgnoreCase(existingEntity.getSchoolOfRecord())) {
+        if (sourceEntity.getSchoolOfRecordId() != null && !sourceEntity.getSchoolOfRecordId().equals(existingEntity.getSchoolOfRecordId())) {
             hasDataChanged.recalculateAll();
-            validateSchool(sourceEntity.getSchoolOfRecord(), accessToken);
+            validateSchool(sourceEntity.getSchoolOfRecordId(), accessToken);
         }        
         
-        if (sourceEntity.getSchoolAtGrad() != null && !sourceEntity.getSchoolAtGrad().equalsIgnoreCase(existingEntity.getSchoolAtGrad())) {
+        if (sourceEntity.getSchoolAtGradId() != null && !sourceEntity.getSchoolAtGradId().equals(existingEntity.getSchoolAtGradId())) {
             hasDataChanged.recalculateAll();
-            validateSchool(sourceEntity.getSchoolAtGrad(), accessToken);
+            validateSchool(sourceEntity.getSchoolAtGradId(), accessToken);
         }
         
         if ((sourceEntity.getStudentGrade() != null && !sourceEntity.getStudentGrade().equalsIgnoreCase(existingEntity.getStudentGrade()))) {
@@ -1108,7 +1071,7 @@ public class GraduationStatusService extends GradBaseService {
                     gradEntity.setProgramCompletionDate(null);
                     gradEntity.setHonoursStanding(null);
                     gradEntity.setGpa(null);
-                    gradEntity.setSchoolAtGrad(null);
+                    gradEntity.setSchoolAtGradId(null);
                     gradEntity.setUpdateUser(null);
                     gradEntity.setUpdateDate(null);
                     gradEntity = graduationStatusRepository.save(gradEntity);
@@ -1221,7 +1184,7 @@ public class GraduationStatusService extends GradBaseService {
                 gradEnity.setProgramCompletionDate(null);
                 gradEnity.setHonoursStanding(null);
                 gradEnity.setGpa(null);
-                gradEnity.setSchoolAtGrad(null);
+                gradEnity.setSchoolAtGradId(null);
             }
             graduationStatusRepository.save(gradEnity);
             return true;
@@ -1383,37 +1346,37 @@ public class GraduationStatusService extends GradBaseService {
         return ent;
     }
 
-    public List<GraduationStudentRecord> getStudentsForSchoolReport(String schoolOfRecord) {
-        return graduationStatusTransformer.tToDForBatchView(graduationStatusRepository.findBySchoolOfRecordAndStudentStatus(schoolOfRecord, "CUR"));
+    public List<GraduationStudentRecord> getStudentsForSchoolReport(UUID schoolOfRecordId) {
+        return graduationStatusTransformer.tToDForBatchView(graduationStatusRepository.findBySchoolOfRecordIdAndStudentStatus(schoolOfRecordId, "CUR"));
     }
 
-    public List<UUID> getStudentsForAmalgamatedSchoolReport(String schoolOfRecord,String type) {
-        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecordAndStudentStatusAndStudentGradeIn(schoolOfRecord, "CUR", List.of("AD", "12")),type);
+    public List<UUID> getStudentsForAmalgamatedSchoolReport(UUID schoolOfRecordId,String type) {
+        return graduationStatusTransformer.tToDForAmalgamation(graduationStatusRepository.findBySchoolOfRecordIdAndStudentStatusAndStudentGradeIn(schoolOfRecordId, "CUR", List.of("AD", "12")),type);
     }
 
-    public Integer countStudentsForAmalgamatedSchoolReport(String schoolOfRecord) {
-        return graduationStatusRepository.countBySchoolOfRecordAmalgamated(schoolOfRecord);
+    public Integer countStudentsForAmalgamatedSchoolReport(UUID schoolOfRecordId) {
+        return graduationStatusRepository.countBySchoolOfRecordAmalgamated(schoolOfRecordId);
     }
 
-    public Long countBySchoolOfRecordsAndStudentStatus(List<String> schoolOfRecords, String studentStatus) {
-        if(schoolOfRecords != null && !schoolOfRecords.isEmpty() && StringUtils.isNotBlank(studentStatus) && !StringUtils.equalsAnyIgnoreCase(studentStatus, "null")) {
-            return graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(schoolOfRecords, StringUtils.upperCase(studentStatus));
+    public Long countBySchoolOfRecordIdsAndStudentStatus(List<UUID> schoolOfRecordIds, String studentStatus) {
+        if(schoolOfRecordIds != null && !schoolOfRecordIds.isEmpty() && StringUtils.isNotBlank(studentStatus) && !StringUtils.equalsAnyIgnoreCase(studentStatus, "null")) {
+            return graduationStatusRepository.countBySchoolOfRecordsAndStudentStatus(schoolOfRecordIds, StringUtils.upperCase(studentStatus));
         } else if(StringUtils.isNotBlank(studentStatus) && !StringUtils.equalsAnyIgnoreCase(studentStatus, "null")) {
             return graduationStatusRepository.countByStudentStatus(StringUtils.upperCase(studentStatus));
         } else {
-            return countBySchoolOfRecords(schoolOfRecords);
+            return countBySchoolOfRecords(schoolOfRecordIds);
         }
     }
 
     @Transactional
-    public Integer archiveStudents(long batchId, List<String> schoolOfRecords, String studentStatus, String user) {
+    public Integer archiveStudents(long batchId, List<UUID> schoolOfRecordIds, String studentStatus, String user) {
         String recordStudentStatus = StringUtils.defaultString(studentStatus, "CUR");
         Integer archivedStudentsCount = 0;
         Integer auditHistoryStudentsCount = 0;
         List<UUID> graduationStudentRecordGuids = new ArrayList<>();
-        if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
-            graduationStudentRecordGuids.addAll(graduationStatusRepository.findBySchoolOfRecordInAndStudentStatus(schoolOfRecords, recordStudentStatus));
-            archivedStudentsCount = graduationStatusRepository.archiveStudents(schoolOfRecords, recordStudentStatus, "ARC", batchId, user);
+        if(schoolOfRecordIds != null && !schoolOfRecordIds.isEmpty()) {
+            graduationStudentRecordGuids.addAll(graduationStatusRepository.findBySchoolOfRecordIdInAndStudentStatus(schoolOfRecordIds, recordStudentStatus));
+            archivedStudentsCount = graduationStatusRepository.archiveStudents(schoolOfRecordIds, recordStudentStatus, "ARC", batchId, user);
         } else {
             Integer numberOfUpdated = graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(batchId, recordStudentStatus);
             if(numberOfUpdated > 0) {
@@ -1463,7 +1426,7 @@ public class GraduationStatusService extends GradBaseService {
         }
     }
 
-    private Long countBySchoolOfRecords(List<String> schoolOfRecords) {
+    private Long countBySchoolOfRecords(List<UUID> schoolOfRecords) {
         if(schoolOfRecords != null && !schoolOfRecords.isEmpty()) {
             return graduationStatusRepository.countBySchoolOfRecords(schoolOfRecords);
         } else {
@@ -1481,6 +1444,16 @@ public class GraduationStatusService extends GradBaseService {
             gradEntity.setRecalculateProjectedGrad(flag);
         else
             gradEntity.setRecalculateGradStatus(flag);
+    }
+
+    @Override
+    protected WebClient getWebClient() {
+        return webClient;
+    }
+
+    @Override
+    protected EducGradStudentApiConstants getConstants() {
+        return constants;
     }
 
     class UUIDPageTask implements Callable<Object> {
