@@ -104,11 +104,12 @@ public class FetchGradStatusSubscriber implements MessageHandler {
         String ex = (e instanceof EntityNotFoundException) ? "not found" : "error";
         GraduationStudentGradStatusResponse gradStatusPayload = GraduationStudentGradStatusResponse.builder()
                 .exception(ex)
+                .isGraduated(null)
                 .build();
         try {
             return JsonUtil.getJsonStringFromObject(gradStatusPayload);
         } catch (JsonProcessingException exc) {
-            return "{\"isGraduated\":  \"\", \"exception\": \"JSON Parsing exception\"}";
+            return "{\"isGraduated\": null, \"exception\": \"JSON Parsing exception\"}";
         }
     }
 
