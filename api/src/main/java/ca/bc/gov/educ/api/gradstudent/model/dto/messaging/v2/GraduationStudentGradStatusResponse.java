@@ -10,6 +10,6 @@ import java.util.UUID;
 public class GraduationStudentGradStatusResponse {
 
     private UUID studentID;
-    private Boolean isgraduated;
+    private Boolean isGraduated;
     private String exception;
 }

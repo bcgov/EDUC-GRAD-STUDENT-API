@@ -102,7 +102,7 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
 
 
     @Test
-    public void test_FetchGradStatusSubscriber_Graduated_Success() throws JsonProcessingException {
+    public void test_FetchGradStatusSubscriber_Success() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         final Event event = prepareEventMessage(studentID);
         when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
@@ -112,22 +112,7 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
         GraduationStudentRecordGradStatus graduationStudentRecordGradStatus = new GraduationStudentRecordGradStatus(studentID, "2018-EN", new java.util.Date());
         when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(graduationStudentRecordGradStatus);
         when(graduationStatusService.getGraduationStatusProjection(studentID)).thenReturn(graduationStudentRecordGradStatus);
-
-        assertDoesNotThrow(() -> { fetchGradStatusSubscriber.onMessage(mockMessage); });
-    }
-
-    @Test
-    public void test_FetchGradStatusSubscriber_NotGraduated_Success() throws JsonProcessingException {
-        UUID studentID = UUID.randomUUID();
-        final Event event = prepareEventMessage(studentID);
-        when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
-
-        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
-        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
-        GraduationStudentRecordGradStatus graduationStudentRecordGradStatus = new GraduationStudentRecordGradStatus(studentID, "2018-EN", new java.util.Date());
-        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(graduationStudentRecordGradStatus);
-        when(graduationStatusService.getGraduationStatusProjection(studentID)).thenReturn(graduationStudentRecordGradStatus);
-
+        doNothing().when(connection).publish(anyString(), any(byte[].class));
         assertDoesNotThrow(() -> { fetchGradStatusSubscriber.onMessage(mockMessage); });
     }
 
@@ -142,7 +127,7 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
         GraduationStudentRecordGradStatus graduationStudentRecordGradStatus = new GraduationStudentRecordGradStatus(studentID, "2018-EN", null);
         when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(graduationStudentRecordGradStatus);
         when(graduationStatusService.getGraduationStatusProjection(studentID)).thenReturn(graduationStudentRecordGradStatus);
-
+        doNothing().when(connection).publish(anyString(), any(byte[].class));
         assertDoesNotThrow(() -> { fetchGradStatusSubscriber.onMessage(mockMessage); });
     }
 
@@ -157,7 +142,7 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
         GraduationStudentRecordGradStatus graduationStudentRecordGradStatus = new GraduationStudentRecordGradStatus(UUID.randomUUID(), "2018-EN", new java.util.Date());
         when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(graduationStudentRecordGradStatus);
         when(graduationStatusService.getGraduationStatusProjection(studentID)).thenReturn(null);
-
+        doNothing().when(connection).publish(anyString(), any(byte[].class));
         assertDoesNotThrow(() -> { fetchGradStatusSubscriber.onMessage(mockMessage); });
     }
 

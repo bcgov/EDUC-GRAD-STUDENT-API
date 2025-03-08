@@ -95,7 +95,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
     private String getResponse(UUID studentID, boolean isGraduated) throws JsonProcessingException {
         GraduationStudentGradStatusResponse gradStatusPayload = GraduationStudentGradStatusResponse.builder()
                 .studentID(studentID)
-                .isgraduated(isGraduated)
+                .isGraduated(isGraduated)
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStatusPayload);
     }
@@ -108,7 +108,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
         try {
             return JsonUtil.getJsonStringFromObject(gradStatusPayload);
         } catch (JsonProcessingException exc) {
-            return "{\"isgraduated\":  \"\", \"exception\": \"JSON Parsing exception\"}";
+            return "{\"isGraduated\":  \"\", \"exception\": \"JSON Parsing exception\"}";
         }
     }
 
