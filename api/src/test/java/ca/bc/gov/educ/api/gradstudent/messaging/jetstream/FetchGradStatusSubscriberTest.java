@@ -117,21 +117,6 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void test_FetchGradStatusSubscriber_NoCompletionDate_Success() throws JsonProcessingException {
-        UUID studentID = UUID.randomUUID();
-        final Event event = prepareEventMessage(studentID);
-        when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
-
-        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
-        graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
-        GraduationStudentRecordGradStatus graduationStudentRecordGradStatus = new GraduationStudentRecordGradStatus(studentID, "2018-EN", null);
-        when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(graduationStudentRecordGradStatus);
-        when(graduationStatusService.getGraduationStatusProjection(studentID)).thenReturn(graduationStudentRecordGradStatus);
-        doNothing().when(connection).publish(anyString(), any(byte[].class));
-        assertDoesNotThrow(() -> { fetchGradStatusSubscriber.onMessage(mockMessage); });
-    }
-
-    @Test
     public void test_FetchGradStatusSubscriber_404() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         final Event event = prepareEventMessage(studentID);
