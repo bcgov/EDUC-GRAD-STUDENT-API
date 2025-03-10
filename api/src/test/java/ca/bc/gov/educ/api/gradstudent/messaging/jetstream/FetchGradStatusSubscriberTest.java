@@ -112,7 +112,6 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
         GraduationStudentRecordGradStatus graduationStudentRecordGradStatus = new GraduationStudentRecordGradStatus(studentID, "2018-EN", new java.util.Date());
         when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(graduationStudentRecordGradStatus);
         when(graduationStatusService.getGraduationStatusProjection(studentID)).thenReturn(graduationStudentRecordGradStatus);
-        doNothing().when(connection).publish(anyString(), any(byte[].class));
         assertDoesNotThrow(() -> { fetchGradStatusSubscriber.onMessage(mockMessage); });
     }
 
@@ -127,7 +126,6 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
         GraduationStudentRecordGradStatus graduationStudentRecordGradStatus = new GraduationStudentRecordGradStatus(UUID.randomUUID(), "2018-EN", new java.util.Date());
         when(graduationStatusRepository.findByStudentID(studentID, GraduationStudentRecordGradStatus.class)).thenReturn(graduationStudentRecordGradStatus);
         when(graduationStatusService.getGraduationStatusProjection(studentID)).thenReturn(null);
-        doNothing().when(connection).publish(anyString(), any(byte[].class));
         assertDoesNotThrow(() -> { fetchGradStatusSubscriber.onMessage(mockMessage); });
     }
 
