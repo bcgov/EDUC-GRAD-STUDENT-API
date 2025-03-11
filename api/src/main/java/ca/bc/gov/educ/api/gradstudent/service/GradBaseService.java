@@ -84,10 +84,7 @@ public abstract class GradBaseService {
     protected List<School> getSchoolsByDistrictId(UUID districtId, String accessToken) {
         return getWebClient().get()
                 .uri(String.format(getConstants().getSchoolsByDistrictIdUrl(), districtId))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve().bodyToMono(new ParameterizedTypeReference<List<School>>() {
                 }).block();
     }
@@ -95,10 +92,7 @@ public abstract class GradBaseService {
     protected List<School> getSchoolsBySchoolCategoryCodes(List<String> schoolCategoryCodes, String accessToken) {
         return getWebClient().get()
                 .uri(String.format(getConstants().getSchoolsByCategoryCodeUrl(), String.join(",", schoolCategoryCodes)))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<School>>() {
                 }).block();
@@ -107,10 +101,7 @@ public abstract class GradBaseService {
     protected School getSchool(UUID schoolId, String accessToken) {
         return getWebClient().get()
                 .uri(String.format(getConstants().getSchoolBySchoolIdUrl(), schoolId))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(School.class)
                 .block();
@@ -119,10 +110,7 @@ public abstract class GradBaseService {
     protected SchoolClob getSchoolClob(UUID schoolId, String accessToken) {
         return getWebClient().get()
                 .uri(String.format(getConstants().getSchoolClobBySchoolIdUrl(), schoolId))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(SchoolClob.class)
                 .block();
@@ -131,10 +119,7 @@ public abstract class GradBaseService {
     protected District getDistrict(UUID districtId, String accessToken) {
         return getWebClient().get()
                 .uri(String.format(getConstants().getDistrictByDistrictIdUrl(), districtId))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(District.class)
                 .block();

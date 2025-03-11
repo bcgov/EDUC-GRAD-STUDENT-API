@@ -84,10 +84,8 @@ public class CommonService {
 		List<StudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
       	gradStudentCareerProgramList.forEach(sC -> {
       		CareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode()))
-									.headers(h -> {
-										h.setBearerAuth(accessToken);
-										h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-									}).retrieve().bodyToMono(CareerProgram.class).block();
+									.headers(h -> h.setBearerAuth(accessToken))
+					.retrieve().bodyToMono(CareerProgram.class).block();
     		if(gradCareerProgram != null) {
     			sC.setCareerProgramCode(gradCareerProgram.getCode());
     			sC.setCareerProgramName(gradCareerProgram.getDescription());

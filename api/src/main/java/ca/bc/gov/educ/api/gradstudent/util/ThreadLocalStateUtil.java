@@ -5,6 +5,7 @@ import java.util.Objects;
 public class ThreadLocalStateUtil {
     private static ThreadLocal<String> transaction = new ThreadLocal<>();
     private static ThreadLocal<String> user = new ThreadLocal<>();
+    private static InheritableThreadLocal<String> requestSource = new InheritableThreadLocal<String>();
 
     /**
      * Set the current correlationID for this thread
@@ -42,8 +43,25 @@ public class ThreadLocalStateUtil {
         return Objects.requireNonNullElse(user.get(), "GRAD");
     }
 
+    /**
+     * Set the requestSource for this thread
+     *
+     * @param reqSource
+     */
+    public static void setRequestSource(String reqSource){
+        requestSource.set(reqSource);
+    }
+    /**
+     * Get the requestSource for this thread
+     *
+     * @return the requestSource.
+     */
+    public static String getRequestSource() {
+        return requestSource.get();
+    }
     public static void clear() {
         transaction.remove();
         user.remove();
+        requestSource.remove();
     }
 }

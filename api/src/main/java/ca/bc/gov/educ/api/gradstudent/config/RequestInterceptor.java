@@ -15,6 +15,7 @@ import org.springframework.web.servlet.AsyncHandlerInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Instant;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -36,19 +37,30 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
 		validation.clear();
 		// correlationID
 		val correlationID = request.getHeader(constants.CORRELATION_ID);
-		if (correlationID != null) {
-			ThreadLocalStateUtil.setCorrelationID(correlationID);
+		ThreadLocalStateUtil.setCorrelationID(correlationID != null ? correlationID : UUID.randomUUID().toString());
+
+		//Request Source
+		val requestSource = request.getHeader(constants.REQUEST_SOURCE);
+		if(requestSource != null) {
+			ThreadLocalStateUtil.setRequestSource(requestSource);
 		}
 
-		// username
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth instanceof JwtAuthenticationToken authenticationToken) {
-			Jwt jwt = (Jwt) authenticationToken.getCredentials();
-			String username = JwtUtil.getName(jwt, request);
-			ThreadLocalStateUtil.setCurrentUser(username);
+		// Header userName
+		val userName = request.getHeader(constants.USER_NAME);
+		if (userName != null) {
+			ThreadLocalStateUtil.setCurrentUser(userName);
 		}
-		
-		return true;
+		else {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			if (auth instanceof JwtAuthenticationToken) {
+				JwtAuthenticationToken authenticationToken = (JwtAuthenticationToken) auth;
+				Jwt jwt = (Jwt) authenticationToken.getCredentials();
+				String username = JwtUtil.getName(jwt);
+				if (username != null) {
+					ThreadLocalStateUtil.setCurrentUser(username);
+				}
+			}
+		}return true;
 	}
 
 	/**
@@ -62,10 +74,6 @@ public class RequestInterceptor implements AsyncHandlerInterceptor {
 	@Override
 	public void afterCompletion(@NonNull final HttpServletRequest request, final HttpServletResponse response, @NonNull final Object handler, final Exception ex) {
 		LogHelper.logServerHttpReqResponseDetails(request, response, constants.isSplunkLogHelperEnabled());
-		val correlationID = request.getHeader(EducGradStudentApiConstants.CORRELATION_ID);
-		if (correlationID != null) {
-			response.setHeader(EducGradStudentApiConstants.CORRELATION_ID, request.getHeader(EducGradStudentApiConstants.CORRELATION_ID));
-		}
 		// clear
 		ThreadLocalStateUtil.clear();
 	}

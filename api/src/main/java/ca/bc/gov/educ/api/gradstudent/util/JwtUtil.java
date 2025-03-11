@@ -80,7 +80,7 @@ public class JwtUtil {
   }
 
   private static String getUserNameString(HttpServletRequest request) {
-    val username = request.getHeader(EducGradStudentApiConstants.USERNAME);
+    val username = request.getHeader(EducGradStudentApiConstants.USER_NAME);
     if (StringUtils.isNotBlank(username)) {
       return username;
     } else {
