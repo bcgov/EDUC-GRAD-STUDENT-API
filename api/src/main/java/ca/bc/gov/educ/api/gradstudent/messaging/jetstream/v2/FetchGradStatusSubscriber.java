@@ -85,7 +85,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
             } else {
                 if(graduationStatus.getProgramCompletionDate() != null) {
                     LocalDate programCompletionDate = graduationStatus.getProgramCompletionDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                    return programCompletionDate.isBefore(date) || programCompletionDate.isEqual(date);
+                    return !programCompletionDate.isAfter(date);
                 }
             }
         }
