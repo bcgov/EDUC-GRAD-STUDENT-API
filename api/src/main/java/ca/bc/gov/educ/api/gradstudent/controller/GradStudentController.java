@@ -122,8 +122,8 @@ public class GradStudentController {
 	@PreAuthorize("hasAuthority('SCOPE_READ_GRAD_STUDENT_DATA')")
 	@Operation(summary = "GET Student by STUDENT ID", description = "Get Student Demographics by Student ID", tags = { "Student Demographics" })
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-	public GraduationStudentRecordDistribution getGradStudentByStudentIDFromGRAD(@PathVariable String studentID) {
-		return gradStudentService.getStudentByStudentIDFromGrad(studentID);
+	public GraduationStudentRecordDistribution getGradStudentByStudentIDFromGRAD(@PathVariable String studentID, @RequestHeader(name="Authorization") String accessToken) {
+		return gradStudentService.getStudentByStudentIDFromGrad(studentID, accessToken.replaceAll("Bearer ", ""));
 	}
 
     @PostMapping
