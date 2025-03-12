@@ -1,8 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
-import java.util.Optional;
-
 import com.fasterxml.jackson.annotation.JsonValue;
+
+import java.util.Optional;
 
 /**
  * The enum Filter operation.
@@ -13,6 +13,10 @@ public enum FilterOperation {
    * Equal filter operation.
    */
   EQUAL("eq"),
+  /**
+   * Equal Other Field filter operation.
+   */
+  NOT_EQUAL_OTHER_COLUMN("neqc"),
   /**
    * Not equal filter operation.
    */
@@ -58,6 +62,10 @@ public enum FilterOperation {
    */
   ENDS_WITH("ends_with"),
   /**
+   * Filter to return when none of the child records includes the values
+   */
+  NONE_IN("none_in"),
+  /**
    * Starts with ignore case filter operation.
    */
   STARTS_WITH_IGNORE_CASE("starts_with_ignore_case"),
@@ -65,6 +73,13 @@ public enum FilterOperation {
    * Contains ignore case filter operation.
    */
   CONTAINS_IGNORE_CASE("like_ignore_case"),
+  IN_LEFT_JOIN("in_left_join"),
+  IN_NOT_DISTINCT("in_not_distinct"),
+
+  // Filter operations for GDC
+  CUSTOM_CHILD_JOIN("custom_child_join"),
+  EQUAL_WITH_LEFT_JOIN("eq_lj");
+
   ;
   /**
    * From value optional.

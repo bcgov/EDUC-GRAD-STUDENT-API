@@ -1,8 +1,12 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
+import ca.bc.gov.educ.api.gradstudent.service.GradStudentSearchService;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,12 +16,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @CrossOrigin
@@ -29,10 +39,14 @@ public class GradStudentController {
 	private static final Logger logger = LoggerFactory.getLogger(GradStudentController.class);
 
     private final GradStudentService gradStudentService;
+	private final GradStudentSearchService gradStudentSearchService;
+	private final GraduationStatusTransformer graduationStatusTransformer;
 
-    public GradStudentController(GradStudentService gradStudentService) {
+    public GradStudentController(GradStudentService gradStudentService, GradStudentSearchService gradStudentSearchService, GraduationStatusTransformer graduationStatusTransformer) {
     	this.gradStudentService = gradStudentService;
-	}
+        this.gradStudentSearchService = gradStudentSearchService;
+        this.graduationStatusTransformer = graduationStatusTransformer;
+    }
 	
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME_ONLY)
     @PreAuthorize("hasAuthority('SCOPE_READ_GRAD_STUDENT_DATA')")
@@ -124,5 +138,26 @@ public class GradStudentController {
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
 	public List<UUID> searchGraduationStudentRecords(@RequestBody StudentSearchRequest searchRequest) {
 		return gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
+	}
+
+	@PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_PAGINATION)
+	@PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+	@Transactional(readOnly = true)
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
+	public CompletableFuture<Page<GraduationStudentRecord>> findAll(@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
+													 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+													 @RequestParam(name = "sort", defaultValue = "") String sortCriteriaJson,
+													 @RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson){
+		final List<Sort.Order> sorts = new ArrayList<>();
+		Specification<GraduationStudentRecordEntity> studentSpecs = gradStudentSearchService
+				.setSpecificationAndSortCriteria(
+						sortCriteriaJson,
+						searchCriteriaListJson,
+						JsonUtil.mapper,
+						sorts
+				);
+		return this.gradStudentSearchService
+				.findAll(studentSpecs, pageNumber, pageSize, sorts)
+				.thenApplyAsync(student -> student.map(graduationStatusTransformer::transformToDTO));
 	}
 }
