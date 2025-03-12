@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.support;
 
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStudentRecordSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
@@ -53,8 +52,14 @@ public class MockConfiguration {
 
   @Bean
   @Primary
-  public FetchGradStatusSubscriber fetchGradStatusSubscriber() {
-    return Mockito.mock(FetchGradStatusSubscriber.class);
+  public ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber fetchGradStatusSubscriber() {
+    return Mockito.mock(ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber.class);
+  }
+
+  @Bean
+  @Primary
+  public ca.bc.gov.educ.api.gradstudent.messaging.jetstream.v2.FetchGradStatusSubscriber fetchGradStatusSubscriberv2() {
+    return Mockito.mock(ca.bc.gov.educ.api.gradstudent.messaging.jetstream.v2.FetchGradStatusSubscriber.class);
   }
 
   @Bean
