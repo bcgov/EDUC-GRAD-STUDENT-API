@@ -36,6 +36,8 @@ public class ReportGradStudentData implements Serializable {
     private String honorsStanding;
     private String graduated;
     private String transcriptTypeCode;
+    private String localID;
+    private String dob;
     private LocalDateTime updateDate;
     private List<CertificateType> certificateTypes;
     private List<NonGradReason> nonGradReasons;
