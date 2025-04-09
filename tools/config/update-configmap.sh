@@ -67,6 +67,7 @@ oc create -n "$GRAD_NAMESPACE"-"$envValue" configmap "$APP_NAME"-config-map \
   --from-literal=CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS="0 0 0 1 * ?" \
   --from-literal=ENABLE_COMPRESSION="true" \
   --from-literal=SHOW_SQL_LOGS="true" \
+  --from-literal=MAX_LIFETIME="120000" \
   --dry-run=client -o yaml | oc apply -f -
 
 echo Creating config map "$APP_NAME"-flb-sc-config-map
