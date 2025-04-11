@@ -523,10 +523,7 @@ public class GraduationStatusService extends GradBaseService {
 
     private List<GradStudentCertificates> getGradStudentCertificates(String studentID, String accessToken) {
         return webClient.get().uri(String.format(constants.getStudentCertificates(), studentID))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve().bodyToMono(new ParameterizedTypeReference<List<GradStudentCertificates>>() {
                 }).block();
     }
@@ -550,10 +547,7 @@ public class GraduationStatusService extends GradBaseService {
     private GradProgram getProgram(String programCode, String accessToken) {
         return webClient.get()
                 .uri(String.format(constants.getGradProgramNameUrl(), programCode))
-                .headers(h -> {
-                    h.setBearerAuth(accessToken);
-                    h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(GradProgram.class)
                 .block();
@@ -582,10 +576,7 @@ public class GraduationStatusService extends GradBaseService {
     private void validateProgram(GraduationStudentRecordEntity sourceEntity, String accessToken) {
         GradProgram gradProgram = webClient.get()
                 .uri(String.format(constants.getGradProgramNameUrl(), sourceEntity.getProgram()))
-                .headers(h -> {
-            h.setBearerAuth(accessToken);
-            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-        })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(GradProgram.class)
                 .block();
@@ -613,10 +604,7 @@ public class GraduationStatusService extends GradBaseService {
     private void validateSchool(UUID schoolId, String accessToken) {
         SchoolClob schObj = webClient.get()
                 .uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))
-                .headers(h -> {
-            h.setBearerAuth(accessToken);
-            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-        })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(SchoolClob.class)
                 .block();
@@ -633,10 +621,7 @@ public class GraduationStatusService extends GradBaseService {
     private void validateGradeAndStatusWithPENStudent(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
         Student studentObj = webClient.get()
                 .uri(String.format(constants.getPenStudentApiByStudentIdUrl(), sourceEntity.getStudentID()))
-                .headers(h -> {
-            h.setBearerAuth(accessToken);
-            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-        })
+                .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .bodyToMono(Student.class)
                 .block();
@@ -873,10 +858,7 @@ public class GraduationStatusService extends GradBaseService {
         try {
             optionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), mainProgramCode, optionalProgramCode))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    })
+                    .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
@@ -892,10 +874,7 @@ public class GraduationStatusService extends GradBaseService {
         try {
             optionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), optionalProgramID))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    })
+                    .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
@@ -910,10 +889,7 @@ public class GraduationStatusService extends GradBaseService {
         CareerProgram careerProgram = null;
         try {
             careerProgram = webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(), careerProgramCode))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    }).retrieve().bodyToMono(CareerProgram.class).block();
+                    .headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CareerProgram.class).block();
         } catch (Exception e) {
             logger.error("Program API is failed to find a carrer program with Code: [{}]", careerProgramCode);
         }
@@ -1054,10 +1030,7 @@ public class GraduationStatusService extends GradBaseService {
     public Pair<GraduationStudentRecord, GradStatusEvent> undoCompletionStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) throws JsonProcessingException {
         if(StringUtils.isNotBlank(ungradReasonCode)) {
             UndoCompletionReason ungradReasonObj = webClient.get().uri(String.format(constants.getUndoCompletionReasonDetailsUrl(),ungradReasonCode))
-              .headers(h -> {
-                  h.setBearerAuth(accessToken);
-                  h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-              })
+              .headers(h -> h.setBearerAuth(accessToken))
               .retrieve().bodyToMono(UndoCompletionReason.class).block();
             if(ungradReasonObj != null) {
                 Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
@@ -1108,10 +1081,8 @@ public class GraduationStatusService extends GradBaseService {
     public void deleteStudentAchievements(UUID studentID,String accessToken) {
         try {
             webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
+                    .headers(h -> h.setBearerAuth(accessToken))
+                    .retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
             logger.error(e.getLocalizedMessage());
         }
@@ -1120,10 +1091,7 @@ public class GraduationStatusService extends GradBaseService {
     public void archiveStudentAchievements(UUID studentID,String accessToken) {
         try {
             webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    }).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
+                    .headers(h -> h.setBearerAuth(accessToken)).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
             logger.error(e.getLocalizedMessage());
         }
@@ -1136,10 +1104,7 @@ public class GraduationStatusService extends GradBaseService {
         toBeSaved.setUndoCompletionReasonCode(ungradReasonCode);
         toBeSaved.setUndoCompletionReasonDescription(unGradDesc);
         webClient.post().uri(String.format(constants.getSaveStudentUndoCompletionReasonByStudentIdUrl(),studentID))
-            .headers(h -> {
-                h.setBearerAuth(accessToken);
-                h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-            })
+            .headers(h -> h.setBearerAuth(accessToken))
             .body(BodyInserters.fromValue(toBeSaved))
             .retrieve().bodyToMono(StudentUndoCompletionReason.class).block();
     }
@@ -1319,29 +1284,15 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     private GraduationStudentRecord processReceivedStudent(GraduationStudentRecord ent,String accessToken) {
-        try {
-            if(ent.getStudentGradData() != null) {
-                GraduationData existingData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(ent.getStudentGradData(), GraduationData.class);
-
-                ent.setPen(existingData.getGradStudent().getPen());
-                ent.setLegalFirstName(existingData.getGradStudent().getLegalFirstName());
-                ent.setLegalMiddleNames(existingData.getGradStudent().getLegalMiddleNames());
-                ent.setLegalLastName(existingData.getGradStudent().getLegalLastName());
-            } else {
-                Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
-                        .headers(h -> {
-                            h.setBearerAuth(accessToken);
-                            h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                        }).retrieve().bodyToMono(Student.class).block();
-                if(stuData != null) {
-                    ent.setPen(stuData.getPen());
-                    ent.setLegalFirstName(stuData.getLegalFirstName());
-                    ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
-                    ent.setLegalLastName(stuData.getLegalLastName());
-                }
-            }
-        } catch (JsonProcessingException e) {
-            logger.debug("Parsing Error {}",e.getOriginalMessage());
+        Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+                        .headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
+        if(stuData != null) {
+            ent.setPen(stuData.getPen());
+            ent.setLegalFirstName(stuData.getLegalFirstName());
+            ent.setLegalMiddleNames(stuData.getLegalMiddleNames());
+            ent.setLegalLastName(stuData.getLegalLastName());
+        } else {
+            logger.info("Unable to fetch student details for ID: {}", ent.getStudentID());
         }
         return ent;
     }

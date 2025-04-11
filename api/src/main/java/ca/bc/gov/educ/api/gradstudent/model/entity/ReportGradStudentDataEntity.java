@@ -42,6 +42,12 @@ public class ReportGradStudentDataEntity implements Serializable {
     @Column(name = "LAST_NAME")
     private String lastName;
 
+    @Column(name = "LOCAL_ID")
+    private String localID;
+
+    @Column(name = "DOB")
+    private String dob;
+
     @Column(name = "GRADE")
     private String studentGrade;
 

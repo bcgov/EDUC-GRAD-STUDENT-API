@@ -5,18 +5,14 @@ spring:
   datasource:
     hikari:
       pool-name: educ-grad-student-api-cp
-      connection-timeout: ${CONNECTION_TIMEOUT}
-      maximum-pool-size: ${MAXIMUM_POOL_SIZE}
-      minimum-idle: ${MIN_IDLE}
-      idle-timeout: ${IDLE_TIMEOUT}
       max-lifetime: ${MAX_LIFETIME}
     url: ${CONNECTION_STRING}
     username: ${USERNAME}
     password: ${PASSWORD}
-    driver-class-name: oracle.jdbc.driver.OracleDriver
+    #driver-class-name: oracle.jdbc.driver.OracleDriver
   jpa:
     show-sql: ${SHOW_SQL_LOGS}
-    database-platform: org.hibernate.dialect.OracleDialect
+    database-platform: org.hibernate.dialect.Oracle12cDialect
     hibernate:
       ddl-auto: none
   mvc:

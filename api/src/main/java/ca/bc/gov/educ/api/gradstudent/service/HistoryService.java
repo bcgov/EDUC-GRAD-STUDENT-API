@@ -93,10 +93,7 @@ public class HistoryService {
         histList.forEach(sP -> {
             OptionalProgram gradOptionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    })
+                    .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
@@ -121,10 +118,7 @@ public class HistoryService {
         if (obj.getOptionalProgramID() != null) {
             OptionalProgram gradOptionalProgram = webClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), obj.getOptionalProgramID()))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    })
+                    .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
                     .bodyToMono(OptionalProgram.class)
                     .block();
@@ -143,10 +137,7 @@ public class HistoryService {
         List<GraduationStudentRecordHistoryEntity> list = pagedDate.getContent();
         list.forEach(ent -> {
             Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
-                    .headers(h -> {
-                        h.setBearerAuth(accessToken);
-                        h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID());
-                    })
+                    .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve().bodyToMono(Student.class).block();
             if (stuData != null) {
                 ent.setPen(stuData.getPen());

@@ -15,7 +15,9 @@ public class EducGradStudentApiConstants {
     public static final String API_NAME = "GRAD-STUDENT-API";
     public static final String STREAM_NAME="GRAD_STATUS_EVENT_STREAM";
     public static final String CORRELATION_ID = "correlationID";
-    public static final String USERNAME = "username";
+    public static final String USER_NAME = "User-Name";
+    public static final String REQUEST_SOURCE = "Request-Source";
+
 
     //API end-point Mapping constants
     public static final String API_ROOT_MAPPING = "";
@@ -29,6 +31,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API = "/stdid/{studentID}";
     public static final String GRAD_STUDENT_BY_STUDENT_ID_GRAD="/grad/{studentID}";
     public static final String GRAD_STUDENT_BY_SEARCH_CRITERIAS = "/gradstudentbysearchcriteria";
+    public static final String GRAD_STUDENT_PAGINATION = "/grad/student/search";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_STUDENTIDS = "/multistudentids";

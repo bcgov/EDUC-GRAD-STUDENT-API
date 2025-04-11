@@ -1,0 +1,17 @@
+meta {
+  name: Find Students Paginated
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/grad/student/search?pageNumber=0&pageSize=10&searchCriteriaList=[{"condition":null,"searchCriteriaList":[{"key":"pen,"value":"123456789","operation":"eq","valueType":"STRING"}]}]
+  body: none
+  auth: none
+}
+
+query {
+  pageNumber: 0
+  pageSize: 10
+  searchCriteriaList: [{"condition":null,"searchCriteriaList":[{"key":"pen,"value":"123456789","operation":"eq","valueType":"STRING"}]}]
+}

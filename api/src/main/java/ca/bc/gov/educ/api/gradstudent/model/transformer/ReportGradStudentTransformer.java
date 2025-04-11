@@ -48,8 +48,10 @@ public class ReportGradStudentTransformer {
         for (ReportGradStudentDataEntity entity : studentStatusEntities) {
             ReportGradStudentData data = modelMapper.map(entity, ReportGradStudentData.class);
             try {
-                data.setDistrictId(UUID.fromString(entity.getDistrictId()));
-            } catch (IllegalArgumentException | NullPointerException e) {
+                if(StringUtils.isNotBlank(entity.getDistrictId())) {
+                    data.setDistrictId(UUID.fromString(entity.getDistrictId()));
+                }
+            } catch (IllegalArgumentException e) {
                 logger.warn("Invalid UUID for district ID: {} for student with ID {}", entity.getDistrictId(), entity.getGraduationStudentRecordId());
             }
             if (StringUtils.isNotBlank(entity.getCertificateTypeCodes())) {
