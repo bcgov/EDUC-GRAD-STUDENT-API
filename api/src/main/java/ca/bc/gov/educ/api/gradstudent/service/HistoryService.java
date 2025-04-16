@@ -151,7 +151,8 @@ public class HistoryService {
     }
 
     @Transactional
-    public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String updateUser, String activityCode, List<UUID> studentGuids) {
+    public Integer updateStudentRecordHistoryDistributionRun(Long batchId, String userName, String activityCode, List<UUID> studentGuids) {
+        String updateUser = StringUtils.defaultIfBlank(userName, ThreadLocalStateUtil.getCurrentUser());
         Integer historyRecordsCreated = 0;
         if(studentGuids != null && !studentGuids.isEmpty()) {
             int partitionSize = 999;
