@@ -401,6 +401,13 @@ public class GradStudentService {
 		return result;
 	}
 
+	public List<GraduationCountProjection> getGraduationCountsBySchools(List<UUID> schoolIDs) {
+		if (schoolIDs == null || schoolIDs.isEmpty()) {
+			return new ArrayList<>();
+		}
+		return graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIDs);
+	}
+
 	/**
 	 * Returns a condensed version of GraduationStudentRecord for GDC
 	 * @param studentID
