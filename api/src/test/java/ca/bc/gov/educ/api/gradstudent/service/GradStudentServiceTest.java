@@ -1126,15 +1126,14 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         List<GraduationCountProjection> expectedCounts = Collections.singletonList(new TestGraduationCountProjection(100L, 50L));
 
-        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(eq(schoolIds)))
+        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIds))
                 .thenReturn(expectedCounts);
 
         List<GraduationCountProjection> actualCounts = gradStudentService.getGraduationCountsBySchools(schoolIds);
 
-        assertThat(actualCounts).isNotNull().isNotEmpty();
-        assertThat(actualCounts).isEqualTo(expectedCounts);
+        assertThat(actualCounts).isNotNull().isNotEmpty().isEqualTo(expectedCounts);
 
-        verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(eq(schoolIds));
+        verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIds);
     }
 
     @SneakyThrows
