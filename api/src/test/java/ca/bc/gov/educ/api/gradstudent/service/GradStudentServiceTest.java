@@ -1108,6 +1108,17 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testGetGraduationCountsBySchools_WithNullOrEmptyList_ShouldReturnEmptyList() {
+        List<GraduationCountProjection> resultWithNull = gradStudentService.getGraduationCountsBySchools(null);
+        assertThat(resultWithNull).isNotNull().isEmpty();
+
+        List<GraduationCountProjection> resultWithEmptyList = gradStudentService.getGraduationCountsBySchools(Collections.emptyList());
+        assertThat(resultWithEmptyList).isNotNull().isEmpty();
+
+        verify(graduationStatusRepository, never()).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(any());
+    }
+
+    @Test
     public void testGetGraduationCountsBySchools_WithNonEmptyList_ShouldReturnCountsFromRepository() {
         final UUID schoolId1 = UUID.randomUUID();
         final UUID schoolId2 = UUID.randomUUID();
