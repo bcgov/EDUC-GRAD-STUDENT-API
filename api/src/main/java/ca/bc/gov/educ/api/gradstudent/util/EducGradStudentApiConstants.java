@@ -122,6 +122,14 @@ public class EducGradStudentApiConstants {
 
     public static final String EDW_GRADUATION_STATUS_SNAPSHOT = "/edw/snapshot";
 
+    public static final String EQUIVALENT_OR_CHALLENGE_CODES_MAPPING = "/equivalentOrChallengeCodes";
+    public static final String EQUIVALENT_OR_CHALLENGE_CODE_MAPPING = "/equivalentOrChallengeCodes/{equivalentOrChallengeCode}";
+    public static final String EXAM_SPECIAL_CASE_CODES_MAPPING = "/examSpecialCaseCodes";
+    public static final String EXAM_SPECIAL_CASE_CODE_MAPPING = "/examSpecialCaseCodes/{examSpecialCaseCode}";
+    public static final String FINE_ART_APPLIED_SKILLS_CODES_MAPPING = "/fineArtsAppliedSkillsCodes";
+    public static final String FINE_ART_APPLIED_SKILLS_CODE_MAPPING = "/fineArtsAppliedSkillsCodes/{fineArtsAppliedSkillsCode}";
+    public static final String STUDENT_COURSE_MAPPING = "/courses/{studentID}";
+
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final String DEFAULT_UPDATED_BY = "API_GRAD_STUDENT";
