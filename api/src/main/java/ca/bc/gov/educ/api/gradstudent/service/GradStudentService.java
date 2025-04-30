@@ -8,6 +8,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -398,13 +399,6 @@ public class GradStudentService {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));
 		}
 		return result;
-	}
-
-	public List<GraduationCountProjection> getGraduationCountsBySchools(List<UUID> schoolIDs) {
-		if (schoolIDs == null || schoolIDs.isEmpty()) {
-			return new ArrayList<>();
-		}
-		return graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIDs);
 	}
 
 	/**
