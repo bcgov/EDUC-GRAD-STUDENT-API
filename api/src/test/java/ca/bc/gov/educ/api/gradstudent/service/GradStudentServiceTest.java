@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
@@ -93,26 +93,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     @After
     public void tearDown() {
 
-    }
-
-    private static class TestGraduationCountProjection implements GraduationCountProjection {
-        private Long currentGraduates;
-        private Long currentNonGraduates;
-
-        public TestGraduationCountProjection(Long currentGraduates, Long currentNonGraduates) {
-            this.currentGraduates = currentGraduates;
-            this.currentNonGraduates = currentNonGraduates;
-        }
-
-        @Override
-        public Long getCurrentGraduates() {
-            return currentGraduates;
-        }
-
-        @Override
-        public Long getCurrentNonGraduates() {
-            return currentNonGraduates;
-        }
     }
 
     @Test
@@ -1105,35 +1085,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         String malformedJson = "{invalid-json}";
         Boolean result = gradStudentService.parseGraduationStatus(malformedJson);
         assertFalse("Expected false for malformed JSON", result);
-    }
-
-    @Test
-    public void testGetGraduationCountsBySchools_WithNullOrEmptyList_ShouldReturnEmptyList() {
-        List<GraduationCountProjection> resultWithNull = gradStudentService.getGraduationCountsBySchools(null);
-        assertThat(resultWithNull).isNotNull().isEmpty();
-
-        List<GraduationCountProjection> resultWithEmptyList = gradStudentService.getGraduationCountsBySchools(Collections.emptyList());
-        assertThat(resultWithEmptyList).isNotNull().isEmpty();
-
-        verify(graduationStatusRepository, never()).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(any());
-    }
-
-    @Test
-    public void testGetGraduationCountsBySchools_WithNonEmptyList_ShouldReturnCountsFromRepository() {
-        final UUID schoolId1 = UUID.randomUUID();
-        final UUID schoolId2 = UUID.randomUUID();
-        final List<UUID> schoolIds = Arrays.asList(schoolId1, schoolId2);
-
-        List<GraduationCountProjection> expectedCounts = Collections.singletonList(new TestGraduationCountProjection(100L, 50L));
-
-        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIds))
-                .thenReturn(expectedCounts);
-
-        List<GraduationCountProjection> actualCounts = gradStudentService.getGraduationCountsBySchools(schoolIds);
-
-        assertThat(actualCounts).isNotNull().isNotEmpty().isEqualTo(expectedCounts);
-
-        verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIds);
     }
 
     @SneakyThrows
