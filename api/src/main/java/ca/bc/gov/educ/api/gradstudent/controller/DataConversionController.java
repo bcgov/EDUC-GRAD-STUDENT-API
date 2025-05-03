@@ -12,9 +12,9 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,18 +25,16 @@ import java.util.UUID;
 @RestController
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
 @OpenAPIDefinition(info = @Info(title = "API for Grad Student Status.", description = "This API is for Grad Student Status.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_DATA", "UPDATE_GRAD_GRADUATION_STATUS"})})
+@AllArgsConstructor
 public class DataConversionController {
 
     private static final Logger logger = LoggerFactory.getLogger(DataConversionController.class);
     private static final String BEARER = "Bearer ";
 
-    @Autowired
     DataConversionService dataConversionService;
 
-    @Autowired
     GradValidation validation;
 
-    @Autowired
     ResponseHelper response;
 
     @PostMapping(EducGradStudentApiConstants.CONV_GRADUATION_STATUS_BY_STUDENT_ID)

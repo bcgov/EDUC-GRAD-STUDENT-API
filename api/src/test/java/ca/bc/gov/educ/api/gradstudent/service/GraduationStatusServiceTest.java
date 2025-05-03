@@ -94,7 +94,9 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
 
     @After
     public void tearDown() {
-
+        /**
+         * Placeholder method
+         */
     }
 
     @Test
@@ -1191,8 +1193,7 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
 
         var result = graduationStatusService.getStudentGradOptionalProgram(studentID, "accessToken");
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(1);
+        assertThat(result).isNotNull().hasSize(1);
         StudentOptionalProgram responseStudentOptionalProgram = result.get(0);
         assertThat(responseStudentOptionalProgram.getStudentID()).isEqualTo(gradStudentOptionalProgramEntity.getStudentID());
         assertThat(responseStudentOptionalProgram.getOptionalProgramID()).isEqualTo(gradStudentOptionalProgramEntity.getOptionalProgramID());
@@ -1580,7 +1581,6 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
     public void testCreateCRUDStudentGradCareerProgram_whenCareerProgram_is_notFound() {
         // ID
         UUID studentID = UUID.randomUUID();
-        UUID optionalProgramID = UUID.randomUUID();
         String careerProgramCode = "XA";
 
         StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
@@ -1624,7 +1624,6 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
     public void testCreateCRUDStudentGradCareerProgram_whenCareerProgram_is_Null_PrimaryKey() {
         // ID
         UUID studentID = UUID.randomUUID();
-        UUID optionalProgramID = UUID.randomUUID();
         String careerProgramCode = "XA";
 
         StudentCareerProgramEntity gradStudentCareerProgramEntity = new StudentCareerProgramEntity();
@@ -1809,8 +1808,7 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         UUID studentID = UUID.randomUUID();
         when(graduationStatusRepository.findByRecalculateGradStatusForBatch("Y")).thenReturn(List.of(studentID));
         var result = graduationStatusService.getStudentsForGraduation();
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(1);
+        assertThat(result).isNotNull().hasSize(1);
         UUID responseStudentID = result.get(0);
         assertThat(responseStudentID).isEqualTo(studentID);
     }
@@ -1882,7 +1880,6 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         district.setDisplayName("Test District");
 
         List<String> programs = new ArrayList<>();
-        //programs.add(programCode);
 
         GradProgram program = new GradProgram();
         program.setProgramCode(programCode);
@@ -2028,7 +2025,6 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         district.setDisplayName("Test District");
 
         List<String> programs = new ArrayList<>();
-        //programs.add(programCode);
 
         GradProgram program = new GradProgram();
         program.setProgramCode(programCode);
@@ -2121,8 +2117,7 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         UUID studentID = UUID.randomUUID();
         when(graduationStatusRepository.findByRecalculateProjectedGradForBatch("Y")).thenReturn(List.of(studentID));
         var result = graduationStatusService.getStudentsForProjectedGraduation();
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(1);
+        assertThat(result).isNotNull().hasSize(1);
         UUID responseStudentID = result.get(0);
         assertThat(responseStudentID).isEqualTo(studentID);
     }
@@ -2391,7 +2386,9 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         String projectedClob = null;
         try {
             projectedClob = new ObjectMapper().writeValueAsString(projectedRunClob);
-        } catch (JsonProcessingException e) {}
+        } catch (JsonProcessingException e) {
+            assertThat(e.getMessage()).isNotNull();
+        }
 
         GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
         graduationStatusEntity2.setStudentID(studentID);
@@ -2430,7 +2427,9 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         String projectedClob = null;
         try {
             projectedClob = new ObjectMapper().writeValueAsString(projectedRunClob);
-        } catch (JsonProcessingException e) {}
+        } catch (JsonProcessingException e) {
+            assertThat(e.getMessage()).isNotNull();
+        }
 
         GraduationStudentRecordEntity graduationStatusEntity2 = new GraduationStudentRecordEntity();
         graduationStatusEntity2.setStudentID(studentID);
@@ -2979,8 +2978,6 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
         result = gradStudentReportService.getGradStudentDataForNonGradYearEndReportBySchool(graduationStatusEntity.getSchoolOfRecordId());
         assertThat(result).isNotEmpty().hasSize(1);
 
-//        graduationStatusEntity.setSchoolOfRecordId("001");
-//        assertThat(graduationStatusEntity.getSchoolOfRecord()).hasSize(3);
         UUID districtId = UUID.randomUUID();
         when(reportGradStudentDataRepository.findReportGradStudentDataEntityByDistrictIdAndProgramCompletionDateAndStudentStatusAndStudentGrade(districtId, PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
 
@@ -3350,7 +3347,6 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
 
     @Test
     public void testArchiveStudentEmpty() {
-        LocalDateTime updateDate = LocalDateTime.now();
         UUID studentID = new UUID(1, 1);
         UUID schoolId = UUID.randomUUID();
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();

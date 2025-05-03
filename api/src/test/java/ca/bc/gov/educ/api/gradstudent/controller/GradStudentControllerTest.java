@@ -100,7 +100,6 @@ public class GradStudentControllerTest {
         // ID
         final UUID studentID = UUID.randomUUID();
         final String pen = "123456789";
-        final String lastName = "LastName";
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
@@ -130,11 +129,7 @@ public class GradStudentControllerTest {
         final String pen = "123456789";
         final String firstName = "FirstName";
         final String lastName = "LastName";
-        final String program = "2018-EN";
-        final String gradStatus = "A";
-        final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test School";
 
         // Grad Student
         final StudentCreate student = new StudentCreate();

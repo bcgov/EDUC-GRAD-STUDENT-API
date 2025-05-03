@@ -210,7 +210,7 @@ public class GradStudentService {
 	private List<GradSearchStudent> buildPartitions(List<Student> studentLists, String accessToken) {
 		List<GradSearchStudent> gradStudentList = new ArrayList<>();
 
-		List<UUID> studentIds = studentLists.stream().map(std -> UUID.fromString(std.getStudentID())).collect(Collectors.toList());
+		List<UUID> studentIds = studentLists.stream().map(std -> UUID.fromString(std.getStudentID())).toList();
 		int partitionSize = 1000;
 		List<List<UUID>> partitions = new LinkedList<>();
 		for (int i = 0; i < studentIds.size(); i += partitionSize) {
@@ -283,11 +283,6 @@ public class GradStudentService {
 		if(criteria != null) criteriaList.add(criteria);
 	}
 
-	private GradSearchStudent populateGradStudent(GraduationStudentRecordEntity gradRecord, String accessToken) {
-		GradSearchStudent gradStu = new GradSearchStudent();
-		BeanUtils.copyProperties(gradRecord, gradStu);
-		return populateGradStudent(gradStu, accessToken);
-	}
 
 	private GradSearchStudent populateGradStudent(GraduationStudentRecordView gradRecord, String accessToken) {
 		GradSearchStudent gradStu = new GradSearchStudent();

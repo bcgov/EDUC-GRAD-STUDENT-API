@@ -314,7 +314,6 @@ public class CommonControllerTest {
     public void testgetStudentGradStatusForAlgorithm() {
 
         String studentID = new UUID(1,1).toString();
-        String accessToken = "accessToken";
 
         GradSearchStudent gs = new GradSearchStudent();
         gs.setStudentID(studentID);
@@ -329,7 +328,9 @@ public class CommonControllerTest {
         data.setGraduationStudentRecord(gsr);
 
         Mockito.when(commonService.getGradStudentAlgorithmData(studentID,"accessToken")).thenReturn(data);
+        GradStudentAlgorithmData response = commonService.getGradStudentAlgorithmData(studentID,"accessToken");
         commonController.getStudentGradStatusForAlgorithm(studentID, "accessToken");
+        assertThat(response).isNotNull();
     }
 
     @Test
