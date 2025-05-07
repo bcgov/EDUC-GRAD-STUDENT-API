@@ -98,8 +98,10 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     private static class TestGraduationCountProjection implements GraduationCountProjection {
         private Long currentGraduates;
         private Long currentNonGraduates;
+        private String schoolOfRecordId;
 
-        public TestGraduationCountProjection(Long currentGraduates, Long currentNonGraduates) {
+        public TestGraduationCountProjection(Long currentGraduates, Long currentNonGraduates, String schoolOfRecordId) {
+            this.schoolOfRecordId = schoolOfRecordId;
             this.currentGraduates = currentGraduates;
             this.currentNonGraduates = currentNonGraduates;
         }
@@ -112,6 +114,11 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         @Override
         public Long getCurrentNonGraduates() {
             return currentNonGraduates;
+        }
+
+        @Override
+        public String getSchoolOfRecordId() {
+            return schoolOfRecordId;
         }
     }
 
@@ -1125,7 +1132,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final UUID schoolId2 = UUID.randomUUID();
         final List<UUID> schoolIds = Arrays.asList(schoolId1, schoolId2);
 
-        List<GraduationCountProjection> expectedCounts = Collections.singletonList(new TestGraduationCountProjection(100L, 50L));
+        List<GraduationCountProjection> expectedCounts = Arrays.asList(new TestGraduationCountProjection(100L, 50L, schoolId1.toString()), new TestGraduationCountProjection(15L, 10L, schoolId2.toString()));
 
         when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIds))
                 .thenReturn(expectedCounts);

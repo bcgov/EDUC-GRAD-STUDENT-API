@@ -191,21 +191,23 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	Integer updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(Long batchId, String studentStatus);
 
 	@Query(value = "SELECT " +
+			"  gsr.SCHOOL_OF_RECORD_ID, " + 
 			"  COUNT(CASE " +
-			"    WHEN PROGRAM_COMPLETION_DATE >= DATE '2024-10-01' " +
-			"    AND PROGRAM_COMPLETION_DATE <= DATE '2025-09-30' " +
-			"    AND GRADUATION_PROGRAM_CODE <> 'SCCP' " +
+			"    WHEN gsr.PROGRAM_COMPLETION_DATE >= DATE '2024-10-01' " +
+			"    AND gsr.PROGRAM_COMPLETION_DATE <= DATE '2025-09-30' " +
+			"    AND gsr.GRADUATION_PROGRAM_CODE <> 'SCCP' " +
 			"    THEN 1 " +
 			"  END) AS currentGraduates, " +
 			"  COUNT(CASE " +
-			"    WHEN PROGRAM_COMPLETION_DATE IS NULL " +
-			"    AND STUDENT_GRADE = '12' " +
-			"    AND GRADUATION_PROGRAM_CODE IS NOT NULL " +
-			"    AND GRADUATION_PROGRAM_CODE <> 'SCCP' " +
+			"    WHEN gsr.PROGRAM_COMPLETION_DATE IS NULL " +
+			"    AND gsr.STUDENT_GRADE = '12' " +
+			"    AND gsr.GRADUATION_PROGRAM_CODE IS NOT NULL " +
+			"    AND gsr.GRADUATION_PROGRAM_CODE <> 'SCCP' " +
 			"    THEN 1 " +
 			"  END) AS currentNonGraduates " +
-			"FROM GRADUATION_STUDENT_RECORD " +
-			"WHERE SCHOOL_OF_RECORD_ID IN (:schoolIDs)",
+			"FROM GRADUATION_STUDENT_RECORD gsr " + 
+			"WHERE gsr.SCHOOL_OF_RECORD_ID IN (:schoolIDs) " +
+			"GROUP BY gsr.SCHOOL_OF_RECORD_ID",
 			nativeQuery = true)
 	List<GraduationCountProjection> countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(@Param("schoolIDs") List<UUID> schoolIDs);
 
