@@ -1139,8 +1139,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         List<GraduationCountProjection> actualCounts = gradStudentService.getGraduationCountsBySchools(schoolIds);
 
-        System.out.println("Actual Counts: " + actualCounts);
-
         assertThat(actualCounts).isNotNull().isNotEmpty().isEqualTo(expectedCounts);
 
         verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIds);
