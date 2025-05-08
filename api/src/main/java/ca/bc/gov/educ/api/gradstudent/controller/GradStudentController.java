@@ -140,7 +140,7 @@ public class GradStudentController {
 		return gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
 	}
 
-	@GetMapping(EducGradStudentApiConstants.GRADUATION_COUNTS)
+	@PostMapping(EducGradStudentApiConstants.GRADUATION_COUNTS)
 	@PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
 	@Operation(summary = "Get Graduation Counts by School IDs", description = "Retrieves counts of current graduates and non-graduates for specified schools.", tags = { "Student Demographics" })
 	@ApiResponses(value = {
@@ -148,11 +148,11 @@ public class GradStudentController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized"),
 			@ApiResponse(responseCode = "403", description = "Forbidden")
 	})
-	public List<GraduationCountProjection> getGraduationCountsBySchools(
-			@RequestParam(value = "schoolId") List<UUID> schoolIds) {
-		return gradStudentService.getGraduationCountsBySchools(schoolIds);
+	public List<GraduationCountProjection> getGraduationCountsBySchools(@RequestBody GraduationCountRequest requestBody) {
+		List<UUID> schoolIDs = requestBody.getSchoolID();
+		return gradStudentService.getGraduationCountsBySchools(schoolIDs);
 	}
-
+	
 	@GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_PAGINATION)
 	@PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
 	@Transactional(readOnly = true)
