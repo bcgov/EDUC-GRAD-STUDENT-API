@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -190,26 +191,17 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Query( "update GraduationStudentRecordEntity e set e.batchId = :batchId where e.studentStatus = :studentStatus")
 	Integer updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(Long batchId, String studentStatus);
 
-	@Query(value = "SELECT " +
-			"  gsr.SCHOOL_OF_RECORD_ID AS schoolOfRecordId, " +
-			"  COUNT(CASE " +
-			"    WHEN gsr.PROGRAM_COMPLETION_DATE >= DATE '2024-10-01' " +
-			"    AND gsr.PROGRAM_COMPLETION_DATE <= DATE '2025-09-30' " + 
-			"    AND gsr.GRADUATION_PROGRAM_CODE <> 'SCCP' " +
-			"    THEN 1 " +
-			"  END) AS currentGraduates, " +
-			"  COUNT(CASE " +
-			"    WHEN gsr.PROGRAM_COMPLETION_DATE IS NULL " +
-			"    AND gsr.STUDENT_GRADE = '12' " +
-			"    AND gsr.GRADUATION_PROGRAM_CODE IS NOT NULL " +
-			"    AND gsr.GRADUATION_PROGRAM_CODE <> 'SCCP' " +
-			"    THEN 1 " +
-			"  END) AS currentNonGraduates " +
-			"FROM GRADUATION_STUDENT_RECORD gsr " +
-			"WHERE gsr.SCHOOL_OF_RECORD_ID IN (:schoolIDs) " +
-			"GROUP BY gsr.SCHOOL_OF_RECORD_ID",
-			nativeQuery = true)
-	List<GraduationCountProjection> countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(@Param("schoolIDs") List<UUID> schoolIDs);
+	@Query("SELECT gsr.schoolOfRecordId AS schoolOfRecordId, " +
+			"COUNT(CASE WHEN gsr.programCompletionDate BETWEEN :startDate AND :endDate AND gsr.program <> 'SCCP' THEN 1 ELSE NULL END) AS currentGraduates, " +
+			"COUNT(CASE WHEN gsr.programCompletionDate IS NULL AND gsr.studentGrade = '12' AND gsr.program IS NOT NULL AND gsr.program <> 'SCCP' THEN 1 ELSE NULL END) AS currentNonGraduates " +
+			"FROM GraduationStudentRecordEntity gsr " + 
+			"WHERE gsr.schoolOfRecordId IN (:schoolIDs) " +
+			"GROUP BY gsr.schoolOfRecordId")
+	List<GraduationCountProjection> countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
+			@Param("schoolIDs") List<UUID> schoolIDs,
+			@Param("startDate") LocalDate startDate, 
+			@Param("endDate") LocalDate endDate 
+	);
 
 
 	/**

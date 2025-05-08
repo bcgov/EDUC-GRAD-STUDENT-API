@@ -1,7 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import java.util.UUID;
+
 public interface GraduationCountProjection {
-    String getSchoolOfRecordId();
+    UUID getSchoolOfRecordId();
     
     Long getCurrentGraduates();
 
