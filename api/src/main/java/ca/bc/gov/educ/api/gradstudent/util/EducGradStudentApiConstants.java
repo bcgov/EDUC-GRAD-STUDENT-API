@@ -183,6 +183,9 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-student-graduation-api.ungrad-reason.ungrad-reason-by-reason-code.url}")
     private String undoCompletionReasonDetailsUrl;
 
+    @Value("${endpoint.grad-student-graduation-api.letter-grades.url}")
+    private String letterGradesUrl;
+
     @Value("${endpoint.pen-student-api.search.url}")
     private String penStudentApiSearchUrl;
 
@@ -207,6 +210,12 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.grad-trax-api.search-schools-by-category-code.url}")
     private String schoolsByCategoryCodeUrl;
+
+    @Value("${endpoint.grad-course-api.course-details-search.url}")
+    private String courseDetailSearchUrl;
+
+    @Value("${endpoint.grad-course-api.examinable-course-details-search.url}")
+    private String courseExaminableSearchUrl;
     
     // Splunk LogHelper Enabled
     @Value("${splunk.log-helper.enabled}")

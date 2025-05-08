@@ -6,7 +6,6 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -26,10 +25,10 @@ public class StudentCourseEntity extends BaseEntity {
     private UUID studentID;
 
     @Column(name = "COURSE_ID", nullable = false)
-    private Integer courseID;
+    private BigInteger courseID;
 
     @Column(name = "COURSE_SESSION", nullable = false)
-    private LocalDate sessionDate;
+    private String courseSession;
 
     @Column(name = "INTERIM_PERCENT")
     private Double interimPercent;
