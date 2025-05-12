@@ -40,7 +40,7 @@ public class StudentCourseExaminableRule implements StudentCourseValidationBaseR
             boolean isExaminable = false;
             for (ExaminableCourse examinableCourse: examinableCourses) {
                 if(sessionDate.isAfter(getLocalDate(examinableCourse.getExaminableStart()))
-                        && (examinableCourse.getExaminableEnd() != null && sessionDate.isBefore(getLocalDate(examinableCourse.getExaminableStart()))) && !isExaminable) {
+                        && (examinableCourse.getExaminableEnd() != null && sessionDate.isBefore(getLocalDate(examinableCourse.getExaminableEnd()))) && !isExaminable) {
                     isExaminable = true;
                 }
             }

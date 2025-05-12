@@ -60,7 +60,7 @@ public class StudentCourseRule implements StudentCourseValidationBaseRule {
             validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID));
         }
         if (course.getCourseCode().startsWith("Q")) {
-            validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID));
+            validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID));
         }
         return validationIssues;
     }
