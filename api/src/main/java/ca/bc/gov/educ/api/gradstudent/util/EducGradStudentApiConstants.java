@@ -129,6 +129,7 @@ public class EducGradStudentApiConstants {
     public static final String FINE_ART_APPLIED_SKILLS_CODES_MAPPING = "/fineArtsAppliedSkillsCodes";
     public static final String FINE_ART_APPLIED_SKILLS_CODE_MAPPING = "/fineArtsAppliedSkillsCodes/{fineArtsAppliedSkillsCode}";
     public static final String STUDENT_COURSE_MAPPING = "/courses/{studentID}";
+    public static final String STUDENT_COURSE_HISTORY_MAPPING = "/courses/{studentID}/history";
 
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";

@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -14,12 +13,12 @@ import java.util.UUID;
 @SuperBuilder
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StudentCourse extends BaseModel {
+public class StudentCourseHistory extends BaseModel {
 
     private UUID id;
-    @NotBlank
+    private String activityCode;
+    private String activityDescription;
     private String courseID;
-    @NotBlank
     private String courseSession;
     private Integer interimPercent;
     private String interimLetterGrade;

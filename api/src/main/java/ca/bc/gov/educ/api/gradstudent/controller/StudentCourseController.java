@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseHistory;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseValidationIssue;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -17,7 +18,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +40,7 @@ public class StudentCourseController {
 
     @GetMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
     @PreAuthorize(PermissionsConstants.READ_EQUIVALENT_OR_CHALLENGE_CODE)
-    @Operation(summary = "Create course", description = "Create Courses", tags = { "Student courses" })
+    @Operation(summary = "Get student courses", description = "Retrieve student courses by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
@@ -60,7 +60,7 @@ public class StudentCourseController {
     })
     public ResponseEntity<List<StudentCourseValidationIssue>> createStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<StudentCourse> studentCourses, @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("createStudentCourses: studentID = {}", studentID);
-        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses, accessToken.replace("Bearer ", ""), false);
+        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses, getFormattedAccessToken(accessToken), false);
         return response.GET(results);
     }
 
@@ -73,7 +73,7 @@ public class StudentCourseController {
     })
     public ResponseEntity<List<StudentCourseValidationIssue>> updateStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<StudentCourse> studentCourses, @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("updateStudentCourses: studentID = {}", studentID);
-        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses, accessToken.replace("Bearer ", ""), true);
+        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses, getFormattedAccessToken(accessToken), true);
         return response.GET(results);
     }
 
@@ -83,10 +83,26 @@ public class StudentCourseController {
     @Operation(summary = "Delete Student Courses", description = "Delete Student Courses by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    public ResponseEntity<Void> deleteStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<UUID> studentCourses) {
+    public ResponseEntity<List<StudentCourseValidationIssue>> deleteStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<UUID> studentCourses, @RequestHeader(name="Authorization") String accessToken) {
         logger.debug("deleteStudentCourses: studentID = {} : CourseIDs = {}", studentID, studentCourses);
-        studentCourseService.deleteStudentCourses(studentID, studentCourses);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        List<StudentCourseValidationIssue> results = studentCourseService.deleteStudentCourses(studentID, studentCourses, getFormattedAccessToken(accessToken));
+        return response.GET(results);
+    }
+
+    @GetMapping(EducGradStudentApiConstants.STUDENT_COURSE_HISTORY_MAPPING)
+    @PreAuthorize(PermissionsConstants.READ_EQUIVALENT_OR_CHALLENGE_CODE)
+    @Operation(summary = "Get student course history", description = "Retrieve student course history by studentID", tags = { "Student courses" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+            @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
+    })
+    public ResponseEntity<List<StudentCourseHistory>> getStudentCourseHistory(@PathVariable UUID studentID) {
+        logger.debug("getStudentCourses history: studentID = {}", studentID);
+        return response.GET(studentCourseService.getStudentCourseHistory(studentID));
+    }
+
+    private String getFormattedAccessToken(String accessToken) {
+        return accessToken.replace("Bearer ", "");
     }
 
 }

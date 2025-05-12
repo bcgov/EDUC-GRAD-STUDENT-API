@@ -1,17 +1,21 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
 import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseMapper;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
+import ca.bc.gov.educ.api.gradstudent.util.JsonTransformer;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.StudentCourseRulesProcessor;
 import com.nimbusds.jose.util.Pair;
+import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import java.math.BigInteger;
 
 import java.util.*;
 
@@ -25,10 +29,19 @@ public class StudentCourseService {
     private final StudentCourseRulesProcessor studentCourseRulesProcessor;
     private final GraduationStatusService graduationStatusService;
     private final CourseService courseService;
+    private final HistoryService historyService;
+    private final JsonTransformer jsonTransformer;
 
     public List<StudentCourse> getStudentCourses(UUID studentID) {
         if(studentID != null) {
             return studentCourseRepository.findByStudentID(studentID).stream().map(mapper::toStructure).toList();
+        }
+        return Collections.emptyList();
+    }
+
+    public List<StudentCourseHistory> getStudentCourseHistory(UUID studentID) {
+        if(studentID != null) {
+            return historyService.getStudentCourseHistory(studentID);
         }
         return Collections.emptyList();
     }
@@ -43,6 +56,7 @@ public class StudentCourseService {
         List<Course> courses = courseService.getCourses(studentCourses.stream().map(StudentCourse::getCourseID).toList(), accessToken);
         List<ExaminableCourse> examinableCourses = courseService.getExaminableCourses(studentCourses.stream().map(StudentCourse::getCourseID).toList(), accessToken);
         List<LetterGrade> letterGrades = courseService.getLetterGrades(accessToken);
+        String activityCode = isUpdate ? StudentCourseActivityType.USERCOURSEMOD.name() : StudentCourseActivityType.USERCOURSEADD.name();
         studentCourses.forEach(studentCourse -> {
             StudentCourse existingStudentCourse = getExistingCourse(studentCourse, existingStudentCourses, isUpdate);
             Course course = courses.stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID())).findFirst().orElse(null);
@@ -52,8 +66,8 @@ public class StudentCourseService {
             StudentCourseRuleData studentCourseRuleData = prepareStudentCourseRuleData(studentCourse, graduationStudentRecord, course, Pair.of(interimLetterGrade, finalLetterGrade), coursesExaminable);
             List<ValidationIssue> validationIssues = studentCourseRulesProcessor.processRules(studentCourseRuleData);
             boolean hasError = validationIssues.stream().anyMatch(issue -> "ERROR".equals(issue.getValidationIssueSeverityCode()));
-            Long repCount = studentCourses.stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID()) && x.getCourseSession().equals(studentCourse.getCourseSession())).count();
-            boolean allowSaveOrUpdate = repCount == 1 && ((existingStudentCourse != null && isUpdate) || (existingStudentCourse == null && !isUpdate));
+            Long dupeCount = studentCourses.stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID()) && x.getCourseSession().equals(studentCourse.getCourseSession())).count();
+            boolean allowSaveOrUpdate = dupeCount == 1 && ((existingStudentCourse != null && isUpdate) || (existingStudentCourse == null && !isUpdate));
             if(!hasError && allowSaveOrUpdate) {
                 tobePersisted.add(studentCourse);
             }
@@ -69,6 +83,7 @@ public class StudentCourseService {
                             entity.setStudentID(studentID);
                             return entity;
                         }).toList());
+                createStudentCourseHistory(studentID, savedEntities, activityCode);
                 savedEntities.forEach(entity -> {
                     StudentCourseValidationIssue courseValidationIssue = courseValidationIssues.get(entity.getCourseID().toString().concat(entity.getCourseSession()));
                     if (courseValidationIssue != null) {
@@ -93,10 +108,49 @@ public class StudentCourseService {
     }
 
     @Transactional
-    public void deleteStudentCourses(UUID studentID, List<UUID> studentCourseIDs) {
-        if(!CollectionUtils.isEmpty(studentCourseIDs)) {
-            studentCourseRepository.deleteAllById(studentCourseIDs);
+    public List<StudentCourseValidationIssue> deleteStudentCourses(UUID studentID, List<UUID> studentCourseIDs, String accessToken) {
+        Map<UUID, StudentCourseValidationIssue> courseValidationIssues = new HashMap<>();
+        if(CollectionUtils.isEmpty(studentCourseIDs)) return Collections.emptyList();
+        GraduationStudentRecord graduationStudentRecord = graduationStatusService.getGraduationStatus(studentID);
+        List<StudentCourseEntity> existingStudentCourses = studentCourseRepository.findAllById(studentCourseIDs);
+        List<Course> courses = courseService.getCourses(existingStudentCourses.stream().map(StudentCourseEntity::getCourseID).map(BigInteger::toString).toList(), accessToken);
+        if(StringUtils.isNotBlank(graduationStudentRecord.getProgramCompletionDate())) {
+            GraduationDataOptionalDetails graduationDataOptionalDetails = getGraduationStatusWithOptionalDetails(graduationStudentRecord);
+            for(StudentCourseEntity studentCourse: existingStudentCourses) {
+                Course course = courses.stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID().toString())).findFirst().orElse(null);
+                courseValidationIssues.put(studentCourse.getId(), createCourseValidationIssue(studentCourse.getCourseID().toString(), studentCourse.getCourseSession(), new ArrayList<>()));
+                if(isCourseUsedForGraduation(course, graduationDataOptionalDetails)) {
+                    StudentCourseValidationIssueTypeCode invalidTypeCode = StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_VALID;
+                    courseValidationIssues.put(studentCourse.getId(), createCourseValidationIssue(studentCourse.getCourseID().toString(), studentCourse.getCourseSession(), List.of(ValidationIssue.builder().validationIssueMessage(invalidTypeCode.getMessage()).validationFieldName(invalidTypeCode.getCode()).validationIssueSeverityCode(invalidTypeCode.getSeverityCode().getCode()).build())));
+                }
+            }
         }
+        studentCourseRepository.deleteAllById(studentCourseIDs);
+        createStudentCourseHistory(studentID, existingStudentCourses, StudentCourseActivityType.USERCOURSEDEL.name());
+        courseValidationIssues.values().forEach(x -> x.setHasPersisted(true));
+        return courseValidationIssues.values().stream().toList();
+    }
+
+    private void createStudentCourseHistory(UUID studentID, List<StudentCourseEntity> studentCourseEntities , String historyActivityCode) {
+        historyService.createStudentCourseHistory(studentCourseEntities, historyActivityCode);
+        graduationStatusService.updateBatchFlagsForStudentCourses(studentID);
+    }
+
+    private boolean isCourseUsedForGraduation(Course course, GraduationDataOptionalDetails graduationDataOptionalDetails) {
+        for(GradStudentOptionalStudentProgram gradStudentOptionalStudentProgram : graduationDataOptionalDetails.getOptionalGradStatus()) {
+            for(OptionalStudentCourse optionalStudentCourse : gradStudentOptionalStudentProgram.getOptionalStudentCourses().getStudentCourseList()) {
+                String optionalExternalCode = StringUtils.isNotBlank(optionalStudentCourse.getCourseLevel()) ? optionalStudentCourse.getCourseCode().concat(" ").concat(optionalStudentCourse.getCourseLevel()) : optionalStudentCourse.getCourseCode();
+                String courseExternalCode = StringUtils.isNotBlank(course.getCourseLevel()) ? course.getCourseCode().concat(" ").concat(course.getCourseLevel()) : course.getCourseCode();
+                if(optionalExternalCode.equals(courseExternalCode) && optionalStudentCourse.isUsed()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private GraduationDataOptionalDetails getGraduationStatusWithOptionalDetails(GraduationStudentRecord graduationStudentRecord) {
+        return (GraduationDataOptionalDetails) jsonTransformer.unmarshall(graduationStudentRecord.getStudentGradData(), GraduationDataOptionalDetails.class);
     }
 
     private StudentCourseRuleData prepareStudentCourseRuleData(StudentCourse studentCourse, GraduationStudentRecord graduationStudentRecord, Course course, Pair<LetterGrade,LetterGrade> letterGrade, List<ExaminableCourse> examinableCourses) {
@@ -111,9 +165,13 @@ public class StudentCourseService {
     }
 
     private StudentCourseValidationIssue  createCourseValidationIssue(StudentCourse studentCourse, List<ValidationIssue> validationIssues){
+        return createCourseValidationIssue(studentCourse.getCourseID(), studentCourse.getCourseSession(), validationIssues);
+    }
+
+    private StudentCourseValidationIssue  createCourseValidationIssue(String courseID, String courseSession, List<ValidationIssue> validationIssues){
         StudentCourseValidationIssue studentCourseValidationIssue = new StudentCourseValidationIssue();
-        studentCourseValidationIssue.setCourseID(studentCourse.getCourseID());
-        studentCourseValidationIssue.setCourseSession(studentCourse.getCourseSession());
+        studentCourseValidationIssue.setCourseID(courseID);
+        studentCourseValidationIssue.setCourseSession(courseSession);
         studentCourseValidationIssue.setValidationIssues(validationIssues);
         return studentCourseValidationIssue;
     }

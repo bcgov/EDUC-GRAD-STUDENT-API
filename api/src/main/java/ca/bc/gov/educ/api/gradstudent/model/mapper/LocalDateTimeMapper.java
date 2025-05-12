@@ -1,8 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.model.mapper;
 
+import org.mapstruct.Mapper;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Mapper(componentModel = "spring")
 public class LocalDateTimeMapper {
 
     /**

@@ -33,7 +33,9 @@ public enum StudentCourseValidationIssueTypeCode {
     STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID("fineArtsAppliedSkills", "This course is not Board Authority Authorized" , ValidationIssueSeverityCode.WARNING),
     STUDENT_COURSE_CREDITS_BA_VALID("credits", "Number of Credits must be 4 if B has been selected for the Board Authority Authorized or Locally Developed course Fine Arts/Applied Skills flag" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_CREDITS_A_F_VALID("credits", "Number of Credits must at least 2 if A or F has been selected for the Board Authority Authorized or Locally Developed course Fine Arts/Applied Skills flag" , ValidationIssueSeverityCode.ERROR),
-    STUDENT_COURSE_CREDITS_VALID("credits", "The number of credits is not an allowable credit value in the Course Registry", ValidationIssueSeverityCode.ERROR);
+    STUDENT_COURSE_CREDITS_VALID("credits", "The number of credits is not an allowable credit value in the Course Registry", ValidationIssueSeverityCode.ERROR),
+
+    STUDENT_COURSE_DELETE_VALID("course", "This course has been used to meet a graduation requirement.", ValidationIssueSeverityCode.WARNING);
 
     private static final Map<String, StudentCourseValidationIssueTypeCode> CODE_MAP = new HashMap<>();
 
