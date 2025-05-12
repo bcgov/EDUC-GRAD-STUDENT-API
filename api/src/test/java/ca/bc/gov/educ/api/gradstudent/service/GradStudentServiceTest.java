@@ -1126,8 +1126,8 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         verify(graduationStatusRepository, never()).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
                 anyList(),
-                any(LocalDate.class),
-                any(LocalDate.class)
+                any(Date.class),
+                any(Date.class)
         );
     }
 
@@ -1139,7 +1139,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         List<GraduationCountProjection> expectedCounts = Arrays.asList(new TestGraduationCountProjection(100L, 50L, schoolId1), new TestGraduationCountProjection(15L, 10L, schoolId2));
 
-        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(eq(schoolIds), any(LocalDate.class), any(LocalDate.class)))
+        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(eq(schoolIds), any(Date.class), any(Date.class)))
                 .thenReturn(expectedCounts);
 
         List<GraduationCountProjection> actualCounts = gradStudentService.getGraduationCountsBySchools(schoolIds);
@@ -1148,8 +1148,8 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
                 eq(schoolIds),        
-                any(LocalDate.class), 
-                any(LocalDate.class) 
+                any(Date.class), 
+                any(Date.class) 
         );
     }
 

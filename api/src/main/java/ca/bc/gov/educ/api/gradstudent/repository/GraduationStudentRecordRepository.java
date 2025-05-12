@@ -199,8 +199,8 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 			"GROUP BY gsr.schoolOfRecordId")
 	List<GraduationCountProjection> countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
 			@Param("schoolIDs") List<UUID> schoolIDs,
-			@Param("startDate") LocalDate startDate, 
-			@Param("endDate") LocalDate endDate 
+			@Param("startDate") Date startDate,
+			@Param("endDate") Date endDate
 	);
 
 

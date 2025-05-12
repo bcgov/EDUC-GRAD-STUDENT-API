@@ -28,6 +28,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.Date;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -408,14 +409,17 @@ public class GradStudentService {
 		}
 
 		LocalDate currentDate = LocalDate.now();
-		
+
 		int startYear = (currentDate.getMonth().compareTo(Month.SEPTEMBER) <= 0)
 				? currentDate.getYear() - 1
 				: currentDate.getYear();
-		
-		LocalDate startDate = LocalDate.of(startYear, 10, 1);
-		LocalDate endDate = LocalDate.of(startYear + 1, 9, 30);
-		
+
+		LocalDate localStartDate = LocalDate.of(startYear, 10, 1);
+		LocalDate localEndDate = LocalDate.of(startYear + 1, 9, 30);
+
+		Date startDate = java.sql.Date.valueOf(localStartDate);
+		Date endDate = java.sql.Date.valueOf(localEndDate);
+
 		return graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIDs, startDate, endDate);
 	}
 
