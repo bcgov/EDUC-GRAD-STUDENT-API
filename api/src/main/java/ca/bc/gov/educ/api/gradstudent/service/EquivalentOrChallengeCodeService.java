@@ -20,8 +20,8 @@ public class EquivalentOrChallengeCodeService {
         return equivalentOrChallengeCodeRepository.findAll(Sort.by(Sort.Direction.ASC, "displayOrder")).stream().map(mapper::toStructure).toList();
     }
 
-    public EquivalentOrChallengeCode findByEquivalentOrChallengeCode(String EquivalentOrChallengeCode) {
-        return equivalentOrChallengeCodeRepository.findById(EquivalentOrChallengeCode)
+    public EquivalentOrChallengeCode findByEquivalentOrChallengeCode(String equivalentOrChallengeCode) {
+        return equivalentOrChallengeCodeRepository.findById(equivalentOrChallengeCode)
                 .map(mapper::toStructure)
                 .orElse(null);
     }

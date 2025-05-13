@@ -6,7 +6,6 @@ import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -365,7 +365,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
         historyEntity.setActivityCode(StudentCourseActivityType.USERCOURSEADD.name());
         when(studentCourseHistoryRepository.findByStudentID(studentID)).thenReturn(List.of(historyEntity));
         var result = historyService.getStudentCourseHistory(studentID);
-        assertThat(result.size()).isNotNull().isEqualTo(1);
+        assertThat(result).hasSize(1);
     }
 
 }

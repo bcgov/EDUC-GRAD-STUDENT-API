@@ -119,7 +119,7 @@ public class StudentCourseService {
             for(StudentCourseEntity studentCourse: existingStudentCourses) {
                 Course course = courses.stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID().toString())).findFirst().orElse(null);
                 courseValidationIssues.put(studentCourse.getId(), createCourseValidationIssue(studentCourse.getCourseID().toString(), studentCourse.getCourseSession(), new ArrayList<>()));
-                if(isCourseUsedForGraduation(course, graduationDataOptionalDetails)) {
+                if(graduationDataOptionalDetails != null && course != null && isCourseUsedForGraduation(course, graduationDataOptionalDetails)) {
                     StudentCourseValidationIssueTypeCode invalidTypeCode = StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_VALID;
                     courseValidationIssues.put(studentCourse.getId(), createCourseValidationIssue(studentCourse.getCourseID().toString(), studentCourse.getCourseSession(), List.of(ValidationIssue.builder().validationIssueMessage(invalidTypeCode.getMessage()).validationFieldName(invalidTypeCode.getCode()).validationIssueSeverityCode(invalidTypeCode.getSeverityCode().getCode()).build())));
                 }
@@ -137,14 +137,12 @@ public class StudentCourseService {
     }
 
     private boolean isCourseUsedForGraduation(Course course, GraduationDataOptionalDetails graduationDataOptionalDetails) {
-        if(graduationDataOptionalDetails != null && course != null) {
-            for (GradStudentOptionalStudentProgram gradStudentOptionalStudentProgram : graduationDataOptionalDetails.getOptionalGradStatus()) {
-                for (OptionalStudentCourse optionalStudentCourse : gradStudentOptionalStudentProgram.getOptionalStudentCourses().getStudentCourseList()) {
-                    String optionalExternalCode = StringUtils.isNotBlank(optionalStudentCourse.getCourseLevel()) ? optionalStudentCourse.getCourseCode().concat(" ").concat(optionalStudentCourse.getCourseLevel()) : optionalStudentCourse.getCourseCode();
-                    String courseExternalCode = StringUtils.isNotBlank(course.getCourseLevel()) ? course.getCourseCode().concat(" ").concat(course.getCourseLevel()) : course.getCourseCode();
-                    if (optionalExternalCode.equals(courseExternalCode) && optionalStudentCourse.isUsed()) {
-                        return true;
-                    }
+        for (GradStudentOptionalStudentProgram gradStudentOptionalStudentProgram : graduationDataOptionalDetails.getOptionalGradStatus()) {
+            for (OptionalStudentCourse optionalStudentCourse : gradStudentOptionalStudentProgram.getOptionalStudentCourses().getStudentCourseList()) {
+                String optionalExternalCode = StringUtils.isNotBlank(optionalStudentCourse.getCourseLevel()) ? optionalStudentCourse.getCourseCode().concat(" ").concat(optionalStudentCourse.getCourseLevel()) : optionalStudentCourse.getCourseCode();
+                String courseExternalCode = StringUtils.isNotBlank(course.getCourseLevel()) ? course.getCourseCode().concat(" ").concat(course.getCourseLevel()) : course.getCourseCode();
+                if (optionalExternalCode.equals(courseExternalCode) && optionalStudentCourse.isUsed()) {
+                    return true;
                 }
             }
         }

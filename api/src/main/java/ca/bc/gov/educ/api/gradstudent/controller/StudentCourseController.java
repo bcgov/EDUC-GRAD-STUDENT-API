@@ -84,7 +84,7 @@ public class StudentCourseController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<List<StudentCourseValidationIssue>> deleteStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<UUID> studentCourses, @RequestHeader(name="Authorization") String accessToken) {
-        logger.debug("deleteStudentCourses: studentID = {} : CourseIDs = {}", studentID, studentCourses);
+        logger.debug("deleteStudentCourses: studentID = {}", studentID);
         List<StudentCourseValidationIssue> results = studentCourseService.deleteStudentCourses(studentID, studentCourses, getFormattedAccessToken(accessToken));
         return response.GET(results);
     }

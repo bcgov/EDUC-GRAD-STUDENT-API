@@ -192,8 +192,7 @@ public class HistoryService {
                         studentCourseHistoryEntity.setCreateDate(studentCourseEntity.getCreateDate());
                         studentCourseHistoryEntity.setActivityCode(historyActivityCode);
                         return studentCourseHistoryEntity;
-                    })
-                    .collect(Collectors.toList());
+                    }).toList();
             studentCourseHistoryRepository.saveAllAndFlush(studentCourseHistoryEntities);
         }
     }
