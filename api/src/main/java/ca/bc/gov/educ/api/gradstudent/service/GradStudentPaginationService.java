@@ -2,9 +2,9 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
 import ca.bc.gov.educ.api.gradstudent.filter.BaseFilterSpecs;
-import ca.bc.gov.educ.api.gradstudent.filter.GradStudentFilterSpecs;
+import ca.bc.gov.educ.api.gradstudent.filter.GradStudentPaginationFilterSpecs;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordPaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentPaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.util.RequestUtil;
 import ca.bc.gov.educ.api.gradstudent.util.TransformUtil;
@@ -36,9 +36,9 @@ import java.util.concurrent.Executor;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class GradStudentSearchService {
+public class GradStudentPaginationService {
   @Getter
-  private final GradStudentFilterSpecs gradStudentFilterSpecs;
+  private final GradStudentPaginationFilterSpecs gradStudentPaginationFilterSpecs;
 
   private final GradStudentPaginationRepository gradStudentPaginationRepository;
 
@@ -47,7 +47,7 @@ public class GradStudentSearchService {
     .setCorePoolSize(2).setMaximumPoolSize(10).setKeepAliveTime(Duration.ofSeconds(60)).build();
 
   @Transactional(propagation = Propagation.SUPPORTS)
-  public CompletableFuture<Page<ReportGradStudentDataEntity>> findAll(Specification<ReportGradStudentDataEntity> studentSpecs, final Integer pageNumber, final Integer pageSize, final List<Sort.Order> sorts) {
+  public CompletableFuture<Page<GraduationStudentRecordPaginationEntity>> findAll(Specification<GraduationStudentRecordPaginationEntity> studentSpecs, final Integer pageNumber, final Integer pageSize, final List<Sort.Order> sorts) {
     log.trace("In find all query: {}", studentSpecs);
     return CompletableFuture.supplyAsync(() -> {
       Pageable paging = PageRequest.of(pageNumber, pageSize, Sort.by(sorts));
@@ -64,8 +64,8 @@ public class GradStudentSearchService {
 
   }
 
-  public Specification<ReportGradStudentDataEntity> setSpecificationAndSortCriteria(String sortCriteriaJson, String searchCriteriaListJson, ObjectMapper objectMapper, List<Sort.Order> sorts) {
-    Specification<ReportGradStudentDataEntity> schoolSpecs = null;
+  public Specification<GraduationStudentRecordPaginationEntity> setSpecificationAndSortCriteria(String sortCriteriaJson, String searchCriteriaListJson, ObjectMapper objectMapper, List<Sort.Order> sorts) {
+    Specification<GraduationStudentRecordPaginationEntity> schoolSpecs = null;
     try {
       RequestUtil.getSortCriteria(sortCriteriaJson, objectMapper, sorts);
       if (StringUtils.isNotBlank(searchCriteriaListJson)) {
@@ -73,7 +73,7 @@ public class GradStudentSearchService {
         });
         int i = 0;
         for (var search : searches) {
-          schoolSpecs = getSpecifications(schoolSpecs, i, search, gradStudentFilterSpecs);
+          schoolSpecs = getSpecifications(schoolSpecs, i, search, gradStudentPaginationFilterSpecs);
           i++;
         }
       }
@@ -103,7 +103,7 @@ public class GradStudentSearchService {
       for (SearchCriteria criteria : criteriaList) {
         if (criteria.getKey() != null && criteria.getOperation() != null && criteria.getValueType() != null) {
           var criteriaValue = criteria.getValue();
-          if(StringUtils.isNotBlank(criteria.getValue()) && TransformUtil.isUppercaseField(ReportGradStudentDataEntity.class, criteria.getKey())) {
+          if(StringUtils.isNotBlank(criteria.getValue()) && TransformUtil.isUppercaseField(GraduationStudentRecordPaginationEntity.class, criteria.getKey())) {
             criteriaValue = criteriaValue.toUpperCase();
           }
           Specification<T> typeSpecification = getTypeSpecification(criteria.getKey(), criteria.getOperation(), criteriaValue, criteria.getValueType(), filterSpecs);
