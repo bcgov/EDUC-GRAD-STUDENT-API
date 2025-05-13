@@ -137,12 +137,14 @@ public class StudentCourseService {
     }
 
     private boolean isCourseUsedForGraduation(Course course, GraduationDataOptionalDetails graduationDataOptionalDetails) {
-        for(GradStudentOptionalStudentProgram gradStudentOptionalStudentProgram : graduationDataOptionalDetails.getOptionalGradStatus()) {
-            for(OptionalStudentCourse optionalStudentCourse : gradStudentOptionalStudentProgram.getOptionalStudentCourses().getStudentCourseList()) {
-                String optionalExternalCode = StringUtils.isNotBlank(optionalStudentCourse.getCourseLevel()) ? optionalStudentCourse.getCourseCode().concat(" ").concat(optionalStudentCourse.getCourseLevel()) : optionalStudentCourse.getCourseCode();
-                String courseExternalCode = StringUtils.isNotBlank(course.getCourseLevel()) ? course.getCourseCode().concat(" ").concat(course.getCourseLevel()) : course.getCourseCode();
-                if(optionalExternalCode.equals(courseExternalCode) && optionalStudentCourse.isUsed()) {
-                    return true;
+        if(graduationDataOptionalDetails != null && course != null) {
+            for (GradStudentOptionalStudentProgram gradStudentOptionalStudentProgram : graduationDataOptionalDetails.getOptionalGradStatus()) {
+                for (OptionalStudentCourse optionalStudentCourse : gradStudentOptionalStudentProgram.getOptionalStudentCourses().getStudentCourseList()) {
+                    String optionalExternalCode = StringUtils.isNotBlank(optionalStudentCourse.getCourseLevel()) ? optionalStudentCourse.getCourseCode().concat(" ").concat(optionalStudentCourse.getCourseLevel()) : optionalStudentCourse.getCourseCode();
+                    String courseExternalCode = StringUtils.isNotBlank(course.getCourseLevel()) ? course.getCourseCode().concat(" ").concat(course.getCourseLevel()) : course.getCourseCode();
+                    if (optionalExternalCode.equals(courseExternalCode) && optionalStudentCourse.isUsed()) {
+                        return true;
+                    }
                 }
             }
         }
@@ -150,7 +152,10 @@ public class StudentCourseService {
     }
 
     private GraduationDataOptionalDetails getGraduationStatusWithOptionalDetails(GraduationStudentRecord graduationStudentRecord) {
-        return (GraduationDataOptionalDetails) jsonTransformer.unmarshall(graduationStudentRecord.getStudentGradData(), GraduationDataOptionalDetails.class);
+        if(graduationStudentRecord.getStudentGradData() != null) {
+            return (GraduationDataOptionalDetails) jsonTransformer.unmarshall(graduationStudentRecord.getStudentGradData(), GraduationDataOptionalDetails.class);
+        }
+        return null;
     }
 
     private StudentCourseRuleData prepareStudentCourseRuleData(StudentCourse studentCourse, GraduationStudentRecord graduationStudentRecord, Course course, Pair<LetterGrade,LetterGrade> letterGrade, List<ExaminableCourse> examinableCourses) {
