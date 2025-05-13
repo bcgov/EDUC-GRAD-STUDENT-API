@@ -39,7 +39,7 @@ public class StudentCourseController {
     private final ResponseHelper response;
 
     @GetMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_EQUIVALENT_OR_CHALLENGE_CODE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
     @Operation(summary = "Get student courses", description = "Retrieve student courses by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
@@ -52,7 +52,7 @@ public class StudentCourseController {
 
 
     @PostMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_EQUIVALENT_OR_CHALLENGE_CODE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
     @Operation(summary = "Create course", description = "Create Courses", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
@@ -65,7 +65,7 @@ public class StudentCourseController {
     }
 
     @PutMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_EQUIVALENT_OR_CHALLENGE_CODE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
     @Operation(summary = "Create course", description = "Create Courses", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
@@ -79,7 +79,7 @@ public class StudentCourseController {
 
 
     @DeleteMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_EQUIVALENT_OR_CHALLENGE_CODE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
     @Operation(summary = "Delete Student Courses", description = "Delete Student Courses by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
@@ -90,7 +90,7 @@ public class StudentCourseController {
     }
 
     @GetMapping(EducGradStudentApiConstants.STUDENT_COURSE_HISTORY_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_EQUIVALENT_OR_CHALLENGE_CODE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
     @Operation(summary = "Get student course history", description = "Retrieve student course history by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
