@@ -182,6 +182,8 @@ endpoint:
         url: ${GRAD_STUDENT_GRADUATION_API}api/v1/studentgraduation/undocompletion/undocompletionreason/%s
     save-student-ungrad-reason:
       url: ${GRAD_STUDENT_GRADUATION_API}api/v1/studentgraduation/undocompletion/studentundocompletionreason/studentid/%s
+    letter-grades:
+      url: ${GRAD_STUDENT_GRADUATION_API}api/v1/studentgraduation/lgSc/lettergrade
   pen-student-api:
     by-studentid:
       url: ${PEN_API}api/v1/student/%s
@@ -198,7 +200,11 @@ endpoint:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentcertificates?studentID=%s
     archive-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/archiveachievement/%s
-
+  grad-course-api:
+    course-details-search:
+      url: ${GRAD_COURSE_API}api/v2/course/search
+    examinable-course-details-search:
+      url: ${GRAD_COURSE_API}api/v1/course/examinable/search
 
 
 #Splunk LogHelper

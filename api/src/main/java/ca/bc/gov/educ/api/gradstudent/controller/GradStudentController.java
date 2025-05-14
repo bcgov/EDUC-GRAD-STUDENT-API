@@ -33,7 +33,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-@CrossOrigin
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
 @OpenAPIDefinition(info = @Info(title = "API for Student Demographics.", description = "This API is for Reading demographics data of a student.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_DATA"})})
 public class GradStudentController {

@@ -1,0 +1,15 @@
+meta {
+  name: Get student courses
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/courses/:studentID
+  body: none
+  auth: none
+}
+
+params:path {
+  studentID: 
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Find Exam Special Case Code
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/examSpecialCaseCodes/:examSpecialCaseCode
+  body: none
+  auth: none
+}
+
+params:path {
+  examSpecialCaseCode: 
+}
