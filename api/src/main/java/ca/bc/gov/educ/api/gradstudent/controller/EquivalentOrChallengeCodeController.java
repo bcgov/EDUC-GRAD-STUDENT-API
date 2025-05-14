@@ -17,10 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin
 @RestController
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
-@OpenAPIDefinition(info = @Info(title = "API for Equivalent Or Challenge Codes.", description = "This API is Equivalent Or Challenge Codes.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_COURSE_DATA"})})
+@OpenAPIDefinition(info = @Info(title = "API for Equivalent Or Challenge Codes.", description = "This API is Equivalent Or Challenge Codes.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_EQUIVALENT_OR_CHALLENGE_CODE"})})
 @AllArgsConstructor
 public class EquivalentOrChallengeCodeController {
 

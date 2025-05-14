@@ -17,10 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin
 @RestController
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
-@OpenAPIDefinition(info = @Info(title = "API for Exam Special case Codes.", description = "This API is Exam Special case Codes.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_COURSE_DATA"})})
+@OpenAPIDefinition(info = @Info(title = "API for Exam Special case Codes.", description = "This API is Exam Special case Codes.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_EXAM_SPECIAL_CASE_CODE"})})
 @AllArgsConstructor
 public class ExamSpecialCaseCodeController {
 
