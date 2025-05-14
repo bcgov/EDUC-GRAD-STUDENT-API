@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -46,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
@@ -94,6 +95,34 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     public void tearDown() {
 
     }
+
+    private static class TestGraduationCountProjection implements GraduationCountProjection {
+        private Long currentGraduates;
+        private Long currentNonGraduates;
+        private UUID schoolOfRecordId;
+
+        public TestGraduationCountProjection(Long currentGraduates, Long currentNonGraduates, UUID schoolOfRecordId) {
+            this.schoolOfRecordId = schoolOfRecordId;
+            this.currentGraduates = currentGraduates;
+            this.currentNonGraduates = currentNonGraduates;
+        }
+
+        @Override
+        public Long getCurrentGraduates() {
+            return currentGraduates;
+        }
+
+        @Override
+        public Long getCurrentNonGraduates() {
+            return currentNonGraduates;
+        }
+
+        @Override
+        public UUID getSchoolOfRecordId() {
+            return schoolOfRecordId;
+        }
+    }
+
 
     @Test
     public void testGetStudentFromStudentAPI() {
@@ -1044,7 +1073,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         UUID studentID = UUID.randomUUID();
         GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
         graduationStudentRecordEntity.setProgramCompletionDate(new java.util.Date());
-        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), "studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}"));
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}"));
         GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
         assertNotNull(result);
     }
@@ -1085,6 +1114,43 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         String malformedJson = "{invalid-json}";
         Boolean result = gradStudentService.parseGraduationStatus(malformedJson);
         assertFalse("Expected false for malformed JSON", result);
+    }
+
+    @Test
+    public void testGetGraduationCountsBySchools_WithNullOrEmptyList_ShouldReturnEmptyList() {
+        List<GraduationCountProjection> resultWithNull = gradStudentService.getGraduationCountsBySchools(null);
+        assertThat(resultWithNull).isNotNull().isEmpty();
+
+        List<GraduationCountProjection> resultWithEmptyList = gradStudentService.getGraduationCountsBySchools(Collections.emptyList());
+        assertThat(resultWithEmptyList).isNotNull().isEmpty();
+
+        verify(graduationStatusRepository, never()).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
+                anyList(),
+                any(Date.class),
+                any(Date.class)
+        );
+    }
+
+    @Test
+    public void testGetGraduationCountsBySchools_WithNonEmptyList_ShouldReturnCountsFromRepository() {
+        final UUID schoolId1 = UUID.randomUUID();
+        final UUID schoolId2 = UUID.randomUUID();
+        final List<UUID> schoolIds = Arrays.asList(schoolId1, schoolId2);
+
+        List<GraduationCountProjection> expectedCounts = Arrays.asList(new TestGraduationCountProjection(100L, 50L, schoolId1), new TestGraduationCountProjection(15L, 10L, schoolId2));
+
+        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(eq(schoolIds), any(Date.class), any(Date.class)))
+                .thenReturn(expectedCounts);
+
+        List<GraduationCountProjection> actualCounts = gradStudentService.getGraduationCountsBySchools(schoolIds);
+
+        assertThat(actualCounts).isNotNull().isNotEmpty().isEqualTo(expectedCounts);
+
+        verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
+                eq(schoolIds),        
+                any(Date.class), 
+                any(Date.class) 
+        );
     }
 
     @SneakyThrows

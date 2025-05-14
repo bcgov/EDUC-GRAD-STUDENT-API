@@ -8,7 +8,6 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +27,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.Date;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -399,6 +401,26 @@ public class GradStudentService {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));
 		}
 		return result;
+	}
+
+	public List<GraduationCountProjection> getGraduationCountsBySchools(List<UUID> schoolIDs) {
+		if (schoolIDs == null || schoolIDs.isEmpty()) {
+			return new ArrayList<>();
+		}
+
+		LocalDate currentDate = LocalDate.now();
+
+		int startYear = (currentDate.getMonth().compareTo(Month.SEPTEMBER) <= 0)
+				? currentDate.getYear() - 1
+				: currentDate.getYear();
+
+		LocalDate localStartDate = LocalDate.of(startYear, 10, 1);
+		LocalDate localEndDate = LocalDate.of(startYear + 1, 9, 30);
+
+		Date startDate = java.sql.Date.valueOf(localStartDate);
+		Date endDate = java.sql.Date.valueOf(localEndDate);
+
+		return graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIDs, startDate, endDate);
 	}
 
 	/**

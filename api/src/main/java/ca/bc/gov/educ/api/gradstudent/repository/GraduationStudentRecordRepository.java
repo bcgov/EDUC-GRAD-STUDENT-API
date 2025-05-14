@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.BatchGraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationCountProjection;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import org.springframework.data.domain.Page;
@@ -12,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -188,6 +190,19 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Modifying
 	@Query( "update GraduationStudentRecordEntity e set e.batchId = :batchId where e.studentStatus = :studentStatus")
 	Integer updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(Long batchId, String studentStatus);
+
+	@Query("SELECT gsr.schoolOfRecordId AS schoolOfRecordId, " +
+			"COUNT(CASE WHEN gsr.programCompletionDate BETWEEN :startDate AND :endDate AND gsr.program <> 'SCCP' THEN 1 ELSE NULL END) AS currentGraduates, " +
+			"COUNT(CASE WHEN gsr.programCompletionDate IS NULL AND gsr.studentGrade = '12' AND gsr.program IS NOT NULL AND gsr.program <> 'SCCP' THEN 1 ELSE NULL END) AS currentNonGraduates " +
+			"FROM GraduationStudentRecordEntity gsr " + 
+			"WHERE gsr.schoolOfRecordId IN (:schoolIDs) " +
+			"GROUP BY gsr.schoolOfRecordId")
+	List<GraduationCountProjection> countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
+			@Param("schoolIDs") List<UUID> schoolIDs,
+			@Param("startDate") Date startDate,
+			@Param("endDate") Date endDate
+	);
+
 
 	/**
 	 * Find a GraduationStudentRecord By Student ID using generics. Pass an object with the
