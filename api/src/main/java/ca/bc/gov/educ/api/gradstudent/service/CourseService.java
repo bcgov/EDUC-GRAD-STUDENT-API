@@ -22,8 +22,10 @@ public class CourseService {
 
     public List<Course> getCourses(List<String> courseIDs, String accessToken) {
         if(!CollectionUtils.isEmpty(courseIDs)) {
+            CourseSearchRequest courseSearchRequest = new CourseSearchRequest();
+            courseSearchRequest.setCourseIds(courseIDs);
             return webClient.post().uri(String.format(constants.getCourseDetailSearchUrl()))
-                    .bodyValue(courseIDs)
+                    .bodyValue(courseSearchRequest)
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<List<Course>>() {}).block();

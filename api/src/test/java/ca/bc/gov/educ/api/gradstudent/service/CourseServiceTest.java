@@ -84,16 +84,16 @@ public class CourseServiceTest extends BaseIntegrationTest {
 
     @Test
     public void testGetCourses() {
-
+        CourseSearchRequest courseSearchRequest = new CourseSearchRequest();
+        courseSearchRequest.setCourseIds(List.of("1"));
         when(webClient.post()).thenReturn(requestBodyUriMock);
         when(requestBodyUriMock.uri(constants.getCourseDetailSearchUrl())).thenReturn(requestBodyMock);
-        when(requestBodyMock.bodyValue(List.of("1"))).thenReturn(requestHeadersMock);
+        when(requestBodyMock.bodyValue(courseSearchRequest)).thenReturn(requestHeadersMock);
         when(requestHeadersMock.headers(any())).thenReturn(requestHeadersMock);
         when(requestHeadersMock.retrieve()).thenReturn(responseMock);
 
         ParameterizedTypeReference<List<Course>> typeRef = new ParameterizedTypeReference<>() {};
         when(responseMock.bodyToMono(typeRef)).thenReturn(Mono.just(getCourses()));
-
         List<Course> result = courseService.getCourses(List.of("1"), "ABC");
         assertNotNull(result);
     }
