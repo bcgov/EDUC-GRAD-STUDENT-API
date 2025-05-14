@@ -1,37 +1,17 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
 import ca.bc.gov.educ.api.gradstudent.filter.BaseFilterSpecs;
-import ca.bc.gov.educ.api.gradstudent.filter.GradStudentPaginationFilterSpecs;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordPaginationEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStudentPaginationRepository;
-import ca.bc.gov.educ.api.gradstudent.util.RequestUtil;
 import ca.bc.gov.educ.api.gradstudent.util.TransformUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.threads.EnhancedQueueExecutor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.InvalidParameterException;
-import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executor;
 
 @Service
 @Slf4j
