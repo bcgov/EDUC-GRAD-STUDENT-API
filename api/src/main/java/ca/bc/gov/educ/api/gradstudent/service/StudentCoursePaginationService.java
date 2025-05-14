@@ -1,13 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
-import ca.bc.gov.educ.api.gradstudent.filter.BaseFilterSpecs;
-import ca.bc.gov.educ.api.gradstudent.filter.GradStudentPaginationFilterSpecs;
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordPaginationEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStudentPaginationRepository;
+import ca.bc.gov.educ.api.gradstudent.filter.StudentCoursePaginationFilterSpecs;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Search;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.util.RequestUtil;
-import ca.bc.gov.educ.api.gradstudent.util.TransformUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.InvalidParameterException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -36,24 +33,24 @@ import java.util.concurrent.Executor;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class GradStudentPaginationService extends PaginationService {
+public class StudentCoursePaginationService extends PaginationService {
   @Getter
-  private final GradStudentPaginationFilterSpecs gradStudentPaginationFilterSpecs;
+  private final StudentCoursePaginationFilterSpecs studentCoursePaginationFilterSpecs;
 
-  private final GradStudentPaginationRepository gradStudentPaginationRepository;
+  private final StudentCoursePaginationRepository studentCoursePaginationRepository;
 
   private final Executor paginatedQueryExecutor = new EnhancedQueueExecutor.Builder()
     .setThreadFactory(new ThreadFactoryBuilder().setNameFormat("async-pagination-query-executor-%d").build())
     .setCorePoolSize(2).setMaximumPoolSize(10).setKeepAliveTime(Duration.ofSeconds(60)).build();
 
   @Transactional(propagation = Propagation.SUPPORTS)
-  public CompletableFuture<Page<GraduationStudentRecordPaginationEntity>> findAll(Specification<GraduationStudentRecordPaginationEntity> studentSpecs, final Integer pageNumber, final Integer pageSize, final List<Sort.Order> sorts) {
+  public CompletableFuture<Page<StudentCoursePaginationEntity>> findAll(Specification<StudentCoursePaginationEntity> studentSpecs, final Integer pageNumber, final Integer pageSize, final List<Sort.Order> sorts) {
     log.trace("In find all query: {}", studentSpecs);
     return CompletableFuture.supplyAsync(() -> {
       Pageable paging = PageRequest.of(pageNumber, pageSize, Sort.by(sorts));
       try {
         log.trace("Running paginated query: {}", studentSpecs);
-        var results = this.gradStudentPaginationRepository.findAll(studentSpecs, paging);
+        var results = this.studentCoursePaginationRepository.findAll(studentSpecs, paging);
         log.trace("Paginated query returned with results: {}", results);
         return results;
       } catch (final Throwable ex) {
@@ -64,8 +61,8 @@ public class GradStudentPaginationService extends PaginationService {
 
   }
 
-  public Specification<GraduationStudentRecordPaginationEntity> setSpecificationAndSortCriteria(String sortCriteriaJson, String searchCriteriaListJson, ObjectMapper objectMapper, List<Sort.Order> sorts) {
-    Specification<GraduationStudentRecordPaginationEntity> schoolSpecs = null;
+  public Specification<StudentCoursePaginationEntity> setSpecificationAndSortCriteria(String sortCriteriaJson, String searchCriteriaListJson, ObjectMapper objectMapper, List<Sort.Order> sorts) {
+    Specification<StudentCoursePaginationEntity> schoolSpecs = null;
     try {
       RequestUtil.getSortCriteria(sortCriteriaJson, objectMapper, sorts);
       if (StringUtils.isNotBlank(searchCriteriaListJson)) {
@@ -73,7 +70,7 @@ public class GradStudentPaginationService extends PaginationService {
         });
         int i = 0;
         for (var search : searches) {
-          schoolSpecs = getSpecifications(schoolSpecs, i, search, gradStudentPaginationFilterSpecs);
+          schoolSpecs = getSpecifications(schoolSpecs, i, search, studentCoursePaginationFilterSpecs);
           i++;
         }
       }

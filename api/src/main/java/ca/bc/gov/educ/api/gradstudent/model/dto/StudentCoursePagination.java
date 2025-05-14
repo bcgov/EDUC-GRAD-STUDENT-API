@@ -24,4 +24,6 @@ public class StudentCoursePagination extends BaseModel {
     private String equivOrChallenge;
     private UUID studentExamId;
 
+    private GraduationStudentPaginationRecord gradStudent;
+
 }
