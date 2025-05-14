@@ -16,32 +16,11 @@ import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.DE
 @Component
 public class GraduationStudentPaginationRecord extends BaseModel {
 
-    private String studentGradData;
     private String pen;
-    private String program;
-    private String programName;
-    private String programCompletionDate;
-    private String gpa;
-    private String honoursStanding;
-    private String recalculateGradStatus;   
     private UUID schoolOfRecordId;
-    private String schoolName;
     private String studentGrade;
     private String studentStatus;
-    private String studentStatusName;
     private UUID studentID;
-    private UUID schoolAtGradId;
-    private String schoolAtGradName;
-    private String recalculateProjectedGrad;
-    private Long batchId;
-    private String consumerEducationRequirementMet;
-    private String studentCitizenship;
-    private String studentProjectedGradData;
-    private String legalFirstName;
-    private String legalMiddleNames;
-    private String legalLastName;
-    @JsonFormat(pattern=DEFAULT_DATE_FORMAT)
-    private Date adultStartDate;
 
     private List<StudentCoursePagination> studentCourses;
 }

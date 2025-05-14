@@ -18,25 +18,6 @@ public class GraduationStudentRecordPaginationEntity extends BaseEntity {
 	@Transient
     private String pen;
 
-    @Lob
-    @Column(name = "STUDENT_GRAD_DATA", columnDefinition="CLOB")
-    private String studentGradData;
-
-    @Column(name = "GRADUATION_PROGRAM_CODE", nullable = true)
-    private String program;
-    
-    @Column(name = "PROGRAM_COMPLETION_DATE", nullable = true)
-    private Date programCompletionDate; 
-    
-    @Column(name = "GPA", nullable = true)
-    private String gpa;
-    
-    @Column(name = "HONOURS_STANDING", nullable = true)
-    private String honoursStanding;        
-    
-    @Column(name = "RECALCULATE_GRAD_STATUS", nullable = true)
-    private String recalculateGradStatus;
-    
     @Column(name = "STUDENT_GRADE", nullable = true)
     private String studentGrade;
     
@@ -47,39 +28,8 @@ public class GraduationStudentRecordPaginationEntity extends BaseEntity {
     @Column(name = "GRADUATION_STUDENT_RECORD_ID", nullable = false)
     private UUID studentID;
 
-    @Column(name = "RECALCULATE_PROJECTED_GRAD", nullable = true)
-    private String recalculateProjectedGrad;
-
-    @Column(name = "BATCH_ID", nullable = true)
-    private Long batchId;
-
-    @Column(name = "CONSUMER_EDUC_REQT_MET", nullable = true)
-    private String consumerEducationRequirementMet;
-
-    @Column(name = "STUDENT_CITIZENSHIP_CODE", nullable = true)
-    private String studentCitizenship;
-
-    @Column(name = "ADULT_START_DATE", nullable = true)
-    private Date adultStartDate;
-
-    @Lob
-    @Column(name = "STUDENT_PROJECTED_GRAD_DATA", columnDefinition="CLOB")
-    private String studentProjectedGradData;
-
     @Column(name = "SCHOOL_OF_RECORD_ID", nullable = true)
     private UUID schoolOfRecordId;
-
-    @Column(name = "SCHOOL_AT_GRADUATION_ID", nullable = true)
-    private UUID schoolAtGradId;
-
-    @Transient
-    private String legalFirstName;
-
-    @Transient
-    private String legalMiddleNames;
-
-    @Transient
-    private String legalLastName;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

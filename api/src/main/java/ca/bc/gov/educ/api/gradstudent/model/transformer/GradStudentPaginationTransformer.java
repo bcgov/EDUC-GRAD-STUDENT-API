@@ -27,9 +27,6 @@ public class GradStudentPaginationTransformer {
     @Autowired
     ModelMapper modelMapper;
 
-    @Autowired
-    JsonTransformer jsonTransformer;
-
     public GraduationStudentPaginationRecord transformToDTO (GraduationStudentRecordPaginationEntity entity) {
         var student = modelMapper.map(entity, GraduationStudentPaginationRecord.class);
         student.setStudentCourses(new ArrayList<>());
