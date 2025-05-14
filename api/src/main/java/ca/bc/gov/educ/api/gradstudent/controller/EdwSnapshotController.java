@@ -19,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin
 @RestController
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
 @OpenAPIDefinition(info = @Info(title = "API for Grad Status Snapshot for EDW.", description = "This API is for Grad Status Snapshot for EDW.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_DATA", "UPDATE_GRAD_GRADUATION_STATUS"})})

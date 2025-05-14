@@ -131,6 +131,8 @@ endpoint:
         url: http://test
     save-student-ungrad-reason:
       url: http://test
+    letter-grades:
+      url: http://test
   pen-student-api:
     by-studentid:
       url: http://test
@@ -149,7 +151,11 @@ endpoint:
       url: http://test
   educ-school-api:
     url: http://test
-
+  grad-course-api:
+    course-details-search:
+      url: http://test
+    examinable-course-details-search:
+      url: http://test
 
 #Splunk LogHelper
 splunk:

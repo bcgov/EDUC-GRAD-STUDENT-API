@@ -79,6 +79,7 @@ public class GraduationStatusService extends GradBaseService {
     final StudentNonGradReasonRepository studentNonGradReasonRepository;
     final StudentNonGradReasonTransformer studentNonGradReasonTransformer;
 
+
     final GradStudentService gradStudentService;
     final HistoryService historyService;
     final GradValidation validation;
@@ -287,6 +288,32 @@ public class GraduationStatusService extends GradBaseService {
             return Pair.of(graduationStatus, null);
         }
     }
+
+    @Transactional
+    @Retry(name = "generalpostcall")
+    public void updateBatchFlagsForStudentCourses(UUID studentID) {
+        Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        if (gradStatusOptional.isPresent()) {
+            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            boolean isUpdated = false;
+            String status = gradEntity.getStudentStatus().toUpperCase();
+            if("CUR".equals(status)) {
+                gradEntity.setRecalculateGradStatus("Y");
+                gradEntity.setRecalculateProjectedGrad("Y");
+                isUpdated = true;
+            }
+            if(List.of("ARC","TER","DEC").contains(status)) {
+                gradEntity.setRecalculateGradStatus("Y");
+                isUpdated = true;
+            }
+            if(isUpdated) {
+                gradEntity.setUpdateDate(LocalDateTime.now());
+                gradEntity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
+                graduationStatusRepository.saveAndFlush(gradEntity);
+            }
+        }
+    }
+
 
     @Generated
     @Transactional

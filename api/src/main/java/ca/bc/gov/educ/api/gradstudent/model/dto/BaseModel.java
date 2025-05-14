@@ -4,11 +4,17 @@ import ca.bc.gov.educ.api.gradstudent.util.GradLocalDateTimeDeserializer;
 import ca.bc.gov.educ.api.gradstudent.util.GradLocalDateTimeSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
 @Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BaseModel {
 	private String createUser;
 	@JsonSerialize(using = GradLocalDateTimeSerializer.class)
