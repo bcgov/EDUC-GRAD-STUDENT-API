@@ -1,0 +1,15 @@
+meta {
+  name: Find Equivalent Or Challenge Code
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/student/equivalentOrChallengeCodes/:equivalentOrChallengeCode
+  body: none
+  auth: none
+}
+
+params:path {
+  equivalentOrChallengeCode: 
+}

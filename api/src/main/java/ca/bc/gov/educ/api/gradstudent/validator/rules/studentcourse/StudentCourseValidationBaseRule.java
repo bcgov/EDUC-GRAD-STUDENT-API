@@ -58,11 +58,8 @@ public interface StudentCourseValidationBaseRule extends ValidationBaseRule<Stud
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
-    default Pair<LocalDate, LocalDate> getSessionPeriod(LocalDate sessionDate) {
-        String sessionMonth = String.valueOf(sessionDate.getMonthValue());
-        int sessionStartYear = sessionMonth.equalsIgnoreCase("11") ? sessionDate.getYear() : sessionDate.getYear() - 1;
-        int sessionEndYear = sessionMonth.equalsIgnoreCase("11") ? sessionDate.getYear() +1 : sessionDate.getYear();
-        return Pair.of(getLocalDateFromString(sessionStartYear + "-10-01"), getLocalDateFromString(sessionEndYear + "-09-30"));
+    default Pair<LocalDate, LocalDate> getCurrentSessionPeriod(LocalDate sessionDate) {
+        return Pair.of(getLocalDateFromString(LocalDate.now().minusYears(1).getYear() + "-10-01"), getLocalDateFromString(LocalDate.now().getYear() + "-09-30"));
     }
 
 }

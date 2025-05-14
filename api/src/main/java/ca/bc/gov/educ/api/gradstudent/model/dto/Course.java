@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.model.dto;
 import lombok.*;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 @ToString
 @Component
 @Builder
-public class Course {
+public class Course implements Serializable {
 
     private String courseCode;
     private String courseLevel;

@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface StudentCourseHistoryRepository extends JpaRepository<StudentCourseHistoryEntity, UUID> {
 
-    @Query("SELECT s FROM StudentCourseHistoryEntity s WHERE s.studentID = :studentID order by s.createDate")
+    @Query("SELECT s FROM StudentCourseHistoryEntity s WHERE s.studentID = :studentID order by s.createDate desc")
     List<StudentCourseHistoryEntity> findByStudentID(UUID studentID);
 
 }

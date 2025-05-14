@@ -56,7 +56,7 @@ public class StudentCourseRule implements StudentCourseValidationBaseRule {
         if (course.getCompletionEndDate() != null && sessionDatePlusOne.isAfter(course.getCompletionEndDate())) {
             validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID));
         }
-        if (!isSessionDateInReportingPeriod(sessionDate) || sessionDate.isBefore(COURSE_SESSION_MIN_DATE)) {
+        if (!isSessionDateInCurrentReportingPeriod(sessionDate) || sessionDate.isBefore(COURSE_SESSION_MIN_DATE)) {
             validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID));
         }
         if (course.getCourseCode().startsWith("Q")) {
@@ -65,8 +65,8 @@ public class StudentCourseRule implements StudentCourseValidationBaseRule {
         return validationIssues;
     }
 
-    private boolean isSessionDateInReportingPeriod(LocalDate sessionDate) {
-        Pair<LocalDate, LocalDate> sessionPeriod = getSessionPeriod(sessionDate);
+    private boolean isSessionDateInCurrentReportingPeriod(LocalDate sessionDate) {
+        Pair<LocalDate, LocalDate> sessionPeriod = getCurrentSessionPeriod(sessionDate);
         return sessionDate.isAfter(sessionPeriod.getLeft()) && sessionDate.isBefore(sessionPeriod.getRight());
     }
 

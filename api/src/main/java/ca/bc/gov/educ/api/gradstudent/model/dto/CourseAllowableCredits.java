@@ -1,12 +1,14 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.io.Serializable;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 public class CourseAllowableCredits implements Serializable {

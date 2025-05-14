@@ -28,7 +28,7 @@ import java.util.UUID;
 @CrossOrigin
 @RestController
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
-@OpenAPIDefinition(info = @Info(title = "API for Student Courses management.", description = "This API is Student Courses.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_COURSE_DATA"})})
+@OpenAPIDefinition(info = @Info(title = "API for Student Courses management.", description = "This API is Student Courses.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_COURSE_DATA", "UPDATE_GRAD_STUDENT_COURSE", "DELETE_GRAD_STUDENT_COURSE"})})
 @AllArgsConstructor
 public class StudentCourseController {
 
@@ -39,7 +39,7 @@ public class StudentCourseController {
     private final ResponseHelper response;
 
     @GetMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_COURSE)
     @Operation(summary = "Get student courses", description = "Retrieve student courses by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
@@ -52,8 +52,8 @@ public class StudentCourseController {
 
 
     @PostMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
-    @Operation(summary = "Create course", description = "Create Courses", tags = { "Student courses" })
+    @PreAuthorize(PermissionsConstants.UPDATE_GRAD_STUDENT_COURSE)
+    @Operation(summary = "Create student courses", description = "Add new student courses to student", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
@@ -65,8 +65,8 @@ public class StudentCourseController {
     }
 
     @PutMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
-    @Operation(summary = "Create course", description = "Create Courses", tags = { "Student courses" })
+    @PreAuthorize(PermissionsConstants.UPDATE_GRAD_STUDENT_COURSE)
+    @Operation(summary = "Update student courses", description = "Update student courses of student", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
@@ -79,7 +79,7 @@ public class StudentCourseController {
 
 
     @DeleteMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
+    @PreAuthorize(PermissionsConstants.DELETE_GRAD_STUDENT_COURSE)
     @Operation(summary = "Delete Student Courses", description = "Delete Student Courses by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
@@ -90,7 +90,7 @@ public class StudentCourseController {
     }
 
     @GetMapping(EducGradStudentApiConstants.STUDENT_COURSE_HISTORY_MAPPING)
-    @PreAuthorize(PermissionsConstants.READ_GRAD_COURSE)
+    @PreAuthorize(PermissionsConstants.READ_GRAD_STUDENT_COURSE)
     @Operation(summary = "Get student course history", description = "Retrieve student course history by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
