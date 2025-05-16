@@ -29,6 +29,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -170,7 +171,6 @@ public class GradStudentControllerTest {
     @Test
     public void testReadGradStudentPaginated_Always_ShouldReturnStatusOk() throws Exception {
         var schoolID = UUID.randomUUID();
-//        var incomingFileset = incomingFilesetRepository.save(createMockIncomingFilesetEntityWithAllFilesLoaded());
 
         ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
         entity.setGraduationStudentRecordId(UUID.randomUUID());
@@ -193,6 +193,16 @@ public class GradStudentControllerTest {
                         .contentType(APPLICATION_JSON))
                 .andReturn();
         this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+    }
+
+    @Test
+    public void testGetGraduationCountsBySchools_WithNoSchoolIds_ShouldReject() throws Exception {
+
+        mockMvc.perform(post(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRADUATION_COUNTS)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .contentType(APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
 }
