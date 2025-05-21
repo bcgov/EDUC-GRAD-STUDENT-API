@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
@@ -67,6 +68,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     CommonService commonService;
 
     @MockBean
+    @Qualifier("webClient")
     WebClient webClient;
 
     @MockBean

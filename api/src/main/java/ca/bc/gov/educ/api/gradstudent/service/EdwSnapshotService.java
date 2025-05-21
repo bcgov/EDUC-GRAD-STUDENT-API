@@ -11,6 +11,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +42,7 @@ public class EdwSnapshotService {
                 StudentNonGradReasonRepository studentNonGradReasonRepository,
                 StudentNonGradReasonTransformer studentNonGradReasonTransformer,
                 EducGradStudentApiConstants constants,
-                WebClient webClient,
+                @Qualifier("webClient") WebClient webClient,
                 GradValidation validation) {
         this.constants = constants;
         this.webClient = webClient;

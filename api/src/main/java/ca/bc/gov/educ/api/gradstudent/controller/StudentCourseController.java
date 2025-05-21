@@ -57,9 +57,9 @@ public class StudentCourseController {
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
     })
-    public ResponseEntity<List<StudentCourseValidationIssue>> createStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<StudentCourse> studentCourses, @RequestHeader(name="Authorization") String accessToken) {
+    public ResponseEntity<List<StudentCourseValidationIssue>> createStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<StudentCourse> studentCourses) {
         logger.debug("createStudentCourses: studentID = {}", studentID);
-        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses, getFormattedAccessToken(accessToken), false);
+        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses,false);
         return response.GET(results);
     }
 
@@ -70,9 +70,9 @@ public class StudentCourseController {
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
     })
-    public ResponseEntity<List<StudentCourseValidationIssue>> updateStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<StudentCourse> studentCourses, @RequestHeader(name="Authorization") String accessToken) {
+    public ResponseEntity<List<StudentCourseValidationIssue>> updateStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<StudentCourse> studentCourses) {
         logger.debug("updateStudentCourses: studentID = {}", studentID);
-        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses, getFormattedAccessToken(accessToken), true);
+        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses,true);
         return response.GET(results);
     }
 
@@ -82,9 +82,9 @@ public class StudentCourseController {
     @Operation(summary = "Delete Student Courses", description = "Delete Student Courses by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    public ResponseEntity<List<StudentCourseValidationIssue>> deleteStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<UUID> studentCourses, @RequestHeader(name="Authorization") String accessToken) {
+    public ResponseEntity<List<StudentCourseValidationIssue>> deleteStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<UUID> studentCourses) {
         logger.debug("deleteStudentCourses: studentID = {}", studentID);
-        List<StudentCourseValidationIssue> results = studentCourseService.deleteStudentCourses(studentID, studentCourses, getFormattedAccessToken(accessToken));
+        List<StudentCourseValidationIssue> results = studentCourseService.deleteStudentCourses(studentID, studentCourses);
         return response.GET(results);
     }
 
@@ -98,10 +98,6 @@ public class StudentCourseController {
     public ResponseEntity<List<StudentCourseHistory>> getStudentCourseHistory(@PathVariable UUID studentID) {
         logger.debug("getStudentCourses history: studentID = {}", studentID);
         return response.GET(studentCourseService.getStudentCourseHistory(studentID));
-    }
-
-    private String getFormattedAccessToken(String accessToken) {
-        return accessToken.replace("Bearer ", "");
     }
 
 }

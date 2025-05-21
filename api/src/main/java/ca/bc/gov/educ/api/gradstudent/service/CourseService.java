@@ -2,53 +2,52 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import lombok.AllArgsConstructor;
+import ca.bc.gov.educ.api.gradstudent.util.JsonTransformer;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Slf4j
-@AllArgsConstructor
 public class CourseService {
 
+    private final WebClient courseApiClient;
+    private final RESTService restService;
+    private final CourseCacheService courseCacheService;
+    private final JsonTransformer jsonTransformer;
     final EducGradStudentApiConstants constants;
-    private final WebClient webClient;
 
-    public List<Course> getCourses(List<String> courseIDs, String accessToken) {
+    public CourseService(@Qualifier("courseApiClient") WebClient courseApiClient, RESTService restService, CourseCacheService courseCacheService, JsonTransformer jsonTransformer, EducGradStudentApiConstants constants) {
+        this.courseApiClient = courseApiClient;
+        this.restService = restService;
+        this.courseCacheService = courseCacheService;
+        this.jsonTransformer = jsonTransformer;
+        this.constants = constants;
+    }
+
+
+    public List<Course> getCourses(List<String> courseIDs) {
         if(!CollectionUtils.isEmpty(courseIDs)) {
             CourseSearchRequest courseSearchRequest = new CourseSearchRequest();
             courseSearchRequest.setCourseIds(courseIDs);
-            return webClient.post().uri(String.format(constants.getCourseDetailSearchUrl()))
-                    .bodyValue(courseSearchRequest)
-                    .headers(h -> h.setBearerAuth(accessToken))
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<List<Course>>() {}).block();
+            var response = restService.post(String.format(constants.getCourseDetailSearchUrl()), courseSearchRequest, List.class, courseApiClient);
+            return jsonTransformer.convertValue(response, new TypeReference<List<Course>>() {});
         }
         return Collections.emptyList();
     }
 
-    public List<ExaminableCourse> getExaminableCourses(List<String> courseIDs, String accessToken) {
-//        if(!CollectionUtils.isEmpty(courseIDs)) {
-//            return webClient.post().uri(String.format(constants.getCourseExaminableSearchUrl()))
-//                    .bodyValue(courseIDs)
-//                    .headers(h -> h.setBearerAuth(accessToken))
-//                    .retrieve()
-//                    .bodyToMono(new ParameterizedTypeReference<List<ExaminableCourse>>() {}).block();
-//        }
-        return Collections.emptyList();
+    public List<ExaminableCourse> getExaminableCourses(List<String> courseIDs) {
+        List<ExaminableCourse> examinableCourses = courseCacheService.getExaminableCoursesFromCache();
+        return examinableCourses.stream().filter(examinableCourse -> courseIDs.contains(examinableCourse.getCourseID())).toList();
     }
 
-    public List<LetterGrade> getLetterGrades(String accessToken) {
-            return webClient.get().uri(String.format(constants.getLetterGradesUrl()))
-                    .headers(h -> h.setBearerAuth(accessToken))
-                    .retrieve().bodyToMono(new ParameterizedTypeReference<List<LetterGrade>>() {
-                    }).block();
+    public List<LetterGrade> getLetterGrades() {
+        return courseCacheService.getLetterGradesFromCache();
     }
 
 }

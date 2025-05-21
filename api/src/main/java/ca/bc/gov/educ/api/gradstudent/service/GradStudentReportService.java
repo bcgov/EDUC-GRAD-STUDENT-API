@@ -12,7 +12,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -30,16 +30,21 @@ public class GradStudentReportService extends GradBaseService {
 
     private static final Logger logger = LoggerFactory.getLogger(GradStudentReportService.class);
 
-    @Autowired
-    ReportGradStudentDataRepository reportGradStudentDataRepository;
-    @Autowired
-    ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
-    @Autowired
-    ReportGradStudentTransformer reportGradStudentTransformer;
-    @Autowired
-    EducGradStudentApiConstants constants;
-    @Autowired
-    WebClient webClient;
+    private final ReportGradStudentDataRepository reportGradStudentDataRepository;
+    private final ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
+    private final ReportGradStudentTransformer reportGradStudentTransformer;
+    private final EducGradStudentApiConstants constants;
+    private final WebClient webClient;
+
+    public GradStudentReportService(EducGradStudentApiConstants constants, ReportGradStudentDataRepository reportGradStudentDataRepository, ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository, ReportGradStudentTransformer reportGradStudentTransformer, @Qualifier("webClient") WebClient webClient) {
+        this.constants = constants;
+        this.reportGradStudentDataRepository = reportGradStudentDataRepository;
+        this.reportGradSchoolYearEndRepository = reportGradSchoolYearEndRepository;
+        this.reportGradStudentTransformer = reportGradStudentTransformer;
+        this.webClient = webClient;
+    }
+
+
 
     public List<ReportGradStudentData> getGradStudentDataBySchoolId(UUID schoolId) {
         return reportGradStudentTransformer.transformToDTO(reportGradStudentDataRepository.findReportGradStudentDataEntityBySchoolOfRecordIdOrderBySchoolNameAscLastNameAsc(schoolId));

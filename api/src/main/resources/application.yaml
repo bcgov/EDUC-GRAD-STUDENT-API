@@ -35,6 +35,23 @@ spring:
         jwt:
           issuer-uri: ${TOKEN_ISSUER_URL}
           jwk-set-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/certs
+      client:
+        registration:
+          course-api-client:
+            client-id: ${GRAD_COURSE_API_CLIENT_NAME}
+            client-secret: ${GRAD_COURSE_API_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+          graduation-api-client:
+            client-id: ${GRAD_GRADUATION_API_CLIENT_NAME}
+            client-secret: ${GRAD_GRADUATION_API_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+      provider:
+        course-api-client:
+          issuer-uri: ${TOKEN_ISSUER_URL}
+          token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
+        graduation-api-client:
+          issuer-uri: ${TOKEN_ISSUER_URL}
+          token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
 
 #Logging properties
 logging:
@@ -113,6 +130,8 @@ cron:
         staleInDays: ${RECORDS_STALE_IN_DAYS}
       refresh-non-grad-status:
         run: ${CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS}
+      refresh-course-details:
+        run: ${CRON_SCHEDULED_REFRESH_COURSE_DETAILS}
 
 #Resilience
 resilience4j.retry:
@@ -203,8 +222,8 @@ endpoint:
   grad-course-api:
     course-details-search:
       url: ${GRAD_COURSE_API}api/v2/course/search
-    examinable-course-details-search:
-      url: ${GRAD_COURSE_API}api/v1/course/examinable/search
+    examinable-course-details:
+      url: ${GRAD_COURSE_API}api/v1/course/examinablecourses
 
 
 #Splunk LogHelper

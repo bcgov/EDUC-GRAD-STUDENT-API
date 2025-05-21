@@ -217,8 +217,8 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-course-api.course-details-search.url}")
     private String courseDetailSearchUrl;
 
-    @Value("${endpoint.grad-course-api.examinable-course-details-search.url}")
-    private String courseExaminableSearchUrl;
+    @Value("${endpoint.grad-course-api.examinable-course-details.url}")
+    private String examinableCourseDetailUrl;
     
     // Splunk LogHelper Enabled
     @Value("${splunk.log-helper.enabled}")

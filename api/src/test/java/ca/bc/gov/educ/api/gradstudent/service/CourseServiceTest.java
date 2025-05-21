@@ -9,10 +9,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -36,7 +38,14 @@ public class CourseServiceTest extends BaseIntegrationTest {
     CourseService courseService;
 
     @MockBean
+    CourseCacheService courseCacheService;
+
+    @MockBean
+    @Qualifier("courseApiClient")
     WebClient webClient;
+
+    @MockBean
+    RESTService restService;
 
     @Autowired
     EducGradStudentApiConstants constants;
@@ -65,7 +74,8 @@ public class CourseServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
 
         when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(getLetterGrades()));
-        var result = courseService.getLetterGrades("abc") ;
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        var result = courseService.getLetterGrades() ;
         assertNotNull(result);
     }
 
@@ -78,7 +88,8 @@ public class CourseServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
 
         when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(Collections.emptyList()));
-        var result = courseService.getLetterGrades("abc") ;
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(Collections.emptyList());
+        var result = courseService.getLetterGrades() ;
         assertTrue(result.isEmpty());
     }
 
@@ -88,13 +99,14 @@ public class CourseServiceTest extends BaseIntegrationTest {
         courseSearchRequest.setCourseIds(List.of("1"));
         when(webClient.post()).thenReturn(requestBodyUriMock);
         when(requestBodyUriMock.uri(constants.getCourseDetailSearchUrl())).thenReturn(requestBodyMock);
-        when(requestBodyMock.bodyValue(courseSearchRequest)).thenReturn(requestHeadersMock);
+        when(requestBodyMock.body(BodyInserters.fromValue(courseSearchRequest))).thenReturn(requestHeadersMock);
         when(requestHeadersMock.headers(any())).thenReturn(requestHeadersMock);
         when(requestHeadersMock.retrieve()).thenReturn(responseMock);
 
         ParameterizedTypeReference<List<Course>> typeRef = new ParameterizedTypeReference<>() {};
         when(responseMock.bodyToMono(typeRef)).thenReturn(Mono.just(getCourses()));
-        List<Course> result = courseService.getCourses(List.of("1"), "ABC");
+        when(restService.post(constants.getCourseDetailSearchUrl(), courseSearchRequest, List.class, webClient)).thenReturn(getCourses());
+        List<Course> result = courseService.getCourses(List.of("1"));
         assertNotNull(result);
     }
 
@@ -106,7 +118,7 @@ public class CourseServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
 
         when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(Collections.emptyList()));
-        var result = courseService.getCourses(Collections.emptyList(),"ABC") ;
+        var result = courseService.getCourses(Collections.emptyList()) ;
         assertTrue(result.isEmpty());
     }
 
@@ -114,11 +126,11 @@ public class CourseServiceTest extends BaseIntegrationTest {
     public void testGetExaminableCourses() {
         final ParameterizedTypeReference<List<ExaminableCourse>> responseType = new ParameterizedTypeReference<>() {};
 
-        when(this.requestHeadersUriMock.uri(eq(this.constants.getCourseExaminableSearchUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(eq(this.constants.getExaminableCourseDetailUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
 
         when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(getExaminableCourses()));
-        var result = courseService.getExaminableCourses(List.of("1"),"ABC") ;
+        var result = courseService.getExaminableCourses(List.of("1")) ;
         assertNotNull(result);
     }
 
@@ -126,11 +138,11 @@ public class CourseServiceTest extends BaseIntegrationTest {
     public void testGetExaminableCourses_Empty() {
         final ParameterizedTypeReference<List<LetterGrade>> responseType = new ParameterizedTypeReference<>() {};
 
-        when(this.requestHeadersUriMock.uri(eq(this.constants.getCourseExaminableSearchUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
+        when(this.requestHeadersUriMock.uri(eq(this.constants.getExaminableCourseDetailUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
 
         when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(Collections.emptyList()));
-        var result = courseService.getExaminableCourses(Collections.emptyList(),"ABC") ;
+        var result = courseService.getExaminableCourses(Collections.emptyList()) ;
         assertTrue(result.isEmpty());
     }
 

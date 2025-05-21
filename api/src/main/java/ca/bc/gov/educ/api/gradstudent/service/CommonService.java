@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -57,7 +58,7 @@ public class CommonService {
 						 GradStudentService gradStudentService,
 						 HistoryActivityRepository historyActivityRepository,
 						 HistoryActivityTransformer historyActivityTransformer,
-						 WebClient webClient,
+						 @Qualifier("webClient") WebClient webClient,
 						 GradValidation validation,
 						 StudentGradeCodeRepository studentGradeCodeRepository,
 						 StudentGradeCodeTransformer studentGradeCodeTransformer) {
