@@ -38,9 +38,27 @@ public class MockConfiguration {
   }
 
   @Bean("courseApiClient")
-  public WebClient courseWebClient() {
-    return Mockito.mock(WebClient.class);
+  public WebClient courseApiClient() {
+    return WebClient.builder()
+            .filter(setRequestHeaders())
+            .exchangeStrategies(ExchangeStrategies.builder()
+                    .codecs(configurer -> configurer
+                            .defaultCodecs()
+                            .maxInMemorySize(100 * 1024 * 1024))  // 100 MB
+                    .build()).build();
   }
+
+  private ExchangeFilterFunction setRequestHeaders() {
+    return (clientRequest, next) -> {
+      ClientRequest modifiedRequest = ClientRequest.from(clientRequest)
+              .header(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID())
+              .header(EducGradStudentApiConstants.USER_NAME, ThreadLocalStateUtil.getCurrentUser())
+              .header(EducGradStudentApiConstants.REQUEST_SOURCE, EducGradStudentApiConstants.API_NAME)
+              .build();
+      return next.exchange(modifiedRequest);
+    };
+  }
+
 
   @Bean("graduationApiClient")
   public WebClient graduationWebClient() {
