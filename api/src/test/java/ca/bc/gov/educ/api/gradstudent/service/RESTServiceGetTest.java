@@ -12,6 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -23,15 +25,15 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @RunWith(SpringRunner.class)
 public class RESTServiceGetTest {
 
     @Autowired
     private RESTService restService;
 
-    @MockBean(name = "graduationApiClient")
-    WebClient graduationApiClient;
+    @MockBean(name = "webClient")
+    WebClient webClient;
 
     @MockBean(name = "courseApiClient")
     @Qualifier("courseApiClient")
@@ -48,6 +50,12 @@ public class RESTServiceGetTest {
     @Mock
     private WebClient.ResponseSpec responseMock;
 
+    @MockBean
+    private ClientRegistrationRepository clientRegistrationRepositoryMock;
+
+    @MockBean
+    private OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepositoryMock;
+
     private static final String TEST_URL_200 = "https://httpstat.us/200";
     private static final String TEST_URL_403 = "https://httpstat.us/403";
     private static final String TEST_URL_503 = "https://httpstat.us/503";
@@ -55,7 +63,7 @@ public class RESTServiceGetTest {
 
     @Before
     public void setUp(){
-        when(this.graduationApiClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.courseApiClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(any(String.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
@@ -73,7 +81,7 @@ public class RESTServiceGetTest {
     @Test
     public void testGetOverride_GivenProperData_Expect200Response(){
         when(this.responseMock.bodyToMono(String.class)).thenReturn(Mono.just(OK_RESPONSE));
-        String response = this.restService.get(TEST_URL_200, String.class, graduationApiClient);
+        String response = this.restService.get(TEST_URL_200, String.class, webClient);
         assertEquals(OK_RESPONSE, response);
     }
 
@@ -86,7 +94,7 @@ public class RESTServiceGetTest {
     @Test(expected = ServiceException.class)
     public void testGetOverride_Given5xxErrorFromService_ExpectServiceError(){
         when(this.responseMock.bodyToMono(ServiceException.class)).thenReturn(Mono.just(new ServiceException()));
-        this.restService.get(TEST_URL_503, String.class, graduationApiClient);
+        this.restService.get(TEST_URL_503, String.class, webClient);
     }
 
     @Test(expected = ServiceException.class)
@@ -98,7 +106,7 @@ public class RESTServiceGetTest {
     @Test(expected = ServiceException.class)
     public void testGetOverride_Given4xxErrorFromService_ExpectServiceError(){
         when(this.responseMock.bodyToMono(ServiceException.class)).thenReturn(Mono.just(new ServiceException()));
-        this.restService.get(TEST_URL_403, String.class, graduationApiClient);
+        this.restService.get(TEST_URL_403, String.class, webClient);
     }
 
     @Test(expected = ServiceException.class)
@@ -118,7 +126,7 @@ public class RESTServiceGetTest {
 
         Throwable cause = new RuntimeException("Simulated cause");
         when(responseMock.bodyToMono(String.class)).thenReturn(Mono.error(new WebClientRequestException(cause, HttpMethod.GET, null, new HttpHeaders())));
-        restService.get(TEST_URL_503, String.class, graduationApiClient);
+        restService.get(TEST_URL_503, String.class, webClient);
     }
 
     @Test(expected = ServiceException.class)
