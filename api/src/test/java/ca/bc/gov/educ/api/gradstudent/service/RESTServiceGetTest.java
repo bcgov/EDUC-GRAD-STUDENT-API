@@ -39,6 +39,10 @@ public class RESTServiceGetTest {
     @Qualifier("courseApiClient")
     WebClient courseApiClient;
 
+    @MockBean(name = "graduationApiClient")
+    @Qualifier("graduationApiClient")
+    WebClient graduationApiClient;
+
     @Mock
     private WebClient.RequestHeadersSpec requestHeadersMock;
     @Mock

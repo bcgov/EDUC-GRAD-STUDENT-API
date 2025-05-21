@@ -29,8 +29,6 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-@ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 public class RESTServicePOSTTest {
 
     @Autowired
@@ -42,6 +40,10 @@ public class RESTServicePOSTTest {
     @MockBean(name = "courseApiClient")
     @Qualifier("courseApiClient")
     WebClient courseApiClient;
+
+    @MockBean(name = "graduationApiClient")
+    @Qualifier("graduationApiClient")
+    WebClient graduationApiClient;
 
     @MockBean
     private WebClient.RequestHeadersSpec requestHeadersMock;

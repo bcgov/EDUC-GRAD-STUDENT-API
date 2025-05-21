@@ -70,12 +70,6 @@ public class MockConfiguration {
     };
   }
 
-
-  @Bean("graduationApiClient")
-  public WebClient graduationWebClient() {
-    return Mockito.mock(WebClient.class);
-  }
-
   @Bean
   @Primary
   public NatsConnection natsConnection() {
