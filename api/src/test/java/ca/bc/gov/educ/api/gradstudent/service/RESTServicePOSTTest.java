@@ -1,7 +1,7 @@
-package ca.bc.gov.educ.api.gradstudent.util;
+package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.exception.ServiceException;
-import ca.bc.gov.educ.api.gradstudent.service.RESTService;
+import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @RunWith(SpringRunner.class)
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles("test")
 public class RESTServicePOSTTest {
 
     @Autowired
