@@ -48,6 +48,17 @@ public class MockConfiguration {
                     .build()).build();
   }
 
+  @Bean("graduationApiClient")
+  public WebClient graduationApiClient() {
+    return WebClient.builder()
+            .filter(setRequestHeaders())
+            .exchangeStrategies(ExchangeStrategies.builder()
+                    .codecs(configurer -> configurer
+                            .defaultCodecs()
+                            .maxInMemorySize(100 * 1024 * 1024))  // 100 MB
+                    .build()).build();
+  }
+
   private ExchangeFilterFunction setRequestHeaders() {
     return (clientRequest, next) -> {
       ClientRequest modifiedRequest = ClientRequest.from(clientRequest)
