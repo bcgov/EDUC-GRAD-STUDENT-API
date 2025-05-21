@@ -1,21 +1,17 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.exception.ServiceException;
-import ca.bc.gov.educ.api.gradstudent.service.RESTService;
 import io.netty.channel.ConnectTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -29,15 +25,13 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
-@ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 public class RESTServiceGetTest {
 
     @Autowired
     private RESTService restService;
 
-    @MockBean(name = "webClient")
-    WebClient webClient;
+    @MockBean(name = "graduationApiClient")
+    WebClient graduationApiClient;
 
     @MockBean(name = "courseApiClient")
     @Qualifier("courseApiClient")
@@ -61,7 +55,7 @@ public class RESTServiceGetTest {
 
     @Before
     public void setUp(){
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.graduationApiClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.courseApiClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(any(String.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
@@ -79,7 +73,7 @@ public class RESTServiceGetTest {
     @Test
     public void testGetOverride_GivenProperData_Expect200Response(){
         when(this.responseMock.bodyToMono(String.class)).thenReturn(Mono.just(OK_RESPONSE));
-        String response = this.restService.get(TEST_URL_200, String.class, webClient);
+        String response = this.restService.get(TEST_URL_200, String.class, graduationApiClient);
         assertEquals(OK_RESPONSE, response);
     }
 
@@ -92,7 +86,7 @@ public class RESTServiceGetTest {
     @Test(expected = ServiceException.class)
     public void testGetOverride_Given5xxErrorFromService_ExpectServiceError(){
         when(this.responseMock.bodyToMono(ServiceException.class)).thenReturn(Mono.just(new ServiceException()));
-        this.restService.get(TEST_URL_503, String.class, webClient);
+        this.restService.get(TEST_URL_503, String.class, graduationApiClient);
     }
 
     @Test(expected = ServiceException.class)
@@ -104,7 +98,7 @@ public class RESTServiceGetTest {
     @Test(expected = ServiceException.class)
     public void testGetOverride_Given4xxErrorFromService_ExpectServiceError(){
         when(this.responseMock.bodyToMono(ServiceException.class)).thenReturn(Mono.just(new ServiceException()));
-        this.restService.get(TEST_URL_403, String.class, webClient);
+        this.restService.get(TEST_URL_403, String.class, graduationApiClient);
     }
 
     @Test(expected = ServiceException.class)
@@ -124,7 +118,7 @@ public class RESTServiceGetTest {
 
         Throwable cause = new RuntimeException("Simulated cause");
         when(responseMock.bodyToMono(String.class)).thenReturn(Mono.error(new WebClientRequestException(cause, HttpMethod.GET, null, new HttpHeaders())));
-        restService.get(TEST_URL_503, String.class, webClient);
+        restService.get(TEST_URL_503, String.class, graduationApiClient);
     }
 
     @Test(expected = ServiceException.class)
