@@ -1,9 +1,15 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.exception.ServiceException;
+import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import io.netty.channel.ConnectTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +31,11 @@ import java.util.function.Consumer;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class RESTServiceGetTest {
+public class RESTServiceGetTest extends BaseIntegrationTest {
 
     @Autowired
     private RESTService restService;
@@ -64,6 +71,24 @@ public class RESTServiceGetTest {
     @MockBean
     public ClientRegistrationRepository clientRegistrationRepository;
 
+    // NATS
+    @MockBean
+    private NatsConnection natsConnection;
+
+    @MockBean
+    FetchGradStatusSubscriber fetchGradStatusSubscriber;
+
+    @MockBean
+    private Publisher publisher;
+
+    @MockBean
+    private Subscriber subscriber;
+
+    @AfterEach
+    public void tearDown() {
+
+    }
+
     private static final String TEST_URL_200 = "https://httpstat.us/200";
     private static final String TEST_URL_403 = "https://httpstat.us/403";
     private static final String TEST_URL_503 = "https://httpstat.us/503";
@@ -71,6 +96,7 @@ public class RESTServiceGetTest {
 
     @Before
     public void setUp(){
+        openMocks(this);
         when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.courseApiClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(any(String.class))).thenReturn(this.requestHeadersMock);

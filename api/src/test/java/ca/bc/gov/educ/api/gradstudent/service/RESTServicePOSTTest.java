@@ -1,14 +1,18 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.exception.ServiceException;
+import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +22,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -29,10 +32,11 @@ import java.util.function.Consumer;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class RESTServicePOSTTest {
+public class RESTServicePOSTTest extends BaseIntegrationTest {
 
     @Autowired
     private RESTService restService;
@@ -66,6 +70,24 @@ public class RESTServicePOSTTest {
     @MockBean
     public ClientRegistrationRepository clientRegistrationRepository;
 
+    // NATS
+    @MockBean
+    private NatsConnection natsConnection;
+
+    @MockBean
+    FetchGradStatusSubscriber fetchGradStatusSubscriber;
+
+    @MockBean
+    private Publisher publisher;
+
+    @MockBean
+    private Subscriber subscriber;
+
+    @AfterEach
+    public void tearDown() {
+
+    }
+
     private static final byte[] TEST_BYTES = "The rain in Spain stays mainly on the plain.".getBytes();
     private static final String TEST_BODY = "{test:test}";
     private static final String ACCESS_TOKEN = "123";
@@ -73,6 +95,7 @@ public class RESTServicePOSTTest {
 
     @Before
     public void setUp(){
+        openMocks(this);
         Mockito.reset(webClient, courseApiClient, responseMock, requestHeadersMock, requestBodyMock, requestBodyUriMock);
 
         ThreadLocalStateUtil.clear();
