@@ -10,7 +10,6 @@ import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class RESTServicePOSTTest extends BaseIntegrationTest {
+class RESTServicePOSTTest extends BaseIntegrationTest {
 
     @Autowired
     private RESTService restService;
@@ -83,14 +82,8 @@ public class RESTServicePOSTTest extends BaseIntegrationTest {
     @MockBean
     private Subscriber subscriber;
 
-    @AfterEach
-    public void tearDown() {
-
-    }
-
     private static final byte[] TEST_BYTES = "The rain in Spain stays mainly on the plain.".getBytes();
     private static final String TEST_BODY = "{test:test}";
-    private static final String ACCESS_TOKEN = "123";
     private static final String TEST_URL = "https://fake.url.com";
 
     @Before

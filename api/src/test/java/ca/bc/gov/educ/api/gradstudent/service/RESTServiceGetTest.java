@@ -9,7 +9,6 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import io.netty.channel.ConnectTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +34,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class RESTServiceGetTest extends BaseIntegrationTest {
+class RESTServiceGetTest extends BaseIntegrationTest {
 
     @Autowired
     private RESTService restService;
@@ -83,11 +82,6 @@ public class RESTServiceGetTest extends BaseIntegrationTest {
 
     @MockBean
     private Subscriber subscriber;
-
-    @AfterEach
-    public void tearDown() {
-
-    }
 
     private static final String TEST_URL_200 = "https://httpstat.us/200";
     private static final String TEST_URL_403 = "https://httpstat.us/403";
@@ -148,7 +142,6 @@ public class RESTServiceGetTest extends BaseIntegrationTest {
         when(requestBodyUriMock.uri(TEST_URL_503)).thenReturn(requestBodyMock);
         when(requestBodyMock.retrieve()).thenReturn(responseMock);
 
-        Throwable cause = new RuntimeException("Simulated cause");
         when(responseMock.bodyToMono(String.class)).thenReturn(Mono.error(new ConnectTimeoutException("Connection closed")));
         restService.get(TEST_URL_503, String.class, courseApiClient);
     }

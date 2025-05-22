@@ -59,7 +59,7 @@ public class RESTService {
             // catches IOExceptions and the like
             throw new ServiceException(
                     getErrorMessage(url, e.getLocalizedMessage()),
-                    (e instanceof WebClientResponseException) ? ((WebClientResponseException) e).getStatusCode().value()
+                    (e instanceof WebClientResponseException webClientResponseException) ? webClientResponseException.getStatusCode().value()
                             : HttpStatus.SERVICE_UNAVAILABLE.value(), e);
         }
         return obj;
