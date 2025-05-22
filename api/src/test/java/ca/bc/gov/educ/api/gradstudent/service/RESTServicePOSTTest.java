@@ -35,7 +35,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
-class RESTServicePOSTTest extends BaseIntegrationTest {
+public class RESTServicePOSTTest extends BaseIntegrationTest {
 
     @Autowired
     private RESTService restService;
