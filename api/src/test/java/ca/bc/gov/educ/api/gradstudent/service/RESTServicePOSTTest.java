@@ -15,6 +15,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -53,6 +56,15 @@ public class RESTServicePOSTTest {
     private WebClient.RequestBodyUriSpec requestBodyUriMock;
     @MockBean
     private WebClient.ResponseSpec responseMock;
+
+    @MockBean
+    public OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
+
+    @MockBean
+    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
+
+    @MockBean
+    public ClientRegistrationRepository clientRegistrationRepository;
 
     private static final byte[] TEST_BYTES = "The rain in Spain stays mainly on the plain.".getBytes();
     private static final String TEST_BODY = "{test:test}";

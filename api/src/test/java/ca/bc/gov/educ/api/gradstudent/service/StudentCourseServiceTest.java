@@ -16,10 +16,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -33,9 +35,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@RunWith(SpringRunner.class)
 public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @MockBean StudentCourseRepository studentCourseRepository;
@@ -46,6 +47,18 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean CourseService courseService;
     @MockBean HistoryService historyService;
+
+    @MockBean(name = "webClient")
+    @Qualifier("webClient")
+    WebClient webClient;
+
+    @MockBean(name = "courseApiClient")
+    @Qualifier("courseApiClient")
+    WebClient courseApiClient;
+
+    @MockBean(name = "graduationApiClient")
+    @Qualifier("graduationApiClient")
+    WebClient graduationApiClient;
 
     @Before
     public void setUp() {

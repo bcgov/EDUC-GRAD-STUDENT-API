@@ -27,9 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@RunWith(SpringRunner.class)
 public class ExamSpecialCaseCodeServiceTest  extends BaseIntegrationTest {
 
     @Autowired
@@ -50,10 +49,6 @@ public class ExamSpecialCaseCodeServiceTest  extends BaseIntegrationTest {
     @MockBean
     @Qualifier("courseApiClient")
     public WebClient courseApiWebClient;
-
-    @MockBean
-    @Qualifier("gradCoregApiClient")
-    public WebClient coregApiWebClient;
 
     @Test
     public void testGetExamSpecialCaseCodeList() {

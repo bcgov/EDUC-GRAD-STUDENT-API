@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -55,10 +56,13 @@ public class RESTServiceGetTest {
     private WebClient.ResponseSpec responseMock;
 
     @MockBean
-    private ClientRegistrationRepository clientRegistrationRepositoryMock;
+    public OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
 
     @MockBean
-    private OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepositoryMock;
+    public OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
+
+    @MockBean
+    public ClientRegistrationRepository clientRegistrationRepository;
 
     private static final String TEST_URL_200 = "https://httpstat.us/200";
     private static final String TEST_URL_403 = "https://httpstat.us/403";

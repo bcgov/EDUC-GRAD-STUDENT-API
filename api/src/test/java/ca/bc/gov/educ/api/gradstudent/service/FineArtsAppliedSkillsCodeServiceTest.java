@@ -27,9 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@RunWith(SpringRunner.class)
 public class FineArtsAppliedSkillsCodeServiceTest  extends BaseIntegrationTest {
 
     @Autowired
