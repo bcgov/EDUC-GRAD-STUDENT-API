@@ -57,11 +57,9 @@ public class CourseCacheService {
             List<ExaminableCourse> examinableCourses = fetchExaminableCourses();
             Map<UUID, ExaminableCourse> newCache = new ConcurrentHashMap<>();
             examinableCourses.forEach(examinableCourse -> newCache.put(examinableCourse.getExaminableCourseID(), examinableCourse));
-            if(!CollectionUtils.isEmpty(newCache)) {
-                examinableCourseCache.clear();
-                examinableCourseCache.putAll(newCache);
-                log.info("Examinable Course cache successfully loaded with {} entries.", examinableCourses.size());
-            }
+            examinableCourseCache.clear();
+            examinableCourseCache.putAll(newCache);
+            log.info("Examinable Course cache successfully loaded with {} entries.", examinableCourses.size());
         } catch (Exception e) {
             log.error("Failed to load Examinable Course: {}", e.getMessage(), e);
         }
@@ -79,11 +77,9 @@ public class CourseCacheService {
             List<LetterGrade> letterGrades = fetchLetterGrades();
             Map<String, LetterGrade> newCache = new ConcurrentHashMap<>();
             letterGrades.forEach(letterGrade -> newCache.put(letterGrade.getGrade(), letterGrade));
-            if(!CollectionUtils.isEmpty(newCache)) {
-                letterGradeCache.clear();
-                letterGradeCache.putAll(newCache);
-                log.info("Letter Grade cache successfully loaded with {} entries.", letterGrades.size());
-            }
+            letterGradeCache.clear();
+            letterGradeCache.putAll(newCache);
+            log.info("Letter Grade cache successfully loaded with {} entries.", letterGrades.size());
         } catch (Exception e) {
             log.error("Failed to load Examinable Course: {}", e.getMessage(), e);
         }
