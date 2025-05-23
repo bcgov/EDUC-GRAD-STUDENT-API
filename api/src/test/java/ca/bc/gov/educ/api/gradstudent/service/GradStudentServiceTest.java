@@ -39,7 +39,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -68,7 +67,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     CommonService commonService;
 
     @MockBean
-    @Qualifier("webClient")
+    @Qualifier("studentApiClient")
     WebClient webClient;
 
     @MockBean

@@ -16,14 +16,14 @@ import java.util.*;
 @Slf4j
 public class CourseService {
 
-    private final WebClient courseApiClient;
+    private final WebClient studentApiClient;
     private final RESTService restService;
     private final CourseCacheService courseCacheService;
     private final JsonTransformer jsonTransformer;
     final EducGradStudentApiConstants constants;
 
-    public CourseService(@Qualifier("courseApiClient") WebClient courseApiClient, RESTService restService, CourseCacheService courseCacheService, JsonTransformer jsonTransformer, EducGradStudentApiConstants constants) {
-        this.courseApiClient = courseApiClient;
+    public CourseService(@Qualifier("studentApiClient") WebClient studentApiClient, RESTService restService, CourseCacheService courseCacheService, JsonTransformer jsonTransformer, EducGradStudentApiConstants constants) {
+        this.studentApiClient = studentApiClient;
         this.restService = restService;
         this.courseCacheService = courseCacheService;
         this.jsonTransformer = jsonTransformer;
@@ -35,7 +35,7 @@ public class CourseService {
         if(!CollectionUtils.isEmpty(courseIDs)) {
             CourseSearchRequest courseSearchRequest = new CourseSearchRequest();
             courseSearchRequest.setCourseIds(courseIDs);
-            var response = restService.post(String.format(constants.getCourseDetailSearchUrl()), courseSearchRequest, List.class, courseApiClient);
+            var response = restService.post(String.format(constants.getCourseDetailSearchUrl()), courseSearchRequest, List.class, studentApiClient);
             return jsonTransformer.convertValue(response, new TypeReference<List<Course>>() {});
         }
         return Collections.emptyList();

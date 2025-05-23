@@ -50,7 +50,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
     @MockBean StudentNoteRepository studentNoteRepository;
     @MockBean StudentStatusRepository studentStatusRepository;
     @MockBean HistoryActivityRepository historyActivityRepository;
-    @MockBean @Qualifier("webClient") WebClient webClient;
+    @MockBean @Qualifier("studentApiClient") WebClient webClient;
 
     @MockBean
     FetchGradStatusSubscriber fetchGradStatusSubscriber;

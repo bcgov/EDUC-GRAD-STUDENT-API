@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -34,12 +33,8 @@ public class EquivalentOrChallengeCodeServiceTest  extends BaseIntegrationTest {
     private EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
 
     @MockBean
-    @Qualifier("courseApiClient")
-    private WebClient courseApiClient;
-
-    @MockBean
-    @Qualifier("graduationApiClient")
-    private WebClient graduationApiClient;
+    @Qualifier("studentApiClient")
+    private WebClient studentApiClient;
 
     @Test
     public void testGetEquivalentOrChallengeCodeList() {

@@ -41,7 +41,7 @@ public class CourseServiceTest extends BaseIntegrationTest {
     CourseCacheService courseCacheService;
 
     @MockBean
-    @Qualifier("courseApiClient")
+    @Qualifier("studentApiClient")
     WebClient webClient;
 
     @MockBean

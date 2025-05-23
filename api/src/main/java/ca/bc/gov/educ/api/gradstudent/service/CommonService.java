@@ -39,7 +39,7 @@ public class CommonService {
 	final StudentStatusTransformer studentStatusTransformer;
 	final GraduationStatusService graduationStatusService;
 	final GradStudentService gradStudentService;
-	final WebClient webClient;
+	final WebClient studentApiClient;
 	final GradValidation validation;
 	final HistoryActivityRepository historyActivityRepository;
 	final HistoryActivityTransformer historyActivityTransformer;
@@ -58,7 +58,7 @@ public class CommonService {
 						 GradStudentService gradStudentService,
 						 HistoryActivityRepository historyActivityRepository,
 						 HistoryActivityTransformer historyActivityTransformer,
-						 @Qualifier("webClient") WebClient webClient,
+						 @Qualifier("studentApiClient") WebClient studentApiClient,
 						 GradValidation validation,
 						 StudentGradeCodeRepository studentGradeCodeRepository,
 						 StudentGradeCodeTransformer studentGradeCodeTransformer) {
@@ -73,7 +73,7 @@ public class CommonService {
 		this.gradStudentService = gradStudentService;
 		this.historyActivityRepository = historyActivityRepository;
 		this.historyActivityTransformer = historyActivityTransformer;
-		this.webClient = webClient;
+		this.studentApiClient = studentApiClient;
 		this.validation = validation;
 		this.studentGradeCodeRepository = studentGradeCodeRepository;
 		this.studentGradeCodeTransformer = studentGradeCodeTransformer;
@@ -84,7 +84,7 @@ public class CommonService {
 		logger.debug("getAllGradStudentCareerProgramList");
 		List<StudentCareerProgram> gradStudentCareerProgramList  = gradStudentCareerProgramTransformer.transformToDTO(gradStudentCareerProgramRepository.findByStudentID(UUID.fromString(studentId)));
       	gradStudentCareerProgramList.forEach(sC -> {
-      		CareerProgram gradCareerProgram= webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode()))
+      		CareerProgram gradCareerProgram= studentApiClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(),sC.getCareerProgramCode()))
 									.headers(h -> h.setBearerAuth(accessToken))
 					.retrieve().bodyToMono(CareerProgram.class).block();
     		if(gradCareerProgram != null) {

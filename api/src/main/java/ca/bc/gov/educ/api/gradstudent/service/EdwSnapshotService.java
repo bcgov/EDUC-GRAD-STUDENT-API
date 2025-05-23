@@ -42,7 +42,7 @@ public class EdwSnapshotService {
                 StudentNonGradReasonRepository studentNonGradReasonRepository,
                 StudentNonGradReasonTransformer studentNonGradReasonTransformer,
                 EducGradStudentApiConstants constants,
-                @Qualifier("webClient") WebClient webClient,
+                @Qualifier("studentApiClient") WebClient webClient,
                 GradValidation validation) {
         this.constants = constants;
         this.webClient = webClient;

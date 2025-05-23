@@ -59,7 +59,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
     @MockBean StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
     @MockBean StudentCourseHistoryRepository studentCourseHistoryRepository;
 
-    @MockBean @Qualifier("webClient") WebClient webClient;
+    @MockBean @Qualifier("studentApiClient") WebClient webClient;
 
     @MockBean
     FetchGradStatusSubscriber fetchGradStatusSubscriber;

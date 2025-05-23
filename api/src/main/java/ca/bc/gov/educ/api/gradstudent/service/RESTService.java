@@ -29,7 +29,7 @@ public class RESTService {
     private static final String SERVICE_FAILED_ERROR = "Service failed to process after max retries.";
 
     @Autowired
-    public RESTService(@Qualifier("webClient") WebClient webClient) {
+    public RESTService(@Qualifier("studentApiClient") WebClient webClient) {
         this.webClient = webClient;
     }
 

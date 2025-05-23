@@ -45,7 +45,7 @@ public class DataConversionService extends GradBaseService {
 
     private static final String UPDATE_FIELD_STR = " ==> Update Field [{}]={}";
 
-    final WebClient webClient;
+    final WebClient studentApiClient;
     final GraduationStudentRecordRepository graduationStatusRepository;
     final GraduationStatusTransformer graduationStatusTransformer;
     final StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
@@ -62,7 +62,7 @@ public class DataConversionService extends GradBaseService {
     final EducGradStudentApiConstants constants;
 
     @Autowired
-    public DataConversionService(@Qualifier("webClient") WebClient webClient,
+    public DataConversionService(@Qualifier("studentApiClient") WebClient studentApiClient,
                                  GraduationStudentRecordRepository graduationStatusRepository,
                                  GraduationStatusTransformer graduationStatusTransformer,
                                  StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer,
@@ -70,7 +70,7 @@ public class DataConversionService extends GradBaseService {
                                  StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository,
                                  GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository,
                                  HistoryService historyService, StudentNoteRepository studentNoteRepository, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants) {
-        this.webClient = webClient;
+        this.studentApiClient = studentApiClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
         this.gradStudentOptionalProgramRepository = gradStudentOptionalProgramRepository;
@@ -481,7 +481,7 @@ public class DataConversionService extends GradBaseService {
 
     @Override
     protected WebClient getWebClient() {
-        return webClient;
+        return studentApiClient;
     }
 
     @Override

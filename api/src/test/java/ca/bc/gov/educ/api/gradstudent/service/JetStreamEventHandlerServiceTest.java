@@ -39,7 +39,7 @@ class JetStreamEventHandlerServiceTest extends BaseIntegrationTest {
     GradStatusEventRepository gradStatusEventRepository;
 
     @MockBean
-    @Qualifier("webClient")
+    @Qualifier("studentApiClient")
     WebClient webClient;
 
     // NATS

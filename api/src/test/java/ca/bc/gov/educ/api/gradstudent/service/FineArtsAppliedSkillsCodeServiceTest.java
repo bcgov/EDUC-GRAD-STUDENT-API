@@ -14,7 +14,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -47,12 +46,8 @@ public class FineArtsAppliedSkillsCodeServiceTest  extends BaseIntegrationTest {
     public ClientRegistrationRepository clientRegistrationRepository;
 
     @MockBean
-    @Qualifier("courseApiClient")
-    public WebClient courseApiWebClient;
-
-    @MockBean
-    @Qualifier("gradCoregApiClient")
-    public WebClient coregApiWebClient;
+    @Qualifier("studentApiClient")
+    public WebClient studentApiWebClient;
 
     @Test
     public void testGetFineArtsAppliedSkillsCodeList() {

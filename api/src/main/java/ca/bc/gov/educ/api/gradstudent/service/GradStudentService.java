@@ -60,14 +60,14 @@ public class GradStudentService {
 	private static final String STD_NOT_FOUND_MSG = "Student with ID: %s not found";
 
 	final EducGradStudentApiConstants constants;
-	final WebClient webClient;
+	final WebClient studentApiClient;
 	final GraduationStudentRecordRepository graduationStatusRepository;
 	final GraduationStatusTransformer graduationStatusTransformer;
 
 	@Autowired
-	public GradStudentService(EducGradStudentApiConstants constants, @Qualifier("webClient") WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, GraduationStatusTransformer graduationStatusTransformer) {
+	public GradStudentService(EducGradStudentApiConstants constants, @Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, GraduationStatusTransformer graduationStatusTransformer) {
 		this.constants = constants;
-		this.webClient = webClient;
+		this.studentApiClient = studentApiClient;
 		this.graduationStatusRepository = graduationStatusRepository;
 		this.graduationStatusTransformer = graduationStatusTransformer;
 	}
@@ -84,7 +84,7 @@ public class GradStudentService {
 	    try {
 			String criteriaJSON = objectMapper.writeValueAsString(searches);
 			String encodedURL = URLEncoder.encode(criteriaJSON,StandardCharsets.UTF_8.toString());
-			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiSearchUrl(),
+			RestResponsePage<Student> response = studentApiClient.get().uri(constants.getPenStudentApiSearchUrl(),
 				uri -> uri
 					.queryParam(PAGE_NUMBER, pageNumber)
 					.queryParam(PAGE_SIZE, pageSize)
@@ -140,7 +140,7 @@ public class GradStudentService {
 	    try {
 			String criteriaJSON = objectMapper.writeValueAsString(searches);
 			String encodedURL = URLEncoder.encode(criteriaJSON,StandardCharsets.UTF_8.toString());
-			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiSearchUrl(),
+			RestResponsePage<Student> response = studentApiClient.get().uri(constants.getPenStudentApiSearchUrl(),
 				uri -> uri
 					.queryParam(PAGE_NUMBER, "0")
 					.queryParam(PAGE_SIZE, studList.size())
@@ -186,7 +186,7 @@ public class GradStudentService {
 	    try {
 			String criteriaJSON = objectMapper.writeValueAsString(searches);
 			String encodedURL = URLEncoder.encode(criteriaJSON,StandardCharsets.UTF_8.toString());
-			RestResponsePage<Student> response = webClient.get().uri(constants.getPenStudentApiSearchUrl(),
+			RestResponsePage<Student> response = studentApiClient.get().uri(constants.getPenStudentApiSearchUrl(),
 				uri -> uri
 					.queryParam(PAGE_NUMBER, "0")
 					.queryParam(PAGE_SIZE, "50000")
@@ -241,7 +241,7 @@ public class GradStudentService {
 	@Retry(name = "searchbypen")
     public List<GradSearchStudent> getStudentByPenFromStudentAPI(String pen, String accessToken) {
     	List<GradSearchStudent> gradStudentList = new ArrayList<>();
-    	List<Student> stuDataList = webClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen))
+    	List<Student> stuDataList = studentApiClient.get().uri(String.format(constants.getPenStudentApiByPenUrl(), pen))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
     	if (stuDataList != null && !stuDataList.isEmpty()) {
@@ -302,13 +302,13 @@ public class GradStudentService {
 	}
 
 	private GradSearchStudent populateGradStudent(GradSearchStudent gradStu, String accessToken) {
-		Student studentPen = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), gradStu.getStudentID()))
+		Student studentPen = studentApiClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), gradStu.getStudentID()))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve().bodyToMono(Student.class).block();
 		if(studentPen != null) {
 			BeanUtils.copyProperties(studentPen, gradStu);
 		}
-		SchoolClob schoolClob = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
+		SchoolClob schoolClob = studentApiClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve().bodyToMono(SchoolClob.class).block();
 		if (schoolClob != null) {
@@ -329,7 +329,7 @@ public class GradStudentService {
 			gradStu.setSchoolOfRecordId(gradObj.getSchoolOfRecordId() != null? gradObj.getSchoolOfRecordId().toString() : null);
 			gradStu.setStudentCitizenship(gradObj.getStudentCitizenship());
 		
-			SchoolClob schoolClob = webClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
+			SchoolClob schoolClob = studentApiClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve().bodyToMono(SchoolClob.class).block();
 			if (schoolClob != null) {
@@ -345,7 +345,7 @@ public class GradStudentService {
     @Transactional
 	@Retry(name = "searchbyid")
     public GradSearchStudent getStudentByStudentIDFromStudentAPI(String studentID, String accessToken) {
-    	Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), studentID))
+    	Student stuData = studentApiClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), studentID))
 				.headers(h -> h.setBearerAuth(accessToken))
 				.retrieve().bodyToMono(Student.class).block();
     	GradSearchStudent gradStu = new GradSearchStudent();
@@ -363,7 +363,7 @@ public class GradStudentService {
 
 	@Transactional
 	public Student addNewPenFromStudentAPI(StudentCreate student, String accessToken) {
-		return webClient.post()
+		return studentApiClient.post()
 				.uri(constants.getPenStudentApiUrl())
 				.headers(h -> h.setBearerAuth(accessToken))
 				.body(BodyInserters.fromValue(student))

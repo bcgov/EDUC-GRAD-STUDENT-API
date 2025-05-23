@@ -39,16 +39,9 @@ public class RESTServiceGetTest extends BaseIntegrationTest {
     @Autowired
     private RESTService restService;
 
-    @MockBean(name = "webClient")
-    WebClient webClient;
-
-    @MockBean(name = "courseApiClient")
-    @Qualifier("courseApiClient")
-    WebClient courseApiClient;
-
-    @MockBean(name = "graduationApiClient")
-    @Qualifier("graduationApiClient")
-    WebClient graduationApiClient;
+    @MockBean(name = "studentApiClient")
+    @Qualifier("studentApiClient")
+    WebClient studentApiClient;
 
     @Mock
     private WebClient.RequestHeadersSpec requestHeadersMock;
@@ -91,8 +84,7 @@ public class RESTServiceGetTest extends BaseIntegrationTest {
     @Before
     public void setUp(){
         openMocks(this);
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.courseApiClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.studentApiClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(any(String.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
@@ -102,39 +94,39 @@ public class RESTServiceGetTest extends BaseIntegrationTest {
     @Test
     public void testGet_GivenProperData_Expect200Response(){
         when(this.responseMock.bodyToMono(String.class)).thenReturn(Mono.just(OK_RESPONSE));
-        String response = this.restService.get(TEST_URL_200, String.class, courseApiClient);
+        String response = this.restService.get(TEST_URL_200, String.class, studentApiClient);
         assertEquals("200 OK", response);
     }
 
     @Test
     public void testGetOverride_GivenProperData_Expect200Response(){
         when(this.responseMock.bodyToMono(String.class)).thenReturn(Mono.just(OK_RESPONSE));
-        String response = this.restService.get(TEST_URL_200, String.class, webClient);
+        String response = this.restService.get(TEST_URL_200, String.class, studentApiClient);
         assertEquals(OK_RESPONSE, response);
     }
 
     @Test(expected = ServiceException.class)
     public void testGet_Given5xxErrorFromService_ExpectServiceError(){
         when(this.responseMock.bodyToMono(ServiceException.class)).thenReturn(Mono.just(new ServiceException()));
-        this.restService.get(TEST_URL_503, String.class, courseApiClient);
+        this.restService.get(TEST_URL_503, String.class, studentApiClient);
     }
 
     @Test(expected = ServiceException.class)
     public void testGetOverride_Given5xxErrorFromService_ExpectServiceError(){
         when(this.responseMock.bodyToMono(ServiceException.class)).thenReturn(Mono.just(new ServiceException()));
-        this.restService.get(TEST_URL_503, String.class, webClient);
+        this.restService.get(TEST_URL_503, String.class, studentApiClient);
     }
 
     @Test(expected = ServiceException.class)
     public void testGet_Given4xxErrorFromService_ExpectServiceError(){
         when(this.responseMock.bodyToMono(ServiceException.class)).thenReturn(Mono.just(new ServiceException()));
-        this.restService.get(TEST_URL_403, String.class, courseApiClient);
+        this.restService.get(TEST_URL_403, String.class, studentApiClient);
     }
 
     @Test(expected = ServiceException.class)
     public void testGetOverride_Given4xxErrorFromService_ExpectServiceError(){
         when(this.responseMock.bodyToMono(ServiceException.class)).thenReturn(Mono.just(new ServiceException()));
-        this.restService.get(TEST_URL_403, String.class, webClient);
+        this.restService.get(TEST_URL_403, String.class, studentApiClient);
     }
 
     @Test(expected = ServiceException.class)
@@ -143,7 +135,7 @@ public class RESTServiceGetTest extends BaseIntegrationTest {
         when(requestBodyMock.retrieve()).thenReturn(responseMock);
 
         when(responseMock.bodyToMono(String.class)).thenReturn(Mono.error(new ConnectTimeoutException("Connection closed")));
-        restService.get(TEST_URL_503, String.class, courseApiClient);
+        restService.get(TEST_URL_503, String.class, studentApiClient);
     }
 
     @Test(expected = ServiceException.class)
@@ -153,7 +145,7 @@ public class RESTServiceGetTest extends BaseIntegrationTest {
 
         Throwable cause = new RuntimeException("Simulated cause");
         when(responseMock.bodyToMono(String.class)).thenReturn(Mono.error(new WebClientRequestException(cause, HttpMethod.GET, null, new HttpHeaders())));
-        restService.get(TEST_URL_503, String.class, webClient);
+        restService.get(TEST_URL_503, String.class, studentApiClient);
     }
 
     @Test(expected = ServiceException.class)
@@ -163,7 +155,7 @@ public class RESTServiceGetTest extends BaseIntegrationTest {
 
         Throwable cause = new RuntimeException("Simulated cause");
         when(responseMock.bodyToMono(String.class)).thenReturn(Mono.error(new WebClientRequestException(cause, HttpMethod.GET, null, new HttpHeaders())));
-        restService.get(TEST_URL_503, String.class, courseApiClient
+        restService.get(TEST_URL_503, String.class, studentApiClient
         );
     }
 

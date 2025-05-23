@@ -37,19 +37,12 @@ spring:
           jwk-set-uri: http://test
       client:
         registration:
-          course-api-client:
-            client-id: course-api
-            client-secret: abc
-            authorization-grant-type: client_credentials
-          graduation-api-client:
-            client-id: graduation-api
+          student-api-client:
+            client-id: student-api
             client-secret: abc
             authorization-grant-type: client_credentials
         provider:
-          course-api-client:
-            issuer-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master
-            token-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master/protocol/openid-connect/token
-          graduation-api-client:
+          student-api-client:
             issuer-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master
             token-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master/protocol/openid-connect/token
 
@@ -124,6 +117,8 @@ cron:
           
 #Endpoint properties
 endpoint:
+  keycloak:
+    token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
   grad-trax-api:
     search-schools-by-district-id:
       url: http://test

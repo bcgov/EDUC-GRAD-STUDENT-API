@@ -37,21 +37,14 @@ spring:
           jwk-set-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/certs
       client:
         registration:
-          course-api-client:
-            client-id: ${GRAD_COURSE_API_CLIENT_NAME}
-            client-secret: ${GRAD_COURSE_API_CLIENT_SECRET}
+          student-api-client:
+            client-id: ${GRAD_STUDENT_API_CLIENT_NAME}
+            client-secret: ${GRAD_STUDENT_API_CLIENT_SECRET}
             authorization-grant-type: client_credentials
-          graduation-api-client:
-            client-id: ${GRAD_GRADUATION_API_CLIENT_NAME}
-            client-secret: ${GRAD_GRADUATION_API_CLIENT_SECRET}
-            authorization-grant-type: client_credentials
-      provider:
-        course-api-client:
-          issuer-uri: ${TOKEN_ISSUER_URL}
-          token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
-        graduation-api-client:
-          issuer-uri: ${TOKEN_ISSUER_URL}
-          token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
+        provider:
+          student-api-client:
+            issuer-uri: ${TOKEN_ISSUER_URL}
+            token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
 
 #Logging properties
 logging:
@@ -174,6 +167,8 @@ resilience4j.retry:
 
 #Endpoint properties
 endpoint:
+  keycloak:
+    token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
   grad-trax-api:
     search-schools-by-district-id:
       url: ${GRAD_TRAX_API}api/v2/trax/school/search?districtId=%s

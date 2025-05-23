@@ -1,0 +1,39 @@
+[
+  {
+    "clientId": "grad-student-api-client",
+    "scopes": ["ARCHIVE_GRADUATION_STUDENT_RECORD",
+      "CREATE_GRAD_STUDENT_NOTES_DATA",
+      "CREATE_GRAD_STUDENT_STATUS_CODE_DATA",
+      "DELETE_GRAD_STUDENT_COURSE_DATA",
+      "DELETE_GRAD_STUDENT_NOTES_DATA",
+      "DELETE_GRAD_STUDENT_STATUS_CODE_DATA",
+      "READ_EQUIVALENT_OR_CHALLENGE_CODE",
+      "READ_EXAM_SPECIAL_CASE_CODE",
+      "READ_FINE_ART_APPLIED_SKILLS_CODE",
+      "READ_GRAD_AND_PEN_STUDENT_DATA",
+      "READ_GRAD_COURSE_DATA",
+      "READ_GRAD_GRADUATION_STATUS",
+      "READ_GRAD_HISTORY_ACTIVITY_CODE_DATA",
+      "READ_GRAD_STUDENT_CAREER_DATA",
+      "READ_GRAD_STUDENT_COURSE_DATA",
+      "READ_GRAD_STUDENT_DATA",
+      "READ_GRAD_STUDENT_GRADE_CODES",
+      "READ_GRAD_STUDENT_NOTES_DATA",
+      "READ_GRAD_STUDENT_SPECIAL_DATA",
+      "READ_GRAD_STUDENT_STATUS_CODE_DATA",
+      "UPDATE_GRAD_GRADUATION_STATUS",
+      "UPDATE_GRAD_STUDENT_COURSE_DATA",
+      "UPDATE_GRAD_STUDENT_NOTES_DATA",
+      "UPDATE_GRAD_STUDENT_SPECIAL_DATA",
+      "UPDATE_GRAD_STUDENT_STATUS_CODE_DATA",
+      "WRITE_STUDENT"],
+    "settings": {
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    }
+  }
+]

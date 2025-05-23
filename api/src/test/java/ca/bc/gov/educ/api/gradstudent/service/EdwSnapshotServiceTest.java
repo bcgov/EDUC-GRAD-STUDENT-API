@@ -20,7 +20,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -51,7 +50,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
     GradValidation validation;
 
     @MockBean
-    @Qualifier("webClient")
+    @Qualifier("studentApiClient")
     WebClient webClient;
 
     @MockBean

@@ -247,4 +247,7 @@ public class EducGradStudentApiConstants {
 
     @Value("${cron.scheduled.process.purge-old-records.staleInDays}")
     private int recordsStaleInDays;
+
+    @Value("${endpoint.keycloak.token-uri}")
+    private String tokenUrl;
 }

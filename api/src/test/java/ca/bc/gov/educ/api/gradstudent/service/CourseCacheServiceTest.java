@@ -40,12 +40,8 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     CourseCacheService courseCacheService;
 
     @MockBean
-    @Qualifier("courseApiClient")
-    WebClient courseApiClient;
-
-    @MockBean
-    @Qualifier("graduationApiClient")
-    WebClient graduationApiClient;
+    @Qualifier("studentApiClient")
+    WebClient studentApiClient;
 
     @MockBean
     RESTService restService;
@@ -61,8 +57,7 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
 
     @Before
     public void setUp(){
-        when(this.courseApiClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.graduationApiClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.studentApiClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(any(String.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);

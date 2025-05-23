@@ -71,7 +71,7 @@ public class GraduationStatusServiceTest extends BaseIntegrationTest {
     @MockBean GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
     @MockBean CommonService commonService;
     @MockBean GradValidation validation;
-    @MockBean @Qualifier("webClient") WebClient webClient;
+    @MockBean @Qualifier("studentApiClient") WebClient webClient;
 
     @MockBean
     FetchGradStatusSubscriber fetchGradStatusSubscriber;

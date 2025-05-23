@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +26,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -40,16 +40,8 @@ public class RESTServicePOSTTest extends BaseIntegrationTest {
     @Autowired
     private RESTService restService;
 
-    @MockBean(name = "webClient")
-    WebClient webClient;
-
-    @MockBean(name = "courseApiClient")
-    @Qualifier("courseApiClient")
-    WebClient courseApiClient;
-
-    @MockBean(name = "graduationApiClient")
-    @Qualifier("graduationApiClient")
-    WebClient graduationApiClient;
+    @MockBean(name = "studentApiClient")
+    WebClient studentApiClient;
 
     @MockBean
     private WebClient.RequestHeadersSpec requestHeadersMock;
@@ -89,12 +81,12 @@ public class RESTServicePOSTTest extends BaseIntegrationTest {
     @Before
     public void setUp(){
         openMocks(this);
-        Mockito.reset(webClient, courseApiClient, responseMock, requestHeadersMock, requestBodyMock, requestBodyUriMock);
+        Mockito.reset(studentApiClient, studentApiClient, responseMock, requestHeadersMock, requestBodyMock, requestBodyUriMock);
 
         ThreadLocalStateUtil.clear();
 
-        when(this.webClient.post()).thenReturn(this.requestBodyUriMock);
-        when(this.courseApiClient.post()).thenReturn(this.requestBodyUriMock);
+        when(this.studentApiClient.post()).thenReturn(this.requestBodyUriMock);
+        when(this.studentApiClient.post()).thenReturn(this.requestBodyUriMock);
         when(this.requestBodyUriMock.uri(any(String.class))).thenReturn(this.requestBodyMock);
         when(this.requestBodyMock.headers(any(Consumer.class))).thenReturn(this.requestBodyMock);
         when(this.requestBodyMock.contentType(any())).thenReturn(this.requestBodyMock);
@@ -105,33 +97,33 @@ public class RESTServicePOSTTest extends BaseIntegrationTest {
 
     @Test
     public void testPost_GivenProperData_Expect200Response(){
-        ThreadLocalStateUtil.setCorrelationID("test-correlation-id");
+        ThreadLocalStateUtil.setCorrelationID(UUID.randomUUID().toString());
         ThreadLocalStateUtil.setCurrentUser("test-user");
         when(this.responseMock.onStatus(any(), any())).thenReturn(this.responseMock);
-        byte[] response = this.restService.post(TEST_URL, TEST_BODY, byte[].class, webClient);
+        byte[] response = this.restService.post(TEST_URL, TEST_BODY, byte[].class, studentApiClient);
         Assert.assertArrayEquals(TEST_BYTES, response);
 
     }
 
     @Test
     public void testPostOverride_GivenProperData_Expect200Response(){
-        ThreadLocalStateUtil.setCorrelationID("test-correlation-id");
+        ThreadLocalStateUtil.setCorrelationID(UUID.randomUUID().toString());
         ThreadLocalStateUtil.setCurrentUser("test-user");
         when(this.responseMock.onStatus(any(), any())).thenReturn(this.responseMock);
-        byte[] response = this.restService.post(TEST_URL, TEST_BODY, byte[].class, courseApiClient);
+        byte[] response = this.restService.post(TEST_URL, TEST_BODY, byte[].class, studentApiClient);
         Assert.assertArrayEquals(TEST_BYTES, response);
     }
 
     @Test(expected = ServiceException.class)
     public void testPost_Given4xxErrorFromService_ExpectServiceError() {
         when(this.responseMock.onStatus(any(), any())).thenThrow(new ServiceException());
-        this.restService.post(TEST_URL, TEST_BODY, byte[].class, webClient);
+        this.restService.post(TEST_URL, TEST_BODY, byte[].class, studentApiClient);
     }
 
     @Test(expected = ServiceException.class)
     public void testPostOverride_Given4xxErrorFromService_ExpectServiceError() {
         when(this.responseMock.onStatus(any(), any())).thenThrow(new ServiceException());
-        this.restService.post(TEST_URL, TEST_BODY, byte[].class, courseApiClient);
+        this.restService.post(TEST_URL, TEST_BODY, byte[].class, studentApiClient);
     }
 
     @Test(expected = ServiceException.class)
@@ -141,7 +133,7 @@ public class RESTServicePOSTTest extends BaseIntegrationTest {
 
         Throwable cause = new RuntimeException("Simulated cause");
         when(responseMock.bodyToMono(byte[].class)).thenReturn(Mono.error(new WebClientRequestException(cause, HttpMethod.POST, null, new HttpHeaders())));
-        this.restService.post(TEST_URL, TEST_BODY, byte[].class, webClient);
+        this.restService.post(TEST_URL, TEST_BODY, byte[].class, studentApiClient);
     }
 
     @Test(expected = ServiceException.class)
@@ -151,7 +143,7 @@ public class RESTServicePOSTTest extends BaseIntegrationTest {
 
         Throwable cause = new RuntimeException("Simulated cause");
         when(responseMock.bodyToMono(byte[].class)).thenReturn(Mono.error(new WebClientRequestException(cause, HttpMethod.POST, null, new HttpHeaders())));
-        this.restService.post(TEST_URL, TEST_BODY, byte[].class, courseApiClient);
+        this.restService.post(TEST_URL, TEST_BODY, byte[].class, studentApiClient);
     }
 
 }

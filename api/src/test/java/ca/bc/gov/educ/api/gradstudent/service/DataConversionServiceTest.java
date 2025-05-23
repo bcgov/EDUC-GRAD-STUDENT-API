@@ -69,7 +69,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
     @MockBean
     GradValidation validation;
     @MockBean
-    @Qualifier("webClient")
+    @Qualifier("studentApiClient")
     WebClient webClient;
 
     @MockBean

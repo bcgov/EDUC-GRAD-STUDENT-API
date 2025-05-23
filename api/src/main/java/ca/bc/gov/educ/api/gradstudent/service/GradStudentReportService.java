@@ -34,14 +34,14 @@ public class GradStudentReportService extends GradBaseService {
     private final ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository;
     private final ReportGradStudentTransformer reportGradStudentTransformer;
     private final EducGradStudentApiConstants constants;
-    private final WebClient webClient;
+    private final WebClient studentApiClient;
 
-    public GradStudentReportService(EducGradStudentApiConstants constants, ReportGradStudentDataRepository reportGradStudentDataRepository, ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository, ReportGradStudentTransformer reportGradStudentTransformer, @Qualifier("webClient") WebClient webClient) {
+    public GradStudentReportService(EducGradStudentApiConstants constants, ReportGradStudentDataRepository reportGradStudentDataRepository, ReportGradSchoolYearEndRepository reportGradSchoolYearEndRepository, ReportGradStudentTransformer reportGradStudentTransformer, @Qualifier("studentApiClient") WebClient studentApiClient) {
         this.constants = constants;
         this.reportGradStudentDataRepository = reportGradStudentDataRepository;
         this.reportGradSchoolYearEndRepository = reportGradSchoolYearEndRepository;
         this.reportGradStudentTransformer = reportGradStudentTransformer;
-        this.webClient = webClient;
+        this.studentApiClient = studentApiClient;
     }
 
 
@@ -188,7 +188,7 @@ public class GradStudentReportService extends GradBaseService {
 
     @Override
     protected WebClient getWebClient() {
-        return webClient;
+        return studentApiClient;
     }
 
     @Override

@@ -37,46 +37,11 @@ public class RestWebClient {
         this.httpClient.warmup().block();
     }
 
-    @Bean
-    public WebClient webClient() {
-        DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
-        defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-        return WebClient.builder().uriBuilderFactory(defaultUriBuilderFactory).exchangeStrategies(ExchangeStrategies.builder()
-                .codecs(configurer -> configurer
-                        .defaultCodecs()
-                        .maxInMemorySize(40 * 1024 * 1024)) // 40 MB
-                      .build())
-                .filter(setRequestHeaders())
-                .filter(this.log())
-                .build();
-    }
-
     @Primary
-    @Bean("courseApiClient")
-    public WebClient getCourseApiClientWebClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+    @Bean("studentApiClient")
+    public WebClient getStudentApiClientWebClient(OAuth2AuthorizedClientManager authorizedClientManager) {
         ServletOAuth2AuthorizedClientExchangeFilterFunction filter = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
-        filter.setDefaultClientRegistrationId("course-api-client");
-        DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
-        defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-        return WebClient.builder()
-                .uriBuilderFactory(defaultUriBuilderFactory)
-                .filter(setRequestHeaders())
-                .exchangeStrategies(ExchangeStrategies
-                        .builder()
-                        .codecs(codecs -> codecs
-                                .defaultCodecs()
-                                .maxInMemorySize(50 * 1024 * 1024))
-                        .build())
-                .apply(filter.oauth2Configuration())
-                .filter(this.log())
-                .build();
-    }
-
-    @Primary
-    @Bean("graduationApiClient")
-    public WebClient getGraduationApiClientWebClient(OAuth2AuthorizedClientManager authorizedClientManager) {
-        ServletOAuth2AuthorizedClientExchangeFilterFunction filter = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
-        filter.setDefaultClientRegistrationId("graduation-api-client");
+        filter.setDefaultClientRegistrationId("student-api-client");
         DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
         defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
         return WebClient.builder()

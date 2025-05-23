@@ -23,8 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class CourseCacheService {
 
-    private final WebClient courseApiClient;
-    private final WebClient graduationApiClient;
+    private final WebClient studentApiClient;
     private final RESTService restService;
     private final JsonTransformer jsonTransformer;
     final EducGradStudentApiConstants constants;
@@ -33,9 +32,8 @@ public class CourseCacheService {
     private final Map<String, LetterGrade> letterGradeCache = new ConcurrentHashMap<>();
 
     @Autowired
-    public CourseCacheService(@Qualifier("courseApiClient") WebClient courseApiClient, @Qualifier("graduationApiClient") WebClient graduationApiClient, RESTService restService, JsonTransformer jsonTransformer, EducGradStudentApiConstants constants) {
-        this.courseApiClient = courseApiClient;
-        this.graduationApiClient = graduationApiClient;
+    public CourseCacheService(@Qualifier("studentApiClient") WebClient studentApiClient, RESTService restService, JsonTransformer jsonTransformer, EducGradStudentApiConstants constants) {
+        this.studentApiClient = studentApiClient;
         this.restService = restService;
         this.jsonTransformer = jsonTransformer;
         this.constants = constants;
@@ -66,7 +64,7 @@ public class CourseCacheService {
     }
 
     private List<ExaminableCourse> fetchExaminableCourses() {
-        var response = restService.get(String.format(constants.getExaminableCourseDetailUrl()), List.class, courseApiClient);
+        var response = restService.get(String.format(constants.getExaminableCourseDetailUrl()), List.class, studentApiClient);
         return response != null ? jsonTransformer.convertValue(response, new TypeReference<List<ExaminableCourse>>() {}) : Collections.emptyList();
     }
 
@@ -86,7 +84,7 @@ public class CourseCacheService {
     }
 
     private List<LetterGrade> fetchLetterGrades() {
-        var response = restService.get(String.format(constants.getLetterGradesUrl()), List.class, graduationApiClient);
+        var response = restService.get(String.format(constants.getLetterGradesUrl()), List.class, studentApiClient);
         return response != null ? jsonTransformer.convertValue(response, new TypeReference<List<LetterGrade>>() {}) : Collections.emptyList();
     }
 }
