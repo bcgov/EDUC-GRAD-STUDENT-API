@@ -64,6 +64,8 @@ objects:
                     name: educ-grad-nats-messaging-config-map
                 - secretRef:
                     name: api-grad-student-db-secret
+                - secretRef:
+                    name: grad-student-api-client-secret
               resources:
                 requests:
                   cpu: "${MIN_CPU}"

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -38,6 +39,7 @@ class JetStreamEventHandlerServiceTest extends BaseIntegrationTest {
     GradStatusEventRepository gradStatusEventRepository;
 
     @MockBean
+    @Qualifier("studentApiClient")
     WebClient webClient;
 
     // NATS

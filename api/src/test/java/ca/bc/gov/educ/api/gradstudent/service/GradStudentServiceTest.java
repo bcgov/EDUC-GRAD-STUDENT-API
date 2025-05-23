@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
@@ -38,7 +39,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -67,6 +67,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     CommonService commonService;
 
     @MockBean
+    @Qualifier("studentApiClient")
     WebClient webClient;
 
     @MockBean

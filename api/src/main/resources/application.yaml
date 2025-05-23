@@ -35,6 +35,16 @@ spring:
         jwt:
           issuer-uri: ${TOKEN_ISSUER_URL}
           jwk-set-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/certs
+      client:
+        registration:
+          student-api-client:
+            client-id: ${GRAD_STUDENT_API_CLIENT_NAME}
+            client-secret: ${GRAD_STUDENT_API_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+        provider:
+          student-api-client:
+            issuer-uri: ${TOKEN_ISSUER_URL}
+            token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
 
 #Logging properties
 logging:
@@ -113,6 +123,8 @@ cron:
         staleInDays: ${RECORDS_STALE_IN_DAYS}
       refresh-non-grad-status:
         run: ${CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS}
+      refresh-course-details:
+        run: ${CRON_SCHEDULED_REFRESH_COURSE_DETAILS}
 
 #Resilience
 resilience4j.retry:
@@ -155,6 +167,8 @@ resilience4j.retry:
 
 #Endpoint properties
 endpoint:
+  keycloak:
+    token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
   grad-trax-api:
     search-schools-by-district-id:
       url: ${GRAD_TRAX_API}api/v2/trax/school/search?districtId=%s
@@ -203,8 +217,8 @@ endpoint:
   grad-course-api:
     course-details-search:
       url: ${GRAD_COURSE_API}api/v2/course/search
-    examinable-course-details-search:
-      url: ${GRAD_COURSE_API}api/v1/course/examinable/search
+    examinable-course-details:
+      url: ${GRAD_COURSE_API}api/v1/course/examinablecourses
 
 
 #Splunk LogHelper

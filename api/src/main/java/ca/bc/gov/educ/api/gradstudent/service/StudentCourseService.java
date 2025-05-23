@@ -47,15 +47,15 @@ public class StudentCourseService {
     }
 
     @Transactional
-    public List<StudentCourseValidationIssue> saveStudentCourses(UUID studentID, List<StudentCourse> studentCourses, String accessToken, boolean isUpdate) {
+    public List<StudentCourseValidationIssue> saveStudentCourses(UUID studentID, List<StudentCourse> studentCourses, boolean isUpdate) {
         Map<String, StudentCourseValidationIssue> courseValidationIssues = new HashMap<>();
         List<StudentCourseValidationIssue> studentCourseResults = new ArrayList<>();
         List<StudentCourse> tobePersisted = new ArrayList<>();
         List<StudentCourse> existingStudentCourses = getStudentCourses(studentID);
         GraduationStudentRecord graduationStudentRecord = graduationStatusService.getGraduationStatus(studentID);
-        List<Course> courses = courseService.getCourses(studentCourses.stream().map(StudentCourse::getCourseID).toList(), accessToken);
-        List<ExaminableCourse> examinableCourses = courseService.getExaminableCourses(studentCourses.stream().map(StudentCourse::getCourseID).toList(), accessToken);
-        List<LetterGrade> letterGrades = courseService.getLetterGrades(accessToken);
+        List<Course> courses = courseService.getCourses(studentCourses.stream().map(StudentCourse::getCourseID).toList());
+        List<ExaminableCourse> examinableCourses = courseService.getExaminableCourses(studentCourses.stream().map(StudentCourse::getCourseID).toList());
+        List<LetterGrade> letterGrades = courseService.getLetterGrades();
         String activityCode = isUpdate ? StudentCourseActivityType.USERCOURSEMOD.name() : StudentCourseActivityType.USERCOURSEADD.name();
         studentCourses.forEach(studentCourse -> {
             StudentCourse existingStudentCourse = getExistingCourse(studentCourse, existingStudentCourses, isUpdate);
@@ -108,12 +108,12 @@ public class StudentCourseService {
     }
 
     @Transactional
-    public List<StudentCourseValidationIssue> deleteStudentCourses(UUID studentID, List<UUID> studentCourseIDs, String accessToken) {
+    public List<StudentCourseValidationIssue> deleteStudentCourses(UUID studentID, List<UUID> studentCourseIDs) {
         Map<UUID, StudentCourseValidationIssue> courseValidationIssues = new HashMap<>();
         if(CollectionUtils.isEmpty(studentCourseIDs)) return Collections.emptyList();
         GraduationStudentRecord graduationStudentRecord = graduationStatusService.getGraduationStatus(studentID);
         List<StudentCourseEntity> existingStudentCourses = studentCourseRepository.findAllById(studentCourseIDs);
-        List<Course> courses = courseService.getCourses(existingStudentCourses.stream().map(StudentCourseEntity::getCourseID).map(BigInteger::toString).toList(), accessToken);
+        List<Course> courses = courseService.getCourses(existingStudentCourses.stream().map(StudentCourseEntity::getCourseID).map(BigInteger::toString).toList());
         if(StringUtils.isNotBlank(graduationStudentRecord.getProgramCompletionDate())) {
             GraduationDataOptionalDetails graduationDataOptionalDetails = getGraduationStatusWithOptionalDetails(graduationStudentRecord);
             for(StudentCourseEntity studentCourse: existingStudentCourses) {

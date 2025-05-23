@@ -7,11 +7,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,9 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@RunWith(SpringRunner.class)
 public class EquivalentOrChallengeCodeServiceTest  extends BaseIntegrationTest {
 
     @Autowired
@@ -31,6 +31,10 @@ public class EquivalentOrChallengeCodeServiceTest  extends BaseIntegrationTest {
 
     @MockBean
     private EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
+
+    @MockBean
+    @Qualifier("studentApiClient")
+    private WebClient studentApiClient;
 
     @Test
     public void testGetEquivalentOrChallengeCodeList() {

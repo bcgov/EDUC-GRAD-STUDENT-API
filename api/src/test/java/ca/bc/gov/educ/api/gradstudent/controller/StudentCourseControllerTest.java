@@ -81,10 +81,10 @@ public class StudentCourseControllerTest {
         ResponseEntity<List<StudentCourseValidationIssue>> expectedResponse = ResponseEntity.ok(Arrays.asList(validationIssue));
         when(responseHelper.GET(Arrays.asList(validationIssue))).thenReturn(expectedResponse);
 
-        when(studentCourseService.saveStudentCourses(studentID, List.of(studentCourse), "accessToken", false)).thenReturn(Arrays.asList(validationIssue));
-        ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.createStudentCourses(studentID, List.of(studentCourse), "accessToken");
+        when(studentCourseService.saveStudentCourses(studentID, List.of(studentCourse), false)).thenReturn(Arrays.asList(validationIssue));
+        ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.createStudentCourses(studentID, List.of(studentCourse));
         assertThat(actual).isEqualTo(expectedResponse);
-        verify(studentCourseService).saveStudentCourses(studentID, List.of(studentCourse), "accessToken", false);
+        verify(studentCourseService).saveStudentCourses(studentID, List.of(studentCourse), false);
     }
 
     @Test
@@ -101,10 +101,10 @@ public class StudentCourseControllerTest {
         ResponseEntity<List<StudentCourseValidationIssue>> expectedResponse = ResponseEntity.ok(Arrays.asList(validationIssue));
         when(responseHelper.GET(Arrays.asList(validationIssue))).thenReturn(expectedResponse);
 
-        when(studentCourseService.saveStudentCourses(studentID, List.of(studentCourse), "accessToken", true)).thenReturn(Arrays.asList(validationIssue));
-        ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.updateStudentCourses(studentID, List.of(studentCourse), "accessToken");
+        when(studentCourseService.saveStudentCourses(studentID, List.of(studentCourse), true)).thenReturn(Arrays.asList(validationIssue));
+        ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.updateStudentCourses(studentID, List.of(studentCourse));
         assertThat(actual).isEqualTo(expectedResponse);
-        verify(studentCourseService).saveStudentCourses(studentID, List.of(studentCourse), "accessToken", true);
+        verify(studentCourseService).saveStudentCourses(studentID, List.of(studentCourse), true);
     }
 
     @Test
@@ -118,10 +118,10 @@ public class StudentCourseControllerTest {
         ResponseEntity<List<StudentCourseValidationIssue>> expectedResponse = ResponseEntity.ok(Arrays.asList(validationIssue));
         when(responseHelper.GET(Arrays.asList(validationIssue))).thenReturn(expectedResponse);
 
-        when(studentCourseService.deleteStudentCourses(studentID, List.of(courseID), "accessToken")).thenReturn(Arrays.asList(validationIssue));
-        ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.deleteStudentCourses(studentID, List.of(courseID), "accessToken");
+        when(studentCourseService.deleteStudentCourses(studentID, List.of(courseID))).thenReturn(Arrays.asList(validationIssue));
+        ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.deleteStudentCourses(studentID, List.of(courseID));
         assertThat(actual).isEqualTo(expectedResponse);
-        verify(studentCourseService).deleteStudentCourses(studentID, List.of(courseID), "accessToken");
+        verify(studentCourseService).deleteStudentCourses(studentID, List.of(courseID));
     }
 
 }

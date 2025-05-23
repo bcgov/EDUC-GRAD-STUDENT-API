@@ -16,10 +16,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -33,9 +34,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@RunWith(SpringRunner.class)
 public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @MockBean StudentCourseRepository studentCourseRepository;
@@ -46,6 +46,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean CourseService courseService;
     @MockBean HistoryService historyService;
+
+    @MockBean(name = "studentApiClient")
+    @Qualifier("studentApiClient")
+    WebClient webClient;
 
     @Before
     public void setUp() {
@@ -80,10 +84,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "");
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", false);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
@@ -108,10 +112,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", true);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
@@ -129,9 +133,9 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "");
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(studentCourseRepository.findByStudentID(any(UUID.class))).thenReturn(existingStudentCourseEntities);
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", false);
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DUPLICATE.getMessage())).findFirst().isPresent());
@@ -146,10 +150,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("MER", "");
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", false);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -166,10 +170,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("TER", "1996-EN");
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", false);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
@@ -221,10 +225,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("ARC", "1996-EN");
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", false);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
@@ -276,10 +280,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("DEC", "1996-EN");
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", false);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
@@ -331,10 +335,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("TER", "2004-EN");
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", false);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
@@ -352,10 +356,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("ARC", "2004-EN");
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", false);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
@@ -373,10 +377,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("DEC", "2004-EN");
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", false);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
@@ -402,10 +406,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", true);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -430,10 +434,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", true);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
@@ -493,10 +497,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", true);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
@@ -556,10 +560,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", true);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
@@ -619,10 +623,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", true);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
@@ -648,10 +652,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", true);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
@@ -677,10 +681,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), "accessToken", true);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
@@ -707,10 +711,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findAllById(tobeDeleted)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted, "accessToken");
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
@@ -751,10 +755,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findAllById(tobeDeleted)).thenReturn(studentCourseEntities);
-        when(courseService.getCourses(anyList(), anyString())).thenReturn(getCourses());
-        when(courseService.getLetterGrades(anyString())).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList(), anyString())).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted, "accessToken");
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
+        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_VALID.getMessage())).findFirst().isPresent());

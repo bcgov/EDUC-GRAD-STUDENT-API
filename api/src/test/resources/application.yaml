@@ -35,6 +35,16 @@ spring:
         jwt:
           issuer-uri: http://test
           jwk-set-uri: http://test
+      client:
+        registration:
+          student-api-client:
+            client-id: student-api
+            client-secret: abc
+            authorization-grant-type: client_credentials
+        provider:
+          student-api-client:
+            issuer-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master
+            token-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master/protocol/openid-connect/token
 
 #Logging properties
 logging:
@@ -102,9 +112,13 @@ cron:
         staleInDays: 90
       refresh-non-grad-status:
         run: 0 30 0 * * *
+      refresh-course-details:
+        run: 0 30 0 * * *
           
 #Endpoint properties
 endpoint:
+  keycloak:
+    token-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master/protocol/openid-connect/token
   grad-trax-api:
     search-schools-by-district-id:
       url: http://test
@@ -154,7 +168,7 @@ endpoint:
   grad-course-api:
     course-details-search:
       url: http://test
-    examinable-course-details-search:
+    examinable-course-details:
       url: http://test
 
 #Splunk LogHelper

@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +33,7 @@ public class HistoryService {
     private static final Logger logger = LoggerFactory.getLogger(HistoryService.class);
 
     final
-    WebClient webClient;
+    WebClient studentApiClient;
 
     final GraduationStudentRecordRepository graduationStatusRepository;
     final GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
@@ -45,8 +46,8 @@ public class HistoryService {
     final EducGradStudentApiConstants constants;
 
     @Autowired
-    public HistoryService(WebClient webClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants, HistoryActivityRepository historyActivityRepository, GraduationStudentRecordRepository graduationStatusRepository, StudentCourseHistoryRepository studentCourseHistoryRepository, StudentCourseHistoryMapper studentCourseHistoryMapper) {
-        this.webClient = webClient;
+    public HistoryService(@Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants, HistoryActivityRepository historyActivityRepository, GraduationStudentRecordRepository graduationStatusRepository, StudentCourseHistoryRepository studentCourseHistoryRepository, StudentCourseHistoryMapper studentCourseHistoryMapper) {
+        this.studentApiClient = studentApiClient;
         this.graduationStudentRecordHistoryRepository = graduationStudentRecordHistoryRepository;
         this.graduationStudentRecordHistoryTransformer = graduationStudentRecordHistoryTransformer;
         this.studentOptionalProgramHistoryRepository = studentOptionalProgramHistoryRepository;
@@ -93,7 +94,7 @@ public class HistoryService {
     public List<StudentOptionalProgramHistory> getStudentOptionalProgramEditHistory(UUID studentID, String accessToken) {
         List<StudentOptionalProgramHistory> histList = studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findByStudentID(studentID));
         histList.forEach(sP -> {
-            OptionalProgram gradOptionalProgram = webClient.get()
+            OptionalProgram gradOptionalProgram = studentApiClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
@@ -118,7 +119,7 @@ public class HistoryService {
     public StudentOptionalProgramHistory getStudentOptionalProgramHistoryByID(UUID historyID, String accessToken) {
         StudentOptionalProgramHistory obj = studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findById(historyID));
         if (obj.getOptionalProgramID() != null) {
-            OptionalProgram gradOptionalProgram = webClient.get()
+            OptionalProgram gradOptionalProgram = studentApiClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), obj.getOptionalProgramID()))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
@@ -138,7 +139,7 @@ public class HistoryService {
         Page<GraduationStudentRecordHistoryEntity> pagedDate = graduationStudentRecordHistoryRepository.findByBatchId(batchId, paging);
         List<GraduationStudentRecordHistoryEntity> list = pagedDate.getContent();
         list.forEach(ent -> {
-            Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+            Student stuData = studentApiClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve().bodyToMono(Student.class).block();
             if (stuData != null) {

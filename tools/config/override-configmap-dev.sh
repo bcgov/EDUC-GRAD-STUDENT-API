@@ -56,6 +56,7 @@ oc create -n "$GRAD_NAMESPACE"-"$envValue" configmap "$APP_NAME"-config-map \
   --from-literal=MAX_RETRY_ATTEMPTS="3" \
   --from-literal=PEN_API="http://student-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/" \
   --from-literal=CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS="0 0 0 1 * ?" \
+  --from-literal=CRON_SCHEDULED_REFRESH_COURSE_DETAILS="0 0 02 * * *" \
   --from-literal=ENABLE_COMPRESSION="true" \
   --from-literal=MAX_LIFETIME="120000" \
   --dry-run=client -o yaml | oc apply -f -
