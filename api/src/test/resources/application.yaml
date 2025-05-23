@@ -118,7 +118,7 @@ cron:
 #Endpoint properties
 endpoint:
   keycloak:
-    token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
+    token-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master/protocol/openid-connect/token
   grad-trax-api:
     search-schools-by-district-id:
       url: http://test
