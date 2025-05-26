@@ -7,5 +7,6 @@ public enum EventOutcome {
   /**
    * Student updated event outcome.
    */
-  GRAD_STATUS_UPDATED
+  GRAD_STATUS_UPDATED,
+  DEM_STUDENT_PROCESSED_IN_GRAD_STUDENT_API
 }

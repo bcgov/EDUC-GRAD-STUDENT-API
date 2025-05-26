@@ -44,4 +44,6 @@ public interface GradStatusEventRepository extends JpaRepository<GradStatusEvent
   @Modifying
   @Query("delete from GradStatusEvent where createDate <= :createDate")
   void deleteByCreateDateBefore(LocalDateTime createDate);
+
+  Optional<GradStatusEvent> findByEventId(UUID eventId);
 }

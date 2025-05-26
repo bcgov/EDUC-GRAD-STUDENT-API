@@ -177,6 +177,9 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-program-api.program_name_by_program_code.url}")
     private String gradProgramNameUrl;
 
+    @Value("${endpoint.grad-program-api.program_codes.url}")
+    private String gradProgramUrl;
+
     @Value("${endpoint.pen-student-api.by-studentid.url}")
     private String penStudentApiByStudentIdUrl;
 

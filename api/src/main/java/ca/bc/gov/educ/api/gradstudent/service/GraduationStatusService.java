@@ -3,6 +3,8 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Generated;
+import ca.bc.gov.educ.api.gradstudent.exception.BusinessError;
+import ca.bc.gov.educ.api.gradstudent.exception.BusinessException;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
@@ -19,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
+import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -31,6 +34,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -1423,6 +1427,26 @@ public class GraduationStatusService extends GradBaseService {
             gradEntity.setRecalculateProjectedGrad(flag);
         else
             gradEntity.setRecalculateGradStatus(flag);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public GradStatusEvent persistEventToDB(final ChoreographedEvent choreographedEvent) throws BusinessException {
+        final var eventOptional = this.gradStatusEventRepository.findByEventId(UUID.fromString(choreographedEvent.getEventID()));
+        if (eventOptional.isPresent()) {
+            throw new BusinessException(BusinessError.EVENT_ALREADY_PERSISTED, choreographedEvent.getEventID().toString());
+        }
+        val event = GradStatusEvent.builder()
+                .eventType(choreographedEvent.getEventType().toString())
+                .eventId(UUID.fromString(choreographedEvent.getEventID()))
+                .eventOutcome(choreographedEvent.getEventOutcome().toString())
+                .eventPayload(choreographedEvent.getEventPayload())
+                .eventStatus(DB_COMMITTED.toString())
+                .createUser(StringUtils.isBlank(choreographedEvent.getCreateUser()) ? EducGradStudentApiConstants.DEFAULT_CREATED_BY : choreographedEvent.getCreateUser())
+                .updateUser(StringUtils.isBlank(choreographedEvent.getUpdateUser()) ? EducGradStudentApiConstants.DEFAULT_UPDATED_BY : choreographedEvent.getUpdateUser())
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .build();
+        return this.gradStatusEventRepository.save(event);
     }
 
     @Override
