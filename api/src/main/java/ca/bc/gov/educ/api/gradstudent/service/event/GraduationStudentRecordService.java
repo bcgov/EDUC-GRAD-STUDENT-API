@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.service.event;
 
-import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
@@ -11,7 +10,6 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
-import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +41,9 @@ public class GraduationStudentRecordService {
     public static final String CURRENT = "CUR";
     public static final String TERMINATED = "TER";
     public static final String DECEASED = "DEC";
+    public static final String CREATE_USER = "createUser";
+    public static final String CREATE_DATE = "createDate";
+    public static final String YYYY_MM_DD = "yyyy-MM-dd";
 
     @Transactional
     public Student getStudentByPenFromStudentAPI(String pen) {
@@ -57,7 +58,7 @@ public class GraduationStudentRecordService {
     @Transactional(propagation = Propagation.MANDATORY)
     public void handleAssessmentUpdateEvent(GraduationStudentRecordEntity existingStudentRecordEntity, final GradStatusEvent event) {
         var newStudentRecordEntity = new GraduationStudentRecordEntity();
-        BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, "createUser", "createDate");
+        BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, CREATE_USER, CREATE_DATE);
 
         newStudentRecordEntity.setUpdateUser(event.getUpdateUser());
         newStudentRecordEntity.setUpdateDate(LocalDateTime.now());
@@ -88,7 +89,7 @@ public class GraduationStudentRecordService {
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateStudentRecord(DemographicStudent demStudent, Student studentFromApi, GraduationStudentRecordEntity existingStudentRecordEntity) {
         var newStudentRecordEntity = new GraduationStudentRecordEntity();
-        BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, "createUser", "createDate");
+        BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, CREATE_USER, CREATE_DATE);
         GraduationStudentRecordEntity updatedEntity = compareAndUpdateGraduationStudentRecordEntity(demStudent, newStudentRecordEntity);
         updatedEntity.setUpdateUser(demStudent.getUpdateUser());
         updatedEntity.setUpdateDate(LocalDateTime.now());
@@ -122,12 +123,12 @@ public class GraduationStudentRecordService {
     private void handleAppendCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudent courseStudent, String studentID) {
         List<StudentCourseEntity> existingStudentCourses =  studentCourseRepository.findByStudentID(UUID.fromString(studentID));
         var coursesRecord = getCoregCoursesRecord(courseStudent.getCourseCode(), courseStudent.getCourseLevel());
-        var matchingCourseRecord = existingStudentCourses.stream().filter(course -> course.getCourseID().equals(coursesRecord.getCourseID()) && course.getCourseSession().equalsIgnoreCase(courseStudent.getCourseYear() + courseStudent.getCourseMonth())).findFirst();
+        var matchingCourseRecord = existingStudentCourses.stream().filter(course -> Objects.equals(course.getCourseID(), new BigInteger(coursesRecord.getCourseID())) && course.getCourseSession().equalsIgnoreCase(courseStudent.getCourseYear() + courseStudent.getCourseMonth())).findFirst();
         if(matchingCourseRecord.isPresent() && courseStudent.getCourseStatus().equalsIgnoreCase("W")) {
             studentCourseRepository.delete(matchingCourseRecord.get());
         } else if(matchingCourseRecord.isPresent() && courseStudent.getCourseStatus().equalsIgnoreCase("A")) {
             var newStudentCourseEntity = new StudentCourseEntity();
-            BeanUtils.copyProperties(existingStudentRecordEntity, newStudentCourseEntity, "createUser", "createDate");
+            BeanUtils.copyProperties(existingStudentRecordEntity, newStudentCourseEntity, CREATE_USER, CREATE_DATE);
             //update
             StudentCourseEntity updatedEntity = compareAndupdateStudentCourseEntity(newStudentCourseEntity, courseStudent, coursesRecord);
             updatedEntity.setCreateUser(courseStudent.getCreateUser());
@@ -248,27 +249,27 @@ public class GraduationStudentRecordService {
         List<UUID> optionalProgramIDs = new ArrayList<>();
         if(StringUtils.isNotBlank(demStudent.getProgramCode1())) {
             var programCode1Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode1()));
-            optionalProgramIDs.add(programCode1Entity.get().getOptionalProgramID());
+            programCode1Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode2())) {
             var programCode2Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode2()));
-            optionalProgramIDs.add(programCode2Entity.get().getOptionalProgramID());
+            programCode2Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode3())) {
             var programCode3Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode3()));
-            optionalProgramIDs.add(programCode3Entity.get().getOptionalProgramID());
+            programCode3Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode4())) {
             var programCode4Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode4()));
-            optionalProgramIDs.add(programCode4Entity.get().getOptionalProgramID());
+            programCode4Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode5())) {
             var programCode5Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode5()));
-            optionalProgramIDs.add(programCode5Entity.get().getOptionalProgramID());
+            programCode5Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
         return optionalProgramIDs;
     }
@@ -316,7 +317,7 @@ public class GraduationStudentRecordService {
         }
 
         if(demStudent.getGradRequirementYear().equalsIgnoreCase("SSCP")) {
-            newStudentRecordEntity.setProgramCompletionDate(Date.valueOf(LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"))));
+            newStudentRecordEntity.setProgramCompletionDate(Date.valueOf(LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern(YYYY_MM_DD))));
             projectedChangeCount++;
             statusChangeCount++;
         }
@@ -362,7 +363,7 @@ public class GraduationStudentRecordService {
     }
 
     private GraduationStudentRecordEntity createGraduationStudentRecordEntity(DemographicStudent demStudent, Student studentFromApi) {
-        var parsedSSCPDate = LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        var parsedSSCPDate = LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern(YYYY_MM_DD));
         return GraduationStudentRecordEntity
                 .builder()
                 .pen(demStudent.getPen())
@@ -381,7 +382,7 @@ public class GraduationStudentRecordService {
 
     private Date mapAdultStartDate(String birthdate, String gradYear) {
         if(gradYear.equalsIgnoreCase("1950")) {
-            var parsedBirthdate = LocalDate.parse(birthdate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            var parsedBirthdate = LocalDate.parse(birthdate, DateTimeFormatter.ofPattern(YYYY_MM_DD));
             if(parsedBirthdate.getYear() >= 1994) {
                 return Date.valueOf(parsedBirthdate.plusYears(18).plusMonths(1));
             } else {

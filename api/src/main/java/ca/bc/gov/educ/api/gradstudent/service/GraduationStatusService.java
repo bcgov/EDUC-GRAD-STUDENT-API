@@ -1433,7 +1433,7 @@ public class GraduationStatusService extends GradBaseService {
     public GradStatusEvent persistEventToDB(final ChoreographedEvent choreographedEvent) throws BusinessException {
         final var eventOptional = this.gradStatusEventRepository.findByEventId(UUID.fromString(choreographedEvent.getEventID()));
         if (eventOptional.isPresent()) {
-            throw new BusinessException(BusinessError.EVENT_ALREADY_PERSISTED, choreographedEvent.getEventID().toString());
+            throw new BusinessException(BusinessError.EVENT_ALREADY_PERSISTED, choreographedEvent.getEventID());
         }
         val event = GradStatusEvent.builder()
                 .eventType(choreographedEvent.getEventType().toString())
