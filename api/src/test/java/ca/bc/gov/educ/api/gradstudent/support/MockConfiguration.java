@@ -1,9 +1,12 @@
 package ca.bc.gov.educ.api.gradstudent.support;
 
+import ca.bc.gov.educ.api.gradstudent.messaging.MessagePublisher;
+import ca.bc.gov.educ.api.gradstudent.messaging.MessageSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStudentRecordSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
+import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import io.nats.client.Connection;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -71,6 +74,24 @@ public class MockConfiguration {
   @Primary
   public Connection connection() {
     return Mockito.mock(Connection.class);
+  }
+
+  @Bean
+  @Primary
+  public MessagePublisher messagePublisher() {
+    return Mockito.mock(MessagePublisher.class);
+  }
+
+  @Bean
+  @Primary
+  public MessageSubscriber messageSubscriber() {
+    return Mockito.mock(MessageSubscriber.class);
+  }
+
+  @Bean
+  @Primary
+  public RestUtils restUtils() {
+    return Mockito.mock(RestUtils.class);
   }
 
 }
