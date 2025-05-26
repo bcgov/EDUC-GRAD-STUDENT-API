@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
@@ -107,7 +108,6 @@ public class GraduationStudentRecordService {
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent)));
         studentOptionalProgramRepository.saveAll(optionalProgramEntities);
-        //projection flags
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -301,12 +301,12 @@ public class GraduationStudentRecordService {
                 projectedChangeCount++;
                 statusChangeCount++;
             }
-        }
 
-        if(!newStudentRecordEntity.getStudentCitizenship().equalsIgnoreCase(demStudent.getCitizenship())) {
-            newStudentRecordEntity.setStudentCitizenship(demStudent.getCitizenship());
-            projectedChangeCount++;
-            statusChangeCount++;
+            if(!newStudentRecordEntity.getStudentCitizenship().equalsIgnoreCase(demStudent.getCitizenship())) {
+                newStudentRecordEntity.setStudentCitizenship(demStudent.getCitizenship());
+                projectedChangeCount++;
+                statusChangeCount++;
+            }
         }
 
         var mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
@@ -367,16 +367,16 @@ public class GraduationStudentRecordService {
         return GraduationStudentRecordEntity
                 .builder()
                 .pen(demStudent.getPen())
-                .programCompletionDate(Date.valueOf(parsedSSCPDate))
-                .studentGrade(demStudent.getGrade())
-                .studentStatus(mapStudentStatus(demStudent.getStudentStatus()))
-                .studentCitizenship(demStudent.getCitizenship())
+                .programCompletionDate(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? Date.valueOf(parsedSSCPDate) : null)
+                .studentGrade(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? demStudent.getGrade() : studentFromApi.getGradeCode())
+                .studentStatus(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapStudentStatus(demStudent.getStudentStatus()) : CURRENT)
+                .studentCitizenship(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? demStudent.getCitizenship() : null)
                 .schoolOfRecordId(UUID.fromString(demStudent.getSchoolID()))
                 .studentID(UUID.fromString(studentFromApi.getStudentID()))
                 .recalculateGradStatus("Y")
                 .recalculateProjectedGrad("Y")
-                .program(mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()))
-                .adultStartDate(mapAdultStartDate(demStudent.getBirthdate(), demStudent.getGradRequirementYear()))
+                .program(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()) : createProgram())
+                .adultStartDate(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapAdultStartDate(demStudent.getBirthdate(), demStudent.getGradRequirementYear()): null)
                 .build();
     }
 
@@ -408,10 +408,21 @@ public class GraduationStudentRecordService {
         if(demGradProgramCode.equalsIgnoreCase("2018")
         || demGradProgramCode.equalsIgnoreCase("2004")
         || demGradProgramCode.equalsIgnoreCase("1996")
-        || demGradProgramCode.equalsIgnoreCase("1986")) {
+        || demGradProgramCode.equalsIgnoreCase("1986")
+        || demGradProgramCode.equalsIgnoreCase("2023")) {
             return schoolReportingRequirementCode.equalsIgnoreCase("CSF") ? demGradProgramCode + "-PF" : demGradProgramCode + "-EN";
         } else {
             return demGradProgramCode;
         }
+    }
+
+    private String createProgram() {
+        List<GraduationProgramCode> codes =  restUtils.getGraduationProgramCodeList(true);
+        var filteredCodes = codes.stream().filter(code -> code.getProgramCode().equalsIgnoreCase("1950") || code.getProgramCode().equalsIgnoreCase("SSCP") || code.getProgramCode().equalsIgnoreCase("NOPROG")).findFirst();
+        if(filteredCodes.isPresent()) {
+            var code = filteredCodes.get().getProgramCode().split("-");
+            return code.length == 2 ? code[0] + "-" + "EN" : null;
+        }
+        return null;
     }
 }

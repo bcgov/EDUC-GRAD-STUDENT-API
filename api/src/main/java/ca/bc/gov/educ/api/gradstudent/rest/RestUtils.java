@@ -11,6 +11,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -51,8 +52,10 @@ public class RestUtils {
   private final WebClient webClient;
   private final ReadWriteLock optionalProgramLock = new ReentrantReadWriteLock();
   private final ReadWriteLock letterGradeLock = new ReentrantReadWriteLock();
+  private final ReadWriteLock gradProgramLock = new ReentrantReadWriteLock();
   private final Map<String, LetterGrade> letterGradeMap = new ConcurrentHashMap<>();
   private final Map<String, OptionalProgramCode> optionalProgramCodesMap = new ConcurrentHashMap<>();
+  private final Map<String, GraduationProgramCode> gradProgramCodeMap = new ConcurrentHashMap<>();
   final EducGradStudentApiConstants constants;
 
   @Autowired
@@ -71,6 +74,47 @@ public class RestUtils {
             .bodyToFlux(OptionalProgramCode.class)
             .collectList()
             .block();
+  }
+
+  private List<GraduationProgramCode> getGraduationProgramCodes() {
+    log.info("Calling Grad api to load graduation program codes to memory");
+    return this.webClient.get()
+            .uri(constants.getGradProgramUrl() + "/programs")
+            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .retrieve()
+            .bodyToFlux(GraduationProgramCode.class)
+            .collectList()
+            .block();
+  }
+
+  public void populateGradProgramCodesMap() {
+    val writeLock = this.gradProgramLock.writeLock();
+    try {
+      writeLock.lock();
+      for (val program : this.getGraduationProgramCodes()) {
+        program.setEffectiveDate(!StringUtils.isBlank(program.getEffectiveDate()) ? LocalDateTime.parse(program.getEffectiveDate(), DateTimeFormatter.ISO_OFFSET_DATE_TIME).toString() : null);
+        program.setExpiryDate(!StringUtils.isBlank(program.getExpiryDate()) ? LocalDateTime.parse(program.getExpiryDate(), DateTimeFormatter.ISO_OFFSET_DATE_TIME).toString() : null);
+        this.gradProgramCodeMap.put(program.getProgramCode(), program);
+      }
+    } catch (Exception ex) {
+      log.error("Unable to load map cache grad program codes {}", ex);
+    } finally {
+      writeLock.unlock();
+    }
+    log.info("Loaded  {} grad program codes to memory", this.gradProgramCodeMap.values().size());
+    log.debug(this.gradProgramCodeMap.values().toString());
+  }
+
+  public List<GraduationProgramCode> getGraduationProgramCodeList(boolean activeOnly) {
+    if (this.gradProgramCodeMap.isEmpty()) {
+      log.info("Graduation Program Code map is empty reloading them");
+      this.populateGradProgramCodesMap();
+    }
+    if(activeOnly){
+      return this.gradProgramCodeMap.values().stream().filter(code -> StringUtils.isBlank(code.getExpiryDate()) || LocalDateTime.parse(code.getExpiryDate()).isAfter(LocalDateTime.now())).toList();
+    }
+
+    return this.gradProgramCodeMap.values().stream().toList();
   }
 
   public void populateOptionalProgramsMap() {
