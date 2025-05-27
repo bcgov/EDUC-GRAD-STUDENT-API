@@ -114,7 +114,8 @@ public class GraduationStudentRecordService {
 
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
-        studentOptionalProgramRepository.saveAll(optionalProgramEntities);
+        var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
+        savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -160,7 +161,8 @@ public class GraduationStudentRecordService {
                 var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
                 if(frProgram.isPresent()) {
                     var entity = createStudentOptionalProgramEntity(frProgram.get().getOptionalProgramID(), existingStudentRecordEntity.getStudentID(), courseStudent.getCreateUser(), courseStudent.getUpdateUser());
-                    studentOptionalProgramRepository.save(entity);
+                    var savedEntity = studentOptionalProgramRepository.save(entity);
+                    historyService.createStudentOptionalProgramHistory(savedEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
                 }
             }
         }
@@ -297,7 +299,7 @@ public class GraduationStudentRecordService {
         int projectedChangeCount = 0;
         int statusChangeCount = 0;
         if(demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
-            if(newStudentRecordEntity.getSchoolOfRecordId() != UUID.fromString(demStudent.getSchoolID()) && (demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T"))) {
+            if(newStudentRecordEntity.getSchoolOfRecordId() != null && newStudentRecordEntity.getSchoolOfRecordId() != UUID.fromString(demStudent.getSchoolID()) && (demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T"))) {
                 newStudentRecordEntity.setSchoolOfRecordId(UUID.fromString(demStudent.getSchoolID()));
                 projectedChangeCount++;
                 statusChangeCount++;
@@ -321,7 +323,7 @@ public class GraduationStudentRecordService {
                 statusChangeCount++;
             }
 
-            if(!newStudentRecordEntity.getStudentCitizenship().equalsIgnoreCase(demStudent.getCitizenship())) {
+            if(StringUtils.isNotBlank(newStudentRecordEntity.getStudentCitizenship()) && StringUtils.isNotBlank(demStudent.getCitizenship()) && !newStudentRecordEntity.getStudentCitizenship().equalsIgnoreCase(demStudent.getCitizenship())) {
                 newStudentRecordEntity.setStudentCitizenship(demStudent.getCitizenship());
                 projectedChangeCount++;
                 statusChangeCount++;
