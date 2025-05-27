@@ -137,7 +137,6 @@ public class GraduationStudentRecordService {
         } else if(matchingCourseRecord.isPresent() && courseStudent.getCourseStatus().equalsIgnoreCase("A")) {
             var newStudentCourseEntity = new StudentCourseEntity();
             BeanUtils.copyProperties(matchingCourseRecord.get(), newStudentCourseEntity, CREATE_USER, CREATE_DATE);
-            //update
             StudentCourseEntity updatedEntity = compareAndupdateStudentCourseEntity(newStudentCourseEntity, courseStudent, coursesRecord);
             updatedEntity.setCreateUser(courseStudent.getCreateUser());
             updatedEntity.setUpdateUser(courseStudent.getUpdateUser());
@@ -173,23 +172,32 @@ public class GraduationStudentRecordService {
     }
 
     private StudentCourseEntity compareAndupdateStudentCourseEntity(StudentCourseEntity newStudentCourseEntity, CourseStudent courseStudent, CoregCoursesRecord coregCoursesRecord) {
-        var relatedCourseRecord = getCoregCoursesRecord(courseStudent.getRelatedCourse(), courseStudent.getRelatedLevel());
-        var fineArtsSkillsCode = fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseType()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null);
-        var equivalentOrChallengeCode = equivalentOrChallengeCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(EquivalentOrChallengeCodeEntity::getEquivalentOrChallengeCode).orElse(null);
-
-        if(StringUtils.isNotBlank(newStudentCourseEntity.getInterimLetterGrade()) && !newStudentCourseEntity.getInterimLetterGrade().equalsIgnoreCase(courseStudent.getInterimLetterGrade())) {
+        var relatedCourseRecord = StringUtils.isNotBlank(courseStudent.getRelatedCourse()) && StringUtils.isNotBlank(courseStudent.getRelatedLevel()) ?
+                getCoregCoursesRecord(courseStudent.getRelatedCourse(), courseStudent.getRelatedLevel()) : null;
+        var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
+                fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseType()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null)
+                : null;
+        var equivalentOrChallengeCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) ?
+                equivalentOrChallengeCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(EquivalentOrChallengeCodeEntity::getEquivalentOrChallengeCode).orElse(null)
+                : null;
+        if(StringUtils.isNotBlank(newStudentCourseEntity.getInterimLetterGrade())
+                && StringUtils.isNotBlank(courseStudent.getInterimLetterGrade())
+                && !newStudentCourseEntity.getInterimLetterGrade().equalsIgnoreCase(courseStudent.getInterimLetterGrade())) {
             newStudentCourseEntity.setInterimLetterGrade(courseStudent.getInterimLetterGrade());
         } else if(StringUtils.isBlank(newStudentCourseEntity.getInterimLetterGrade())) {
             newStudentCourseEntity.setInterimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()));
         }
 
-        if(StringUtils.isNotBlank(newStudentCourseEntity.getCompletedCourseLetterGrade()) && !newStudentCourseEntity.getCompletedCourseLetterGrade().equalsIgnoreCase(courseStudent.getFinalLetterGrade())) {
+        if(StringUtils.isNotBlank(newStudentCourseEntity.getCompletedCourseLetterGrade())
+                && StringUtils.isNotBlank(newStudentCourseEntity.getCompletedCourseLetterGrade())
+                && !newStudentCourseEntity.getCompletedCourseLetterGrade().equalsIgnoreCase(courseStudent.getFinalLetterGrade())) {
             newStudentCourseEntity.setCompletedCourseLetterGrade(courseStudent.getFinalLetterGrade());
         } else if(StringUtils.isBlank(newStudentCourseEntity.getCompletedCourseLetterGrade())) {
             newStudentCourseEntity.setCompletedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
         }
 
-        if(!Objects.equals(newStudentCourseEntity.getRelatedCourseId(), new BigInteger(relatedCourseRecord.getCourseID()))) {
+        if(relatedCourseRecord != null && newStudentCourseEntity.getRelatedCourseId() != null
+                && !Objects.equals(newStudentCourseEntity.getRelatedCourseId(), new BigInteger(relatedCourseRecord.getCourseID()))) {
             newStudentCourseEntity.setRelatedCourseId(new BigInteger(relatedCourseRecord.getCourseID()));
         }
 
@@ -204,9 +212,14 @@ public class GraduationStudentRecordService {
     }
 
     private StudentCourseEntity createStudentCourseEntity(CourseStudent courseStudent, String studentID, CoregCoursesRecord coregCoursesRecord) {
-        var relatedCourseRecord = getCoregCoursesRecord(courseStudent.getRelatedCourse(), courseStudent.getRelatedLevel());
-        var fineArtsSkillsCode = fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseType()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null);
-        var equivalentOrChallengeCode = equivalentOrChallengeCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(EquivalentOrChallengeCodeEntity::getEquivalentOrChallengeCode).orElse(null);
+        var relatedCourseRecord = StringUtils.isNotBlank(courseStudent.getRelatedCourse()) && StringUtils.isNotBlank(courseStudent.getRelatedLevel()) ?
+                getCoregCoursesRecord(courseStudent.getRelatedCourse(), courseStudent.getRelatedLevel()) : null;
+        var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
+                fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseType()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null)
+                : null;
+        var equivalentOrChallengeCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) ?
+                equivalentOrChallengeCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(EquivalentOrChallengeCodeEntity::getEquivalentOrChallengeCode).orElse(null)
+                : null;
         return StudentCourseEntity
                 .builder()
                 .studentID(UUID.fromString(studentID))
@@ -214,8 +227,8 @@ public class GraduationStudentRecordService {
                 .courseSession(courseStudent.getCourseYear() + courseStudent.getCourseMonth())
                 .interimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
                 .completedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
-                .relatedCourseId(StringUtils.isNotBlank(relatedCourseRecord.getCourseID()) ? new BigInteger(relatedCourseRecord.getCourseID()) : null)
-                .customizedCourseName(coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("") ? courseStudent.getCourseDescription() : null)
+                .relatedCourseId(relatedCourseRecord != null ? new BigInteger(relatedCourseRecord.getCourseID()) : null)
+                .customizedCourseName(coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G") ? courseStudent.getCourseDescription() : null)//confirm
                 .fineArtsAppliedSkills(fineArtsSkillsCode)
                 .equivOrChallenge(equivalentOrChallengeCode)
                 .build();
