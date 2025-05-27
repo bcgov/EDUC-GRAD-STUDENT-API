@@ -338,7 +338,9 @@ public class GraduationStudentRecordService {
         }
 
         if(demStudent.getGradRequirementYear().equalsIgnoreCase("SSCP")) {
-            newStudentRecordEntity.setProgramCompletionDate(Date.valueOf(LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern(YYYY_MM_DD))));
+            var parsedSSCPDate = StringUtils.isNotBlank(demStudent.getSchoolCertificateCompletionDate()) ?
+                    Date.valueOf(LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern(YYYY_MM_DD))) : null;
+            newStudentRecordEntity.setProgramCompletionDate(parsedSSCPDate);
             projectedChangeCount++;
             statusChangeCount++;
         }
@@ -384,11 +386,12 @@ public class GraduationStudentRecordService {
     }
 
     private GraduationStudentRecordEntity createGraduationStudentRecordEntity(DemographicStudent demStudent, Student studentFromApi) {
-        var parsedSSCPDate = LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern(YYYY_MM_DD));
+        var parsedSSCPDate = StringUtils.isNotBlank(demStudent.getSchoolCertificateCompletionDate()) ?
+                Date.valueOf(LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern(YYYY_MM_DD))) : null;
         return GraduationStudentRecordEntity
                 .builder()
                 .pen(demStudent.getPen())
-                .programCompletionDate(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? Date.valueOf(parsedSSCPDate) : null)
+                .programCompletionDate(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? parsedSSCPDate : null)
                 .studentGrade(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? demStudent.getGrade() : studentFromApi.getGradeCode())
                 .studentStatus(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapStudentStatus(demStudent.getStudentStatus()) : CURRENT)
                 .studentCitizenship(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? demStudent.getCitizenship() : null)
