@@ -189,7 +189,8 @@ public class GraduationStudentRecordService {
             newStudentCourseEntity.setCompletedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
         }
 
-        if(!Objects.equals(newStudentCourseEntity.getRelatedCourseId(), new BigInteger(relatedCourseRecord.getCourseID()))) {
+        if(relatedCourseRecord != null && newStudentCourseEntity.getRelatedCourseId() != null
+                && !Objects.equals(newStudentCourseEntity.getRelatedCourseId(), new BigInteger(relatedCourseRecord.getCourseID()))) {
             newStudentCourseEntity.setRelatedCourseId(new BigInteger(relatedCourseRecord.getCourseID()));
         }
 
@@ -214,7 +215,7 @@ public class GraduationStudentRecordService {
                 .courseSession(courseStudent.getCourseYear() + courseStudent.getCourseMonth())
                 .interimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
                 .completedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
-                .relatedCourseId(StringUtils.isNotBlank(relatedCourseRecord.getCourseID()) ? new BigInteger(relatedCourseRecord.getCourseID()) : null)
+                .relatedCourseId(relatedCourseRecord != null && StringUtils.isNotBlank(relatedCourseRecord.getCourseID()) ? new BigInteger(relatedCourseRecord.getCourseID()) : null)
                 .customizedCourseName(coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("") ? courseStudent.getCourseDescription() : null)
                 .fineArtsAppliedSkills(fineArtsSkillsCode)
                 .equivOrChallenge(equivalentOrChallengeCode)
@@ -233,8 +234,11 @@ public class GraduationStudentRecordService {
     }
 
     private CoregCoursesRecord getCoregCoursesRecord(String courseCode, String courseLevel) {
-        String externalID = StringUtils.isEmpty(courseLevel) ? courseCode : String.format("%-5s", courseCode) + courseLevel;
-        return restUtils.getCoursesByExternalID(UUID.randomUUID(), externalID);
+        if(StringUtils.isNotBlank(courseCode) && StringUtils.isNotBlank(courseLevel)) {
+            String externalID = StringUtils.isEmpty(courseLevel) ? courseCode : String.format("%-5s", courseCode) + courseLevel;
+            return restUtils.getCoursesByExternalID(UUID.randomUUID(), externalID);
+        }
+        return null;
     }
 
     private List<StudentOptionalProgramEntity> getOptionalProgramForRemoval(UUID studentID, List<UUID> incomingProgramIDs, List<OptionalProgramCode> optionalProgramCodes) {
