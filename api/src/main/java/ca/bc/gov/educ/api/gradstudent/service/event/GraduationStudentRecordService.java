@@ -36,8 +36,8 @@ public class GraduationStudentRecordService {
     private final StudentCourseRepository studentCourseRepository;
     private final FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
     private final EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
-    private static final String DATA_CONVERSION_HISTORY_ACTIVITY_CODE = "DATACONVERT";
-    private static final String ADD_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXADD";
+    private static final String DATA_CONVERSION_HISTORY_ACTIVITY_CODE = "DATACONVERT"; // confirm,
+    private static final String ADD_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXADD";// confirm,
     private final HistoryService historyService;
     public static final String CURRENT = "CUR";
     public static final String TERMINATED = "TER";
@@ -191,7 +191,7 @@ public class GraduationStudentRecordService {
             newStudentCourseEntity.setRelatedCourseId(new BigInteger(relatedCourseRecord.getCourseID()));
         }
 
-        if(coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("")) {
+        if(coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G")) {//confirm
             newStudentCourseEntity.setCustomizedCourseName(courseStudent.getCourseDescription());
         }
 
