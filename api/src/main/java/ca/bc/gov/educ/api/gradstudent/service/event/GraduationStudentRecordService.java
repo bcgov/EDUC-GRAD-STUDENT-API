@@ -201,7 +201,7 @@ public class GraduationStudentRecordService {
             newStudentCourseEntity.setRelatedCourseId(new BigInteger(relatedCourseRecord.getCourseID()));
         }
 
-        if(coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G")) {//confirm
+        if(StringUtils.isNotBlank(coregCoursesRecord.getGenericCourseType()) && coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G")) {//confirm
             newStudentCourseEntity.setCustomizedCourseName(courseStudent.getCourseDescription());
         }
 
@@ -228,7 +228,7 @@ public class GraduationStudentRecordService {
                 .interimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
                 .completedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
                 .relatedCourseId(relatedCourseRecord != null ? new BigInteger(relatedCourseRecord.getCourseID()) : null)
-                .customizedCourseName(coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G") ? courseStudent.getCourseDescription() : null)//confirm
+                .customizedCourseName(StringUtils.isNotBlank(coregCoursesRecord.getGenericCourseType()) && coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G") ? courseStudent.getCourseDescription() : null)//confirm
                 .fineArtsAppliedSkills(fineArtsSkillsCode)
                 .equivOrChallenge(equivalentOrChallengeCode)
                 .build();
