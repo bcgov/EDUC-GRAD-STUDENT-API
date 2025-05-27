@@ -45,6 +45,9 @@ public class GraduationStudentRecordService {
     public static final String CREATE_USER = "createUser";
     public static final String CREATE_DATE = "createDate";
     public static final String YYYY_MM_DD = "yyyy-MM-dd";
+    public final List<String> FRAL10_PROGRAMS = Arrays.asList("2023-EN", "2018-EN", "2004-EN");
+    public final List<String> FRAL11_PROGRAMS = Arrays.asList("1996-EN", "1986-EN");
+
 
     @Transactional
     public Student getStudentByPenFromStudentAPI(String pen) {
@@ -81,8 +84,12 @@ public class GraduationStudentRecordService {
         historyService.createStudentHistory(savedStudentRecord, ADD_ONGOING_HISTORY_ACTIVITY_CODE);
 
         List<UUID> incomingProgramIDs = getOptionalProgramIDForIncomingPrograms(demStudent, optionalProgramCodes);
-        incomingProgramIDs.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent)));
+        incomingProgramIDs.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
 
+        if(StringUtils.isNotBlank(savedStudentRecord.getProgram()) && savedStudentRecord.getProgram().equalsIgnoreCase("SSCP") && savedStudentRecord.getProgramCompletionDate() != null && demStudent.getSchoolReportingRequirementCode().equalsIgnoreCase("CSF")) {
+            var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
+            frProgram.ifPresent(optionalProgramCode -> optionalProgramEntities.add(createStudentOptionalProgramEntity(optionalProgramCode.getOptionalProgramID(), savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
+        }
         var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
         savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
     }
@@ -106,7 +113,7 @@ public class GraduationStudentRecordService {
         List<UUID> programIDsToAdd = getOptionalProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs);
 
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
-        programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent)));
+        programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         studentOptionalProgramRepository.saveAll(optionalProgramEntities);
     }
 
@@ -128,7 +135,7 @@ public class GraduationStudentRecordService {
             studentCourseRepository.delete(matchingCourseRecord.get());
         } else if(matchingCourseRecord.isPresent() && courseStudent.getCourseStatus().equalsIgnoreCase("A")) {
             var newStudentCourseEntity = new StudentCourseEntity();
-            BeanUtils.copyProperties(existingStudentRecordEntity, newStudentCourseEntity, CREATE_USER, CREATE_DATE);
+            BeanUtils.copyProperties(matchingCourseRecord.get(), newStudentCourseEntity, CREATE_USER, CREATE_DATE);
             //update
             StudentCourseEntity updatedEntity = compareAndupdateStudentCourseEntity(newStudentCourseEntity, courseStudent, coursesRecord);
             updatedEntity.setCreateUser(courseStudent.getCreateUser());
@@ -137,14 +144,26 @@ public class GraduationStudentRecordService {
             updatedEntity.setUpdateDate(LocalDateTime.now());
             studentCourseRepository.save(updatedEntity);
         } else {
-            StudentCourseEntity studentCourseEntity = createStudentCourseEntity(courseStudent, studentID, coursesRecord);//TODO: opt prog add
+            StudentCourseEntity studentCourseEntity = createStudentCourseEntity(courseStudent, studentID, coursesRecord);
             studentCourseEntity.setCreateUser(courseStudent.getCreateUser());
             studentCourseEntity.setUpdateUser(courseStudent.getUpdateUser());
             studentCourseEntity.setCreateDate(LocalDateTime.now());
             studentCourseEntity.setUpdateDate(LocalDateTime.now());
             studentCourseRepository.save(studentCourseEntity);
-        }
 
+            String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
+            boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+            boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+
+            if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
+                List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
+                var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
+                if(frProgram.isPresent()) {
+                    var entity = createStudentOptionalProgramEntity(frProgram.get().getOptionalProgramID(), existingStudentRecordEntity.getStudentID(), courseStudent.getCreateUser(), courseStudent.getUpdateUser());
+                    studentOptionalProgramRepository.save(entity);
+                }
+            }
+        }
 
         existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
         existingStudentRecordEntity.setRecalculateGradStatus("Y");
@@ -193,7 +212,7 @@ public class GraduationStudentRecordService {
                 .courseSession(courseStudent.getCourseYear() + courseStudent.getCourseMonth())
                 .interimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
                 .completedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
-                .relatedCourseId(new BigInteger(relatedCourseRecord.getCourseID()))
+                .relatedCourseId(StringUtils.isNotBlank(relatedCourseRecord.getCourseID()) ? new BigInteger(relatedCourseRecord.getCourseID()) : null)
                 .customizedCourseName(coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("") ? courseStudent.getCourseDescription() : null)
                 .fineArtsAppliedSkills(fineArtsSkillsCode)
                 .equivOrChallenge(equivalentOrChallengeCode)
@@ -340,14 +359,14 @@ public class GraduationStudentRecordService {
         return  optionalProgramCodes.stream().filter(program -> program.getOptProgramCode().equalsIgnoreCase(incomingProgramCode)).findFirst();
     }
 
-    private StudentOptionalProgramEntity createStudentOptionalProgramEntity(UUID programID, UUID studentID, DemographicStudent demStudent) {
+    private StudentOptionalProgramEntity createStudentOptionalProgramEntity(UUID programID, UUID studentID, String createUser, String updateUser) {
         var entity =  StudentOptionalProgramEntity
                .builder()
                .optionalProgramID(programID)
                .studentID(studentID)
                .build();
-        entity.setCreateUser(demStudent.getCreateUser());
-        entity.setUpdateUser(demStudent.getUpdateUser());
+        entity.setCreateUser(createUser);
+        entity.setUpdateUser(updateUser);
         entity.setCreateDate(LocalDateTime.now());
         entity.setUpdateDate(LocalDateTime.now());
         return entity;
