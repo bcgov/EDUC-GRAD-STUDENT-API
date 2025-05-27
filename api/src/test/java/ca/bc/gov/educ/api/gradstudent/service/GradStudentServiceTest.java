@@ -1125,11 +1125,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         List<GraduationCountProjection> resultWithEmptyList = gradStudentService.getGraduationCountsBySchools(Collections.emptyList());
         assertThat(resultWithEmptyList).isNotNull().isEmpty();
 
-        verify(graduationStatusRepository, never()).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
-                anyList(),
-                any(Date.class),
-                any(Date.class)
-        );
+        verify(graduationStatusRepository, never()).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(anyList());
     }
 
     @Test
@@ -1140,18 +1136,14 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         List<GraduationCountProjection> expectedCounts = Arrays.asList(new TestGraduationCountProjection(100L, 50L, schoolId1), new TestGraduationCountProjection(15L, 10L, schoolId2));
 
-        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(eq(schoolIds), any(Date.class), any(Date.class)))
+        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(eq(schoolIds)))
                 .thenReturn(expectedCounts);
 
         List<GraduationCountProjection> actualCounts = gradStudentService.getGraduationCountsBySchools(schoolIds);
 
         assertThat(actualCounts).isNotNull().isNotEmpty().isEqualTo(expectedCounts);
 
-        verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
-                eq(schoolIds),        
-                any(Date.class), 
-                any(Date.class) 
-        );
+        verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(eq(schoolIds));
     }
 
     @SneakyThrows
