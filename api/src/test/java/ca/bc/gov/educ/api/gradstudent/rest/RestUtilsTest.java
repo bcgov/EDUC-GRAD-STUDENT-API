@@ -146,8 +146,8 @@ class RestUtilsTest {
     @Test
     void testPopulateLetterGradeMap() {
         List<LetterGrade> mockLetterGrades = List.of(
-                new LetterGrade("A", "4", "Y", 100, 86, Date.valueOf(LocalDateTime.now().toString()), Date.valueOf(LocalDateTime.now().toString())),
-                new LetterGrade("B", "3", "Y", 85, 73, Date.valueOf(LocalDateTime.now().toString()), Date.valueOf(LocalDateTime.now().toString()))
+                new LetterGrade("A", "4", "Y", 100, 86, Date.valueOf(LocalDate.now()), Date.valueOf(LocalDate.now())),
+                new LetterGrade("B", "3", "Y", 85, 73, Date.valueOf(LocalDate.now()), Date.valueOf(LocalDate.now()))
         );
 
         doReturn(mockLetterGrades).when(restUtils).getLetterGradeList();
