@@ -1,6 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,6 +12,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Entity
+@Builder
+@AllArgsConstructor
 @Table(name = "GRADUATION_STUDENT_RECORD")
 public class GraduationStudentRecordEntity extends BaseEntity {
 

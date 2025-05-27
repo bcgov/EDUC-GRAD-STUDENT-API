@@ -35,6 +35,8 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	GraduationStudentRecordEntity findByStudentID(UUID studentID);
 
+	Optional<GraduationStudentRecordEntity> findOptionalByStudentID(UUID studentID);
+
 	@Query("select c from GraduationStudentRecordEntity c where c.studentStatus=:statusCode")
 	List<GraduationStudentRecordEntity> existsByStatusCode(String statusCode);
 	
