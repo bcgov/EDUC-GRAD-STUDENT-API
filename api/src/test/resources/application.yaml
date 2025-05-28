@@ -139,6 +139,8 @@ endpoint:
       url: http://test
     program_name_by_program_code:
       url: http://test
+    program_codes:
+      url: http://test
     career_program-by-career-code:
       url: http://test
   grad-student-graduation-api:

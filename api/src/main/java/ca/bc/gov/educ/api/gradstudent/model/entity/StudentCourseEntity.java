@@ -1,8 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigInteger;
@@ -10,6 +9,9 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "STUDENT_COURSE")
 public class StudentCourseEntity extends BaseEntity {
