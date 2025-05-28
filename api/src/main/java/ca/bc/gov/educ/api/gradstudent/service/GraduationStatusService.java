@@ -1453,18 +1453,21 @@ public class GraduationStatusService extends GradBaseService {
 
     @Transactional
     public GraduationStudentRecord adoptStudent(Student studentRequest, String accessToken) {
-        GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(studentRequest.getStudentID(), accessToken);
-        UUID studentID = UUID.fromString(student.getStudentID());
-
+        logger.info("Attempting to adopt student with ID: {}", studentRequest.getStudentID());
+        UUID studentID = UUID.fromString(studentRequest.getStudentID());
         if (graduationStatusRepository.existsByStudentID(studentID)) {
-            throw new EntityAlreadyExistsException("Student already exists in Grad Student API");
+            throw new EntityAlreadyExistsException("Graduation student record already exists for student ID: " + studentID);
         }
+        GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(studentRequest.getStudentID(), accessToken);
 
         GraduationStudentRecordEntity newRecord = buildNewGraduationStudentRecord(student);
         GraduationStudentRecordEntity savedRecord = graduationStatusRepository.save(newRecord);
 
         if (ProgramCodes.PF2023.getCode().equals(savedRecord.getProgram())) {
             OptionalProgram optionalProgram = getOptionalProgram(ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode(), accessToken);
+            if(optionalProgram == null || optionalProgram.getOptionalProgramID() == null) {
+                throw new EntityNotFoundException(String.format("Optional Program %s for %s not found", OptionalProgramCodes.DD.getCode(), ProgramCodes.PF2023.getCode()));
+            }
             persistStudentOptionalProgramWithAuditHistory(studentID, optionalProgram.getOptionalProgramID());
         }
 
@@ -1476,6 +1479,9 @@ public class GraduationStatusService extends GradBaseService {
         GraduationStudentRecordEntity studentEntity = new GraduationStudentRecordEntity();
         UUID studentID = UUID.fromString(student.getStudentID());
         School school = schoolService.getSchoolByMincode(student.getMincode());
+        if(school == null) {
+            throw new EntityNotFoundException("School not found for mincode: " + student.getMincode());
+        }
 
         studentEntity.setStudentID(studentID);
         studentEntity.setSchoolOfRecordId(student.getMincode() != null ? UUID.fromString(school.getSchoolId()) : null);

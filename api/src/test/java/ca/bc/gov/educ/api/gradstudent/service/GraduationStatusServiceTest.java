@@ -3731,7 +3731,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         // When / Then
         assertThatThrownBy(() -> graduationStatusService.adoptStudent(request, accessToken))
             .isInstanceOf(EntityAlreadyExistsException.class)
-            .hasMessageContaining("Student already exists in Grad Student API");
+            .hasMessageContaining("Graduation student record already exists for student ID: " + studentUUID);
 
         verify(historyService, never()).createStudentHistory(any(), any());
     }
@@ -3748,5 +3748,24 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         assertThatThrownBy(() -> graduationStatusService.adoptStudent(request, accessToken))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Student API not reachable");
+    }
+
+    @Test
+    void testAdoptStudent_schoolNotFound_throwsException() {
+        // Given
+        GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
+        gradSearchStudent.setStudentID(UUID.randomUUID().toString());
+        gradSearchStudent.setMincode("123456");
+
+        Student request = Student.builder().studentID(gradSearchStudent.getStudentID()).build();
+
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID(), accessToken)).thenReturn(gradSearchStudent);
+        when(graduationStatusRepository.existsByStudentID(any())).thenReturn(false);
+        when(schoolService.getSchoolByMincode("123456")).thenReturn(null);
+
+        // When / Then
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request, accessToken))
+            .isInstanceOf(EntityNotFoundException.class)
+            .hasMessageContaining("School not found for mincode: 123456");
     }
 }
