@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,7 +10,7 @@ import java.math.BigInteger;
 import java.util.UUID;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = false, exclude = "courseExam")
 @Entity
 @Table(name = "STUDENT_COURSE_HISTORY")
 public class StudentCourseHistoryEntity extends BaseEntity {
@@ -20,7 +21,7 @@ public class StudentCourseHistoryEntity extends BaseEntity {
             name = "UUID",
             strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "STUDENT_COURSE_HISTORY_ID", nullable = false)
-    private UUID historyId;
+    private UUID historyID;
 
     @Column(name = "HISTORY_ACTIVITY_CODE", nullable = false)
     private String activityCode;
@@ -61,9 +62,11 @@ public class StudentCourseHistoryEntity extends BaseEntity {
     @Column(name = "CUSTOM_COURSE_NAME")
     private String customizedCourseName;
 
-    @Column(name = "STUDENT_COURSE_EXAM_ID")
-    private UUID studentExamId;
-
     @Column(name = "RELATED_COURSE_ID")
-    private BigInteger relatedCourseId;
+    private BigInteger relatedCourseID;
+
+    @OneToOne(mappedBy = "studentCourse", cascade = {CascadeType.PERSIST})
+    @JsonManagedReference
+    private StudentCourseExamHistoryEntity courseExam;
+
 }

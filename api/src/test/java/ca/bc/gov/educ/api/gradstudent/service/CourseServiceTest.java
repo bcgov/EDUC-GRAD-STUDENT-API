@@ -20,7 +20,6 @@ import reactor.core.publisher.Mono;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -75,7 +74,7 @@ public class CourseServiceTest extends BaseIntegrationTest {
 
         when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(getLetterGrades()));
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
-        var result = courseService.getLetterGrades() ;
+        var result = courseCacheService.getLetterGradesFromCache();
         assertNotNull(result);
     }
 
@@ -89,7 +88,7 @@ public class CourseServiceTest extends BaseIntegrationTest {
 
         when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(Collections.emptyList()));
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(Collections.emptyList());
-        var result = courseService.getLetterGrades() ;
+        var result = courseCacheService.getLetterGradesFromCache();
         assertTrue(result.isEmpty());
     }
 
@@ -130,7 +129,7 @@ public class CourseServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
 
         when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(getExaminableCourses()));
-        var result = courseService.getExaminableCourses(List.of("1")) ;
+        var result = courseCacheService.getExaminableCoursesFromCache();
         assertNotNull(result);
     }
 
@@ -142,7 +141,7 @@ public class CourseServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
 
         when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(Collections.emptyList()));
-        var result = courseService.getExaminableCourses(Collections.emptyList()) ;
+        var result = courseCacheService.getExaminableCoursesFromCache();
         assertTrue(result.isEmpty());
     }
 
@@ -187,9 +186,8 @@ public class CourseServiceTest extends BaseIntegrationTest {
     }
 
     private List<ExaminableCourse> getExaminableCourses() {
-        ZoneId zoneId = ZoneId.of("America/Vancouver");
         List<ExaminableCourse> examinableCourses = new ArrayList<>();
-        examinableCourses.add(ExaminableCourse.builder().courseID("12").examinableStart(Date.from(LocalDate.now().minusYears(2).atStartOfDay(zoneId).toInstant())).examinableEnd(Date.from(LocalDate.now().plusYears(2).atStartOfDay(zoneId).toInstant())).build());
+        examinableCourses.add(ExaminableCourse.builder().courseCode("A").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
         return examinableCourses;
     }
 

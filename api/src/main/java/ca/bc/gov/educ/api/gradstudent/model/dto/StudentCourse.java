@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StudentCourse extends BaseModel {
 
-    private UUID id;
+    private UUID id; //The property id is used only for update
     @NotBlank
     private String courseID;
     @NotBlank
@@ -29,7 +30,16 @@ public class StudentCourse extends BaseModel {
     private String equivOrChallenge;
     private String fineArtsAppliedSkills;
     private String customizedCourseName;
-    private UUID studentExamId;
-    private String relatedCourseId;
+    private String relatedCourseID;
+    private StudentCourseExam courseExam;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String courseCode;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String courseLevel;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String relatedCourseCode;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String relatedCourseLevel;
 }

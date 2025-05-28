@@ -1,11 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
@@ -28,7 +30,17 @@ public class StudentCourseHistory extends BaseModel {
     private String equivOrChallenge;
     private String fineArtsAppliedSkills;
     private String customizedCourseName;
-    private UUID studentExamId;
-    private String relatedCourseId;
+    private String relatedCourseID;
+    private StudentCourseExam courseExam;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String courseCode;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String courseLevel;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String relatedCourseCode;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String relatedCourseLevel;
 
 }

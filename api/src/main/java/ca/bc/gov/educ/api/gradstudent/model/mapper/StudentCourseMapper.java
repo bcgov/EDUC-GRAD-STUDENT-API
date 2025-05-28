@@ -17,5 +17,5 @@ public interface StudentCourseMapper {
 
     @Mapping(target = "completedCoursePercentage", source = "finalPercent")
     @Mapping(target = "completedCourseLetterGrade", source = "finalLetterGrade")
-    StudentCourseEntity toEntity(StudentCourse session);
+    StudentCourseEntity toEntity(StudentCourse studentCourse);
 }

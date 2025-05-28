@@ -181,7 +181,7 @@ public class HistoryService {
         return historyRecordsCreated;
     }
 
-    public void createStudentCourseHistory(List<StudentCourseEntity> studentCourseEntities, String historyActivityCode) {
+    public void createStudentCourseHistory(List<StudentCourseEntity> studentCourseEntities, StudentCourseActivityType historyActivityType) {
         if (CollectionUtils.isNotEmpty(studentCourseEntities)) {
             logger.debug("Create Student Course History");
             List<StudentCourseHistoryEntity> studentCourseHistoryEntities = studentCourseEntities.stream()
@@ -191,11 +191,26 @@ public class HistoryService {
                         studentCourseHistoryEntity.setStudentCourseID(studentCourseEntity.getId());
                         studentCourseHistoryEntity.setCreateUser(studentCourseEntity.getCreateUser());
                         studentCourseHistoryEntity.setCreateDate(studentCourseEntity.getCreateDate());
-                        studentCourseHistoryEntity.setActivityCode(historyActivityCode);
+                        if(studentCourseEntity.getCourseExam() != null) {
+                            StudentCourseExamHistoryEntity studentCourseExamHistoryEntity = new StudentCourseExamHistoryEntity();
+                            BeanUtils.copyProperties(studentCourseEntity.getCourseExam(), studentCourseExamHistoryEntity);
+                            studentCourseHistoryEntity.setCourseExam(studentCourseExamHistoryEntity);
+                            studentCourseExamHistoryEntity.setStudentCourseExamID(studentCourseEntity.getCourseExam().getId());
+                            studentCourseExamHistoryEntity.setStudentCourseID(studentCourseEntity.getId());
+                            studentCourseHistoryEntity.getCourseExam().setStudentCourse(studentCourseHistoryEntity);
+                        }
+                        studentCourseHistoryEntity.setActivityCode(getStudentCourseActivityType(studentCourseHistoryEntity, historyActivityType).name());
                         return studentCourseHistoryEntity;
                     }).toList();
             studentCourseHistoryRepository.saveAllAndFlush(studentCourseHistoryEntities);
         }
+    }
+
+    private StudentCourseActivityType getStudentCourseActivityType(StudentCourseHistoryEntity studentCourseHistoryEntity, StudentCourseActivityType historyActivityType) {
+        if(StudentCourseActivityType.USERCOURSEMOD.equals(historyActivityType)) {
+            return studentCourseHistoryEntity.getCourseExam() != null ? StudentCourseActivityType.USEREXAMMOD : StudentCourseActivityType.USERCOURSEMOD;
+        }
+        return studentCourseHistoryEntity.getCourseExam() != null ? StudentCourseActivityType.USEREXAMADD : StudentCourseActivityType.USERCOURSEADD;
     }
 
     public List<StudentCourseHistory> getStudentCourseHistory(UUID studentID) {

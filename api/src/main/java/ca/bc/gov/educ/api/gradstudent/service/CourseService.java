@@ -18,18 +18,15 @@ public class CourseService {
 
     private final WebClient courseApiClient;
     private final RESTService restService;
-    private final CourseCacheService courseCacheService;
     private final JsonTransformer jsonTransformer;
     final EducGradStudentApiConstants constants;
 
-    public CourseService(@Qualifier("courseApiClient") WebClient courseApiClient, RESTService restService, CourseCacheService courseCacheService, JsonTransformer jsonTransformer, EducGradStudentApiConstants constants) {
+    public CourseService(@Qualifier("courseApiClient") WebClient courseApiClient, RESTService restService, JsonTransformer jsonTransformer, EducGradStudentApiConstants constants) {
         this.courseApiClient = courseApiClient;
         this.restService = restService;
-        this.courseCacheService = courseCacheService;
         this.jsonTransformer = jsonTransformer;
         this.constants = constants;
     }
-
 
     public List<Course> getCourses(List<String> courseIDs) {
         if(!CollectionUtils.isEmpty(courseIDs)) {
@@ -39,15 +36,6 @@ public class CourseService {
             return jsonTransformer.convertValue(response, new TypeReference<List<Course>>() {});
         }
         return Collections.emptyList();
-    }
-
-    public List<ExaminableCourse> getExaminableCourses(List<String> courseIDs) {
-        List<ExaminableCourse> examinableCourses = courseCacheService.getExaminableCoursesFromCache();
-        return examinableCourses.stream().filter(examinableCourse -> courseIDs.contains(examinableCourse.getCourseID())).toList();
-    }
-
-    public List<LetterGrade> getLetterGrades() {
-        return courseCacheService.getLetterGradesFromCache();
     }
 
 }

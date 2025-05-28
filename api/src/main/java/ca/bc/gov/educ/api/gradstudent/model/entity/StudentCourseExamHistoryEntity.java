@@ -11,16 +11,22 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false, exclude = "studentCourse")
 @Entity
-@Table(name = "STUDENT_COURSE_EXAM")
-public class StudentCourseExamEntity extends BaseEntity {
+@Table(name = "STUDENT_COURSE_EXAM_HISTORY")
+public class StudentCourseExamHistoryEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(
             name = "UUID",
             strategy = "org.hibernate.id.UUIDGenerator")
+    @Column(name = "STUDENT_COURSE_EXAM_HISTORY_ID", nullable = false)
+    private UUID examHistoryID;
+
     @Column(name = "STUDENT_COURSE_EXAM_ID", nullable = false)
-    private UUID id;
+    private UUID studentCourseExamID;
+
+    @Column(name = "STUDENT_COURSE_ID", nullable = false)
+    private UUID studentCourseID;
 
     @Column(name = "SCHOOL_PERCENT")
     private Double schoolPercentage;
@@ -44,8 +50,7 @@ public class StudentCourseExamEntity extends BaseEntity {
     private String wroteFlag;
 
     @OneToOne
-    @JoinColumn(name = "STUDENT_COURSE_ID", referencedColumnName = "STUDENT_COURSE_ID", nullable = false)
+    @JoinColumn(name = "STUDENT_COURSE_HISTORY_ID", referencedColumnName = "STUDENT_COURSE_HISTORY_ID", nullable = false)
     @JsonBackReference
-    private StudentCourseEntity studentCourse;
-
+    private StudentCourseHistoryEntity studentCourse;
 }

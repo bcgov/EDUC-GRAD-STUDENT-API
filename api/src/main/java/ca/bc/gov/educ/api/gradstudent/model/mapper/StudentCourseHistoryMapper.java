@@ -13,7 +13,7 @@ public interface StudentCourseHistoryMapper {
 
     @Mapping(target = "finalPercent", source = "completedCoursePercentage")
     @Mapping(target = "finalLetterGrade", source = "completedCourseLetterGrade")
-    @Mapping(target = "id", source = "historyId")
+    @Mapping(target = "id", source = "historyID")
     StudentCourseHistory toStructure(StudentCourseHistoryEntity entity);
 
 }
