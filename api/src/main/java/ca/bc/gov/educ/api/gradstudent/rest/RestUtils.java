@@ -17,21 +17,28 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.threads.EnhancedQueueExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -58,11 +65,36 @@ public class RestUtils {
   private final Map<String, GraduationProgramCode> gradProgramCodeMap = new ConcurrentHashMap<>();
   final EducGradStudentApiConstants constants;
 
+  public static final Executor bgTask = new EnhancedQueueExecutor.Builder()
+          .setThreadFactory(new ThreadFactoryBuilder().setNameFormat("bg-task-executor-%d").build())
+          .setCorePoolSize(1).setMaximumPoolSize(1).setKeepAliveTime(Duration.ofSeconds(60)).build();
+
+  @Value("${initialization.background.enabled}")
+  private Boolean isBackgroundInitializationEnabled;
+
   @Autowired
   public RestUtils(final MessagePublisher messagePublisher, WebClient webClient, EducGradStudentApiConstants constants) {
     this.messagePublisher = messagePublisher;
     this.webClient = webClient;
-      this.constants = constants;
+    this.constants = constants;
+  }
+
+  @PostConstruct
+  public void init() {
+    if (this.isBackgroundInitializationEnabled != null && this.isBackgroundInitializationEnabled) {
+      bgTask.execute(this::initialize);
+    }
+  }
+
+  private void initialize() {
+    this.populateGradProgramCodesMap();
+    this.populateOptionalProgramsMap();
+    this.populateLetterGradeMap();
+  }
+
+  @Scheduled(cron = "${cron.scheduled.process.cache-cron.run}")
+  public void scheduled() {
+    this.init();
   }
 
   private List<OptionalProgramCode> getOptionalPrograms() {

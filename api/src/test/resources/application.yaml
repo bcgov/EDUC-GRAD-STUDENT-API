@@ -114,7 +114,14 @@ cron:
         run: 0 30 0 * * *
       refresh-course-details:
         run: 0 30 0 * * *
-          
+      cache-cron:
+        run: 0 0 0/12 * * *
+
+#bg processes
+initialization:
+  background:
+    enabled: false
+
 #Endpoint properties
 endpoint:
   keycloak:
