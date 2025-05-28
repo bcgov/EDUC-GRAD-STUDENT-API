@@ -1,13 +1,15 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto.institute;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.springframework.stereotype.Component;
 
 @Data
 @EqualsAndHashCode
 @Component("instituteSchool")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class School {
 

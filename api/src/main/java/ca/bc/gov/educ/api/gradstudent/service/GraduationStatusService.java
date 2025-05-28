@@ -1,8 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
-import ca.bc.gov.educ.api.gradstudent.constant.EventType;
-import ca.bc.gov.educ.api.gradstudent.constant.Generated;
+import ca.bc.gov.educ.api.gradstudent.constant.*;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityAlreadyExistsException;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
@@ -82,13 +81,14 @@ public class GraduationStatusService extends GradBaseService {
 
 
     final GradStudentService gradStudentService;
+    final SchoolService schoolService;
     final HistoryService historyService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
     final GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
-    public GraduationStatusService(@Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
+    public GraduationStatusService(@Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants, SchoolService schoolService) {
         this.studentApiClient = studentApiClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentStatusRepository = studentStatusRepository;
@@ -103,6 +103,7 @@ public class GraduationStatusService extends GradBaseService {
         this.studentNonGradReasonTransformer = studentNonGradReasonTransformer;
 
         this.gradStudentService = gradStudentService;
+        this.schoolService = schoolService;
         this.historyService = historyService;
         this.validation = validation;
         this.constants = constants;
@@ -1448,5 +1449,44 @@ public class GraduationStatusService extends GradBaseService {
             Page<UUID> studentGuids = graduationStatusRepository.findStudentsForYearlyDistribution(pageRequest);
             return Pair.of(pageRequest, studentGuids.getContent());
         }
+    }
+
+    @Transactional
+    public GraduationStudentRecord adoptStudent(Student studentRequest, String accessToken) {
+        GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(studentRequest.getStudentID(), accessToken);
+        UUID studentID = UUID.fromString(student.getStudentID());
+
+        if (graduationStatusRepository.existsByStudentID(studentID)) {
+            throw new EntityAlreadyExistsException("Student already exists in Grad Student API");
+        }
+
+        GraduationStudentRecordEntity newRecord = buildNewGraduationStudentRecord(student);
+        GraduationStudentRecordEntity savedRecord = graduationStatusRepository.save(newRecord);
+
+        if (ProgramCodes.PF2023.getCode().equals(savedRecord.getProgram())) {
+            OptionalProgram optionalProgram = getOptionalProgram(ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode(), accessToken);
+            persistStudentOptionalProgramWithAuditHistory(studentID, optionalProgram.getOptionalProgramID());
+        }
+
+        historyService.createStudentHistory(savedRecord, HistoryActivityCodes.USERADOPT.getCode());
+        return graduationStatusTransformer.transformToDTO(savedRecord);
+    }
+
+    private GraduationStudentRecordEntity buildNewGraduationStudentRecord(GradSearchStudent student) {
+        GraduationStudentRecordEntity studentEntity = new GraduationStudentRecordEntity();
+        UUID studentID = UUID.fromString(student.getStudentID());
+        School school = schoolService.getSchoolByMincode(student.getMincode());
+
+        studentEntity.setStudentID(studentID);
+        studentEntity.setSchoolOfRecordId(student.getMincode() != null ? UUID.fromString(school.getSchoolId()) : null);
+        studentEntity.setProgram(SchoolReportingRequirementCodes.CSF.getCode().equals(school.getSchoolReportingRequirementCode()) ? ProgramCodes.PF2023.getCode() : ProgramCodes.EN2023.getCode());
+
+        String activeStatus = PenGradStudentStatusEnum.CUR.label;
+        studentEntity.setStudentStatus(activeStatus.equals(student.getStatusCode()) ? PenGradStudentStatusEnum.CUR.name() : PenGradStudentStatusEnum.DEC.name());
+        studentEntity.setStudentGrade(student.getGradeCode());
+        studentEntity.setRecalculateGradStatus(activeStatus.equals(student.getStatusCode()) ? "Y" : null);
+        studentEntity.setRecalculateProjectedGrad(activeStatus.equals(student.getStatusCode()) ? "Y" : null);
+
+        return studentEntity;
     }
 }
