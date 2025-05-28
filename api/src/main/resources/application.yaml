@@ -125,6 +125,13 @@ cron:
         run: ${CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS}
       refresh-course-details:
         run: ${CRON_SCHEDULED_REFRESH_COURSE_DETAILS}
+      cache-cron:
+        run: 0 0 0/12 * * *
+
+#bg processes
+initialization:
+  background:
+    enabled: true
 
 #Resilience
 resilience4j.retry:
