@@ -20,9 +20,7 @@ import reactor.core.publisher.Mono;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -125,9 +123,8 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     }
 
     private List<ExaminableCourse> getExaminableCourses() {
-        ZoneId zoneId = ZoneId.of("America/Vancouver");
         List<ExaminableCourse> examinableCourses = new ArrayList<>();
-        examinableCourses.add(ExaminableCourse.builder().courseID("12").examinableStart(Date.from(LocalDate.now().minusYears(2).atStartOfDay(zoneId).toInstant())).examinableEnd(Date.from(LocalDate.now().plusYears(2).atStartOfDay(zoneId).toInstant())).build());
+        examinableCourses.add(ExaminableCourse.builder().courseCode("A").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
         return examinableCourses;
     }
 

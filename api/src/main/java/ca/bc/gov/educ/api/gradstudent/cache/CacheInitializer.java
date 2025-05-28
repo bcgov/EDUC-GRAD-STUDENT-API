@@ -29,5 +29,7 @@ public class CacheInitializer {
         log.info("Refreshing cache...");
         courseCacheService.loadExaminableCourses();
         courseCacheService.loadLetterGrades();
+        courseCacheService.loadExamSpecialCases();
+        courseCacheService.loadEquivalentOrChallenges();
     }
 }

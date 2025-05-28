@@ -4,6 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
@@ -13,25 +14,29 @@ import io.micrometer.common.util.StringUtils;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 @SpringBootTest
@@ -45,6 +50,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     @Autowired StudentCourseService studentCourseService;
     @Autowired GraduationStatusService graduationStatusService;
     @MockBean CourseService courseService;
+    @MockBean CourseCacheService courseCacheService;
     @MockBean HistoryService historyService;
 
     @MockBean(name = "studentApiClient")
@@ -77,7 +83,16 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
+    public void testWithMockedAuthorities() {
+        setSecurityContext();
+        boolean isSystemCoordinator = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream().anyMatch(a -> a.getAuthority().equals("GRAD_SYSTEM_COORDINATOR"));
+        assert isSystemCoordinator;
+    }
+
+    @Test
     public void testCreateStudentCourses_CUR() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
 
@@ -85,8 +100,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
@@ -97,6 +114,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testUpdateStudentCourses_CUR() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -113,8 +131,9 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
@@ -125,6 +144,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testCreateStudentCourses_CUR_Duplicate() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
 
@@ -135,6 +155,9 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(studentCourseRepository.findByStudentID(any(UUID.class))).thenReturn(existingStudentCourseEntities);
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -144,6 +167,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testCreateStudentCourses_MER() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
 
@@ -151,8 +175,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
@@ -164,6 +188,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testCreateStudentCourses_TER_1996() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
 
@@ -171,8 +196,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -219,6 +244,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testCreateStudentCourses_ARC_1996() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
 
@@ -226,8 +252,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -274,6 +300,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testCreateStudentCourses_DEC_1996() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
 
@@ -281,8 +308,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -329,6 +356,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testCreateStudentCourses_TER_2004() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
 
@@ -336,8 +364,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -350,6 +378,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testCreateStudentCourses_ARC_2004() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
 
@@ -357,8 +386,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -371,6 +400,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testCreateStudentCourses_DEC_2004() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
 
@@ -378,8 +408,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -392,6 +422,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testUpdateStudentCourses_MER() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -407,8 +438,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
@@ -420,6 +451,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testUpdateStudentCourses_TER_1996() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -435,8 +467,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -483,6 +515,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testUpdateStudentCourses_ARC_1996() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -498,8 +531,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -546,6 +579,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testUpdateStudentCourses_DEC_1996() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -561,8 +595,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -609,6 +643,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testUpdateStudentCourses_TER_2004() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -624,8 +659,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -638,6 +673,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testUpdateStudentCourses_ARC_2004() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -653,8 +689,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -667,6 +703,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testUpdateStudentCourses_DEC_2004() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -682,8 +719,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -696,6 +733,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     @Test
     public void testDeleteStudentCourses_WithNoWarnings() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -712,8 +750,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findAllById(tobeDeleted)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
@@ -724,6 +762,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     @SneakyThrows
     @Test
     public void testDeleteStudentCourses_WithWarnings() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
@@ -756,20 +795,21 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findAllById(tobeDeleted)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
-        when(courseService.getLetterGrades()).thenReturn(getLetterGrades());
-        when(courseService.getExaminableCourses(anyList())).thenReturn(getExaminableCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_GRADUATION_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_GRADUATION_VALID.getMessage())).findFirst().isPresent());
 
     }
 
     @Test
     public void testGetStudentCourseHistory() {
+        setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
         List<StudentCourseHistory> historyEntities = new ArrayList();
@@ -897,7 +937,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         courses.add(Course.builder().courseID("9").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsBA).courseAllowableCredit(allowableCredits).build());
         courses.add(Course.builder().courseID("10").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsBA).courseAllowableCredit(allowableCredits).build());
         courses.add(Course.builder().courseID("11").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsLA).courseAllowableCredit(allowableCredits).build());
-        courses.add(Course.builder().courseID("12").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsLA).courseAllowableCredit(allowableCredits).build());
+        courses.add(Course.builder().courseID("12").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseLevel("10").courseCategory(characteristicsLA).courseAllowableCredit(allowableCredits).build());
 
         return courses;
     }
@@ -914,11 +954,25 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         return letterGrades;
     }
 
+    private void setSecurityContext() {
+        List<GrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority("GRAD_SYSTEM_COORDINATOR")
+        );
+        Authentication auth = mock(Authentication.class);
+        doReturn(authorities).when(auth).getAuthorities();
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
     private List<ExaminableCourse> getExaminableCourses() {
-        ZoneId zoneId = ZoneId.of("America/Vancouver");
         List<ExaminableCourse> examinableCourses = new ArrayList<>();
-        examinableCourses.add(ExaminableCourse.builder().courseID("12").examinableStart(Date.from(LocalDate.now().minusYears(2).atStartOfDay(zoneId).toInstant())).examinableEnd(Date.from(LocalDate.now().plusYears(2).atStartOfDay(zoneId).toInstant())).build());
+        examinableCourses.add(ExaminableCourse.builder().courseCode("A").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
         return examinableCourses;
+    }
+
+    private List<EquivalentOrChallengeCode> getEquivalentOrChallengeCodes() {
+        List<EquivalentOrChallengeCode> equivalentOrChallengeCodes = new ArrayList<>();
+        equivalentOrChallengeCodes.add(EquivalentOrChallengeCode.builder().equivalentOrChallengeCode("C").build());
+        return equivalentOrChallengeCodes;
     }
 
 }

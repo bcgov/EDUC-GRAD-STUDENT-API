@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.constant.ValidationIssueSeverityCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.ValidationBaseRule;
 import io.micrometer.common.util.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -45,10 +46,25 @@ public interface StudentCourseValidationBaseRule extends ValidationBaseRule<Stud
 
     default LocalDate getSessionDate(StudentCourse studentCourse) {
         if(StringUtils.isNotBlank(studentCourse.getCourseSession())) {
-            return getLocalDateFromString(studentCourse.getCourseSession().substring(0,4)+"-"+studentCourse.getCourseSession().substring(4,6)+"-01");
+            return getAsDefaultLocalDate(studentCourse.getCourseSession());
         }
         return null;
     }
+
+    //This supports format YYYY-MM / YYYYMM
+    default LocalDate getAsDefaultLocalDate(String dateValue) {
+        if(StringUtils.isNotBlank(dateValue)) {
+            if(dateValue.length() == 6) {
+                return getLocalDateFromString(dateValue.substring(0,4)+"-"+dateValue.substring(4,6)+"-01");
+            } else if(dateValue.length() == 7 && dateValue.charAt(4) == '-') {
+                return getLocalDateFromString(dateValue.substring(0,4)+"-"+dateValue.substring(5,7)+"-01");
+            }
+            return null;
+        }
+        return null;
+    }
+
+
 
     default LocalDate getLocalDateFromString(String localDate) {
         return LocalDate.parse(localDate, DateTimeFormatter.ISO_LOCAL_DATE);
@@ -60,6 +76,10 @@ public interface StudentCourseValidationBaseRule extends ValidationBaseRule<Stud
 
     default Pair<LocalDate, LocalDate> getCurrentSessionPeriod(LocalDate sessionDate) {
         return Pair.of(getLocalDateFromString(LocalDate.now().minusYears(1).getYear() + "-10-01"), getLocalDateFromString(LocalDate.now().getYear() + "-09-30"));
+    }
+
+    default boolean isAcceptablePercentile(Integer value) {
+        return value == null || (value >= DEFAULT_MIN_PERCENTAGE_VALUE && value <= DEFAULT_MAX_PERCENTAGE_VALUE);
     }
 
 }
