@@ -115,6 +115,12 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     @Test
     public void testGetExamSpecialCaseCodes_NoError() {
         when(examSpecialCaseCodeService.findAll()).thenReturn(getExamSpecialCaseCodes());
+        Assertions.assertDoesNotThrow(() -> { courseCacheService.loadExaminableCourses(); });
+    }
+
+    @Test
+    public void testGetExamSpecialCaseCodesFromCache_NoError() {
+        when(examSpecialCaseCodeService.findAll()).thenReturn(getExamSpecialCaseCodes());
         var result = courseCacheService.getExamSpecialCaseCodesFromCache() ;
         assertNotNull(result);
     }
@@ -122,9 +128,15 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     @Test
     public void testGetEquivalentOrChallengeCodes_NoError() {
         when(equivalentOrChallengeCodeService.findAll()).thenReturn(getEquivalentOrChallengeCodes());
+        Assertions.assertDoesNotThrow(() -> { courseCacheService.getEquivalentOrChallengeCodesFromCache(); });
+    }
+    @Test
+    public void testGetEquivalentOrChallengeCodesFromCache_NoError() {
+        when(equivalentOrChallengeCodeService.findAll()).thenReturn(getEquivalentOrChallengeCodes());
         var result = courseCacheService.getEquivalentOrChallengeCodesFromCache() ;
         assertNotNull(result);
     }
+
 
     @SneakyThrows
     private List<LetterGrade> getLetterGrades() {
