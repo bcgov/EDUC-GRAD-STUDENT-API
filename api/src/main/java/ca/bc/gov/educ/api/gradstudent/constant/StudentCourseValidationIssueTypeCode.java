@@ -38,7 +38,8 @@ public enum StudentCourseValidationIssueTypeCode {
     STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID("bestSchoolPercentage","Best School percent cannot be null, negative or greater than 100", ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_EXAM_BEST_PERCENT_VALID("examPercentage","Best Exam percent cannot be negative or greater than 100", ValidationIssueSeverityCode.ERROR),
 
-    STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID("specialCase","Special Case can only be set as Aegrotat", ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_EXAM_SPECIAL_CASE_AEGROTAT_VALID("specialCase","Special Case can only be set as Aegrotat", ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID("specialCase","Invalid Special Case Code", ValidationIssueSeverityCode.ERROR),
 
     STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID("equivOrChallenge","Invalid Equivalency or Challenge Code", ValidationIssueSeverityCode.ERROR),
 

@@ -194,10 +194,8 @@ public class HistoryService {
                         if(studentCourseEntity.getCourseExam() != null) {
                             StudentCourseExamHistoryEntity studentCourseExamHistoryEntity = new StudentCourseExamHistoryEntity();
                             BeanUtils.copyProperties(studentCourseEntity.getCourseExam(), studentCourseExamHistoryEntity);
-                            studentCourseHistoryEntity.setCourseExam(studentCourseExamHistoryEntity);
                             studentCourseExamHistoryEntity.setStudentCourseExamID(studentCourseEntity.getCourseExam().getId());
-                            studentCourseExamHistoryEntity.setStudentCourseID(studentCourseEntity.getId());
-                            studentCourseHistoryEntity.getCourseExam().setStudentCourse(studentCourseHistoryEntity);
+                            studentCourseHistoryEntity.setCourseExam(studentCourseExamHistoryEntity);
                         }
                         studentCourseHistoryEntity.setActivityCode(getStudentCourseActivityType(studentCourseHistoryEntity, historyActivityType).name());
                         return studentCourseHistoryEntity;

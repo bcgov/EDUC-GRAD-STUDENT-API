@@ -143,9 +143,6 @@ public class StudentCourseService {
             StudentCourseActivityType activityCode = isUpdate ? StudentCourseActivityType.USERCOURSEMOD: StudentCourseActivityType.USERCOURSEADD;
             List<StudentCourseEntity> savedEntities = studentCourseRepository.saveAll(tobePersisted.stream().map(entity -> {
                 entity.setStudentID(studentID);
-                if(entity.getCourseExam() != null) {
-                    entity.getCourseExam().setStudentCourse(entity);
-                }
                 return entity;
             }).toList());
             createStudentCourseHistory(studentID, savedEntities, activityCode);

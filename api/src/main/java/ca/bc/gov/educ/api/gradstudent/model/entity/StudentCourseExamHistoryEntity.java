@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,8 +8,8 @@ import org.hibernate.annotations.GenericGenerator;
 import java.util.UUID;
 
 @Data
-@EqualsAndHashCode(callSuper = false, exclude = "studentCourse")
 @Entity
+@EqualsAndHashCode(callSuper = false)
 @Table(name = "STUDENT_COURSE_EXAM_HISTORY")
 public class StudentCourseExamHistoryEntity extends BaseEntity {
 
@@ -25,10 +24,7 @@ public class StudentCourseExamHistoryEntity extends BaseEntity {
     @Column(name = "STUDENT_COURSE_EXAM_ID", nullable = false)
     private UUID studentCourseExamID;
 
-    @Column(name = "STUDENT_COURSE_ID", nullable = false)
-    private UUID studentCourseID;
-
-    @Column(name = "SCHOOL_PERCENT")
+     @Column(name = "SCHOOL_PERCENT")
     private Double schoolPercentage;
 
     @Column(name = "SCHOOL_BEST_PERCENT")
@@ -49,8 +45,4 @@ public class StudentCourseExamHistoryEntity extends BaseEntity {
     @Column(name = "WROTE_FLAG")
     private String wroteFlag;
 
-    @OneToOne
-    @JoinColumn(name = "STUDENT_COURSE_HISTORY_ID", referencedColumnName = "STUDENT_COURSE_HISTORY_ID", nullable = false)
-    @JsonBackReference
-    private StudentCourseHistoryEntity studentCourse;
 }

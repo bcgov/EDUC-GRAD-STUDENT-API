@@ -33,16 +33,19 @@ public class StudentCourseExamSpecialCaseRule implements StudentCourseValidation
         final List<ValidationIssue> validationIssues = new ArrayList<>();
         StudentCourse studentCourse = studentCourseRuleData.getStudentCourse();
         StudentCourseExam studentCourseExam = studentCourse.getCourseExam();
-        if(studentCourseExam != null && !validateSpecialCaseCode(studentCourseExam.getSpecialCase(), StudentCourseActivityType.USERCOURSEMOD.equals(studentCourseRuleData.getActivityType()))) {
-            validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID));
+        boolean isUpdate = studentCourseRuleData.getActivityType() != null && StudentCourseActivityType.USERCOURSEMOD.equals(studentCourseRuleData.getActivityType());
+        if(studentCourseExam != null && !validateSpecialCaseCode(studentCourseExam.getSpecialCase(), isUpdate)) {
+            validationIssues.add(createValidationIssue(
+                    !isUpdate ? StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_AEGROTAT_VALID : StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID));
         }
+
         return validationIssues;
     }
 
     private boolean validateSpecialCaseCode(String specialCaseCode, boolean isUpdate) {
-        if(StringUtils.isNotBlank(specialCaseCode) && !isUpdate) {
+        if(StringUtils.isNotBlank(specialCaseCode)) {
             ExamSpecialCaseCode specialCase =  getExamSpecialCaseByCode(specialCaseCode);
-            if(specialCase == null || !specialCase.getExamSpecialCaseCode().equals("A") ) {
+            if(specialCase == null || (!isUpdate && !specialCase.getExamSpecialCaseCode().equals("A"))) {
                 return false;
             }
         }

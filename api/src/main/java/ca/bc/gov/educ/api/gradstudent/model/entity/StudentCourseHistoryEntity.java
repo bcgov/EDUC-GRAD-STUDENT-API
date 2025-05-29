@@ -65,7 +65,8 @@ public class StudentCourseHistoryEntity extends BaseEntity {
     @Column(name = "RELATED_COURSE_ID")
     private BigInteger relatedCourseId;
 
-    @OneToOne(mappedBy = "studentCourse", cascade = {CascadeType.PERSIST})
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "STUDENT_COURSE_EXAM_ID", referencedColumnName = "STUDENT_COURSE_EXAM_HISTORY_ID", nullable = false)
     @JsonManagedReference
     private StudentCourseExamHistoryEntity courseExam;
 

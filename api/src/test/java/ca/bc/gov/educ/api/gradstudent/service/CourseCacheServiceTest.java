@@ -52,6 +52,8 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     @Mock WebClient.RequestBodySpec requestBodyMock;
     @Mock WebClient.ResponseSpec responseMock;
     @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
+    @MockBean ExamSpecialCaseCodeService examSpecialCaseCodeService;
+    @MockBean EquivalentOrChallengeCodeService equivalentOrChallengeCodeService;
 
     @Before
     public void setUp(){
@@ -110,6 +112,20 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
         Assertions.assertDoesNotThrow(() -> { courseCacheService.getExaminableCoursesFromCache(); });
     }
 
+    @Test
+    public void testGetExamSpecialCaseCodes_NoError() {
+        when(examSpecialCaseCodeService.findAll()).thenReturn(getExamSpecialCaseCodes());
+        var result = courseCacheService.getExamSpecialCaseCodesFromCache() ;
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetEquivalentOrChallengeCodes_NoError() {
+        when(equivalentOrChallengeCodeService.findAll()).thenReturn(getEquivalentOrChallengeCodes());
+        var result = courseCacheService.getEquivalentOrChallengeCodesFromCache() ;
+        assertNotNull(result);
+    }
+
     @SneakyThrows
     private List<LetterGrade> getLetterGrades() {
         List<LetterGrade> letterGrades = new ArrayList<>();
@@ -126,6 +142,18 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
         List<ExaminableCourse> examinableCourses = new ArrayList<>();
         examinableCourses.add(ExaminableCourse.builder().courseCode("A").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
         return examinableCourses;
+    }
+
+    private List<ExamSpecialCaseCode> getExamSpecialCaseCodes() {
+        List<ExamSpecialCaseCode> examSpecialCaseCodes = new ArrayList<>();
+        examSpecialCaseCodes.add(ExamSpecialCaseCode.builder().examSpecialCaseCode("C").build());
+        return examSpecialCaseCodes;
+    }
+
+    private List<EquivalentOrChallengeCode> getEquivalentOrChallengeCodes() {
+        List<EquivalentOrChallengeCode> equivalentOrChallengeCodes = new ArrayList<>();
+        equivalentOrChallengeCodes.add(EquivalentOrChallengeCode.builder().equivalentOrChallengeCode("C").build());
+        return equivalentOrChallengeCodes;
     }
 
 }
