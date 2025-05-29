@@ -1465,7 +1465,7 @@ public class GraduationStatusService extends GradBaseService {
 
         if (ProgramCodes.PF2023.getCode().equals(savedRecord.getProgram())) {
             OptionalProgram optionalProgram = getOptionalProgram(ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode(), accessToken);
-            if(optionalProgram == null || optionalProgram.getOptionalProgramID() == null) {
+            if(optionalProgram == null) {
                 throw new EntityNotFoundException(String.format("Optional Program %s for %s not found", OptionalProgramCodes.DD.getCode(), ProgramCodes.PF2023.getCode()));
             }
             persistStudentOptionalProgramWithAuditHistory(studentID, optionalProgram.getOptionalProgramID());

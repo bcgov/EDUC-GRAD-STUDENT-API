@@ -1,5 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
+import ca.bc.gov.educ.api.gradstudent.constant.ProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityAlreadyExistsException;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
@@ -3692,7 +3694,8 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
         Student request = Student.builder().studentID(gradSearchStudent.getStudentID()).build();
         School school = School.builder()
-            .mincode("123456")
+            .schoolId(UUID.randomUUID().toString())
+            .mincode(gradSearchStudent.getMincode())
             .schoolCategoryCode("PUB")
             .schoolReportingRequirementCode("STANDARD")
             .build();
@@ -3710,6 +3713,45 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         verify(gradStudentOptionalProgramRepository, never()).save(any());
         verify(historyService).createStudentHistory(any(), eq("USERADOPT"));
         assertEquals("2023-EN", result.getProgram());
+        assertEquals("CUR", result.getStudentStatus());
+        assertEquals("Y", result.getRecalculateGradStatus());
+        assertEquals("Y", result.getRecalculateProjectedGrad());
+    }
+
+    @Test
+    void testAdoptStudent_successful_withOptionalProgram() {
+        // Given
+        GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
+
+        Student request = Student.builder().studentID(gradSearchStudent.getStudentID()).build();
+
+        School school = School.builder()
+            .mincode(gradSearchStudent.getMincode())
+            .schoolReportingRequirementCode("CSF") // triggers PF2023
+            .schoolId(UUID.randomUUID().toString())
+            .build();
+
+        OptionalProgram optionalProgram = new OptionalProgram();
+        optionalProgram.setOptionalProgramID(UUID.randomUUID());
+
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID(), accessToken)).thenReturn(gradSearchStudent);
+        when(graduationStatusRepository.existsByStudentID(any())).thenReturn(false);
+        when(schoolService.getSchoolByMincode(gradSearchStudent.getMincode())).thenReturn(school);
+
+        when(this.webClient.get()).thenReturn(requestHeadersUriMock);
+        when(requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(), ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode()))).thenReturn(requestHeadersMock);
+        when(requestHeadersMock.headers(any(Consumer.class))).thenReturn(requestHeadersMock);
+        when(requestHeadersMock.retrieve()).thenReturn(responseMock);
+        when(responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+
+        // When
+        GraduationStudentRecord result = graduationStatusService.adoptStudent(request, accessToken);
+
+        // Then
+        assertThat(result).isNotNull();
+        verify(gradStudentOptionalProgramRepository).save(any());
+        verify(historyService).createStudentHistory(any(), eq("USERADOPT"));
+        assertEquals("2023-PF", result.getProgram());
         assertEquals("CUR", result.getStudentStatus());
         assertEquals("Y", result.getRecalculateGradStatus());
         assertEquals("Y", result.getRecalculateProjectedGrad());
@@ -3767,5 +3809,34 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         assertThatThrownBy(() -> graduationStatusService.adoptStudent(request, accessToken))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessageContaining("School not found for mincode: 123456");
+    }
+
+    @Test
+    void testAdoptStudent_optionalProgramMissing_throwsException() {
+        // Given
+        GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
+
+        Student request = Student.builder().studentID(gradSearchStudent.getStudentID()).build();
+
+        School school = School.builder()
+            .mincode(gradSearchStudent.getMincode())
+            .schoolReportingRequirementCode("CSF")
+            .schoolId(UUID.randomUUID().toString())
+            .build();
+
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID(), accessToken)).thenReturn(gradSearchStudent);
+        when(graduationStatusRepository.existsByStudentID(any())).thenReturn(false);
+        when(schoolService.getSchoolByMincode(gradSearchStudent.getMincode())).thenReturn(school);
+
+        when(this.webClient.get()).thenReturn(requestHeadersUriMock);
+        when(requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(), ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode()))).thenReturn(requestHeadersMock);
+        when(requestHeadersMock.headers(any(Consumer.class))).thenReturn(requestHeadersMock);
+        when(requestHeadersMock.retrieve()).thenReturn(responseMock);
+        when(responseMock.bodyToMono(OptionalProgram.class)).thenReturn(null);
+
+        // When / Then
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request, accessToken))
+            .isInstanceOf(EntityNotFoundException.class)
+            .hasMessageContaining("Optional Program DD for 2023-PF not found");
     }
 }

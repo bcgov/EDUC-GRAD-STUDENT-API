@@ -52,8 +52,7 @@ public abstract class BaseIntegrationTest {
         .studentID(UUID.randomUUID().toString())
         .gradeCode("12")
         .statusCode("A")
-        .program("NCSF")
-        .schoolOfRecordId(UUID.randomUUID().toString())
+        .mincode("123456789")
         .build();
   }
 }
