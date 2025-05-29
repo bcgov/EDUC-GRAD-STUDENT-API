@@ -87,7 +87,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         setSecurityContext();
         boolean isSystemCoordinator = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                 .stream().anyMatch(a -> a.getAuthority().equals("GRAD_SYSTEM_COORDINATOR"));
-        assert isSystemCoordinator;
+        boolean isNotSystemCoordinator = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream().anyMatch(a -> a.getAuthority().equals("GRAD_TEST"));
+        assertTrue(isSystemCoordinator);
+        assertFalse(isNotSystemCoordinator);
     }
 
     @Test
