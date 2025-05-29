@@ -13,6 +13,7 @@ import ca.bc.gov.educ.api.gradstudent.validator.rules.StudentCourseRulesProcesso
 import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -50,18 +51,26 @@ public class StudentCourseService {
                 StudentCourse studentCourse = mapper.toStructure(entity);
                 Course course = courses.stream().filter(c -> c.getCourseID().equals(entity.getCourseID().toString())).findFirst().orElse(null);
                 Course relatedCourse = courses.stream().filter(c -> entity.getRelatedCourseId() != null && c.getCourseID().equals(entity.getRelatedCourseId().toString())).findFirst().orElse(null);
+
                 if (course != null) {
-                    studentCourse.setCourseCode(course.getCourseCode());
-                    studentCourse.setCourseLevel(course.getCourseLevel());
+                    studentCourse.setCourseDetails(getCourseDetails(course));
                 }
                 if (relatedCourse != null) {
-                    studentCourse.setRelatedCourseCode(relatedCourse.getCourseCode());
-                    studentCourse.setRelatedCourseLevel(relatedCourse.getCourseLevel());
+                    studentCourse.setRelatedCourseDetails(getCourseDetails(relatedCourse));
                 }
                 return studentCourse;
             }).toList();
         }
         return Collections.emptyList();
+    }
+
+    private BaseCourse getCourseDetails(Course course) {
+        if (course != null) {
+            BaseCourse courseDetails = new BaseCourse();
+            BeanUtils.copyProperties(course, courseDetails);
+            return courseDetails;
+        }
+        return null;
     }
 
     public List<StudentCourseHistory> getStudentCourseHistory(UUID studentID) {
@@ -76,12 +85,10 @@ public class StudentCourseService {
                 Course course = courses.stream().filter(c -> c.getCourseID().equals(history.getCourseID())).findFirst().orElse(null);
                 Course relatedCourse = courses.stream().filter(c -> history.getRelatedCourseId() != null && c.getCourseID().equals(history.getRelatedCourseId())).findFirst().orElse(null);
                 if (course != null) {
-                    history.setCourseCode(course.getCourseCode());
-                    history.setCourseLevel(course.getCourseLevel());
+                    history.setCourseDetails(getCourseDetails(course));
                 }
                 if (relatedCourse != null) {
-                    history.setRelatedCourseCode(relatedCourse.getCourseCode());
-                    history.setRelatedCourseLevel(relatedCourse.getCourseLevel());
+                    history.setRelatedCourseDetails(getCourseDetails(relatedCourse));
                 }
                 return history;
             }).toList();
