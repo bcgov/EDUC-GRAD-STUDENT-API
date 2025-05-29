@@ -409,19 +409,7 @@ public class GradStudentService {
 			return new ArrayList<>();
 		}
 
-		LocalDate currentDate = LocalDate.now();
-
-		int startYear = (currentDate.getMonth().compareTo(Month.SEPTEMBER) <= 0)
-				? currentDate.getYear() - 1
-				: currentDate.getYear();
-
-		LocalDate localStartDate = LocalDate.of(startYear, 10, 1);
-		LocalDate localEndDate = LocalDate.of(startYear + 1, 9, 30);
-
-		Date startDate = java.sql.Date.valueOf(localStartDate);
-		Date endDate = java.sql.Date.valueOf(localEndDate);
-
-		return graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIDs, startDate, endDate);
+		return graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIDs);
 	}
 
 	/**
