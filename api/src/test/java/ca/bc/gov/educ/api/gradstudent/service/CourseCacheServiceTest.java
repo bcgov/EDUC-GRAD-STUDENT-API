@@ -115,7 +115,7 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     @Test
     public void testGetExamSpecialCaseCodes_NoError() {
         when(examSpecialCaseCodeService.findAll()).thenReturn(getExamSpecialCaseCodes());
-        Assertions.assertDoesNotThrow(() -> { courseCacheService.loadExaminableCourses(); });
+        Assertions.assertDoesNotThrow(() -> { courseCacheService.loadExamSpecialCases(); });
     }
 
     @Test
@@ -128,8 +128,9 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     @Test
     public void testGetEquivalentOrChallengeCodes_NoError() {
         when(equivalentOrChallengeCodeService.findAll()).thenReturn(getEquivalentOrChallengeCodes());
-        Assertions.assertDoesNotThrow(() -> { courseCacheService.getEquivalentOrChallengeCodesFromCache(); });
+        Assertions.assertDoesNotThrow(() -> { courseCacheService.loadEquivalentOrChallenges(); });
     }
+
     @Test
     public void testGetEquivalentOrChallengeCodesFromCache_NoError() {
         when(equivalentOrChallengeCodeService.findAll()).thenReturn(getEquivalentOrChallengeCodes());
