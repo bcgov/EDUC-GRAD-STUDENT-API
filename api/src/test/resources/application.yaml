@@ -136,6 +136,8 @@ endpoint:
     school-by-school-id:
       url: http://test
     district-by-district-id:
+      url: http://
+    search-schools-by-mincode:
       url: http://test
   grad-program-api:
     optional_program_name_by_optional_program_id:

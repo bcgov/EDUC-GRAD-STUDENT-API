@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.config;
 
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityAlreadyExistsException;
 import ca.bc.gov.educ.api.gradstudent.util.ApiResponseMessage.MessageTypeEnum;
 import ca.bc.gov.educ.api.gradstudent.util.ApiResponseModel;
 import ca.bc.gov.educ.api.gradstudent.util.GradBusinessRuleException;
@@ -99,6 +100,12 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
 		validation.ifWarnings(response::addWarningMessages);
 		validation.clear();
 		return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+	}
+
+
+	@ExceptionHandler(EntityAlreadyExistsException.class)
+	public ResponseEntity<String> handleEntityAlreadyExists(EntityAlreadyExistsException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
 	}
 
 	@ExceptionHandler(value = { Exception.class })

@@ -50,6 +50,7 @@ public class EducGradStudentApiConstants {
     public static final String UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS = "/multistudentids/batchflag/jobtype/{batchJobType}";
     public static final String GRAD_STUDENT_NON_GRAD_REASON_BY_PEN = "/pen/{pen}/nongrad-reason";
     public static final String GET_ALL_STUDENT_GRADE_CODES = "/grade-codes";
+    public static final String GRAD_STUDENT_ADOPT = "/adopt";
 
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN = "/optionalprogram/studentid/{studentID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";
@@ -216,6 +217,9 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.grad-trax-api.search-schools-by-category-code.url}")
     private String schoolsByCategoryCodeUrl;
+
+    @Value("${endpoint.grad-trax-api.search-schools-by-mincode.url}")
+    private String schoolsByMincodeUrl;
 
     @Value("${endpoint.grad-course-api.course-details-search.url}")
     private String courseDetailSearchUrl;
