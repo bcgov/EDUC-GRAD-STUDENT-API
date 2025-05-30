@@ -2,7 +2,10 @@ package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
+import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import io.micrometer.common.util.StringUtils;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -33,7 +36,10 @@ import java.util.List;
 @Component
 @Slf4j
 @Order(604)
+@AllArgsConstructor
 public class StudentCoursePercentileGradeRule implements StudentCourseValidationBaseRule {
+
+    private final CourseCacheService courseCacheService;
 
     @Override
     public boolean shouldExecute(StudentCourseRuleData studentCourseRuleData, List<ValidationIssue> list) {
@@ -45,10 +51,10 @@ public class StudentCoursePercentileGradeRule implements StudentCourseValidation
         log.debug("Executing StudentCoursePercentileGradeRule for student :: {}", studentCourseRuleData.getGraduationStudentRecord().getStudentID());
         final List<ValidationIssue> validationIssues = new ArrayList<>();
         StudentCourse studentCourse = studentCourseRuleData.getStudentCourse();
-        if(studentCourse.getInterimPercent() != null && (studentCourse.getInterimPercent() < DEFAULT_MIN_PERCENTAGE_VALUE || studentCourse.getInterimPercent() > DEFAULT_MAX_PERCENTAGE_VALUE)) {
+        if(!isAcceptablePercentile(studentCourse.getInterimPercent())) {
             validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID));
         }
-        if(studentCourse.getFinalPercent() != null  && (studentCourse.getFinalPercent() < DEFAULT_MIN_PERCENTAGE_VALUE || studentCourse.getFinalPercent() > DEFAULT_MAX_PERCENTAGE_VALUE)) {
+        if(!isAcceptablePercentile(studentCourse.getFinalPercent())) {
             validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID));
         }
         if(getSessionDate(studentCourse).isBefore(LocalDate.now()) && studentCourse.getFinalPercent() == null && StringUtils.isBlank(studentCourse.getFinalLetterGrade())) {
@@ -57,27 +63,27 @@ public class StudentCoursePercentileGradeRule implements StudentCourseValidation
         if (!validationIssues.isEmpty()) return validationIssues;
         //Logic for LetterGrade - Begin
         boolean isPercentageMandatory  = isPercentageMandatory(studentCourseRuleData);
-        if(!validateInterimLetterGrade(studentCourse, isPercentageMandatory, studentCourseRuleData.getInterimLetterGrade())) {
+        if(!validateInterimLetterGrade(studentCourse, isPercentageMandatory)) {
             validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID));
         }
-        if(!validateFinalLetterGrade(studentCourseRuleData, isPercentageMandatory, studentCourseRuleData.getFinalLetterGrade())) {
-           validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID));
+        if(!validateFinalLetterGrade(studentCourseRuleData, isPercentageMandatory)) {
+            validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID));
         }
         //Logic for LetterGrade - End
         return validationIssues;
     }
 
-    private boolean validateInterimLetterGrade(StudentCourse studentCourse, Boolean isPercentageMandatory, LetterGrade letterGrade) {
+    private boolean validateInterimLetterGrade(StudentCourse studentCourse, Boolean isPercentageMandatory) {
         if(StringUtils.isNotBlank(studentCourse.getInterimLetterGrade())) {
-            return validateLetterGrade(getSessionDate(studentCourse),  getPercentValue(studentCourse.getInterimPercent(), isPercentageMandatory) , letterGrade);
+            return validateLetterGrade(getSessionDate(studentCourse),  getPercentValue(studentCourse.getInterimPercent(), isPercentageMandatory) , getLetterGrade(studentCourse.getInterimLetterGrade()));
         }
         return true;
     }
 
-    private boolean validateFinalLetterGrade(StudentCourseRuleData studentCourseRuleData,Boolean isPercentageMandatory, LetterGrade letterGrade) {
+    private boolean validateFinalLetterGrade(StudentCourseRuleData studentCourseRuleData,Boolean isPercentageMandatory) {
         StudentCourse studentCourse = studentCourseRuleData.getStudentCourse();
         if(StringUtils.isNotBlank(studentCourse.getFinalLetterGrade())) {
-            return validateLetterGrade(getSessionDate(studentCourse),  getPercentValue(studentCourse.getFinalPercent(), isPercentageMandatory) , letterGrade);
+            return validateLetterGrade(getSessionDate(studentCourse),  getPercentValue(studentCourse.getFinalPercent(), isPercentageMandatory) , getLetterGrade(studentCourse.getFinalLetterGrade()));
         }
         return true;
     }
@@ -91,7 +97,7 @@ public class StudentCoursePercentileGradeRule implements StudentCourseValidation
         if(letterGrade != null) {
             return sessionDate.isAfter(getLocalDate(letterGrade.getEffectiveDate())) &&
                     (letterGrade.getExpiryDate() == null || (letterGrade.getExpiryDate() != null && sessionDate.isBefore(getLocalDate(letterGrade.getExpiryDate())))) &&
-                    (letterGrade.getPercentRangeLow() <= percent && letterGrade.getPercentRangeHigh() >= percent);
+                    (percent == null || (letterGrade.getPercentRangeLow() <= percent && letterGrade.getPercentRangeHigh() >= percent));
         }
         return true;
     }
@@ -108,8 +114,8 @@ public class StudentCoursePercentileGradeRule implements StudentCourseValidation
             if (StringUtils.isNotBlank(studentProgram) && PROGRAM_CODES_BA_LA.contains(studentProgram) && "10".equals(course.getCourseLevel())) {
                 return false;
             }
-            LetterGrade interimLetterGrade = studentCourseRuleData.getInterimLetterGrade();
-            LetterGrade finalLetterGrade = studentCourseRuleData.getFinalLetterGrade();
+            LetterGrade interimLetterGrade = getLetterGrade(studentCourse.getInterimLetterGrade());
+            LetterGrade finalLetterGrade = getLetterGrade(studentCourse.getFinalLetterGrade());
             if (interimLetterGrade != null && interimLetterGrade.getPercentRangeLow().equals(DEFAULT_MIN_PERCENTAGE_VALUE) && interimLetterGrade.getPercentRangeHigh().equals(DEFAULT_MIN_PERCENTAGE_VALUE)) {
                 return false;
             }
@@ -118,6 +124,10 @@ public class StudentCoursePercentileGradeRule implements StudentCourseValidation
             }
         }
         return true;
+    }
+
+    private LetterGrade getLetterGrade(String grade) {
+        return StringUtils.isNotBlank(grade) ? courseCacheService.getLetterGradesFromCache().stream().filter(letterGrade -> letterGrade.getGrade().equals(grade)).findFirst().orElse(null) : null;
     }
 
 }

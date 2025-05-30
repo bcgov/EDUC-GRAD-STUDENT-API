@@ -17,6 +17,8 @@ public class StudentCourseValidationIssue {
 
     private String courseID;
     private String courseSession;
+    private String courseCode;
+    private String courseLevel;
     private boolean hasPersisted;
     private List<ValidationIssue> validationIssues;
 

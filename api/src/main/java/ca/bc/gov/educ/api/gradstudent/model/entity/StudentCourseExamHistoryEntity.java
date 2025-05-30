@@ -1,7 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.model.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
@@ -9,21 +10,21 @@ import java.util.UUID;
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = false)
-@Table(name = "STUDENT_COURSE_EXAM")
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class StudentCourseExamEntity extends BaseEntity {
+@Table(name = "STUDENT_COURSE_EXAM_HISTORY")
+public class StudentCourseExamHistoryEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(
             name = "UUID",
             strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "STUDENT_COURSE_EXAM_ID", nullable = false)
-    private UUID id;
+    @Column(name = "STUDENT_COURSE_EXAM_HISTORY_ID", nullable = false)
+    private UUID examHistoryID;
 
-    @Column(name = "SCHOOL_PERCENT")
+    @Column(name = "STUDENT_COURSE_EXAM_ID", nullable = false)
+    private UUID studentCourseExamID;
+
+     @Column(name = "SCHOOL_PERCENT")
     private Double schoolPercentage;
 
     @Column(name = "SCHOOL_BEST_PERCENT")

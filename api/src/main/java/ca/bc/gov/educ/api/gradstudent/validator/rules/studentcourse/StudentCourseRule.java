@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.Course;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseRuleData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ValidationIssue;
+import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.core.annotation.Order;
@@ -45,8 +46,12 @@ public class StudentCourseRule implements StudentCourseValidationBaseRule {
         final List<ValidationIssue> validationIssues = new ArrayList<>();
         StudentCourse studentCourse = studentCourseRuleData.getStudentCourse();
         Course course = studentCourseRuleData.getCourse();
+        Course relatedCourse = studentCourseRuleData.getRelatedCourse();
         if (course == null) {
             return List.of(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID));
+        }
+        if(StringUtils.isNotBlank(studentCourse.getRelatedCourseId()) && relatedCourse == null) {
+            return List.of(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID));
         }
         LocalDate sessionDate = getSessionDate(studentCourse);
         LocalDate sessionDatePlusOne = sessionDate.plusDays(1);
