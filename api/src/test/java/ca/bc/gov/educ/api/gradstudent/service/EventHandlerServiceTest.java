@@ -10,11 +10,13 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseAllowabl
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCharacteristicsRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDetail;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseExamEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
@@ -226,8 +228,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     @Test
     void testHandleEvent_givenEventTypePROCESS_STUDENT_COURSE_DATA__whenCourseDoesNotExists_shouldCreateCourseAndOptionalProgWithEventOutcome_COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
         var course = createMockCourseStudent("N", "APPEND");
-        course.setCourseCode("FRAL");
-        course.setCourseLevel("10");
+        course.getStudentDetails().get(0).setCourseCode("FRAL");
+        course.getStudentDetails().get(0).setCourseLevel("10");
         var studentFromApi = createmockStudent();
         var studentGradRecord = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.randomUUID());
         studentGradRecord.setProgram("2023-EN");
@@ -274,7 +276,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     @Test
     void testHandleEvent_givenEventTypePROCESS_STUDENT_COURSE_DATA__whenExistsAndCourseStatus_W_shouldDeleteCpurseWithEventOutcome_COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
         var course = createMockCourseStudent("Y", "APPEND");
-        course.setCourseStatus("W");
+        course.getStudentDetails().get(0).setCourseStatus("W");
         var studentFromApi = createmockStudent();
 
         graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.randomUUID()));
@@ -323,6 +325,57 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         assertThat(student.get().getRecalculateProjectedGrad()).isEqualTo("Y");
     }
 
+    @Test
+    void testHandleEvent_givenEventTypePROCESS_STUDENT_COURSE_DATA__whenReportingModeIsREPLACE_shouldReplaceExistingCourseWithEventOutcome_COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
+        var course = createMockCourseStudent("N", "REPLACE");
+        var studentFromApi = createmockStudent();
+        graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.randomUUID()));
+        var mockCourse = createStudentCourseEntity(UUID.fromString(studentFromApi.getStudentID()),"101","202401");
+        mockCourse.setCourseExam(null);
+        studentCourseRepository.save(mockCourse);
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+        var sagaId = UUID.randomUUID();
+        final Event event = Event
+                .builder()
+                .eventType(EventType.PROCESS_STUDENT_COURSE_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(course))
+                .build();
+        var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
+        assertThat(response).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(responseEvent).isNotNull();
+        assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
+    }
+
+    @Test
+    void testHandleEvent_givenEventTypePROCESS_STUDENT_COURSE_DATA__whenReportingModeIsREPLACE_shouldNotDeleteExaminableCourseWithEventOutcome_COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
+        var course = createMockCourseStudent("N", "REPLACE");
+        var studentFromApi = createmockStudent();
+        graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.randomUUID()));
+        var mockCourse = createStudentCourseEntity(UUID.fromString(studentFromApi.getStudentID()),"101","202401");
+        mockCourse.setCourseExam(StudentCourseExamEntity.builder().build());
+        studentCourseRepository.save(mockCourse);
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+        var sagaId = UUID.randomUUID();
+        final Event event = Event
+                .builder()
+                .eventType(EventType.PROCESS_STUDENT_COURSE_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(course))
+                .build();
+        var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
+        assertThat(response).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(responseEvent).isNotNull();
+        assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
+
+        var examinableCourse = studentCourseRepository.findAll();
+        assertThat(examinableCourse.size()).isEqualTo(2);
+    }
+
 
     private StudentCourseEntity createStudentCourseEntity(UUID studentID, String courseId, String courseSession) {
         StudentCourseEntity studentCourseEntity = new StudentCourseEntity();
@@ -333,7 +386,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     }
 
     private CourseStudent createMockCourseStudent(String isSummerCollection, String submissionMode) {
-        return CourseStudent.builder()
+       var courseDetail = CourseStudentDetail.builder()
                 .pen("123456789")
                 .createDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
@@ -352,9 +405,9 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .interimLetterGrade("C+")
                 .courseCode("PH")
                 .courseLevel("12")
-                .isSummerCollection(isSummerCollection)
-                .submissionModeCode(submissionMode)
                 .build();
+
+       return CourseStudent.builder().submissionModeCode(submissionMode).isSummerCollection(isSummerCollection).pen("123456789").studentDetails(List.of(courseDetail)).build();
     }
 
     private Student createmockStudent() {

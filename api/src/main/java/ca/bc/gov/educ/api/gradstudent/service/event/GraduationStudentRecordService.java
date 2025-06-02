@@ -4,6 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDetail;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
@@ -122,13 +123,45 @@ public class GraduationStudentRecordService {
     public void handleStudentCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudent courseStudent, Student studentFromApi) {
         boolean hasGraduated = existingStudentRecordEntity.getProgramCompletionDate() != null;
         if(courseStudent.getSubmissionModeCode().equalsIgnoreCase("APPEND") || courseStudent.getIsSummerCollection().equalsIgnoreCase("Y") || hasGraduated) {
-            handleAppendCourseRecord(existingStudentRecordEntity, courseStudent, studentFromApi.getStudentID());
+            courseStudent.getStudentDetails().forEach(student -> handleAppendCourseRecord(existingStudentRecordEntity, student, studentFromApi.getStudentID()));
         } else {
-            //TODO: replace
+            List<StudentCourseEntity> existingStudentCourses =  studentCourseRepository.findByStudentIDAndCourseExamIsNull(UUID.fromString(studentFromApi.getStudentID()));
+            if(!existingStudentCourses.isEmpty()) {
+                studentCourseRepository.deleteAll(existingStudentCourses);
+            }
+            courseStudent.getStudentDetails().forEach(student -> handleReplaceCourseRecord(existingStudentRecordEntity, student,  studentFromApi.getStudentID()));
         }
     }
 
-    private void handleAppendCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudent courseStudent, String studentID) {
+    private void handleReplaceCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudentDetail courseStudent, String studentID) {
+        var coursesRecord = getCoregCoursesRecord(courseStudent.getCourseCode(), courseStudent.getCourseLevel());
+        StudentCourseEntity studentCourseEntity = createStudentCourseEntity(courseStudent, studentID, coursesRecord);
+        studentCourseEntity.setCreateUser(courseStudent.getCreateUser());
+        studentCourseEntity.setUpdateUser(courseStudent.getUpdateUser());
+        studentCourseEntity.setCreateDate(LocalDateTime.now());
+        studentCourseEntity.setUpdateDate(LocalDateTime.now());
+        studentCourseRepository.save(studentCourseEntity);
+
+        String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
+        boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+        boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+
+        if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
+            List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
+            var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
+            if(frProgram.isPresent()) {
+                var entity = createStudentOptionalProgramEntity(frProgram.get().getOptionalProgramID(), existingStudentRecordEntity.getStudentID(), courseStudent.getCreateUser(), courseStudent.getUpdateUser());
+                var savedEntity = studentOptionalProgramRepository.save(entity);
+                historyService.createStudentOptionalProgramHistory(savedEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
+            }
+        }
+
+        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
+        existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        graduationStudentRecordRepository.save(existingStudentRecordEntity);
+    }
+
+    private void handleAppendCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudentDetail courseStudent, String studentID) {
         List<StudentCourseEntity> existingStudentCourses =  studentCourseRepository.findByStudentID(UUID.fromString(studentID));
         var coursesRecord = getCoregCoursesRecord(courseStudent.getCourseCode(), courseStudent.getCourseLevel());
         var matchingCourseRecord = existingStudentCourses.stream().filter(course -> Objects.equals(course.getCourseID(), new BigInteger(coursesRecord.getCourseID())) && course.getCourseSession().equalsIgnoreCase(courseStudent.getCourseYear() + courseStudent.getCourseMonth())).findFirst();
@@ -171,7 +204,7 @@ public class GraduationStudentRecordService {
         graduationStudentRecordRepository.save(existingStudentRecordEntity);
     }
 
-    private StudentCourseEntity compareAndupdateStudentCourseEntity(StudentCourseEntity newStudentCourseEntity, CourseStudent courseStudent, CoregCoursesRecord coregCoursesRecord) {
+    private StudentCourseEntity compareAndupdateStudentCourseEntity(StudentCourseEntity newStudentCourseEntity, CourseStudentDetail courseStudent, CoregCoursesRecord coregCoursesRecord) {
         var relatedCourseRecord = StringUtils.isNotBlank(courseStudent.getRelatedCourse()) && StringUtils.isNotBlank(courseStudent.getRelatedLevel()) ?
                 getCoregCoursesRecord(courseStudent.getRelatedCourse(), courseStudent.getRelatedLevel()) : null;
         var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
@@ -211,7 +244,7 @@ public class GraduationStudentRecordService {
         return newStudentCourseEntity;
     }
 
-    private StudentCourseEntity createStudentCourseEntity(CourseStudent courseStudent, String studentID, CoregCoursesRecord coregCoursesRecord) {
+    private StudentCourseEntity createStudentCourseEntity(CourseStudentDetail courseStudent, String studentID, CoregCoursesRecord coregCoursesRecord) {
         var relatedCourseRecord = StringUtils.isNotBlank(courseStudent.getRelatedCourse()) && StringUtils.isNotBlank(courseStudent.getRelatedLevel()) ?
                 getCoregCoursesRecord(courseStudent.getRelatedCourse(), courseStudent.getRelatedLevel()) : null;
         var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
@@ -412,7 +445,8 @@ public class GraduationStudentRecordService {
                 .studentID(UUID.fromString(studentFromApi.getStudentID()))
                 .recalculateGradStatus("Y")
                 .recalculateProjectedGrad("Y")
-                .program(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()) : createProgram())
+                .program(createProgram())
+                //TODO:Uncomment when null program is allowed .program(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()) : createProgram())
                 .adultStartDate(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapAdultStartDate(demStudent.getBirthdate(), demStudent.getGradRequirementYear()): null)
                 .build();
     }

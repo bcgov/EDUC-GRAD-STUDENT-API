@@ -14,6 +14,8 @@ import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordReposito
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -21,7 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,6 +51,7 @@ public class EventHandlerService {
 
     private final GraduationStudentRecordService graduationStudentRecordService;
     private final GradStatusEventRepository gradStatusEventRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public byte[] handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
@@ -66,7 +72,8 @@ public class EventHandlerService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public byte[] handleProcessStudentCourseDataEvent(Event event) throws JsonProcessingException {
-        final CourseStudent courseStudent = JsonUtil.getJsonObjectFromString(CourseStudent.class, event.getEventPayload());
+        CourseStudent courseStudent = objectMapper.readValue(event.getEventPayload(), new TypeReference<>() {
+        });
         var studentFromApi = graduationStudentRecordService.getStudentByPenFromStudentAPI(courseStudent.getPen());
         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
         log.debug("handleProcessStudentCourseDataEvent found student :: {}", student);
