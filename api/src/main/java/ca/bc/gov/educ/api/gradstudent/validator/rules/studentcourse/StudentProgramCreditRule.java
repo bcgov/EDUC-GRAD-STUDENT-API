@@ -1,7 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
+import ca.bc.gov.educ.api.gradstudent.constant.ValidationIssueSeverityCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
@@ -62,17 +64,22 @@ public class StudentProgramCreditRule implements StudentCourseValidationBaseRule
             if (!(Set.of("B", "A", "F").contains(fineArtsAppliedSkillsValue) && Set.of(BOARD_AUTHORITY_CODE, LOCAL_DEVELOPMENT_CODE).contains(course.getCourseCategory().getCode()))) {
                 programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID));
             }
-            if("B".equals(fineArtsAppliedSkillsValue) && studentCourse.getCredits() != 4) {
+            if("B".equals(fineArtsAppliedSkillsValue) && studentCourse.getCredits() != null && studentCourse.getCredits() != 4) {
                 programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID));
             }
-            if(Set.of( "A", "F").contains(fineArtsAppliedSkillsValue) && studentCourse.getCredits() < 2) {
+            if(Set.of( "A", "F").contains(fineArtsAppliedSkillsValue) && studentCourse.getCredits() != null && studentCourse.getCredits() < 2) {
                 programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID));
             }
         }
         if(PROGRAM_CODES_BA.contains(programCode) && !("B".equals(fineArtsAppliedSkillsValue) && BOARD_AUTHORITY_CODE.equals(course.getCourseCategory().getCode()))) {
             programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID));
         }
+        if(isInvalidFlagValue(programCode, fineArtsAppliedSkillsValue)) {
+            programValidationIssues.add(createValidationIssue(ValidationIssueSeverityCode.ERROR, StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID));
+        }
         return programValidationIssues;
     }
-
+    private boolean isInvalidFlagValue(String programCode, String fineArtsAppliedSkillsValue) {
+        return !PROGRAM_CODES_BA_LA.contains(programCode) && !PROGRAM_CODES_BA.contains(programCode) && StringUtils.isNotBlank(fineArtsAppliedSkillsValue) && Set.of("B", "A", "F").contains(fineArtsAppliedSkillsValue);
+    }
 }

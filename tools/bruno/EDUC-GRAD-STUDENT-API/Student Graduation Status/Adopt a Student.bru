@@ -1,0 +1,15 @@
+meta {
+  name: Adopt a Student
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/adopt
+  body: json
+  auth: none
+}
+
+body:json {
+  {"studentID": ""}
+}

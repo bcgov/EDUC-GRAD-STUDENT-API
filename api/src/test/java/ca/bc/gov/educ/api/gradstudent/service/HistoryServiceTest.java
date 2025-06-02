@@ -352,7 +352,7 @@ public class HistoryServiceTest extends BaseIntegrationTest {
         courseEntity.setCourseID(new BigInteger("12345"));
         courseEntity.setCourseSession("202404");
         assertThatNoException().isThrownBy(() -> {
-            historyService.createStudentCourseHistory(List.of(courseEntity), StudentCourseActivityType.USERCOURSEADD.name());
+            historyService.createStudentCourseHistory(List.of(courseEntity), StudentCourseActivityType.USERCOURSEADD);
         });
     }
 
