@@ -342,13 +342,13 @@ public class GraduationStudentRecordService {
                 statusChangeCount++;
             }
         }
-
-        var mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
-        if(!newStudentRecordEntity.getProgram().equalsIgnoreCase(mappedProgram)) {
-            newStudentRecordEntity.setProgram(mappedProgram);
-            projectedChangeCount++;
-            statusChangeCount++;
-        }
+//TODO: Uncomment when null program is allowed
+//        var mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
+//        if(!newStudentRecordEntity.getProgram().equalsIgnoreCase(mappedProgram)) {
+//            newStudentRecordEntity.setProgram(mappedProgram);
+//            projectedChangeCount++;
+//            statusChangeCount++;
+//        }
 
         if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getGradRequirementYear().equalsIgnoreCase("SSCP")) {
             var parsedSSCPDate = StringUtils.isNotBlank(demStudent.getSchoolCertificateCompletionDate()) ?
