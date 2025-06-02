@@ -44,7 +44,7 @@ public class GraduationStudentRecordService {
     public static final String DECEASED = "DEC";
     public static final String CREATE_USER = "createUser";
     public static final String CREATE_DATE = "createDate";
-    public static final String YYYY_MM_DD = "yyyy-MM-dd";
+    public static final String YYYY_MM_DD = "uuuuMMdd";
     public final List<String> FRAL10_PROGRAMS = Arrays.asList("2023-EN", "2018-EN", "2004-EN");
     public final List<String> FRAL11_PROGRAMS = Arrays.asList("1996-EN", "1986-EN");
 

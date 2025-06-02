@@ -400,7 +400,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .mincode("03636018")
                 .schoolID(UUID.randomUUID().toString())
                 .isSummerCollection(isSummerCollection)
-                .schoolCertificateCompletionDate("2023-07-01")
+                .schoolCertificateCompletionDate("20230701")
                 .schoolReportingRequirementCode(schoolReportingRequirementCode)
                 .build();
     }
