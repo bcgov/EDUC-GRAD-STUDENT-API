@@ -350,7 +350,7 @@ public class GraduationStudentRecordService {
             statusChangeCount++;
         }
 
-        if(demStudent.getGradRequirementYear().equalsIgnoreCase("SSCP")) {
+        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getGradRequirementYear().equalsIgnoreCase("SSCP")) {
             var parsedSSCPDate = StringUtils.isNotBlank(demStudent.getSchoolCertificateCompletionDate()) ?
                     Date.valueOf(LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern(YYYY_MM_DD))) : null;
             newStudentRecordEntity.setProgramCompletionDate(parsedSSCPDate);
@@ -418,7 +418,7 @@ public class GraduationStudentRecordService {
     }
 
     private Date mapAdultStartDate(String birthdate, String gradYear) {
-        if(gradYear.equalsIgnoreCase("1950")) {
+        if(StringUtils.isNotBlank(gradYear) && gradYear.equalsIgnoreCase("1950")) {
             var parsedBirthdate = LocalDate.parse(birthdate, DateTimeFormatter.ofPattern(YYYY_MM_DD));
             if(parsedBirthdate.getYear() >= 1994) {
                 return Date.valueOf(parsedBirthdate.plusYears(18).plusMonths(1));
@@ -442,11 +442,11 @@ public class GraduationStudentRecordService {
     }
 
     private String mapGradProgramCode(String demGradProgramCode, String schoolReportingRequirementCode) {
-        if(demGradProgramCode.equalsIgnoreCase("2018")
+        if(StringUtils.isNotBlank(demGradProgramCode) && (demGradProgramCode.equalsIgnoreCase("2018")
         || demGradProgramCode.equalsIgnoreCase("2004")
         || demGradProgramCode.equalsIgnoreCase("1996")
         || demGradProgramCode.equalsIgnoreCase("1986")
-        || demGradProgramCode.equalsIgnoreCase("2023")) {
+        || demGradProgramCode.equalsIgnoreCase("2023"))) {
             return schoolReportingRequirementCode.equalsIgnoreCase("CSF") ? demGradProgramCode + "-PF" : demGradProgramCode + "-EN";
         } else {
             return demGradProgramCode;
