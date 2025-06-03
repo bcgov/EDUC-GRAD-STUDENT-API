@@ -3863,7 +3863,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
      }
 
     @Test
-    public void testPersistEventToDB_givenTheNewEvent() {
+    void testPersistEventToDB_givenTheNewEvent() {
         UUID eventId = UUID.randomUUID();
 
         ChoreographedEvent choreographedEvent = new ChoreographedEvent();
