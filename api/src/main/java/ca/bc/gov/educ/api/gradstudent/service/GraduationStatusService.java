@@ -1430,13 +1430,13 @@ public class GraduationStatusService extends GradBaseService {
             gradEntity.setRecalculateGradStatus(flag);
     }
 
+    public Optional<GradStatusEvent> eventExistsInDB(final ChoreographedEvent choreographedEvent) {
+        return this.gradStatusEventRepository.findByEventId(UUID.fromString(choreographedEvent.getEventID()));
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public GradStatusEvent persistEventToDB(final ChoreographedEvent choreographedEvent) throws BusinessException {
-        final var eventOptional = this.gradStatusEventRepository.findByEventId(UUID.fromString(choreographedEvent.getEventID()));
-        if (eventOptional.isPresent()) {
-            throw new BusinessException(BusinessError.EVENT_ALREADY_PERSISTED, choreographedEvent.getEventID());
-        }
-        val event = GradStatusEvent.builder()
+    public GradStatusEvent persistEventToDB(final ChoreographedEvent choreographedEvent) {
+       val event = GradStatusEvent.builder()
                 .eventType(choreographedEvent.getEventType().toString())
                 .eventId(UUID.fromString(choreographedEvent.getEventID()))
                 .eventOutcome(choreographedEvent.getEventOutcome().toString())
@@ -1447,7 +1447,7 @@ public class GraduationStatusService extends GradBaseService {
                 .createDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
                 .build();
-        return this.gradStatusEventRepository.save(event);
+       return this.gradStatusEventRepository.save(event);
     }
 
     @Override
