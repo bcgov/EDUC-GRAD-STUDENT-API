@@ -13,4 +13,6 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourseEnti
 
     @Query("SELECT s FROM StudentCourseEntity s WHERE s.studentID = :studentID")
     List<StudentCourseEntity> findByStudentID(UUID studentID);
+
+    List<StudentCourseEntity> findByStudentIDAndCourseExamIsNull(UUID studentID);
 }
