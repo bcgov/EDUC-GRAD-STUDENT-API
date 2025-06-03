@@ -143,10 +143,10 @@ public class GraduationStudentRecordService {
         studentCourseRepository.save(studentCourseEntity);
 
         String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
-        boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
-        boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+        boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+        boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
 
-        if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
+        if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
             List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
             var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
             if(frProgram.isPresent()) {
@@ -185,10 +185,10 @@ public class GraduationStudentRecordService {
             studentCourseRepository.save(studentCourseEntity);
 
             String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
-            boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
-            boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+            boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+            boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
 
-            if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
+            if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
                 List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
                 var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
                 if(frProgram.isPresent()) {
@@ -489,7 +489,7 @@ public class GraduationStudentRecordService {
 
     private String createProgram() {
         List<GraduationProgramCode> codes =  restUtils.getGraduationProgramCodeList(true);
-        var filteredCodes = codes.stream().filter(code -> code.getProgramCode().equalsIgnoreCase("1950") || code.getProgramCode().equalsIgnoreCase("SSCP") || code.getProgramCode().equalsIgnoreCase("NOPROG")).findFirst();
+        var filteredCodes = codes.stream().filter(code -> !code.getProgramCode().equalsIgnoreCase("1950") && !code.getProgramCode().equalsIgnoreCase("SSCP") && !code.getProgramCode().equalsIgnoreCase("NOPROG")).findFirst();
         if(filteredCodes.isPresent()) {
             var code = filteredCodes.get().getProgramCode().split("-");
             return code.length == 2 ? code[0] + "-" + "EN" : null;
