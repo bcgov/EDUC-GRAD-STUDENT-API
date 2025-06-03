@@ -2,8 +2,6 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.*;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityAlreadyExistsException;
-import ca.bc.gov.educ.api.gradstudent.exception.BusinessError;
-import ca.bc.gov.educ.api.gradstudent.exception.BusinessException;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
