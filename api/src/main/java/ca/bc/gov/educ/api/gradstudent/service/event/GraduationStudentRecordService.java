@@ -140,6 +140,7 @@ public class GraduationStudentRecordService {
         studentCourseEntity.setUpdateUser(courseStudent.getUpdateUser());
         studentCourseEntity.setCreateDate(LocalDateTime.now());
         studentCourseEntity.setUpdateDate(LocalDateTime.now());
+        log.info("Course replace for pen :: {}, {}, {}", courseStudent.getPen(), courseStudent.getCourseCode(), courseStudent.getCourseLevel());
         studentCourseRepository.save(studentCourseEntity);
 
         String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
@@ -175,6 +176,7 @@ public class GraduationStudentRecordService {
             updatedEntity.setUpdateUser(courseStudent.getUpdateUser());
             updatedEntity.setCreateDate(LocalDateTime.now());
             updatedEntity.setUpdateDate(LocalDateTime.now());
+            log.info("Course update for pen :: {}, {}, {}", courseStudent.getPen(), courseStudent.getCourseCode(), courseStudent.getCourseLevel());
             studentCourseRepository.save(updatedEntity);
         } else {
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(courseStudent, studentID, coursesRecord);
@@ -182,6 +184,7 @@ public class GraduationStudentRecordService {
             studentCourseEntity.setUpdateUser(courseStudent.getUpdateUser());
             studentCourseEntity.setCreateDate(LocalDateTime.now());
             studentCourseEntity.setUpdateDate(LocalDateTime.now());
+            log.info("Course create for pen :: {}, {}, {}", courseStudent.getPen(), courseStudent.getCourseCode(), courseStudent.getCourseLevel());
             studentCourseRepository.save(studentCourseEntity);
 
             String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
@@ -280,6 +283,7 @@ public class GraduationStudentRecordService {
 
     private CoregCoursesRecord getCoregCoursesRecord(String courseCode, String courseLevel) {
         String externalID = StringUtils.isEmpty(courseLevel) ? courseCode : String.format("%-5s", courseCode) + courseLevel;
+        log.info("Course externalID:: {}", externalID);
         return restUtils.getCoursesByExternalID(UUID.randomUUID(), externalID);
     }
 
