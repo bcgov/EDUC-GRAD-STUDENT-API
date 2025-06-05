@@ -137,7 +137,7 @@ public class GraduationStudentRecordService {
             if(!existingStudentCourses.isEmpty()) {
                 studentCourseRepository.deleteAll(existingStudentCourses);
             }
-            courseStudent.getStudentDetails().forEach(student -> handleReplaceCourseRecord(existingStudentRecordEntity, student,  studentFromApi.getStudentID()));
+//            courseStudent.getStudentDetails().forEach(student -> handleReplaceCourseRecord(existingStudentRecordEntity, student,  studentFromApi.getStudentID()));
         }
     }
 
