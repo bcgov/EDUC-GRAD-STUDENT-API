@@ -125,6 +125,7 @@ public class GraduationStudentRecordService {
         if(courseStudent.getSubmissionModeCode().equalsIgnoreCase("APPEND") || courseStudent.getIsSummerCollection().equalsIgnoreCase("Y") || hasGraduated) {
             courseStudent.getStudentDetails().forEach(student -> handleAppendCourseRecord(existingStudentRecordEntity, student, studentFromApi.getStudentID()));
         } else {
+            log.info("In replace block");
             List<StudentCourseEntity> existingStudentCourses =  studentCourseRepository.findByStudentIDAndCourseExamIsNull(UUID.fromString(studentFromApi.getStudentID()));
             log.info("ExistingStudentCourses for deletion:: {}", existingStudentCourses.size());
             existingStudentCourses.forEach(existingStudentCourseEntity -> {
