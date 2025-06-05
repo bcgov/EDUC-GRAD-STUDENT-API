@@ -121,8 +121,11 @@ public class GraduationStudentRecordService {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void handleStudentCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudent courseStudent, Student studentFromApi) {
+        log.info("handleStudentCourseRecord block");
+        log.info("studentFromApi.getStudentID():: {}", studentFromApi.getStudentID());
         boolean hasGraduated = existingStudentRecordEntity.getProgramCompletionDate() != null;
         if(courseStudent.getSubmissionModeCode().equalsIgnoreCase("APPEND") || courseStudent.getIsSummerCollection().equalsIgnoreCase("Y") || hasGraduated) {
+            log.info("In append block");
             courseStudent.getStudentDetails().forEach(student -> handleAppendCourseRecord(existingStudentRecordEntity, student, studentFromApi.getStudentID()));
         } else {
             log.info("In replace block");
