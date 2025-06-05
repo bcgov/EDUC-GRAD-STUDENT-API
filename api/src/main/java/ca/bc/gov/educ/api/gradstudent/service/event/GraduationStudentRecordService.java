@@ -129,7 +129,7 @@ public class GraduationStudentRecordService {
             List<StudentCourseEntity> existingStudentCourses =  studentCourseRepository.findByStudentIDAndCourseExamIsNull(UUID.fromString(studentFromApi.getStudentID()));
             log.info("ExistingStudentCourses for deletion:: {}", existingStudentCourses.size());
             existingStudentCourses.forEach(existingStudentCourseEntity -> {
-                log.info("Deleting for:: {}, course session::{}", existingStudentCourseEntity.getCourseID(), existingStudentCourseEntity.getCourseSession());
+                log.info("Deleting for id:: {}, course id:: {}, course session::{}", existingStudentCourseEntity.getId(), existingStudentCourseEntity.getCourseID(), existingStudentCourseEntity.getCourseSession());
             });
             if(!existingStudentCourses.isEmpty()) {
                 studentCourseRepository.deleteAll(existingStudentCourses);
