@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -134,9 +135,13 @@ public class GraduationStudentRecordService {
             existingStudentCourses.forEach(existingStudentCourseEntity -> {
                 log.info("Deleting for id:: {}, course id:: {}, course session::{}", existingStudentCourseEntity.getId(), existingStudentCourseEntity.getCourseID(), existingStudentCourseEntity.getCourseSession());
             });
+            log.info("In delete block {}", !existingStudentCourses.isEmpty());
             if(!existingStudentCourses.isEmpty()) {
-                studentCourseRepository.deleteAll(existingStudentCourses);
+                log.info("In delete block ");
+                studentCourseRepository.deleteAllById(existingStudentCourses.stream().map(StudentCourseEntity::getId).toList());
             }
+            var test = studentCourseRepository.findByStudentIDAndCourseExamIsNull(UUID.fromString(studentFromApi.getStudentID()));
+            log.info("After delete block {}", test.size());
             courseStudent.getStudentDetails().forEach(student -> handleReplaceCourseRecord(existingStudentRecordEntity, student,  studentFromApi.getStudentID()));
         }
     }
