@@ -122,26 +122,14 @@ public class GraduationStudentRecordService {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void handleStudentCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudent courseStudent, Student studentFromApi) {
-        log.info("handleStudentCourseRecord block");
-        log.info("studentFromApi.getStudentID():: {}", studentFromApi.getStudentID());
         boolean hasGraduated = existingStudentRecordEntity.getProgramCompletionDate() != null;
         if(courseStudent.getSubmissionModeCode().equalsIgnoreCase("APPEND") || courseStudent.getIsSummerCollection().equalsIgnoreCase("Y") || hasGraduated) {
-            log.info("In append block");
             courseStudent.getStudentDetails().forEach(student -> handleAppendCourseRecord(existingStudentRecordEntity, student, studentFromApi.getStudentID()));
         } else {
-            log.info("In replace block");
             List<StudentCourseEntity> existingStudentCourses =  studentCourseRepository.findByStudentIDAndCourseExamIsNull(UUID.fromString(studentFromApi.getStudentID()));
-            log.info("ExistingStudentCourses for deletion:: {}", existingStudentCourses.size());
-            existingStudentCourses.forEach(existingStudentCourseEntity -> {
-                log.info("Deleting for id:: {}, course id:: {}, course session::{}", existingStudentCourseEntity.getId(), existingStudentCourseEntity.getCourseID(), existingStudentCourseEntity.getCourseSession());
-            });
-            log.info("In delete block {}", !existingStudentCourses.isEmpty());
             if(!existingStudentCourses.isEmpty()) {
-                log.info("In delete block ");
                 studentCourseRepository.deleteAllById(existingStudentCourses.stream().map(StudentCourseEntity::getId).toList());
             }
-            var test = studentCourseRepository.findByStudentIDAndCourseExamIsNull(UUID.fromString(studentFromApi.getStudentID()));
-            log.info("After delete block {}", test.size());
             courseStudent.getStudentDetails().forEach(student -> handleReplaceCourseRecord(existingStudentRecordEntity, student,  studentFromApi.getStudentID()));
         }
     }
@@ -153,7 +141,6 @@ public class GraduationStudentRecordService {
         studentCourseEntity.setUpdateUser(courseStudent.getUpdateUser());
         studentCourseEntity.setCreateDate(LocalDateTime.now());
         studentCourseEntity.setUpdateDate(LocalDateTime.now());
-        log.info("Course replace for pen :: {}, {}, {}", courseStudent.getPen(), courseStudent.getCourseCode(), courseStudent.getCourseLevel());
         studentCourseRepository.save(studentCourseEntity);
 
         String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
@@ -189,7 +176,6 @@ public class GraduationStudentRecordService {
             updatedEntity.setUpdateUser(courseStudent.getUpdateUser());
             updatedEntity.setCreateDate(LocalDateTime.now());
             updatedEntity.setUpdateDate(LocalDateTime.now());
-            log.info("Course update for pen :: {}, {}, {}", courseStudent.getPen(), courseStudent.getCourseCode(), courseStudent.getCourseLevel());
             studentCourseRepository.save(updatedEntity);
         } else {
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(courseStudent, studentID, coursesRecord);
@@ -197,7 +183,6 @@ public class GraduationStudentRecordService {
             studentCourseEntity.setUpdateUser(courseStudent.getUpdateUser());
             studentCourseEntity.setCreateDate(LocalDateTime.now());
             studentCourseEntity.setUpdateDate(LocalDateTime.now());
-            log.info("Course create for pen :: {}, {}, {}", courseStudent.getPen(), courseStudent.getCourseCode(), courseStudent.getCourseLevel());
             studentCourseRepository.save(studentCourseEntity);
 
             String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
@@ -296,7 +281,6 @@ public class GraduationStudentRecordService {
 
     private CoregCoursesRecord getCoregCoursesRecord(String courseCode, String courseLevel) {
         String externalID = StringUtils.isEmpty(courseLevel) ? courseCode : String.format("%-5s", courseCode) + courseLevel;
-        log.info("Course externalID:: {}", externalID);
         return restUtils.getCoursesByExternalID(UUID.randomUUID(), externalID);
     }
 
