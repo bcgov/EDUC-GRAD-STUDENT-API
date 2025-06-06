@@ -35,6 +35,16 @@ spring:
         jwt:
           issuer-uri: http://test
           jwk-set-uri: http://test
+      client:
+        registration:
+          student-api-client:
+            client-id: student-api
+            client-secret: abc
+            authorization-grant-type: client_credentials
+        provider:
+          student-api-client:
+            issuer-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master
+            token-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master/protocol/openid-connect/token
 
 #Logging properties
 logging:
@@ -102,9 +112,20 @@ cron:
         staleInDays: 90
       refresh-non-grad-status:
         run: 0 30 0 * * *
-          
+      refresh-course-details:
+        run: 0 30 0 * * *
+      cache-cron:
+        run: 0 0 0/12 * * *
+
+#bg processes
+initialization:
+  background:
+    enabled: false
+
 #Endpoint properties
 endpoint:
+  keycloak:
+    token-uri: https://soam-dev.apps.silver.devops.gov.bc.ca/auth/realms/master/protocol/openid-connect/token
   grad-trax-api:
     search-schools-by-district-id:
       url: http://test
@@ -115,6 +136,8 @@ endpoint:
     school-by-school-id:
       url: http://test
     district-by-district-id:
+      url: http://
+    search-schools-by-mincode:
       url: http://test
   grad-program-api:
     optional_program_name_by_optional_program_id:
@@ -123,6 +146,8 @@ endpoint:
       url: http://test
     program_name_by_program_code:
       url: http://test
+    program_codes:
+      url: http://test
     career_program-by-career-code:
       url: http://test
   grad-student-graduation-api:
@@ -130,6 +155,8 @@ endpoint:
       ungrad-reason-by-reason-code: 
         url: http://test
     save-student-ungrad-reason:
+      url: http://test
+    letter-grades:
       url: http://test
   pen-student-api:
     by-studentid:
@@ -149,7 +176,11 @@ endpoint:
       url: http://test
   educ-school-api:
     url: http://test
-
+  grad-course-api:
+    course-details-search:
+      url: http://test
+    examinable-course-details:
+      url: http://test
 
 #Splunk LogHelper
 splunk:

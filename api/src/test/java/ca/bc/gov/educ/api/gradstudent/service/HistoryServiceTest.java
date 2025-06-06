@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
@@ -9,14 +10,8 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramHistoryEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
@@ -36,6 +32,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.math.BigInteger;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +41,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -59,7 +57,9 @@ public class HistoryServiceTest extends BaseIntegrationTest {
     @MockBean GraduationStudentRecordRepository graduationStudentRecordRepository;
     @MockBean HistoryActivityRepository historyActivityRepository;
     @MockBean StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
-    @MockBean WebClient webClient;
+    @MockBean StudentCourseHistoryRepository studentCourseHistoryRepository;
+
+    @MockBean @Qualifier("studentApiClient") WebClient webClient;
 
     @MockBean
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
@@ -342,4 +342,31 @@ public class HistoryServiceTest extends BaseIntegrationTest {
         result = historyService.updateStudentRecordHistoryDistributionRun(4000L, "USER", "USERSTUDARC", List.of());
         assertThat(result).isNotNull().isEqualTo(1);
     }
+
+    @Test
+    public void testCreateStudentCourseHistory() {
+        UUID studentID = UUID.randomUUID();
+        StudentCourseEntity courseEntity = new StudentCourseEntity();
+        courseEntity.setId(UUID.randomUUID());
+        courseEntity.setStudentID(studentID);
+        courseEntity.setCourseID(new BigInteger("12345"));
+        courseEntity.setCourseSession("202404");
+        assertThatNoException().isThrownBy(() -> {
+            historyService.createStudentCourseHistory(List.of(courseEntity), StudentCourseActivityType.USERCOURSEADD);
+        });
+    }
+
+    @Test
+    public void testGetStudentCourseHistory() {
+        UUID studentID = UUID.randomUUID();
+        StudentCourseHistoryEntity historyEntity = new StudentCourseHistoryEntity();
+        historyEntity.setHistoryId(UUID.randomUUID());
+        historyEntity.setStudentID(studentID);
+        historyEntity.setStudentCourseID(UUID.randomUUID());
+        historyEntity.setActivityCode(StudentCourseActivityType.USERCOURSEADD.name());
+        when(studentCourseHistoryRepository.findByStudentID(studentID)).thenReturn(List.of(historyEntity));
+        var result = historyService.getStudentCourseHistory(studentID);
+        assertThat(result).hasSize(1);
+    }
+
 }

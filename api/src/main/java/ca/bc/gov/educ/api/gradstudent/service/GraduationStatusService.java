@@ -1,8 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
-import ca.bc.gov.educ.api.gradstudent.constant.EventType;
-import ca.bc.gov.educ.api.gradstudent.constant.Generated;
+import ca.bc.gov.educ.api.gradstudent.constant.*;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityAlreadyExistsException;
+import ca.bc.gov.educ.api.gradstudent.exception.BusinessError;
+import ca.bc.gov.educ.api.gradstudent.exception.BusinessException;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
@@ -19,17 +20,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
+import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -66,7 +70,7 @@ public class GraduationStatusService extends GradBaseService {
     private static final String STD_NOT_FOUND_MSG = "Student with ID: %s not found";
 
     final
-    WebClient webClient;
+    WebClient studentApiClient;
 
     final GraduationStudentRecordRepository graduationStatusRepository;
     final StudentStatusRepository studentStatusRepository;
@@ -79,15 +83,17 @@ public class GraduationStatusService extends GradBaseService {
     final StudentNonGradReasonRepository studentNonGradReasonRepository;
     final StudentNonGradReasonTransformer studentNonGradReasonTransformer;
 
+
     final GradStudentService gradStudentService;
+    final SchoolService schoolService;
     final HistoryService historyService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
     final GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
-    public GraduationStatusService(WebClient webClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants) {
-        this.webClient = webClient;
+    public GraduationStatusService(@Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants, SchoolService schoolService) {
+        this.studentApiClient = studentApiClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentStatusRepository = studentStatusRepository;
         this.gradStatusEventRepository = gradStatusEventRepository;
@@ -101,6 +107,7 @@ public class GraduationStatusService extends GradBaseService {
         this.studentNonGradReasonTransformer = studentNonGradReasonTransformer;
 
         this.gradStudentService = gradStudentService;
+        this.schoolService = schoolService;
         this.historyService = historyService;
         this.validation = validation;
         this.constants = constants;
@@ -287,6 +294,32 @@ public class GraduationStatusService extends GradBaseService {
             return Pair.of(graduationStatus, null);
         }
     }
+
+    @Transactional
+    @Retry(name = "generalpostcall")
+    public void updateBatchFlagsForStudentCourses(UUID studentID) {
+        Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
+        if (gradStatusOptional.isPresent()) {
+            GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            boolean isUpdated = false;
+            String status = gradEntity.getStudentStatus().toUpperCase();
+            if("CUR".equals(status)) {
+                gradEntity.setRecalculateGradStatus("Y");
+                gradEntity.setRecalculateProjectedGrad("Y");
+                isUpdated = true;
+            }
+            if(List.of("ARC","TER","DEC").contains(status)) {
+                gradEntity.setRecalculateGradStatus("Y");
+                isUpdated = true;
+            }
+            if(isUpdated) {
+                gradEntity.setUpdateDate(LocalDateTime.now());
+                gradEntity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
+                graduationStatusRepository.saveAndFlush(gradEntity);
+            }
+        }
+    }
+
 
     @Generated
     @Transactional
@@ -522,7 +555,7 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     private List<GradStudentCertificates> getGradStudentCertificates(String studentID, String accessToken) {
-        return webClient.get().uri(String.format(constants.getStudentCertificates(), studentID))
+        return studentApiClient.get().uri(String.format(constants.getStudentCertificates(), studentID))
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve().bodyToMono(new ParameterizedTypeReference<List<GradStudentCertificates>>() {
                 }).block();
@@ -545,7 +578,7 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     private GradProgram getProgram(String programCode, String accessToken) {
-        return webClient.get()
+        return studentApiClient.get()
                 .uri(String.format(constants.getGradProgramNameUrl(), programCode))
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
@@ -574,7 +607,7 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     private void validateProgram(GraduationStudentRecordEntity sourceEntity, String accessToken) {
-        GradProgram gradProgram = webClient.get()
+        GradProgram gradProgram = studentApiClient.get()
                 .uri(String.format(constants.getGradProgramNameUrl(), sourceEntity.getProgram()))
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
@@ -602,7 +635,7 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     private void validateSchool(UUID schoolId, String accessToken) {
-        SchoolClob schObj = webClient.get()
+        SchoolClob schObj = studentApiClient.get()
                 .uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
@@ -619,7 +652,7 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     private void validateGradeAndStatusWithPENStudent(GraduationStudentRecordEntity sourceEntity, GraduationStudentRecordEntity existingEntity, String accessToken) {
-        Student studentObj = webClient.get()
+        Student studentObj = studentApiClient.get()
                 .uri(String.format(constants.getPenStudentApiByStudentIdUrl(), sourceEntity.getStudentID()))
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
@@ -856,7 +889,7 @@ public class GraduationStatusService extends GradBaseService {
     public OptionalProgram getOptionalProgram(String mainProgramCode, String optionalProgramCode, String accessToken) {
         OptionalProgram optionalProgram = null;
         try {
-            optionalProgram = webClient.get()
+            optionalProgram = studentApiClient.get()
                     .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), mainProgramCode, optionalProgramCode))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
@@ -872,7 +905,7 @@ public class GraduationStatusService extends GradBaseService {
     public OptionalProgram getOptionalProgram(UUID optionalProgramID, String accessToken) {
         OptionalProgram optionalProgram = null;
         try {
-            optionalProgram = webClient.get()
+            optionalProgram = studentApiClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), optionalProgramID))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
@@ -888,7 +921,7 @@ public class GraduationStatusService extends GradBaseService {
     public CareerProgram getCareerProgram(String careerProgramCode, String accessToken) {
         CareerProgram careerProgram = null;
         try {
-            careerProgram = webClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(), careerProgramCode))
+            careerProgram = studentApiClient.get().uri(String.format(constants.getCareerProgramByCodeUrl(), careerProgramCode))
                     .headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(CareerProgram.class).block();
         } catch (Exception e) {
             logger.error("Program API is failed to find a carrer program with Code: [{}]", careerProgramCode);
@@ -1029,7 +1062,7 @@ public class GraduationStatusService extends GradBaseService {
     @Retry(name = "generalpostcall")
     public Pair<GraduationStudentRecord, GradStatusEvent> undoCompletionStudent(UUID studentID, String ungradReasonCode, String ungradDesc, String accessToken) throws JsonProcessingException {
         if(StringUtils.isNotBlank(ungradReasonCode)) {
-            UndoCompletionReason ungradReasonObj = webClient.get().uri(String.format(constants.getUndoCompletionReasonDetailsUrl(),ungradReasonCode))
+            UndoCompletionReason ungradReasonObj = studentApiClient.get().uri(String.format(constants.getUndoCompletionReasonDetailsUrl(),ungradReasonCode))
               .headers(h -> h.setBearerAuth(accessToken))
               .retrieve().bodyToMono(UndoCompletionReason.class).block();
             if(ungradReasonObj != null) {
@@ -1080,7 +1113,7 @@ public class GraduationStatusService extends GradBaseService {
     
     public void deleteStudentAchievements(UUID studentID,String accessToken) {
         try {
-            webClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
+            studentApiClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
@@ -1090,7 +1123,7 @@ public class GraduationStatusService extends GradBaseService {
 
     public void archiveStudentAchievements(UUID studentID,String accessToken) {
         try {
-            webClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
+            studentApiClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
                     .headers(h -> h.setBearerAuth(accessToken)).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
         }catch (Exception e) {
             logger.error(e.getLocalizedMessage());
@@ -1103,7 +1136,7 @@ public class GraduationStatusService extends GradBaseService {
         toBeSaved.setGraduationStudentRecordID(studentID);
         toBeSaved.setUndoCompletionReasonCode(ungradReasonCode);
         toBeSaved.setUndoCompletionReasonDescription(unGradDesc);
-        webClient.post().uri(String.format(constants.getSaveStudentUndoCompletionReasonByStudentIdUrl(),studentID))
+        studentApiClient.post().uri(String.format(constants.getSaveStudentUndoCompletionReasonByStudentIdUrl(),studentID))
             .headers(h -> h.setBearerAuth(accessToken))
             .body(BodyInserters.fromValue(toBeSaved))
             .retrieve().bodyToMono(StudentUndoCompletionReason.class).block();
@@ -1284,7 +1317,7 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     private GraduationStudentRecord processReceivedStudent(GraduationStudentRecord ent,String accessToken) {
-        Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+        Student stuData = studentApiClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
                         .headers(h -> h.setBearerAuth(accessToken)).retrieve().bodyToMono(Student.class).block();
         if(stuData != null) {
             ent.setPen(stuData.getPen());
@@ -1397,9 +1430,29 @@ public class GraduationStatusService extends GradBaseService {
             gradEntity.setRecalculateGradStatus(flag);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public GradStatusEvent persistEventToDB(final ChoreographedEvent choreographedEvent) throws BusinessException {
+        final var eventOptional = this.gradStatusEventRepository.findByEventId(UUID.fromString(choreographedEvent.getEventID()));
+        if (eventOptional.isPresent()) {
+            throw new BusinessException(BusinessError.EVENT_ALREADY_PERSISTED, choreographedEvent.getEventID());
+        }
+        val event = GradStatusEvent.builder()
+                .eventType(choreographedEvent.getEventType().toString())
+                .eventId(UUID.fromString(choreographedEvent.getEventID()))
+                .eventOutcome(choreographedEvent.getEventOutcome().toString())
+                .eventPayload(choreographedEvent.getEventPayload())
+                .eventStatus(DB_COMMITTED.toString())
+                .createUser(StringUtils.isBlank(choreographedEvent.getCreateUser()) ? EducGradStudentApiConstants.DEFAULT_CREATED_BY : choreographedEvent.getCreateUser())
+                .updateUser(StringUtils.isBlank(choreographedEvent.getUpdateUser()) ? EducGradStudentApiConstants.DEFAULT_UPDATED_BY : choreographedEvent.getUpdateUser())
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .build();
+        return this.gradStatusEventRepository.save(event);
+    }
+
     @Override
     protected WebClient getWebClient() {
-        return webClient;
+        return studentApiClient;
     }
 
     @Override
@@ -1420,5 +1473,50 @@ public class GraduationStatusService extends GradBaseService {
             Page<UUID> studentGuids = graduationStatusRepository.findStudentsForYearlyDistribution(pageRequest);
             return Pair.of(pageRequest, studentGuids.getContent());
         }
+    }
+
+    @Transactional
+    public GraduationStudentRecord adoptStudent(Student studentRequest, String accessToken) {
+        logger.info("Attempting to adopt student with ID: {}", studentRequest.getStudentID());
+        UUID studentID = UUID.fromString(studentRequest.getStudentID());
+        if (graduationStatusRepository.existsByStudentID(studentID)) {
+            throw new EntityAlreadyExistsException("Graduation student record already exists for student ID: " + studentID);
+        }
+        GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(studentRequest.getStudentID(), accessToken);
+
+        GraduationStudentRecordEntity newRecord = buildNewGraduationStudentRecord(student);
+        GraduationStudentRecordEntity savedRecord = graduationStatusRepository.save(newRecord);
+
+        if (ProgramCodes.PF2023.getCode().equals(savedRecord.getProgram())) {
+            OptionalProgram optionalProgram = getOptionalProgram(ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode(), accessToken);
+            if(optionalProgram == null) {
+                throw new EntityNotFoundException(String.format("Optional Program %s for %s not found", OptionalProgramCodes.DD.getCode(), ProgramCodes.PF2023.getCode()));
+            }
+            persistStudentOptionalProgramWithAuditHistory(studentID, optionalProgram.getOptionalProgramID());
+        }
+
+        historyService.createStudentHistory(savedRecord, HistoryActivityCodes.USERADOPT.getCode());
+        return graduationStatusTransformer.transformToDTO(savedRecord);
+    }
+
+    private GraduationStudentRecordEntity buildNewGraduationStudentRecord(GradSearchStudent student) {
+        GraduationStudentRecordEntity studentEntity = new GraduationStudentRecordEntity();
+        UUID studentID = UUID.fromString(student.getStudentID());
+        School school = schoolService.getSchoolByMincode(student.getMincode());
+        if(school == null) {
+            throw new EntityNotFoundException("School not found for mincode: " + student.getMincode());
+        }
+
+        studentEntity.setStudentID(studentID);
+        studentEntity.setSchoolOfRecordId(student.getMincode() != null ? UUID.fromString(school.getSchoolId()) : null);
+        studentEntity.setProgram(SchoolReportingRequirementCodes.CSF.getCode().equals(school.getSchoolReportingRequirementCode()) ? ProgramCodes.PF2023.getCode() : ProgramCodes.EN2023.getCode());
+
+        String activeStatus = PenGradStudentStatusEnum.CUR.label;
+        studentEntity.setStudentStatus(activeStatus.equals(student.getStatusCode()) ? PenGradStudentStatusEnum.CUR.name() : PenGradStudentStatusEnum.DEC.name());
+        studentEntity.setStudentGrade(student.getGradeCode());
+        studentEntity.setRecalculateGradStatus(activeStatus.equals(student.getStatusCode()) ? "Y" : null);
+        studentEntity.setRecalculateProjectedGrad(activeStatus.equals(student.getStatusCode()) ? "Y" : null);
+
+        return studentEntity;
     }
 }

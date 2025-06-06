@@ -35,6 +35,16 @@ spring:
         jwt:
           issuer-uri: ${TOKEN_ISSUER_URL}
           jwk-set-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/certs
+      client:
+        registration:
+          student-api-client:
+            client-id: ${GRAD_STUDENT_API_CLIENT_NAME}
+            client-secret: ${GRAD_STUDENT_API_CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+        provider:
+          student-api-client:
+            issuer-uri: ${TOKEN_ISSUER_URL}
+            token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
 
 #Logging properties
 logging:
@@ -113,6 +123,15 @@ cron:
         staleInDays: ${RECORDS_STALE_IN_DAYS}
       refresh-non-grad-status:
         run: ${CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS}
+      refresh-course-details:
+        run: ${CRON_SCHEDULED_REFRESH_COURSE_DETAILS}
+      cache-cron:
+        run: 0 0 0/12 * * *
+
+#bg processes
+initialization:
+  background:
+    enabled: true
 
 #Resilience
 resilience4j.retry:
@@ -155,6 +174,8 @@ resilience4j.retry:
 
 #Endpoint properties
 endpoint:
+  keycloak:
+    token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
   grad-trax-api:
     search-schools-by-district-id:
       url: ${GRAD_TRAX_API}api/v2/trax/school/search?districtId=%s
@@ -164,6 +185,8 @@ endpoint:
       url: ${GRAD_TRAX_API}api/v2/trax/school-clob/%s
     school-by-school-id:
       url: ${GRAD_TRAX_API}api/v2/trax/school/%s
+    search-schools-by-mincode:
+      url: ${GRAD_TRAX_API}api/v2/trax/school/search?mincode=%s
     district-by-district-id:
       url: ${GRAD_TRAX_API}api/v2/trax/district/%s
 
@@ -174,6 +197,8 @@ endpoint:
       url: ${GRAD_PROGRAM_API}api/v1/program/optionalprograms/%s/%s
     program_name_by_program_code:
       url: ${GRAD_PROGRAM_API}api/v1/program/programs/%s
+    program_codes:
+      url: ${GRAD_PROGRAM_API}api/v1/program
     career_program-by-career-code: 
       url: ${GRAD_PROGRAM_API}api/v1/program/careerprogram/%s
   grad-student-graduation-api:
@@ -182,6 +207,8 @@ endpoint:
         url: ${GRAD_STUDENT_GRADUATION_API}api/v1/studentgraduation/undocompletion/undocompletionreason/%s
     save-student-ungrad-reason:
       url: ${GRAD_STUDENT_GRADUATION_API}api/v1/studentgraduation/undocompletion/studentundocompletionreason/studentid/%s
+    letter-grades:
+      url: ${GRAD_STUDENT_GRADUATION_API}api/v1/studentgraduation/lgSc/lettergrade
   pen-student-api:
     by-studentid:
       url: ${PEN_API}api/v1/student/%s
@@ -198,7 +225,11 @@ endpoint:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/studentcertificates?studentID=%s
     archive-student-achievement:
       url: ${GRAD_GRADUATION_REPORT_API}api/v1/graduationreports/archiveachievement/%s
-
+  grad-course-api:
+    course-details-search:
+      url: ${GRAD_COURSE_API}api/v2/course/search
+    examinable-course-details:
+      url: ${GRAD_COURSE_API}api/v1/course/examinablecourses
 
 
 #Splunk LogHelper

@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -44,7 +45,7 @@ public class DataConversionService extends GradBaseService {
 
     private static final String UPDATE_FIELD_STR = " ==> Update Field [{}]={}";
 
-    final WebClient webClient;
+    final WebClient studentApiClient;
     final GraduationStudentRecordRepository graduationStatusRepository;
     final GraduationStatusTransformer graduationStatusTransformer;
     final StudentOptionalProgramRepository gradStudentOptionalProgramRepository;
@@ -61,7 +62,7 @@ public class DataConversionService extends GradBaseService {
     final EducGradStudentApiConstants constants;
 
     @Autowired
-    public DataConversionService(WebClient webClient,
+    public DataConversionService(@Qualifier("studentApiClient") WebClient studentApiClient,
                                  GraduationStudentRecordRepository graduationStatusRepository,
                                  GraduationStatusTransformer graduationStatusTransformer,
                                  StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer,
@@ -69,7 +70,7 @@ public class DataConversionService extends GradBaseService {
                                  StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository,
                                  GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository,
                                  HistoryService historyService, StudentNoteRepository studentNoteRepository, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants) {
-        this.webClient = webClient;
+        this.studentApiClient = studentApiClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
         this.gradStudentOptionalProgramRepository = gradStudentOptionalProgramRepository;
@@ -480,7 +481,7 @@ public class DataConversionService extends GradBaseService {
 
     @Override
     protected WebClient getWebClient() {
-        return webClient;
+        return studentApiClient;
     }
 
     @Override

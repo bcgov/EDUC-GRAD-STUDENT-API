@@ -13,7 +13,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +20,8 @@ import java.util.UUID;
 
 @Repository
 public interface GraduationStudentRecordRepository extends JpaRepository<GraduationStudentRecordEntity, UUID> {
+
+	boolean existsByStudentID(UUID studentId);
 
     List<GraduationStudentRecordEntity> findAll();
 
@@ -34,6 +35,8 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	Optional<BatchGraduationStudentRecord> findByStudentIDForBatch(UUID studentID);
 
 	GraduationStudentRecordEntity findByStudentID(UUID studentID);
+
+	Optional<GraduationStudentRecordEntity> findOptionalByStudentID(UUID studentID);
 
 	@Query("select c from GraduationStudentRecordEntity c where c.studentStatus=:statusCode")
 	List<GraduationStudentRecordEntity> existsByStatusCode(String statusCode);
@@ -192,16 +195,12 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	Integer updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(Long batchId, String studentStatus);
 
 	@Query("SELECT gsr.schoolOfRecordId AS schoolOfRecordId, " +
-			"COUNT(CASE WHEN gsr.programCompletionDate BETWEEN :startDate AND :endDate AND gsr.program <> 'SCCP' THEN 1 ELSE NULL END) AS currentGraduates, " +
-			"COUNT(CASE WHEN gsr.programCompletionDate IS NULL AND gsr.studentGrade = '12' AND gsr.program IS NOT NULL AND gsr.program <> 'SCCP' THEN 1 ELSE NULL END) AS currentNonGraduates " +
+			"COUNT(CASE WHEN gsr.studentStatus = 'CUR' AND gsr.programCompletionDate IS NOT NULL AND gsr.program <> 'SCCP' THEN 1 ELSE NULL END) AS currentGraduates, " +
+			"COUNT(CASE WHEN gsr.studentStatus = 'CUR' AND gsr.programCompletionDate IS NULL AND gsr.studentGrade = '12' AND gsr.program IS NOT NULL AND gsr.program <> 'SCCP' THEN 1 ELSE NULL END) AS currentNonGraduates " +
 			"FROM GraduationStudentRecordEntity gsr " + 
 			"WHERE gsr.schoolOfRecordId IN (:schoolIDs) " +
 			"GROUP BY gsr.schoolOfRecordId")
-	List<GraduationCountProjection> countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
-			@Param("schoolIDs") List<UUID> schoolIDs,
-			@Param("startDate") Date startDate,
-			@Param("endDate") Date endDate
-	);
+	List<GraduationCountProjection> countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(@Param("schoolIDs") List<UUID> schoolIDs);
 
 
 	/**

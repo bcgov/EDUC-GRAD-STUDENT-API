@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.EducGradStudentApiApplication;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentGradeCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentGradeCodeRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -13,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @SpringBootTest(classes = {EducGradStudentApiApplication.class})
 @ActiveProfiles("integration-test")
@@ -43,5 +45,14 @@ public abstract class BaseIntegrationTest {
     entities.add(StudentGradeCodeEntity.builder().studentGradeCode("10").description("Grade 10").label("Grade 10").effectiveDate(LocalDateTime.now()).expected("Y").displayOrder(4).build());
 
     return entities;
+  }
+
+  public GradSearchStudent createMockGradSearchStudent() {
+    return GradSearchStudent.builder()
+        .studentID(UUID.randomUUID().toString())
+        .gradeCode("12")
+        .statusCode("A")
+        .mincode("123456789")
+        .build();
   }
 }

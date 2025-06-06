@@ -64,6 +64,8 @@ objects:
                     name: educ-grad-nats-messaging-config-map
                 - secretRef:
                     name: api-grad-student-db-secret
+                - secretRef:
+                    name: grad-student-api-client-secret
               resources:
                 requests:
                   cpu: "${MIN_CPU}"
@@ -152,7 +154,7 @@ objects:
           resource:
             name: memory
             target:
-              averageUtilization: 320
+              averageUtilization: 750
               type: Utilization
 parameters:
   - name: REPO_NAME

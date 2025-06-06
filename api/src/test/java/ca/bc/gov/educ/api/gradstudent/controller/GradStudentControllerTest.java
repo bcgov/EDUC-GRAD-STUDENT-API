@@ -1,7 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordPaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GradStudentPaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -19,6 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.math.BigInteger;
 import java.util.*;
 
 import static ca.bc.gov.educ.api.gradstudent.model.dto.Condition.AND;
@@ -27,9 +31,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,6 +53,9 @@ public class GradStudentControllerTest {
 
     @Autowired
     ReportGradStudentDataRepository reportGradStudentDataRepository;
+
+    @Autowired
+    GradStudentPaginationRepository gradStudentPaginationRepository;
 
     @Test
     public void testFake() {
@@ -169,7 +174,7 @@ public class GradStudentControllerTest {
     }
 
     @Test
-    public void testReadGradStudentPaginated_Always_ShouldReturnStatusOk() throws Exception {
+    public void testReadReportGradStudentPaginated_Always_ShouldReturnStatusOk() throws Exception {
         var schoolID = UUID.randomUUID();
 
         ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
@@ -187,7 +192,44 @@ public class GradStudentControllerTest {
         final var objectMapper = new ObjectMapper();
         final String criteriaJSON = objectMapper.writeValueAsString(searches);
         final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_PAGINATION)
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .param("searchCriteriaList", criteriaJSON)
+                        .contentType(APPLICATION_JSON))
+                .andReturn();
+        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+    }
+
+    @Test
+    public void testReadGradStudentPaginated_Always_ShouldReturnStatusOk() throws Exception {
+        var schoolID = UUID.randomUUID();
+
+        GraduationStudentRecordPaginationEntity entity = new GraduationStudentRecordPaginationEntity();
+        entity.setStudentID(UUID.randomUUID());
+        entity.setSchoolOfRecordId(schoolID);
+        entity.setStudentStatus("CUR");
+        StudentCoursePaginationEntity course1 = new StudentCoursePaginationEntity();
+        course1.setCourseSession("202408");
+        course1.setEquivOrChallenge("C");
+        course1.setCourseID(BigInteger.ONE);
+        course1.setGraduationStudentRecordEntity(entity);
+        var set  = new HashSet<StudentCoursePaginationEntity>();
+        set.add(course1);
+        entity.setStudentCoursePaginationEntities(set);
+        gradStudentPaginationRepository.save(entity);
+
+        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("graduationStudentRecordEntity.schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
+
+        final List<SearchCriteria> criteriaList = new ArrayList<>();
+        criteriaList.add(criteria);
+
+        final List<Search> searches = new LinkedList<>();
+        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+        final var objectMapper = new ObjectMapper();
+        final String criteriaJSON = objectMapper.writeValueAsString(searches);
+        final MvcResult result = this.mockMvc
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
                         .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
                         .param("searchCriteriaList", criteriaJSON)
                         .contentType(APPLICATION_JSON))

@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
@@ -38,7 +39,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -67,6 +67,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     CommonService commonService;
 
     @MockBean
+    @Qualifier("studentApiClient")
     WebClient webClient;
 
     @MockBean
@@ -1124,11 +1125,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         List<GraduationCountProjection> resultWithEmptyList = gradStudentService.getGraduationCountsBySchools(Collections.emptyList());
         assertThat(resultWithEmptyList).isNotNull().isEmpty();
 
-        verify(graduationStatusRepository, never()).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
-                anyList(),
-                any(Date.class),
-                any(Date.class)
-        );
+        verify(graduationStatusRepository, never()).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(anyList());
     }
 
     @Test
@@ -1139,18 +1136,14 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         List<GraduationCountProjection> expectedCounts = Arrays.asList(new TestGraduationCountProjection(100L, 50L, schoolId1), new TestGraduationCountProjection(15L, 10L, schoolId2));
 
-        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(eq(schoolIds), any(Date.class), any(Date.class)))
+        when(graduationStatusRepository.countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIds))
                 .thenReturn(expectedCounts);
 
         List<GraduationCountProjection> actualCounts = gradStudentService.getGraduationCountsBySchools(schoolIds);
 
         assertThat(actualCounts).isNotNull().isNotEmpty().isEqualTo(expectedCounts);
 
-        verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(
-                eq(schoolIds),        
-                any(Date.class), 
-                any(Date.class) 
-        );
+        verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIds);
     }
 
     @SneakyThrows

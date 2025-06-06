@@ -32,7 +32,8 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_STUDENT_ID_GRAD="/grad/{studentID}";
     public static final String GRAD_STUDENT_BY_SEARCH_CRITERIAS = "/gradstudentbysearchcriteria";
     public static final String GRADUATION_COUNTS = "/graduation-counts";
-    public static final String GRAD_STUDENT_PAGINATION = "/grad/student/search";
+    public static final String GRAD_STUDENT_REPORT_PAGINATION = "/grad/student/search";
+    public static final String GRAD_STUDENT_COURSE_PAGINATION = "/grad/student/course/search/pagination";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
     public static final String GRAD_STUDENT_BY_MULTIPLE_STUDENTIDS = "/multistudentids";
@@ -49,6 +50,7 @@ public class EducGradStudentApiConstants {
     public static final String UPDATE_GRAD_STUDENT_FLAG_BY_BATCH_JOB_TYPE_AND_MULTIPLE_STUDENTIDS = "/multistudentids/batchflag/jobtype/{batchJobType}";
     public static final String GRAD_STUDENT_NON_GRAD_REASON_BY_PEN = "/pen/{pen}/nongrad-reason";
     public static final String GET_ALL_STUDENT_GRADE_CODES = "/grade-codes";
+    public static final String GRAD_STUDENT_ADOPT = "/adopt";
 
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN = "/optionalprogram/studentid/{studentID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";
@@ -123,6 +125,15 @@ public class EducGradStudentApiConstants {
 
     public static final String EDW_GRADUATION_STATUS_SNAPSHOT = "/edw/snapshot";
 
+    public static final String EQUIVALENT_OR_CHALLENGE_CODES_MAPPING = "/equivalentOrChallengeCodes";
+    public static final String EQUIVALENT_OR_CHALLENGE_CODE_MAPPING = "/equivalentOrChallengeCodes/{equivalentOrChallengeCode}";
+    public static final String EXAM_SPECIAL_CASE_CODES_MAPPING = "/examSpecialCaseCodes";
+    public static final String EXAM_SPECIAL_CASE_CODE_MAPPING = "/examSpecialCaseCodes/{examSpecialCaseCode}";
+    public static final String FINE_ART_APPLIED_SKILLS_CODES_MAPPING = "/fineArtsAppliedSkillsCodes";
+    public static final String FINE_ART_APPLIED_SKILLS_CODE_MAPPING = "/fineArtsAppliedSkillsCodes/{fineArtsAppliedSkillsCode}";
+    public static final String STUDENT_COURSE_MAPPING = "/courses/{studentID}";
+    public static final String STUDENT_COURSE_HISTORY_MAPPING = "/courses/{studentID}/history";
+
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
     public static final String DEFAULT_UPDATED_BY = "API_GRAD_STUDENT";
@@ -167,6 +178,9 @@ public class EducGradStudentApiConstants {
     @Value("${endpoint.grad-program-api.program_name_by_program_code.url}")
     private String gradProgramNameUrl;
 
+    @Value("${endpoint.grad-program-api.program_codes.url}")
+    private String gradProgramUrl;
+
     @Value("${endpoint.pen-student-api.by-studentid.url}")
     private String penStudentApiByStudentIdUrl;
 
@@ -175,6 +189,9 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.grad-student-graduation-api.ungrad-reason.ungrad-reason-by-reason-code.url}")
     private String undoCompletionReasonDetailsUrl;
+
+    @Value("${endpoint.grad-student-graduation-api.letter-grades.url}")
+    private String letterGradesUrl;
 
     @Value("${endpoint.pen-student-api.search.url}")
     private String penStudentApiSearchUrl;
@@ -200,6 +217,15 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.grad-trax-api.search-schools-by-category-code.url}")
     private String schoolsByCategoryCodeUrl;
+
+    @Value("${endpoint.grad-trax-api.search-schools-by-mincode.url}")
+    private String schoolsByMincodeUrl;
+
+    @Value("${endpoint.grad-course-api.course-details-search.url}")
+    private String courseDetailSearchUrl;
+
+    @Value("${endpoint.grad-course-api.examinable-course-details.url}")
+    private String examinableCourseDetailUrl;
     
     // Splunk LogHelper Enabled
     @Value("${splunk.log-helper.enabled}")
@@ -228,4 +254,7 @@ public class EducGradStudentApiConstants {
 
     @Value("${cron.scheduled.process.purge-old-records.staleInDays}")
     private int recordsStaleInDays;
+
+    @Value("${endpoint.keycloak.token-uri}")
+    private String tokenUrl;
 }

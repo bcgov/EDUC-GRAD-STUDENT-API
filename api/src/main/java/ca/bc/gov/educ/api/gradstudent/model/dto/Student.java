@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import jakarta.validation.constraints.*;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Student {
 
     /**
@@ -136,12 +138,12 @@ public class Student {
     /**
      * The Create user.
      */
-    @Size(max = 32)
+    @Size(max = 100)
     public String createUser;
     /**
      * The Update user.
      */
-    @Size(max = 32)
+    @Size(max = 100)
     public String updateUser;
     /**
      * The Create date.
@@ -153,5 +155,9 @@ public class Student {
      */
     @Null(message = "updateDate should be null.")
     public String updateDate;
+
+    String historyActivityCode;
+    String documentTypeCode;
+    String dateOfConfirmation;
 
 }

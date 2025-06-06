@@ -62,11 +62,13 @@ oc create -n "$GRAD_NAMESPACE"-"$envValue" configmap "$APP_NAME"-config-map \
   --from-literal=GRAD_PROGRAM_API="http://educ-grad-program-api.$GRAD_NAMESPACE-$envValue.svc.cluster.local:8080/" \
   --from-literal=GRAD_STUDENT_GRADUATION_API="http://educ-grad-student-graduation-api.$GRAD_NAMESPACE-$envValue.svc.cluster.local:8080/" \
   --from-literal=GRAD_TRAX_API="http://educ-grad-trax-api.$GRAD_NAMESPACE-$envValue.svc.cluster.local:8080/"\
+  --from-literal=GRAD_COURSE_API="http://educ-grad-course-api.$GRAD_NAMESPACE-$envValue.svc.cluster.local:8080/"\
   --from-literal=MAX_RETRY_ATTEMPTS="3" \
   --from-literal=PEN_API="http://student-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/" \
   --from-literal=CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS="0 0 0 1 * ?" \
+  --from-literal=CRON_SCHEDULED_REFRESH_COURSE_DETAILS="0 0 02 * * *" \
   --from-literal=ENABLE_COMPRESSION="true" \
-  --from-literal=SHOW_SQL_LOGS="true" \
+  --from-literal=SHOW_SQL_LOGS="false" \
   --from-literal=MAX_LIFETIME="120000" \
   --dry-run=client -o yaml | oc apply -f -
 

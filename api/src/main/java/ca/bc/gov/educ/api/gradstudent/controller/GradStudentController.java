@@ -2,9 +2,12 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.ReportGradStudentTransformer;
-import ca.bc.gov.educ.api.gradstudent.service.GradStudentSearchService;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentCoursePaginationTransformer;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
+import ca.bc.gov.educ.api.gradstudent.service.ReportGradStudentSearchService;
+import ca.bc.gov.educ.api.gradstudent.service.StudentCoursePaginationService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
@@ -39,13 +42,17 @@ public class GradStudentController {
 	private static final Logger logger = LoggerFactory.getLogger(GradStudentController.class);
 
     private final GradStudentService gradStudentService;
-	private final GradStudentSearchService gradStudentSearchService;
+	private final ReportGradStudentSearchService reportGradStudentSearchService;
+	private final StudentCoursePaginationService studentCoursePaginationService;
 	private final ReportGradStudentTransformer reportGradStudentTransformer;
+	private final StudentCoursePaginationTransformer gradStudentPaginationTransformer;
 
-    public GradStudentController(GradStudentService gradStudentService, GradStudentSearchService gradStudentSearchService, ReportGradStudentTransformer reportGradStudentTransformer) {
+    public GradStudentController(GradStudentService gradStudentService, ReportGradStudentSearchService reportGradStudentSearchService, StudentCoursePaginationService studentCoursePaginationService, ReportGradStudentTransformer reportGradStudentTransformer, StudentCoursePaginationTransformer gradStudentPaginationTransformer) {
     	this.gradStudentService = gradStudentService;
-        this.gradStudentSearchService = gradStudentSearchService;
+        this.reportGradStudentSearchService = reportGradStudentSearchService;
+        this.studentCoursePaginationService = studentCoursePaginationService;
         this.reportGradStudentTransformer = reportGradStudentTransformer;
+        this.gradStudentPaginationTransformer = gradStudentPaginationTransformer;
     }
 	
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME_ONLY)
@@ -153,7 +160,7 @@ public class GradStudentController {
 		return gradStudentService.getGraduationCountsBySchools(schoolIDs);
 	}
 	
-	@GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_PAGINATION)
+	@GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)
 	@PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
 	@Transactional(readOnly = true)
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
@@ -162,15 +169,36 @@ public class GradStudentController {
 													 @RequestParam(name = "sort", defaultValue = "") String sortCriteriaJson,
 													 @RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson){
 		final List<Sort.Order> sorts = new ArrayList<>();
-		Specification<ReportGradStudentDataEntity> studentSpecs = gradStudentSearchService
+		Specification<ReportGradStudentDataEntity> studentSpecs = reportGradStudentSearchService
 				.setSpecificationAndSortCriteria(
 						sortCriteriaJson,
 						searchCriteriaListJson,
 						JsonUtil.mapper,
 						sorts
 				);
-		return this.gradStudentSearchService
+		return this.reportGradStudentSearchService
 				.findAll(studentSpecs, pageNumber, pageSize, sorts)
 				.thenApplyAsync(student -> student.map(reportGradStudentTransformer::transformToDTO));
+	}
+
+	@GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+	@PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+	@Transactional(readOnly = true)
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
+	public CompletableFuture<Page<StudentCoursePagination>> findAllStudentPagination(@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
+																						   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+																						   @RequestParam(name = "sort", defaultValue = "") String sortCriteriaJson,
+																						   @RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson){
+		final List<Sort.Order> sorts = new ArrayList<>();
+		Specification<StudentCoursePaginationEntity> studentSpecs = studentCoursePaginationService
+				.setSpecificationAndSortCriteria(
+						sortCriteriaJson,
+						searchCriteriaListJson,
+						JsonUtil.mapper,
+						sorts
+				);
+		return this.studentCoursePaginationService
+				.findAll(studentSpecs, pageNumber, pageSize, sorts)
+				.thenApplyAsync(student -> student.map(gradStudentPaginationTransformer::transformToDTO));
 	}
 }

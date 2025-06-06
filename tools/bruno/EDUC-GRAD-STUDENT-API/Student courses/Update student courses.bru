@@ -1,0 +1,21 @@
+meta {
+  name: Update student courses
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/v1/student/courses/:studentID
+  body: json
+  auth: none
+}
+
+params:path {
+  studentID: 
+}
+
+body:json {
+  [  
+      {}
+  ]
+}

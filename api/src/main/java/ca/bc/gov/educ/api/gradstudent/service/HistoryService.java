@@ -1,24 +1,22 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecordHistory;
-import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgram;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramHistory;
+import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseHistoryMapper;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStudentRecordHistoryTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentOptionalProgramHistoryTransformer;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.HistoryActivityRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramHistoryRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
+import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class HistoryService {
@@ -34,7 +33,7 @@ public class HistoryService {
     private static final Logger logger = LoggerFactory.getLogger(HistoryService.class);
 
     final
-    WebClient webClient;
+    WebClient studentApiClient;
 
     final GraduationStudentRecordRepository graduationStatusRepository;
     final GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
@@ -42,17 +41,21 @@ public class HistoryService {
     final StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository;
     final StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer;
     final HistoryActivityRepository historyActivityRepository;
+    final StudentCourseHistoryRepository studentCourseHistoryRepository;
+    final StudentCourseHistoryMapper studentCourseHistoryMapper;
     final EducGradStudentApiConstants constants;
 
     @Autowired
-    public HistoryService(WebClient webClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants, HistoryActivityRepository historyActivityRepository, GraduationStudentRecordRepository graduationStatusRepository) {
-        this.webClient = webClient;
+    public HistoryService(@Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants, HistoryActivityRepository historyActivityRepository, GraduationStudentRecordRepository graduationStatusRepository, StudentCourseHistoryRepository studentCourseHistoryRepository, StudentCourseHistoryMapper studentCourseHistoryMapper) {
+        this.studentApiClient = studentApiClient;
         this.graduationStudentRecordHistoryRepository = graduationStudentRecordHistoryRepository;
         this.graduationStudentRecordHistoryTransformer = graduationStudentRecordHistoryTransformer;
         this.studentOptionalProgramHistoryRepository = studentOptionalProgramHistoryRepository;
         this.studentOptionalProgramHistoryTransformer = studentOptionalProgramHistoryTransformer;
         this.historyActivityRepository = historyActivityRepository;
         this.graduationStatusRepository = graduationStatusRepository;
+        this.studentCourseHistoryRepository = studentCourseHistoryRepository;
+        this.studentCourseHistoryMapper = studentCourseHistoryMapper;
         this.constants = constants;
     }
 
@@ -91,7 +94,7 @@ public class HistoryService {
     public List<StudentOptionalProgramHistory> getStudentOptionalProgramEditHistory(UUID studentID, String accessToken) {
         List<StudentOptionalProgramHistory> histList = studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findByStudentID(studentID));
         histList.forEach(sP -> {
-            OptionalProgram gradOptionalProgram = webClient.get()
+            OptionalProgram gradOptionalProgram = studentApiClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), sP.getOptionalProgramID()))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
@@ -116,7 +119,7 @@ public class HistoryService {
     public StudentOptionalProgramHistory getStudentOptionalProgramHistoryByID(UUID historyID, String accessToken) {
         StudentOptionalProgramHistory obj = studentOptionalProgramHistoryTransformer.transformToDTO(studentOptionalProgramHistoryRepository.findById(historyID));
         if (obj.getOptionalProgramID() != null) {
-            OptionalProgram gradOptionalProgram = webClient.get()
+            OptionalProgram gradOptionalProgram = studentApiClient.get()
                     .uri(String.format(constants.getGradOptionalProgramNameUrl(), obj.getOptionalProgramID()))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve()
@@ -136,7 +139,7 @@ public class HistoryService {
         Page<GraduationStudentRecordHistoryEntity> pagedDate = graduationStudentRecordHistoryRepository.findByBatchId(batchId, paging);
         List<GraduationStudentRecordHistoryEntity> list = pagedDate.getContent();
         list.forEach(ent -> {
-            Student stuData = webClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
+            Student stuData = studentApiClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), ent.getStudentID()))
                     .headers(h -> h.setBearerAuth(accessToken))
                     .retrieve().bodyToMono(Student.class).block();
             if (stuData != null) {
@@ -176,6 +179,47 @@ public class HistoryService {
             historyRecordsCreated = graduationStudentRecordHistoryRepository.updateGradStudentUpdateUser(batchId, activityCode, updateUser);
         }
         return historyRecordsCreated;
+    }
+
+    public void createStudentCourseHistory(List<StudentCourseEntity> studentCourseEntities, StudentCourseActivityType historyActivityType) {
+        if (CollectionUtils.isNotEmpty(studentCourseEntities)) {
+            logger.debug("Create Student Course History");
+            List<StudentCourseHistoryEntity> studentCourseHistoryEntities = studentCourseEntities.stream()
+                    .map(studentCourseEntity -> {
+                        StudentCourseHistoryEntity studentCourseHistoryEntity = new StudentCourseHistoryEntity();
+                        BeanUtils.copyProperties(studentCourseEntity, studentCourseHistoryEntity);
+                        studentCourseHistoryEntity.setStudentCourseID(studentCourseEntity.getId());
+                        studentCourseHistoryEntity.setCreateUser(studentCourseEntity.getCreateUser());
+                        studentCourseHistoryEntity.setCreateDate(studentCourseEntity.getCreateDate());
+                        if(studentCourseEntity.getCourseExam() != null) {
+                            StudentCourseExamHistoryEntity studentCourseExamHistoryEntity = new StudentCourseExamHistoryEntity();
+                            BeanUtils.copyProperties(studentCourseEntity.getCourseExam(), studentCourseExamHistoryEntity);
+                            studentCourseExamHistoryEntity.setStudentCourseExamID(studentCourseEntity.getCourseExam().getId());
+                            studentCourseHistoryEntity.setCourseExam(studentCourseExamHistoryEntity);
+                        }
+                        studentCourseHistoryEntity.setActivityCode(getStudentCourseActivityType(studentCourseHistoryEntity, historyActivityType).name());
+                        return studentCourseHistoryEntity;
+                    }).toList();
+            studentCourseHistoryRepository.saveAllAndFlush(studentCourseHistoryEntities);
+        }
+    }
+
+    private StudentCourseActivityType getStudentCourseActivityType(StudentCourseHistoryEntity studentCourseHistoryEntity, StudentCourseActivityType historyActivityType) {
+        if(StudentCourseActivityType.USERCOURSEMOD.equals(historyActivityType)) {
+            return studentCourseHistoryEntity.getCourseExam() != null ? StudentCourseActivityType.USEREXAMMOD : StudentCourseActivityType.USERCOURSEMOD;
+        } else if (StudentCourseActivityType.USERCOURSEDEL.equals(historyActivityType)) {
+            return studentCourseHistoryEntity.getCourseExam() != null ? StudentCourseActivityType.USEREXAMDEL : StudentCourseActivityType.USERCOURSEDEL;
+        }
+        return studentCourseHistoryEntity.getCourseExam() != null ? StudentCourseActivityType.USEREXAMADD : StudentCourseActivityType.USERCOURSEADD;
+    }
+
+    public List<StudentCourseHistory> getStudentCourseHistory(UUID studentID) {
+        List<StudentCourseHistory> histList = studentCourseHistoryRepository.findByStudentID(studentID).stream().map(studentCourseHistoryMapper::toStructure).toList();
+        List<String> activityNames = Arrays.stream(StudentCourseActivityType.values()).map(Enum::name).toList();
+        Map<String, String> courseMap = historyActivityRepository.findAllById(activityNames).stream()
+                .collect(Collectors.toMap(HistoryActivityCodeEntity::getCode, HistoryActivityCodeEntity::getDescription));
+        histList.forEach(gS -> gS.setActivityDescription(courseMap.get(gS.getActivityCode())));
+        return histList;
     }
 
 }
