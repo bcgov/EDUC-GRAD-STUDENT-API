@@ -3,9 +3,6 @@ env:
 
   OPENSHIFT_SERVER: ${{ vars.OPENSHIFT_SERVER }}
   OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
-  OPENSHIFT_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}
-  OPENSHIFT_NAMESPACE_DEV: ${{ vars.GRAD_NAMESPACE }}-dev
-  OPENSHIFT_NAMESPACE_TEST: ${{ vars.GRAD_NAMESPACE }}-test
   COMMON_NAMESPACE: ${{ vars.COMMON_NAMESPACE }}
   GRAD_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}
   BUSINESS_NAMESPACE: ${{ vars.GRAD_BUSINESS_NAMESPACE }}
@@ -40,6 +37,8 @@ jobs:
     name: Build and deploy to OpenShift DEV
     runs-on: ubuntu-22.04
     environment: dev
+    env:
+      OPENSHIFT_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}-dev
 
     steps:
       - name: Check out repository
@@ -51,10 +50,6 @@ jobs:
         if: env.TAG == ''
         run: |
           echo "TAG=latest ${GITHUB_SHA::12}" | tee -a $GITHUB_ENV
-
-      - name: Set namespace
-        run: |
-          echo "OPENSHIFT_NAMESPACE=${OPENSHIFT_NAMESPACE_DEV}" >> $GITHUB_ENV
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -110,19 +105,19 @@ jobs:
           set -eux
           # Login to OpenShift and select project
           oc login --token=${{ env.OPENSHIFT_TOKEN }} --server=${{ env.OPENSHIFT_SERVER }}
-          oc project ${{ env.OPENSHIFT_NAMESPACE_DEV }}
+          oc project ${{ env.OPENSHIFT_NAMESPACE }}
           # Cancel any rollouts in progress
           oc rollout cancel deployment/${{ env.SPRING_BOOT_IMAGE_NAME }} 2> /dev/null \
           || true && echo "No rollout in progress"
           # tag image stream
-          oc -n ${{ env.OPENSHIFT_NAMESPACE_DEV }} tag ${{ steps.push-image.outputs.registry-path }} ${{ env.REPO_NAME }}:${{ env.TAG }}
+          oc -n ${{ env.OPENSHIFT_NAMESPACE }} tag ${{ steps.push-image.outputs.registry-path }} ${{ env.REPO_NAME }}:${{ env.TAG }}
 
           # Process and apply deployment template
           oc process -f tools/openshift/api.dc.yaml \
-          -p IS_NAMESPACE=${{ env.OPENSHIFT_NAMESPACE_DEV }} \
+          -p IS_NAMESPACE=${{ env.OPENSHIFT_NAMESPACE }} \
           -p REPO_NAME=${{ env.REPO_NAME }} \
           -p TAG_NAME=${{ env.TAG }} \
-          -p HOST_ROUTE=${{ env.REPO_NAME }}-${{ env.OPENSHIFT_NAMESPACE_DEV }}.${{ env.APP_DOMAIN }} \
+          -p HOST_ROUTE=${{ env.REPO_NAME }}-${{ env.OPENSHIFT_NAMESPACE }}.${{ env.APP_DOMAIN }} \
           -p MIN_REPLICAS=${{ env.MIN_REPLICAS }} \
           -p MAX_REPLICAS=${{ env.MAX_REPLICAS }} \
           -p MIN_CPU=${{ env.MIN_CPU }} \
@@ -163,16 +158,14 @@ jobs:
     needs: build-and-deploy-dev
     runs-on: ubuntu-22.04
     environment: test
+    env:
+      OPENSHIFT_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}-test
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-
-      - name: Set namespace
-        run: |
-          echo "OPENSHIFT_NAMESPACE=${OPENSHIFT_NAMESPACE_TEST}" >> $GITHUB_ENV
 
       - name: Install oc
         uses: redhat-actions/openshift-tools-installer@v1
@@ -185,20 +178,20 @@ jobs:
           set -eux
           # Login to OpenShift and select project
           oc login --token=${{ env.OPENSHIFT_TOKEN }} --server=${{ env.OPENSHIFT_SERVER }}
-          oc project ${{ env.OPENSHIFT_NAMESPACE_TEST }}
+          oc project ${{ env.OPENSHIFT_NAMESPACE }}
           # Cancel any rollouts in progress
           oc rollout cancel deployment/${{ env.SPRING_BOOT_IMAGE_NAME }} 2> /dev/null \
           || true && echo "No rollout in progress"
           
-          oc tag ${{ env.OPENSHIFT_NAMESPACE_DEV }}/${{ env.REPO_NAME }}:${{ env.TAG }} \
-          ${{ env.OPENSHIFT_NAMESPACE_TEST }}/${{ env.REPO_NAME }}:${{ env.TAG }}
+          oc tag ${{ env.OPENSHIFT_NAMESPACE }}/${{ env.REPO_NAME }}:${{ env.TAG }} \
+          ${{ env.OPENSHIFT_NAMESPACE }}/${{ env.REPO_NAME }}:${{ env.TAG }}
           
           # Process and apply deployment template
           oc process -f tools/openshift/api.dc.yaml \
-          -p IS_NAMESPACE=${{ env.OPENSHIFT_NAMESPACE_TEST }} \
+          -p IS_NAMESPACE=${{ env.OPENSHIFT_NAMESPACE }} \
           -p REPO_NAME=${{ env.REPO_NAME }} \
           -p TAG_NAME=${{ env.TAG }} \
-          -p HOST_ROUTE=${{ env.REPO_NAME }}-${{ env.OPENSHIFT_NAMESPACE_TEST }}.${{ env.APP_DOMAIN }} \
+          -p HOST_ROUTE=${{ env.REPO_NAME }}-${{ env.OPENSHIFT_NAMESPACE }}.${{ env.APP_DOMAIN }} \
           -p MIN_REPLICAS=${{ env.MIN_REPLICAS }} \
           -p MAX_REPLICAS=${{ env.MAX_REPLICAS }} \
           -p MIN_CPU=${{ env.MIN_CPU }} \
@@ -227,8 +220,10 @@ jobs:
     name: Zap Scan TEST
     needs: build-and-deploy-dev
     runs-on: ubuntu-22.04
+    env:
+      OPENSHIFT_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}-dev
     steps:
       - name: ZAP Scan
         uses: zaproxy/action-api-scan@v0.9.0
         with:
-          target: 'https://${{ env.REPO_NAME }}-${{ env.OPENSHIFT_NAMESPACE_DEV }}.apps.silver.devops.gov.bc.ca/api/v1/api-docs'
+          target: 'https://${{ env.REPO_NAME }}-${{ env.OPENSHIFT_NAMESPACE }}.apps.silver.devops.gov.bc.ca/api/v1/api-docs'
