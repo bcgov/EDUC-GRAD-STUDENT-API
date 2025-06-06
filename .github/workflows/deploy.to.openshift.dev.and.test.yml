@@ -40,6 +40,8 @@ jobs:
     env:
       OPENSHIFT_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}-dev
       TARGET_ENV: dev
+      KEYCLOAK_URL: ${{ secrets.KEYCLOAK_URL }}
+      KEYCLOAK_REALM: ${{ secrets.KEYCLOAK_REALM }}
 
     steps:
       - name: Check out repository
@@ -162,6 +164,8 @@ jobs:
     env:
       OPENSHIFT_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}-test
       TARGET_ENV: test
+      KEYCLOAK_URL: ${{ secrets.KEYCLOAK_URL }}
+      KEYCLOAK_REALM: ${{ secrets.KEYCLOAK_REALM }}
 
     steps:
       - name: Check out repository
