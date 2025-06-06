@@ -96,8 +96,9 @@ public class GraduationStudentRecordService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateStudentRecord(DemographicStudent demStudent, Student studentFromApi, GraduationStudentRecordEntity existingStudentRecordEntity) {
+    public boolean updateStudentRecord(DemographicStudent demStudent, Student studentFromApi, GraduationStudentRecordEntity existingStudentRecordEntity) {
         var newStudentRecordEntity = new GraduationStudentRecordEntity();
+        boolean isSchoolOfRecordUpdated = checkIfSchoolOfRecordIsUpdated(demStudent, existingStudentRecordEntity);
         BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, CREATE_USER, CREATE_DATE);
         GraduationStudentRecordEntity updatedEntity = compareAndUpdateGraduationStudentRecordEntity(demStudent, newStudentRecordEntity);
         updatedEntity.setUpdateUser(demStudent.getUpdateUser());
@@ -117,6 +118,7 @@ public class GraduationStudentRecordService {
         programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
         savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
+        return isSchoolOfRecordUpdated;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -495,5 +497,9 @@ public class GraduationStudentRecordService {
             return code.length == 2 ? code[0] + "-" + "EN" : null;
         }
         return null;
+    }
+
+    private boolean checkIfSchoolOfRecordIsUpdated(DemographicStudent demStudent, GraduationStudentRecordEntity existingStudentRecordEntity) {
+        return existingStudentRecordEntity.getSchoolOfRecordId() != null && existingStudentRecordEntity.getSchoolOfRecordId() != UUID.fromString(demStudent.getSchoolID()) && (demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T"));
     }
 }

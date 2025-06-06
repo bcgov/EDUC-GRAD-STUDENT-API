@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.MessagePublisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import io.nats.client.Message;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ public class EventHandlerDelegatorService {
   private final MessagePublisher messagePublisher;
   private final EventHandlerService eventHandlerService;
   private final GraduationStatusService graduationStatusService;
+  private final Publisher publisher;
 
   /**
    * Instantiates a new Event handler delegator service.
@@ -40,10 +42,11 @@ public class EventHandlerDelegatorService {
    * @param eventHandlerService the event handler service
    */
   @Autowired
-  public EventHandlerDelegatorService(MessagePublisher messagePublisher, EventHandlerService eventHandlerService, GraduationStatusService graduationStatusService) {
+  public EventHandlerDelegatorService(MessagePublisher messagePublisher, EventHandlerService eventHandlerService, GraduationStatusService graduationStatusService, Publisher publisher) {
     this.messagePublisher = messagePublisher;
     this.eventHandlerService = eventHandlerService;
     this.graduationStatusService = graduationStatusService;
+    this.publisher = publisher;
   }
 
   public void handleChoreographyEvent(@NonNull final ChoreographedEvent choreographedEvent, final Message message) throws IOException {
@@ -72,16 +75,19 @@ public class EventHandlerDelegatorService {
         case PROCESS_STUDENT_DEM_DATA:
           log.info("Received PROCESS_STUDENT_DEM_DATA event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
-          response = eventHandlerService.handleProcessStudentDemDataEvent(event);
+          var pairResponse = eventHandlerService.handleProcessStudentDemDataEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-          publishToNATS(event, message, isSynchronous, response);
+          publishToNATS(event, message, isSynchronous, pairResponse.getLeft());
+          if(pairResponse.getRight() != null) {
+            publishToJetStream(pairResponse.getRight());
+          }
           break;
         case PROCESS_STUDENT_COURSE_DATA:
           log.info("Received PROCESS_STUDENT_COURSE_DATA event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
-          var pairResponse = eventHandlerService.handleProcessStudentCourseDataEvent(event);
+          response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-          publishToNATS(event, message, isSynchronous, pairResponse);
+          publishToNATS(event, message, isSynchronous, response);
           break;
         default:
           log.info("silently ignoring other events :: {}", event);
@@ -98,5 +104,9 @@ public class EventHandlerDelegatorService {
     } else { // async, pub/sub
       messagePublisher.dispatchMessage(event.getReplyTo(), left);
     }
+  }
+
+  private void publishToJetStream(final GradStatusEvent event) {
+    publisher.dispatchChoreographyEvent(event);
   }
 }
