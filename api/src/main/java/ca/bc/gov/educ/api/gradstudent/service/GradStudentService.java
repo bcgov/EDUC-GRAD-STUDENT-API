@@ -421,6 +421,7 @@ public class GradStudentService {
 	public GradStudentRecord getGraduationStudentRecord(UUID studentID) {
 		GradStudentRecord response = graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class);
 		if (response != null) {
+			logger.info("getGraduationStudentRecord - studentID: {}, response: {}", studentID, response);
 			return response;
 		}
 		throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
