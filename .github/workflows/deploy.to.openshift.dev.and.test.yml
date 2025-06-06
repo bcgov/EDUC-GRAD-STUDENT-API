@@ -39,6 +39,7 @@ jobs:
     environment: dev
     env:
       OPENSHIFT_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}-dev
+      TARGET_ENV: dev
 
     steps:
       - name: Check out repository
@@ -160,6 +161,7 @@ jobs:
     environment: test
     env:
       OPENSHIFT_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}-test
+      TARGET_ENV: test
 
     steps:
       - name: Check out repository
