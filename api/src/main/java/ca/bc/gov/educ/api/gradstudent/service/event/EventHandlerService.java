@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.assessment.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
@@ -12,10 +13,12 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -31,6 +34,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.MESSAGE_PUBLISHED;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.SCHOOL_OF_RECORD_UPDATED;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_SCHOOL_OF_RECORD;
 
 /**
  * The type Event handler service.
@@ -54,20 +59,35 @@ public class EventHandlerService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public byte[] handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
+    public Pair<byte[], GradStatusEvent> handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
         final DemographicStudent demStudent = JsonUtil.getJsonObjectFromString(DemographicStudent.class, event.getEventPayload());
         var studentFromApi = graduationStudentRecordService.getStudentByPenFromStudentAPI(demStudent.getPen());
         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
         log.debug("handleProcessStudentDemDataEvent found student :: {}", student);
 
+        boolean isSchoolOfRecordUpdated = false;
         if(student.isPresent()) {
-            graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, student.get());
+            isSchoolOfRecordUpdated = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, student.get());
         } else {
             graduationStudentRecordService.createNewStudentRecord(demStudent, studentFromApi);
         }
+
+        GradStatusEvent gradStatusEvent = null;
+        if(isSchoolOfRecordUpdated) {
+            var studentForUpdate = StudentForAssessmentUpdate
+                    .builder()
+                    .studentID(studentFromApi.getStudentID())
+                    .schoolOfRecordID(demStudent.getSchoolID())
+                    .vendorID(demStudent.getVendorID())
+                    .build();
+            gradStatusEvent = EventUtil.createEvent(demStudent.getCreateUser(),
+                    demStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, SCHOOL_OF_RECORD_UPDATED);
+            gradStatusEventRepository.save(gradStatusEvent);
+        }
+
         event.setEventOutcome(EventOutcome.DEM_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
         val studentEvent = createEventRecord(event);
-        return createResponseEvent(studentEvent);
+        return Pair.of(createResponseEvent(studentEvent), gradStatusEvent);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
