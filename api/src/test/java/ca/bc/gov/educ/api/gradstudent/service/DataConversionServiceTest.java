@@ -15,6 +15,7 @@ import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -90,7 +91,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
     Subscriber subscriber;
 
     @Test
-    public void testGraduationStudentRecordAsNew() {
+    public void testGraduationStudentRecordAsNew() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
 
@@ -112,7 +113,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, false);
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, false).getLeft();
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -127,7 +128,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void testGraduationStudentRecordAsUpdate() {
+    public void testGraduationStudentRecordAsUpdate() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         String mincode = "12345678";
@@ -157,7 +158,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
         when(graduationStatusRepository.countStudentGuidPenXrefRecord(studentID)).thenReturn(1L);
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, input, false);
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, input, false).getLeft();
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
@@ -689,7 +690,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void testGraduationStudentRecordAsNewForOngoingUpdate() {
+    public void testGraduationStudentRecordAsNewForOngoingUpdate() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
 
@@ -711,7 +712,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
 
-        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, true);
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, true).getLeft();
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());

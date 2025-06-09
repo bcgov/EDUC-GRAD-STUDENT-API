@@ -4,6 +4,9 @@ import ca.bc.gov.educ.api.gradstudent.constant.FieldName;
 import ca.bc.gov.educ.api.gradstudent.constant.FieldType;
 import ca.bc.gov.educ.api.gradstudent.constant.TraxEventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.assessment.v1.StudentForAssessmentUpdate;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
@@ -12,6 +15,8 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgr
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nimbusds.jose.util.Pair;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +29,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.SCHOOL_OF_RECORD_UPDATED;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_SCHOOL_OF_RECORD;
 
 /**
  * Initial Student Loads
@@ -61,6 +69,8 @@ public class DataConversionService extends GradBaseService {
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
 
+    private final GradStatusEventRepository gradStatusEventRepository;
+
     @Autowired
     public DataConversionService(@Qualifier("studentApiClient") WebClient studentApiClient,
                                  GraduationStudentRecordRepository graduationStatusRepository,
@@ -69,7 +79,7 @@ public class DataConversionService extends GradBaseService {
                                  StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,
                                  StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository,
                                  GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository,
-                                 HistoryService historyService, StudentNoteRepository studentNoteRepository, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants) {
+                                 HistoryService historyService, StudentNoteRepository studentNoteRepository, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants, GradStatusEventRepository gradStatusEventRepository) {
         this.studentApiClient = studentApiClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
@@ -84,23 +94,47 @@ public class DataConversionService extends GradBaseService {
         this.graduationStatusService = graduationStatusService;
         this.validation = validation;
         this.constants = constants;
+        this.gradStatusEventRepository = gradStatusEventRepository;
     }
 
     /**
      * Create or Update a GraduationStudentRecord
      */
     @Transactional
-    public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate) {
+    public Pair<GraduationStudentRecord, GradStatusEvent> saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate) throws JsonProcessingException {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            boolean isSchoolOfRecordUpdated = checkIfSchoolOfRecordIsUpdated(sourceObject, gradEntity);
             gradEntity = handleExistingGraduationStatus(sourceObject, gradEntity, graduationStatus.getPen(), ongoingUpdate);
-            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
+
+            GradStatusEvent gradStatusEvent = null;
+            if(isSchoolOfRecordUpdated) {
+                var studentForUpdate = StudentForAssessmentUpdate
+                        .builder()
+                        .studentID(String.valueOf(studentID))
+                        .schoolOfRecordID(String.valueOf(sourceObject.getSchoolOfRecordId()))
+                        .vendorID(null)
+                        .build();
+                gradStatusEvent = EventUtil.createEvent(sourceObject.getCreateUser(),
+                        sourceObject.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, SCHOOL_OF_RECORD_UPDATED);
+                gradStatusEventRepository.save(gradStatusEvent);
+            }
+            var savedRecord = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
+            return Pair.of(savedRecord, gradStatusEvent);
         } else {
             sourceObject = handleNewGraduationStatus(sourceObject, graduationStatus.getPen(), ongoingUpdate);
-            return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject);
+            var savedRecord = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject);
+            return Pair.of(savedRecord, null);
         }
+    }
+
+    private boolean checkIfSchoolOfRecordIsUpdated(GraduationStudentRecordEntity updatedEntity, GraduationStudentRecordEntity existingEntity) {
+        return existingEntity.getSchoolOfRecordId() != null
+                && updatedEntity.getSchoolOfRecordId() != null
+                && existingEntity.getSchoolOfRecordId() != updatedEntity.getSchoolOfRecordId()
+                && (updatedEntity.getStudentStatus().equalsIgnoreCase("A") || updatedEntity.getStudentStatus().equalsIgnoreCase("T"));
     }
 
     /**
