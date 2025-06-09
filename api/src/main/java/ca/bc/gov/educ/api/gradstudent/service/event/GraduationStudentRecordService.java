@@ -129,11 +129,9 @@ public class GraduationStudentRecordService {
             courseStudent.getStudentDetails().forEach(student -> handleAppendCourseRecord(existingStudentRecordEntity, student, studentFromApi.getStudentID()));
         } else {
             List<StudentCourseEntity> existingStudentCourses =  studentCourseRepository.findByStudentIDAndCourseExamIsNull(UUID.fromString(studentFromApi.getStudentID()));
-            log.info("Trying to deleteAllById size :: {}", existingStudentCourses.size());
             if(!existingStudentCourses.isEmpty()) {
                 studentCourseRepository.deleteAllInBatch(existingStudentCourses);
             }
-            log.info("Trying to insert course size:: {}", courseStudent.getStudentDetails().size());
             courseStudent.getStudentDetails().forEach(student -> handleReplaceCourseRecord(existingStudentRecordEntity, student,  studentFromApi.getStudentID()));
         }
     }
