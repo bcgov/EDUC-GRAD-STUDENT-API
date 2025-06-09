@@ -10,6 +10,8 @@ import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nimbusds.jose.util.Pair;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -49,7 +51,7 @@ public class DataConversionControllerTest {
     private DataConversionController dataConversionController;
 
     @Test
-    public void testSaveStudentGradStatus() {
+    public void testSaveStudentGradStatus() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
         UUID schoolId = UUID.randomUUID();
@@ -65,7 +67,7 @@ public class DataConversionControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Mockito.when(dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus,false)).thenReturn(graduationStatus);
+        Mockito.when(dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus,false)).thenReturn(Pair.of(graduationStatus, null));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
         var result = dataConversionController
                 .saveStudentGradStatus(studentID.toString(), false, graduationStatus);

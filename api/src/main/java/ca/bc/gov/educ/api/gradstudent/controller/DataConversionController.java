@@ -1,11 +1,14 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.service.DataConversionService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -38,16 +41,22 @@ public class DataConversionController {
     @Autowired
     ResponseHelper response;
 
+    @Autowired
+    Publisher publisher;
+
     @PostMapping(EducGradStudentApiConstants.CONV_GRADUATION_STATUS_BY_STUDENT_ID)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Save Graduation Student Record", description = "Save Graduation Student Record", tags = { "Data Conversion" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public ResponseEntity<GraduationStudentRecord> saveStudentGradStatus(@PathVariable String studentID,
                                                                          @RequestParam(value = "ongoingUpdate", required = false, defaultValue = "false") boolean ongoingUpdate,
-                                                                         @RequestBody GraduationStudentRecord graduationStatus) {
+                                                                         @RequestBody GraduationStudentRecord graduationStatus) throws JsonProcessingException {
         logger.debug("Save Graduation Student Record for Student ID");
         var result = dataConversionService.saveGraduationStudentRecord(UUID.fromString(studentID),graduationStatus, ongoingUpdate);
-        return response.GET(result);
+        if(result.getRight() != null) {
+            publishToJetStream(result.getRight());
+        }
+        return response.GET(result.getLeft());
     }
 
     @PostMapping(EducGradStudentApiConstants.CONV_GRADUATION_STATUS_FOR_ONGOING_UPDATES)
@@ -111,6 +120,10 @@ public class DataConversionController {
         dataConversionService.deleteAllDependencies(UUID.fromString(studentID));
         dataConversionService.deleteGraduationStatus(UUID.fromString(studentID));
         return response.DELETE(1);
+    }
+
+    private void publishToJetStream(final GradStatusEvent event) {
+        publisher.dispatchChoreographyEvent(event);
     }
 
 }
