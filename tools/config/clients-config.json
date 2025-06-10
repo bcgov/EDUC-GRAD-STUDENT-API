@@ -38,8 +38,7 @@
       "CREATE_GRAD_STUDENT_UNGRAD_REASONS_DATA",
       "READ_GRAD_UNGRAD_CODE_DATA",
       "READ_GRAD_SCHOOL_DATA",
-      "READ_STUDENT",
-      "CREATE_GRAD_ASSESSMENT_REQUIREMENT_DATA"],
+      "READ_STUDENT"],
     "settings": {
       "enabled": true,
       "protocol": "openid-connect",
