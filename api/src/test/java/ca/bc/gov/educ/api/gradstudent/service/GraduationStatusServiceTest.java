@@ -2204,7 +2204,6 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
     @Test
     void testSearchGraduationStudentRecords_givenSchoolCategoryCodes() {
-        String accessToken = "accessToken";
         List<String> schoolCategoryCodes = List.of("INDEPEND");
         UUID schoolId = UUID.randomUUID();
 
