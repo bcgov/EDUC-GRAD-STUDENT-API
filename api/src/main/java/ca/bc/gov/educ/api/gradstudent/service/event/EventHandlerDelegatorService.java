@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.service.event;
 
 
 import ca.bc.gov.educ.api.gradstudent.messaging.MessagePublisher;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
