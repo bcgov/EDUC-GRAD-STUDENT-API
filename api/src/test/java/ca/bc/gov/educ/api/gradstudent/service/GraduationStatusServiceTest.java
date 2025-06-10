@@ -1,5 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.constant.ProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
@@ -49,9 +51,10 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 import static ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService.PAGE_SIZE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -84,6 +87,8 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
     StudentNonGradReasonRepository studentNonGradReasonRepository;
     @MockBean
     GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
+    @MockBean
+    GradStatusEventRepository gradStatusEventRepository;
     @MockBean
     CommonService commonService;
     @MockBean
@@ -2199,7 +2204,6 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
     @Test
     void testSearchGraduationStudentRecords_givenSchoolCategoryCodes() {
-        String accessToken = "accessToken";
         List<String> schoolCategoryCodes = List.of("INDEPEND");
         UUID schoolId = UUID.randomUUID();
 
@@ -3839,4 +3843,46 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessageContaining("Optional Program DD for 2023-PF not found");
     }
+
+    @Test
+    void testPersistEventToDB_checkExistingEvent() {
+        UUID eventId = UUID.randomUUID();
+
+        ChoreographedEvent choreographedEvent = new ChoreographedEvent();
+        choreographedEvent.setEventID(eventId.toString());
+
+        GradStatusEvent gradStatusEvent = new GradStatusEvent();
+        gradStatusEvent.setEventId(eventId);
+        gradStatusEvent.setEventStatus(DB_COMMITTED.toString());
+        gradStatusEvent.setEventType("ASSESSMENT_STUDENT_UPDATE");
+
+        Mockito.when(gradStatusEventRepository.findByEventId(eventId)).thenReturn(Optional.of(gradStatusEvent));
+        Optional<GradStatusEvent> result = graduationStatusService.eventExistsInDB(choreographedEvent);
+        assertEquals(true, result.isPresent());
+     }
+
+    @Test
+    void testPersistEventToDB_givenTheNewEvent() {
+        UUID eventId = UUID.randomUUID();
+
+        ChoreographedEvent choreographedEvent = new ChoreographedEvent();
+        choreographedEvent.setEventID(eventId.toString());
+        choreographedEvent.setEventType(EventType.ASSESSMENT_STUDENT_UPDATE);
+        choreographedEvent.setEventOutcome(EventOutcome.ASSESSMENT_STUDENT_UPDATED);
+        choreographedEvent.setEventPayload("{ test: 'eventEntity'}");
+
+        GradStatusEvent gradStatusEvent = new GradStatusEvent();
+        gradStatusEvent.setEventId(eventId);
+        gradStatusEvent.setEventStatus(DB_COMMITTED.toString());
+        gradStatusEvent.setEventType("ASSESSMENT_STUDENT_UPDATE");
+
+        Mockito.when(gradStatusEventRepository.findByEventId(eventId)).thenReturn(Optional.empty());
+        Mockito.when(gradStatusEventRepository.save(gradStatusEvent)).thenReturn(gradStatusEvent);
+
+        graduationStatusService.persistEventToDB(choreographedEvent);
+
+        assertThatNoException();
+    }
+
+
 }
