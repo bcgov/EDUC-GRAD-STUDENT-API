@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -96,8 +97,9 @@ public class GraduationStudentRecordService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateStudentRecord(DemographicStudent demStudent, Student studentFromApi, GraduationStudentRecordEntity existingStudentRecordEntity) {
+    public boolean updateStudentRecord(DemographicStudent demStudent, Student studentFromApi, GraduationStudentRecordEntity existingStudentRecordEntity) {
         var newStudentRecordEntity = new GraduationStudentRecordEntity();
+        boolean isSchoolOfRecordUpdated = checkIfSchoolOfRecordIsUpdated(demStudent, existingStudentRecordEntity);
         BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, CREATE_USER, CREATE_DATE);
         GraduationStudentRecordEntity updatedEntity = compareAndUpdateGraduationStudentRecordEntity(demStudent, newStudentRecordEntity);
         updatedEntity.setUpdateUser(demStudent.getUpdateUser());
@@ -117,6 +119,7 @@ public class GraduationStudentRecordService {
         programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
         savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
+        return isSchoolOfRecordUpdated;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -127,7 +130,7 @@ public class GraduationStudentRecordService {
         } else {
             List<StudentCourseEntity> existingStudentCourses =  studentCourseRepository.findByStudentIDAndCourseExamIsNull(UUID.fromString(studentFromApi.getStudentID()));
             if(!existingStudentCourses.isEmpty()) {
-                studentCourseRepository.deleteAll(existingStudentCourses);
+                studentCourseRepository.deleteAllInBatch(existingStudentCourses);
             }
             courseStudent.getStudentDetails().forEach(student -> handleReplaceCourseRecord(existingStudentRecordEntity, student,  studentFromApi.getStudentID()));
         }
@@ -143,10 +146,10 @@ public class GraduationStudentRecordService {
         studentCourseRepository.save(studentCourseEntity);
 
         String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
-        boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
-        boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+        boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+        boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
 
-        if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
+        if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
             List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
             var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
             if(frProgram.isPresent()) {
@@ -185,10 +188,10 @@ public class GraduationStudentRecordService {
             studentCourseRepository.save(studentCourseEntity);
 
             String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
-            boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
-            boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+            boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+            boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
 
-            if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
+            if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
                 List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
                 var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
                 if(frProgram.isPresent()) {
@@ -489,11 +492,15 @@ public class GraduationStudentRecordService {
 
     private String createProgram() {
         List<GraduationProgramCode> codes =  restUtils.getGraduationProgramCodeList(true);
-        var filteredCodes = codes.stream().filter(code -> code.getProgramCode().equalsIgnoreCase("1950") || code.getProgramCode().equalsIgnoreCase("SSCP") || code.getProgramCode().equalsIgnoreCase("NOPROG")).findFirst();
+        var filteredCodes = codes.stream().filter(code -> !code.getProgramCode().equalsIgnoreCase("1950") && !code.getProgramCode().equalsIgnoreCase("SSCP") && !code.getProgramCode().equalsIgnoreCase("NOPROG")).findFirst();
         if(filteredCodes.isPresent()) {
             var code = filteredCodes.get().getProgramCode().split("-");
             return code.length == 2 ? code[0] + "-" + "EN" : null;
         }
         return null;
+    }
+
+    private boolean checkIfSchoolOfRecordIsUpdated(DemographicStudent demStudent, GraduationStudentRecordEntity existingStudentRecordEntity) {
+        return existingStudentRecordEntity.getSchoolOfRecordId() != null && existingStudentRecordEntity.getSchoolOfRecordId() != UUID.fromString(demStudent.getSchoolID()) && (demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T"));
     }
 }

@@ -274,10 +274,10 @@ public class RestUtils {
       return objectMapper.readValue(responseData, refCourseInformation);
 
     } catch (EntityNotFoundException ex) {
-      log.debug("EntityNotFoundException occurred calling GET_COURSE_FROM_EXTERNAL_ID service :: {}", ex.getMessage());
+      log.info("EntityNotFoundException occurred for externalID :: {} GET_COURSE_FROM_EXTERNAL_ID service :: {}", externalID, ex.getMessage());
       throw new EntityNotFoundException();
     } catch (final Exception ex) {
-      log.error("Error occurred calling GET_COURSE_FROM_EXTERNAL_ID service :: {}", ex.getMessage());
+      log.error("Error occurred for externalID :: {} GET_COURSE_FROM_EXTERNAL_ID service :: {}", externalID, ex.getMessage());
       Thread.currentThread().interrupt();
       throw new GradStudentAPIRuntimeException(NATS_TIMEOUT + correlationID);
     }
