@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service.event;
 
 
-import ca.bc.gov.educ.api.gradstudent.exception.BusinessException;
 import ca.bc.gov.educ.api.gradstudent.messaging.MessagePublisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
@@ -50,15 +49,18 @@ public class EventHandlerDelegatorService {
   }
 
   public void handleChoreographyEvent(@NonNull final ChoreographedEvent choreographedEvent, final Message message) throws IOException {
-    try {
-      final var persistedEvent = this.graduationStatusService.persistEventToDB(choreographedEvent);
-      message.ack(); // acknowledge to Jet Stream that api got the message and it is now in DB.
-      log.info("acknowledged to Jet Stream...");
-      this.eventHandlerService.handleAssessmentUpdatedDataEvent(persistedEvent);
-    } catch (final BusinessException businessException) {
-      message.ack(); // acknowledge to Jet Stream that api got the message already...
-      log.info("acknowledged to Jet Stream...");
-    }
+      if(!this.graduationStatusService.eventExistsInDB(choreographedEvent).isPresent()) {
+        final var persistedEvent = this.graduationStatusService.persistEventToDB(choreographedEvent);
+        if(persistedEvent != null) {
+          message.ack(); // acknowledge to Jet Stream that api got the message and it is now in DB.
+          log.info("acknowledged to Jet Stream...");
+          this.eventHandlerService.handleAssessmentUpdatedDataEvent(persistedEvent);
+        }
+      }
+      else {
+        message.ack(); // acknowledge to Jet Stream that api got the message and it is already in DB.
+        log.debug("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
+      }
   }
 
   /**
