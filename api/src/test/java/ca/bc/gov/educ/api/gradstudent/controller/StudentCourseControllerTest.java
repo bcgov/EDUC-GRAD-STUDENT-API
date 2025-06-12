@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseHistory;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseValidationIssue;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCoursesTransferReq;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import org.junit.Test;
@@ -122,6 +123,42 @@ public class StudentCourseControllerTest {
         ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.deleteStudentCourses(studentID, List.of(courseID));
         assertThat(actual).isEqualTo(expectedResponse);
         verify(studentCourseService).deleteStudentCourses(studentID, List.of(courseID));
+    }
+
+    @Test
+    public void testCreateStudentCourses_transferSuccess() {
+        UUID sourceStudentId = UUID.randomUUID();
+        UUID targetStudentId = UUID.randomUUID();
+
+        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        request.setSourceStudentId(sourceStudentId);
+        request.setTargetStudentId(targetStudentId);
+        request.setStudentCourseIdsToMove(List.of(UUID.randomUUID(), UUID.randomUUID()));
+
+        List<StudentCourse> validatedCourses = List.of(new StudentCourse(), new StudentCourse());
+        List<StudentCourseValidationIssue> saveResults = List.of(new StudentCourseValidationIssue());
+
+        when(studentCourseService.validateStudentCourseTransferRequest(request)).thenReturn(validatedCourses);
+        when(studentCourseService.saveStudentCourses(targetStudentId, validatedCourses, false)).thenReturn(saveResults);
+
+        ResponseEntity<List<StudentCourseValidationIssue>> responseEntity = ResponseEntity.ok(saveResults);
+        when(responseHelper.GET(saveResults)).thenReturn(responseEntity);
+
+        ResponseEntity<List<StudentCourseValidationIssue>> response = studentCourseController.createStudentCourses(request);
+
+        assertThat(response).isEqualTo(responseEntity);
+        verify(studentCourseService).validateStudentCourseTransferRequest(request);
+        verify(studentCourseService).saveStudentCourses(targetStudentId, validatedCourses, false);
+        verify(responseHelper).GET(saveResults);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateStudentCourses_validationFails() {
+        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        when(studentCourseService.validateStudentCourseTransferRequest(request))
+            .thenThrow(new IllegalArgumentException("Course not found"));
+
+        studentCourseController.createStudentCourses(request);
     }
 
 }

@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -1206,6 +1207,61 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<EquivalentOrChallengeCode> equivalentOrChallengeCodes = new ArrayList<>();
         equivalentOrChallengeCodes.add(EquivalentOrChallengeCode.builder().equivalentOrChallengeCode("C").build());
         return equivalentOrChallengeCodes;
+    }
+
+    @Test
+    public void testValidateStudentCourseTransferRequest_success() {
+        UUID sourceStudentId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        request.setSourceStudentId(sourceStudentId);
+        request.setStudentCourseIdsToMove(List.of(courseId));
+
+        StudentCourseEntity entity = new StudentCourseEntity();
+        entity.setId(UUID.randomUUID());
+        entity.setStudentID(sourceStudentId);
+        entity.setId(courseId);
+
+        when(studentCourseRepository.findById(courseId)).thenReturn(Optional.of(entity));
+
+        var result = studentCourseService.validateStudentCourseTransferRequest(request);
+
+        assertEquals(1, result.size());
+        assertEquals(courseId, result.get(0).getId());
+    }
+
+    @Test
+    public void testValidateStudentCourseTransferRequest_courseNotFound_throws() {
+        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        request.setSourceStudentId(UUID.randomUUID());
+        UUID courseId = UUID.randomUUID();
+        request.setStudentCourseIdsToMove(List.of(courseId));
+
+        when(studentCourseRepository.findById(courseId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> studentCourseService.validateStudentCourseTransferRequest(request))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Course not found");
+    }
+
+    @Test
+    public void testValidateStudentCourseTransferRequest_courseWrongStudent_throws() {
+        UUID sourceStudentId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        request.setSourceStudentId(sourceStudentId);
+        request.setStudentCourseIdsToMove(List.of(courseId));
+
+        StudentCourseEntity entity = new StudentCourseEntity();
+        entity.setId(UUID.randomUUID());
+        entity.setStudentID(UUID.randomUUID()); // Different studentId to cause error
+        entity.setId(courseId);
+
+        when(studentCourseRepository.findById(courseId)).thenReturn(Optional.of(entity));
+
+        assertThatThrownBy(() -> studentCourseService.validateStudentCourseTransferRequest(request))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("does not belong to the source student");
     }
 
 }

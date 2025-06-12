@@ -209,6 +209,23 @@ public class StudentCourseService {
         return courseValidationIssues.values().stream().toList();
     }
 
+    public List<StudentCourse> validateStudentCourseTransferRequest(StudentCoursesTransferReq request) {
+        List<StudentCourseEntity> entities = request.getStudentCourseIdsToMove().stream()
+            .map(courseId -> studentCourseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found: " + courseId)))
+            .toList();
+
+        entities.forEach(entity -> {
+            if (!entity.getStudentID().equals(request.getSourceStudentId())) {
+                throw new IllegalArgumentException("Course " + entity.getId() + " does not belong to the source student.");
+            }
+        });
+
+        return entities.stream()
+            .map(mapper::toStructure)
+            .toList();
+    }
+
     private Map<UUID, StudentCourseValidationIssue> deleteAndCreateHistory(List<StudentCourseEntity> tobeDeleted, UUID studentID, Map<UUID, StudentCourseValidationIssue> courseValidationIssues) {
         if(!tobeDeleted.isEmpty()) {
             List<UUID> studentCourseIDs = tobeDeleted.stream().map(StudentCourseEntity::getId).toList();
