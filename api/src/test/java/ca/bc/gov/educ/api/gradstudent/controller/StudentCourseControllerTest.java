@@ -1,11 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseHistory;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseValidationIssue;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCoursesTransferReq;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import org.junit.Test;
@@ -15,9 +12,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -126,39 +125,44 @@ public class StudentCourseControllerTest {
     }
 
     @Test
-    public void testCreateStudentCourses_transferSuccess() {
-        UUID sourceStudentId = UUID.randomUUID();
-        UUID targetStudentId = UUID.randomUUID();
-
+    public void testCreateStudentCourses_withValidationIssues_returnsOk() {
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
         StudentCoursesTransferReq request = new StudentCoursesTransferReq();
-        request.setSourceStudentId(sourceStudentId);
-        request.setTargetStudentId(targetStudentId);
-        request.setStudentCourseIdsToMove(List.of(UUID.randomUUID(), UUID.randomUUID()));
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
 
-        List<StudentCourse> validatedCourses = List.of(new StudentCourse(), new StudentCourse());
-        List<StudentCourseValidationIssue> saveResults = List.of(new StudentCourseValidationIssue());
+        ValidationIssue issue = ValidationIssue.builder()
+            .validationFieldName("studentCourseId")
+            .validationIssueMessage("Course already exists")
+            .validationIssueSeverityCode("ERROR")
+            .build();
 
-        when(studentCourseService.validateStudentCourseTransferRequest(request)).thenReturn(validatedCourses);
-        when(studentCourseService.saveStudentCourses(targetStudentId, validatedCourses, false)).thenReturn(saveResults);
+        List<ValidationIssue> issues = List.of(issue);
+        ResponseEntity<List<ValidationIssue>> expectedResponse = ResponseEntity.ok(issues);
 
-        ResponseEntity<List<StudentCourseValidationIssue>> responseEntity = ResponseEntity.ok(saveResults);
-        when(responseHelper.GET(saveResults)).thenReturn(responseEntity);
+        when(studentCourseService.transferStudentCourse(request)).thenReturn(issues);
 
-        ResponseEntity<List<StudentCourseValidationIssue>> response = studentCourseController.createStudentCourses(request);
+        ResponseEntity<List<ValidationIssue>> actual = studentCourseController.createStudentCourses(request);
 
-        assertThat(response).isEqualTo(responseEntity);
-        verify(studentCourseService).validateStudentCourseTransferRequest(request);
-        verify(studentCourseService).saveStudentCourses(targetStudentId, validatedCourses, false);
-        verify(responseHelper).GET(saveResults);
+        assertThat(actual).isEqualTo(expectedResponse);
+        verify(studentCourseService).transferStudentCourse(request);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateStudentCourses_validationFails() {
+    @Test
+    public void testCreateStudentCourses_noIssues_returnsNoContent() {
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
         StudentCoursesTransferReq request = new StudentCoursesTransferReq();
-        when(studentCourseService.validateStudentCourseTransferRequest(request))
-            .thenThrow(new IllegalArgumentException("Course not found"));
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
 
-        studentCourseController.createStudentCourses(request);
+        when(studentCourseService.transferStudentCourse(request)).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<ValidationIssue>> actual = studentCourseController.createStudentCourses(request);
+
+        assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(actual.getBody()).isNull();
+        verify(studentCourseService).transferStudentCourse(request);
     }
-
 }

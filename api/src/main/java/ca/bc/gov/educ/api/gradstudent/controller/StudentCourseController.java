@@ -1,9 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseHistory;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseValidationIssue;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCoursesTransferReq;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
@@ -104,14 +101,18 @@ public class StudentCourseController {
     @PostMapping(EducGradStudentApiConstants.STUDENT_COURSE_TRANSFER_MAPPING)
     @PreAuthorize(PermissionsConstants.UPDATE_GRAD_STUDENT_COURSE)
     @Operation(summary = "Transfer student courses", description = "Transfer student courses to a different student", tags = { "Student courses" })
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
-        @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
+        @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT"),
+        @ApiResponse(responseCode = "204", description = "Transfer successful, no validation issues"),
+        @ApiResponse(responseCode = "200", description = "Validation issues found during transfer")
     })
-    public ResponseEntity<List<StudentCourseValidationIssue>> createStudentCourses(@NotNull @Valid @RequestBody StudentCoursesTransferReq studentCoursesRequest) {
-        logger.debug("transfer student courses for: studentID = {}", studentCoursesRequest.getSourceStudentId());
-        var coursesToTransfer = studentCourseService.validateStudentCourseTransferRequest(studentCoursesRequest);
-        var results = studentCourseService.saveStudentCourses(studentCoursesRequest.getTargetStudentId(), coursesToTransfer, false);
-        return response.GET(results);
+    public ResponseEntity<List<ValidationIssue>> createStudentCourses(@NotNull @Valid @RequestBody StudentCoursesTransferReq studentCoursesRequest) {
+        logger.debug("transfer student courses from: studentId = {} to: studentId = {}", studentCoursesRequest.getSourceStudentId(), studentCoursesRequest.getTargetStudentId());
+        var results = studentCourseService.transferStudentCourse(studentCoursesRequest);
+        if (results.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(results);
     }
 }
