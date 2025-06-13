@@ -28,20 +28,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.util.Date;
-import java.time.Month;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class GradStudentService {
 	private static final Logger logger = LoggerFactory.getLogger(GradStudentService.class);
-	
-    @Value("${more.search.match.found}")
+
+	@Value("${more.search.match.found}")
 	String messageStringMoreMatchesFound;
     
     private static final String LEGAL_FIRST_NAME="legalFirstName";
@@ -63,13 +57,15 @@ public class GradStudentService {
 	final WebClient studentApiClient;
 	final GraduationStudentRecordRepository graduationStatusRepository;
 	final GraduationStatusTransformer graduationStatusTransformer;
+	final RESTService restService;
 
 	@Autowired
-	public GradStudentService(EducGradStudentApiConstants constants, @Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, GraduationStatusTransformer graduationStatusTransformer) {
+	public GradStudentService(EducGradStudentApiConstants constants, @Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, GraduationStatusTransformer graduationStatusTransformer, RESTService restService) {
 		this.constants = constants;
 		this.studentApiClient = studentApiClient;
 		this.graduationStatusRepository = graduationStatusRepository;
 		this.graduationStatusTransformer = graduationStatusTransformer;
+        this.restService = restService;
 	}
 
 	public StudentSearch getStudentFromStudentAPI(StudentSearchRequest studentSearchRequest, Integer pageNumber, Integer pageSize, String accessToken) {
@@ -254,6 +250,31 @@ public class GradStudentService {
     	return gradStudentList;
     }
 
+	/**
+	 * Convenience method to get student UUIDs from a list of PENs.
+	 * @param pens a list of valid PENs
+	 * @return a list of UUIDs representing the students associated with the provided PENs
+	 */
+	public List<UUID> getStudentUUIDsFromPens(List<String> pens) {
+		List<UUID> studentUUIDs = new ArrayList<>();
+		for (String pen : pens) {
+			List<Student> students = this.restService.get(
+					String.format(constants.getPenStudentApiByPenUrl(), pen),
+					new ParameterizedTypeReference<List<Student>>() {},
+					null
+			);
+			if (students != null && !students.isEmpty()) {
+				List<UUID> uuids = students.stream()
+						.map(Student::getStudentID)
+						.filter(Objects::nonNull)
+						.map(UUID::fromString)
+						.toList();
+				studentUUIDs.addAll(uuids);
+			}
+		}
+		return studentUUIDs;
+	}
+
     private void populateSearchCriteria(StudentSearchRequest studentSearchRequest, List<SearchCriteria> criteriaList) {
 		getSearchCriteria(studentSearchRequest.getLegalFirstName(),null,LEGAL_FIRST_NAME,criteriaList);
 		getSearchCriteria(studentSearchRequest.getLegalLastName(),null,LEGAL_LAST_NAME,criteriaList);
@@ -396,7 +417,9 @@ public class GradStudentService {
 			result.addAll(searchRequest.getStudentIDs());
 		}
 		if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
-			result.addAll(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens()));
+			result.addAll(
+					this.getStudentUUIDsFromPens(searchRequest.getPens())
+			);
 		}
 		if(searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));
