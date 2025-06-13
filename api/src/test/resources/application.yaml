@@ -164,7 +164,7 @@ endpoint:
     search:
       url: http://test
     by-pen:
-      url: http://test
+      url: http://test/api/v1/student?pen=%s
     student:
       url: http://test
   grad-graduation-report-api:
