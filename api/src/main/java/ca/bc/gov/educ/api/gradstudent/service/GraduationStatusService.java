@@ -1557,7 +1557,6 @@ public class GraduationStatusService extends GradBaseService {
                 .builder()
                 .studentID(String.valueOf(studentID))
                 .schoolOfRecordID(String.valueOf(sourceObject.getSchoolOfRecordId()))
-                .vendorID(null)
                 .build();
 
         GradStatusEvent gradStatusEvent = EventUtil.createEvent(sourceObject.getCreateUser(),

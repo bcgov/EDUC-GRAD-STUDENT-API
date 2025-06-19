@@ -78,7 +78,6 @@ public class EventHandlerService {
                     .builder()
                     .studentID(studentFromApi.getStudentID())
                     .schoolOfRecordID(demStudent.getSchoolID())
-                    .vendorID(demStudent.getVendorID())
                     .build();
             gradStatusEvent = EventUtil.createEvent(demStudent.getCreateUser(),
                     demStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, SCHOOL_OF_RECORD_UPDATED);
