@@ -198,7 +198,7 @@ public class StudentCourseService {
                 validationIssues.add(ValidationIssue.builder().validationIssueMessage(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_GRADUATION_VALID.getMessage()).validationFieldName(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_GRADUATION_VALID.getCode()).validationIssueSeverityCode(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_GRADUATION_VALID.getSeverityCode().getCode()).build());
             }
             if(isCourseExamDeleteRestricted(studentCourse)) {
-                validationIssues.add(ValidationIssue.builder().validationIssueMessage(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_HAS_EXAM.getMessage()).validationFieldName(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_HAS_EXAM.getCode()).validationIssueSeverityCode(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_HAS_EXAM.getSeverityCode().getCode()).build());
+                validationIssues.add(ValidationIssue.builder().validationIssueMessage(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage()).validationFieldName(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getCode()).validationIssueSeverityCode(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getSeverityCode().getCode()).build());
             }
             courseValidationIssues.put(studentCourse.getId(), createCourseValidationIssue(studentCourse.getCourseID().toString(), studentCourse.getCourseSession(), course, validationIssues));
             boolean hasError = validationIssues.stream().anyMatch(issue -> "ERROR".equals(issue.getValidationIssueSeverityCode()));
@@ -262,7 +262,7 @@ public class StudentCourseService {
             issues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE));
         }
         if (isCourseExamDeleteRestricted(course)) {
-            issues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_HAS_EXAM));
+            issues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID));
         }
         return issues;
     }
