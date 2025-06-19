@@ -1236,12 +1236,21 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<ValidationIssue> result = studentCourseService.transferStudentCourse(request);
 
         assertThat(result).isEmpty();
+
         Mockito.verify(studentCourseRepository).saveAll(argThat(iterable -> {
             List<StudentCourseEntity> list = StreamSupport
                 .stream(iterable.spliterator(), false)
                 .toList();
             return list.size() == 1 && list.get(0).getStudentID().equals(targetId);
         }));
+
+        Mockito.verify(historyService).createStudentCourseHistory(
+            List.of(course), StudentCourseActivityType.USERCOURSEADD);
+        Mockito.verify(historyService).createStudentCourseHistory(
+            List.of(course), StudentCourseActivityType.USERCOURSEDEL);
+
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentCourses(targetId);
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentCourses(sourceId);
     }
 
     @Test
@@ -1317,5 +1326,4 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
             issue.getValidationFieldName().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE.getCode())
         )).isTrue();
     }
-
 }

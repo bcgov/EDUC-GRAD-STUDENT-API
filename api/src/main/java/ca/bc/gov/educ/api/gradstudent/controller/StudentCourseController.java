@@ -107,7 +107,7 @@ public class StudentCourseController {
         @ApiResponse(responseCode = "204", description = "Transfer successful, no validation issues"),
         @ApiResponse(responseCode = "200", description = "Validation issues found during transfer")
     })
-    public ResponseEntity<List<ValidationIssue>> createStudentCourses(@NotNull @Valid @RequestBody StudentCoursesTransferReq studentCoursesRequest) {
+    public ResponseEntity<List<ValidationIssue>> transferStudentCourses(@NotNull @Valid @RequestBody StudentCoursesTransferReq studentCoursesRequest) {
         logger.debug("transfer student courses from: studentId = {} to: studentId = {}", studentCoursesRequest.getSourceStudentId(), studentCoursesRequest.getTargetStudentId());
         var results = studentCourseService.transferStudentCourse(studentCoursesRequest);
         if (results.isEmpty()) {
