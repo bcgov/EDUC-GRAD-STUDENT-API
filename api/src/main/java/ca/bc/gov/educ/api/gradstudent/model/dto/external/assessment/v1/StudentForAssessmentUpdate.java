@@ -24,6 +24,4 @@ public class StudentForAssessmentUpdate extends BaseModel implements Serializabl
 
     private String schoolOfRecordID;
 
-    private String vendorID;
-
 }
