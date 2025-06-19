@@ -88,7 +88,10 @@ public class GraduationStatusController {
                                                                          @RequestHeader(name="Authorization") String accessToken) throws JsonProcessingException {
         logger.debug("Save student Grad Status for Student ID");
         var result = gradStatusService.saveGraduationStatus(UUID.fromString(studentID),graduationStatus,batchId,accessToken.replace(BEARER, ""));
-        publishToJetStream(result.getRight());
+        var events = result.getRight();
+        if(!events.isEmpty()) {
+            events.forEach(this::publishToJetStream);
+        }
         return response.GET(result.getLeft());
     }
 
@@ -106,7 +109,10 @@ public class GraduationStatusController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         var result = gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken.replace(BEARER, ""));
-        publishToJetStream(result.getRight());
+        var events = result.getRight();
+        if(!events.isEmpty()) {
+            events.forEach(this::publishToJetStream);
+        }
         return response.GET(result.getLeft());
     }
 
