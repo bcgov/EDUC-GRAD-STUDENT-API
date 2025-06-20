@@ -125,7 +125,7 @@ public class StudentCourseControllerTest {
     }
 
     @Test
-    public void testCreateStudentCourses_withValidationIssues_returnsOk() {
+    public void testTransferStudentCourses_withValidationIssues_returnsOk() {
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
         StudentCoursesTransferReq request = new StudentCoursesTransferReq();
@@ -143,14 +143,14 @@ public class StudentCourseControllerTest {
 
         when(studentCourseService.transferStudentCourse(request)).thenReturn(issues);
 
-        ResponseEntity<List<ValidationIssue>> actual = studentCourseController.createStudentCourses(request);
+        ResponseEntity<List<ValidationIssue>> actual = studentCourseController.transferStudentCourses(request);
 
         assertThat(actual).isEqualTo(expectedResponse);
         verify(studentCourseService).transferStudentCourse(request);
     }
 
     @Test
-    public void testCreateStudentCourses_noIssues_returnsNoContent() {
+    public void testTransferStudentCourses_noIssues_returnsNoContent() {
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
         StudentCoursesTransferReq request = new StudentCoursesTransferReq();
@@ -159,7 +159,7 @@ public class StudentCourseControllerTest {
 
         when(studentCourseService.transferStudentCourse(request)).thenReturn(Collections.emptyList());
 
-        ResponseEntity<List<ValidationIssue>> actual = studentCourseController.createStudentCourses(request);
+        ResponseEntity<List<ValidationIssue>> actual = studentCourseController.transferStudentCourses(request);
 
         assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(actual.getBody()).isNull();

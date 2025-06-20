@@ -214,6 +214,8 @@ public class StudentCourseService {
     public List<ValidationIssue> transferStudentCourse(StudentCoursesTransferReq request) {
         List<ValidationIssue> validationIssues = new ArrayList<>();
         List<StudentCourseEntity> validEntities = new ArrayList<>();
+        List<StudentCourseEntity> originalEntitiesForHistory = new ArrayList<>();
+
         List<StudentCourseEntity> existingStudentCourses = studentCourseRepository.findByStudentID(request.getTargetStudentId());
         assertStudentExists(request.getSourceStudentId(), "Source");
         assertStudentExists(request.getTargetStudentId(), "Target");
@@ -227,19 +229,23 @@ public class StudentCourseService {
             StudentCourseEntity studentCourse = optionalCourse.get();
             List<ValidationIssue> courseIssues = validateCourseForTransfer(request, studentCourse, existingStudentCourses);
             if (courseIssues.isEmpty()) {
+                StudentCourseEntity originalCopy = new StudentCourseEntity();
+                BeanUtils.copyProperties(studentCourse, originalCopy);
+                originalEntitiesForHistory.add(originalCopy);
+
                 studentCourse.setStudentID(request.getTargetStudentId());
                 validEntities.add(studentCourse);
             } else {
                 validationIssues.addAll(courseIssues);
             }
         }
-        if (!validationIssues.isEmpty()) {
-            return validationIssues;
+        if(!validEntities.isEmpty()) {
+            createStudentCourseHistory(request.getTargetStudentId(), validEntities, StudentCourseActivityType.USERCOURSEADD);
+            createStudentCourseHistory(request.getSourceStudentId(), originalEntitiesForHistory, StudentCourseActivityType.USERCOURSEDEL);
+            studentCourseRepository.saveAll(validEntities);
         }
-        createStudentCourseHistory(request.getTargetStudentId(), validEntities, StudentCourseActivityType.USERCOURSEADD);
-        createStudentCourseHistory(request.getSourceStudentId(), validEntities, StudentCourseActivityType.USERCOURSEDEL);
-        studentCourseRepository.saveAll(validEntities);
-        return List.of();
+
+        return validationIssues;
     }
 
     private List<ValidationIssue> validateCourseForTransfer(

@@ -1106,6 +1106,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
         graduationStatusEntity.setStudentStatus(studentStatus);
+        graduationStatusEntity.setGpa("3.97");
         if(StringUtils.isNotBlank(program)) {
             graduationStatusEntity.setProgram(program);
         }
@@ -1230,6 +1231,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         Mockito.when(studentCourseRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
 
         GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setGpa("3.97");
         Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
         Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
 
@@ -1247,7 +1249,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         Mockito.verify(historyService).createStudentCourseHistory(
             List.of(course), StudentCourseActivityType.USERCOURSEADD);
         Mockito.verify(historyService).createStudentCourseHistory(
-            List.of(course), StudentCourseActivityType.USERCOURSEDEL);
+            anyList(), eq(StudentCourseActivityType.USERCOURSEDEL));
 
         Mockito.verify(graduationStatusService).updateBatchFlagsForStudentCourses(targetId);
         Mockito.verify(graduationStatusService).updateBatchFlagsForStudentCourses(sourceId);
