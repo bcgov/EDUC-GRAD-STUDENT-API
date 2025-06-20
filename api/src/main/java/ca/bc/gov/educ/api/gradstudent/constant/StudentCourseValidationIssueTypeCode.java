@@ -50,7 +50,12 @@ public enum StudentCourseValidationIssueTypeCode {
     STUDENT_COURSE_CREDITS_VALID("credits", "The number of credits is not an allowable credit value in the Course Registry", ValidationIssueSeverityCode.ERROR),
 
     STUDENT_COURSE_DELETE_GRADUATION_VALID("course", "This course has been used to meet a graduation requirement", ValidationIssueSeverityCode.WARNING),
-    STUDENT_COURSE_DELETE_EXAM_VALID("course", "This course has an associated exam record", ValidationIssueSeverityCode.ERROR);
+    STUDENT_COURSE_DELETE_EXAM_VALID("course", "This course has an associated exam record", ValidationIssueSeverityCode.ERROR),
+
+    STUDENT_COURSE_TRANSFER_SAME_STUDENT("targetStudentId", "Source student and target student are the same", ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_TRANSFER_STUDENT_COURSE_MISMATCH("studentCourseIdsToMove", "Course does not belong to source student", ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_NOT_FOUND("studentCourseIdsToMove", "Student Course not found", ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE("studentCourseIdsToMove", "The course session is a duplicate of an existing course session for the target student", ValidationIssueSeverityCode.ERROR),;
 
 
 
