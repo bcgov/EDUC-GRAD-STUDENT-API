@@ -1,10 +1,11 @@
-package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
+package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.impl;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.constant.ValidationIssueSeverityCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.UpsertStudentCourseValidationBaseRule;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -28,7 +29,7 @@ import java.util.List;
 @Slf4j
 @Order(603)
 @AllArgsConstructor
-public class StudentCourseExaminableRule implements StudentCourseValidationBaseRule {
+public class StudentCourseExaminableRule implements UpsertStudentCourseValidationBaseRule {
 
     private final CourseCacheService courseCacheService;
 
@@ -49,7 +50,7 @@ public class StudentCourseExaminableRule implements StudentCourseValidationBaseR
         boolean isCourseMarkedExaminable = studentCourseExam != null;
         boolean isCourseActualExaminable = examinableCourse != null;
         boolean isCourseActualExaminableMandatory = isCourseActualExaminable && isExaminableMandatory(sessionDate, examinableCourse);
-        boolean isCourseActualExaminableOptional = isCourseActualExaminable && isExaminableOptional(sessionDate, examinableCourse);
+        boolean isCourseActualExaminableOptional = isCourseActualExaminable && !PROGRAM_CODES_1995.contains(studentCourseRuleData.getGraduationStudentRecord().getProgram()) && isExaminableOptional(sessionDate, examinableCourse);
         if(!isCourseMarkedExaminable && isCourseActualExaminableMandatory) {
             ValidationIssueSeverityCode severityCode = Boolean.TRUE.equals(studentCourseRuleData.getIsSystemCoordinator()) ? ValidationIssueSeverityCode.WARNING: ValidationIssueSeverityCode.ERROR;
             validationIssues.add(createValidationIssue(severityCode, StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_VALID));

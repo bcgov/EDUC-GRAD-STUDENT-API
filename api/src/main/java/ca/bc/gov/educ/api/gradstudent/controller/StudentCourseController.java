@@ -7,19 +7,20 @@ import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.ValidationGroups;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -57,7 +58,7 @@ public class StudentCourseController {
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
     })
-    public ResponseEntity<List<StudentCourseValidationIssue>> createStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<StudentCourse> studentCourses) {
+    public ResponseEntity<List<StudentCourseValidationIssue>> createStudentCourses(@PathVariable UUID studentID, @NotNull @RequestBody List<StudentCourse> studentCourses) {
         logger.debug("createStudentCourses: studentID = {}", studentID);
         List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses,false);
         return response.GET(results);
@@ -70,10 +71,10 @@ public class StudentCourseController {
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
     })
-    public ResponseEntity<List<StudentCourseValidationIssue>> updateStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<StudentCourse> studentCourses) {
+    public ResponseEntity<StudentCourseValidationIssue> updateStudentCourses(@PathVariable UUID studentID, @NotNull @RequestBody @Validated(ValidationGroups.Update.class)  StudentCourse studentCourse) {
         logger.debug("updateStudentCourses: studentID = {}", studentID);
-        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses,true);
-        return response.GET(results);
+        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, List.of(studentCourse),true);
+        return response.GET(results.get(0));
     }
 
 
@@ -82,7 +83,7 @@ public class StudentCourseController {
     @Operation(summary = "Delete Student Courses", description = "Delete Student Courses by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    public ResponseEntity<List<StudentCourseValidationIssue>> deleteStudentCourses(@PathVariable UUID studentID, @NotNull @Valid @RequestBody List<UUID> studentCourses) {
+    public ResponseEntity<List<StudentCourseValidationIssue>> deleteStudentCourses(@PathVariable UUID studentID, @NotNull @RequestBody List<UUID> studentCourses) {
         logger.debug("deleteStudentCourses: studentID = {}", studentID);
         List<StudentCourseValidationIssue> results = studentCourseService.deleteStudentCourses(studentID, studentCourses);
         return response.GET(results);

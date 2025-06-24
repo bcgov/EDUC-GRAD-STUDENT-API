@@ -1,8 +1,9 @@
-package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
+package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.impl;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.UpsertStudentCourseValidationBaseRule;
 import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import java.util.List;
 @Slf4j
 @Order(606)
 @AllArgsConstructor
-public class StudentCourseEquivalencyChallengeRule implements StudentCourseValidationBaseRule {
+public class StudentCourseEquivalencyChallengeRule implements UpsertStudentCourseValidationBaseRule {
 
     private final CourseCacheService courseCacheService;
 

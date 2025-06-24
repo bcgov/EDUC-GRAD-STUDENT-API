@@ -1,10 +1,11 @@
-package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
+package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.impl;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Course;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseRuleData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ValidationIssue;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.UpsertStudentCourseValidationBaseRule;
 import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -33,7 +34,7 @@ import java.util.List;
 @Component
 @Slf4j
 @Order(602)
-public class StudentCourseRule implements StudentCourseValidationBaseRule {
+public class StudentCourseRule implements UpsertStudentCourseValidationBaseRule {
 
     @Override
     public boolean shouldExecute(StudentCourseRuleData studentCourseRuleData, List<ValidationIssue> list) {
@@ -47,11 +48,17 @@ public class StudentCourseRule implements StudentCourseValidationBaseRule {
         StudentCourse studentCourse = studentCourseRuleData.getStudentCourse();
         Course course = studentCourseRuleData.getCourse();
         Course relatedCourse = studentCourseRuleData.getRelatedCourse();
+        if(StringUtils.isBlank(studentCourse.getCourseID()) ||  StringUtils.isBlank(studentCourse.getCourseSession())) {
+            return List.of(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA));
+        }
         if (course == null) {
             return List.of(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID));
         }
         if(StringUtils.isNotBlank(studentCourse.getRelatedCourseId()) && relatedCourse == null) {
             return List.of(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID));
+        }
+        if(!isValidSessionMonth(studentCourse.getCourseSession())) {
+            return List.of(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID));
         }
         LocalDate sessionDate = getSessionDate(studentCourse);
         LocalDate sessionDatePlusOne = sessionDate.plusDays(1);
@@ -73,6 +80,19 @@ public class StudentCourseRule implements StudentCourseValidationBaseRule {
     private boolean isSessionDateInCurrentReportingPeriod(LocalDate sessionDate) {
         Pair<LocalDate, LocalDate> sessionPeriod = getCurrentSessionPeriod(sessionDate);
         return sessionDate.isAfter(sessionPeriod.getLeft()) && sessionDate.isBefore(sessionPeriod.getRight());
+    }
+
+
+    private boolean isValidSessionMonth(String dateValue) {
+        if(org.apache.commons.lang3.StringUtils.isNotBlank(dateValue)) {
+            if(dateValue.length() == 6 || (dateValue.length() == 7 && dateValue.charAt(4) == '-')) {
+                Integer monthValue = Integer.valueOf(org.apache.commons.lang3.StringUtils.right(dateValue,2));
+                if(monthValue >= 1 && monthValue <= 12) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

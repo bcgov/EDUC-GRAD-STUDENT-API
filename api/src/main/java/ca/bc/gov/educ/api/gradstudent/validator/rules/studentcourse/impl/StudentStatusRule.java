@@ -1,9 +1,11 @@
-package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
+package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.impl;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseRuleData;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.ValidationIssue;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.DeleteStudentCourseValidationBaseRule;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.UpsertStudentCourseValidationBaseRule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -23,7 +25,7 @@ import java.util.List;
 @Component
 @Slf4j
 @Order(601)
-public class StudentStatusRule implements StudentCourseValidationBaseRule {
+public class StudentStatusRule implements UpsertStudentCourseValidationBaseRule, DeleteStudentCourseValidationBaseRule {
 
     @Override
     public boolean shouldExecute(StudentCourseRuleData studentCourseRuleData, List<ValidationIssue> list) {

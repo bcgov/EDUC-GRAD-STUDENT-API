@@ -187,15 +187,14 @@ public class HistoryService {
             List<StudentCourseHistoryEntity> studentCourseHistoryEntities = studentCourseEntities.stream()
                     .map(studentCourseEntity -> {
                         StudentCourseHistoryEntity studentCourseHistoryEntity = new StudentCourseHistoryEntity();
-                        BeanUtils.copyProperties(studentCourseEntity, studentCourseHistoryEntity);
+                        BeanUtils.copyProperties(studentCourseEntity, studentCourseHistoryEntity, "createUser", "createDate" , "updateUser", "updateDate");
                         studentCourseHistoryEntity.setStudentCourseID(studentCourseEntity.getId());
-                        studentCourseHistoryEntity.setCreateUser(studentCourseEntity.getCreateUser());
-                        studentCourseHistoryEntity.setCreateDate(studentCourseEntity.getCreateDate());
                         if(studentCourseEntity.getCourseExam() != null) {
                             StudentCourseExamHistoryEntity studentCourseExamHistoryEntity = new StudentCourseExamHistoryEntity();
-                            BeanUtils.copyProperties(studentCourseEntity.getCourseExam(), studentCourseExamHistoryEntity);
+                            BeanUtils.copyProperties(studentCourseEntity.getCourseExam(), studentCourseExamHistoryEntity,"createUser", "createDate" , "updateUser", "updateDate");
                             studentCourseExamHistoryEntity.setStudentCourseExamID(studentCourseEntity.getCourseExam().getId());
                             studentCourseHistoryEntity.setCourseExam(studentCourseExamHistoryEntity);
+                            studentCourseHistoryEntity.setStudentCourseID(studentCourseEntity.getId());
                         }
                         studentCourseHistoryEntity.setActivityCode(getStudentCourseActivityType(studentCourseHistoryEntity, historyActivityType).name());
                         return studentCourseHistoryEntity;

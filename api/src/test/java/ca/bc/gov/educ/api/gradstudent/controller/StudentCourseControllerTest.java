@@ -91,18 +91,17 @@ public class StudentCourseControllerTest {
     public void testUpdateStudentCourses() {
         UUID studentID = UUID.randomUUID();
         StudentCourse studentCourse = new StudentCourse();
-        studentCourse.setId(UUID.randomUUID());
+        studentCourse.setId(UUID.randomUUID().toString());
         studentCourse.setCourseID("1");
         studentCourse.setCourseSession("202404");
         StudentCourseValidationIssue validationIssue = new StudentCourseValidationIssue();
         validationIssue.setHasPersisted(true);
         validationIssue.setCourseID("1");
         validationIssue.setCourseSession("202404");
-        ResponseEntity<List<StudentCourseValidationIssue>> expectedResponse = ResponseEntity.ok(Arrays.asList(validationIssue));
-        when(responseHelper.GET(Arrays.asList(validationIssue))).thenReturn(expectedResponse);
-
+        ResponseEntity<StudentCourseValidationIssue> expectedResponse = ResponseEntity.ok(validationIssue);
+        when(responseHelper.GET(validationIssue)).thenReturn(expectedResponse);
         when(studentCourseService.saveStudentCourses(studentID, List.of(studentCourse), true)).thenReturn(Arrays.asList(validationIssue));
-        ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.updateStudentCourses(studentID, List.of(studentCourse));
+        ResponseEntity<StudentCourseValidationIssue> actual = studentCourseController.updateStudentCourses(studentID, studentCourse);
         assertThat(actual).isEqualTo(expectedResponse);
         verify(studentCourseService).saveStudentCourses(studentID, List.of(studentCourse), true);
     }

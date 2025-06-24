@@ -123,7 +123,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             studentCourseEntities.add(studentCourseEntity);
@@ -230,7 +230,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
@@ -267,7 +267,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
     }
 
@@ -312,7 +312,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
@@ -349,7 +349,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
     }
 
@@ -394,7 +394,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
@@ -431,7 +431,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
     }
 
@@ -452,8 +452,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID.getMessage())).findFirst().isPresent());
 
     }
 
@@ -474,8 +472,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID.getMessage())).findFirst().isPresent());
 
     }
 
@@ -496,9 +492,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID.getMessage())).findFirst().isPresent());
-
     }
 
     @Test
@@ -509,7 +502,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             if(studentCourse.getCourseExam() != null) {
@@ -541,7 +534,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             if(studentCourse.getCourseExam() != null) {
@@ -585,7 +578,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
@@ -622,7 +615,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
     }
 
@@ -634,7 +627,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             if(studentCourse.getCourseExam() != null) {
@@ -678,7 +671,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
+
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
@@ -689,13 +683,12 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse11").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse11").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage())).findFirst().isPresent());
-
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse12").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse12").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse13").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse13").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage())).findFirst().isPresent());
-
+        
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse14").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse14").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage())).findFirst().isPresent());
 
@@ -715,7 +708,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
     }
 
@@ -727,7 +720,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             if(studentCourse.getCourseExam() != null) {
@@ -771,7 +764,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
@@ -808,7 +801,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isPresent());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
     }
 
@@ -820,7 +813,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             if(studentCourse.getCourseExam() != null) {
@@ -840,8 +833,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID.getMessage())).findFirst().isPresent());
 
     }
 
@@ -853,7 +844,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             if(studentCourse.getCourseExam() != null) {
@@ -873,8 +864,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID.getMessage())).findFirst().isPresent());
 
     }
 
@@ -886,7 +875,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             if(studentCourse.getCourseExam() != null) {
@@ -906,8 +895,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID.getMessage())).findFirst().isPresent());
 
     }
 
@@ -919,7 +906,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             if(studentCourse.getCourseExam() != null) {
@@ -930,6 +917,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<UUID> tobeDeleted = studentCourseEntities.stream().map(StudentCourseEntity::getId).toList();
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2004-EN");
         graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setProgramCompletionDate(null);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findAllById(tobeDeleted)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
@@ -949,31 +937,17 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
-        List<OptionalStudentCourse> optionalStudentCourses = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
-            studentCourse.setId(studentCourseID);
+            studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             studentCourseEntities.add(studentCourseEntity);
-            OptionalStudentCourse optionalStudentCourse = new OptionalStudentCourse();
             Course course = getCourses().stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID())).findFirst().orElse(null);
-            optionalStudentCourse.setCourseCode(course.getCourseCode());
-            optionalStudentCourse.setCourseLevel(course.getCourseLevel());
-            optionalStudentCourse.setUsed(true);
-            optionalStudentCourses.add(optionalStudentCourse);
         }
         List<UUID> tobeDeleted = studentCourseEntities.stream().map(StudentCourseEntity::getId).toList();
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2004-EN");
-        GraduationDataOptionalDetails graduationDataOptionalDetails = new GraduationDataOptionalDetails();
-        GradStudentOptionalStudentProgram gradStudentOptionalStudentProgram1 = new GradStudentOptionalStudentProgram();
-        gradStudentOptionalStudentProgram1.setStudentID(studentID);
-        OptionalStudentCourses optionalStudentCoursesList = new OptionalStudentCourses();
-        optionalStudentCoursesList.setStudentCourseList(optionalStudentCourses);
-        gradStudentOptionalStudentProgram1.setOptionalStudentCourses(optionalStudentCoursesList);
-        graduationDataOptionalDetails.setOptionalGradStatus(List.of(gradStudentOptionalStudentProgram1));
-        graduationStatusEntity.setStudentGradData(objectMapper.writeValueAsString(graduationDataOptionalDetails));
         graduationStatusEntity.setStudentID(studentID);
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(studentCourseRepository.findAllById(tobeDeleted)).thenReturn(studentCourseEntities);
@@ -1010,7 +984,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     private Map<String, StudentCourse> getStudentCoursesTestData_WithValidationIssues() {
         Map<String, StudentCourse> studentCourses = new HashMap<>();
-        //STUDENT_COURSE_INTERIM_PERCENT_VALID, STUDENT_COURSE_FINAL_PERCENT_VALID, STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID
+        //STUDENT_COURSE_INTERIM_PERCENT_VALID, STUDENT_COURSE_FINAL_PERCENT_VALID, STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID
         StudentCourse studentCourse1 = createStudentCourse("1","202404", 200, null,-200, null, null, null, null);
         //STUDENT_COURSE_INTERIM_GRADE_VALID, STUDENT_COURSE_FINAL_GRADE_VALID
         StudentCourse studentCourse2 = createStudentCourse("2","200004", 40,"C", 100, "C-", null, null, null);
@@ -1026,7 +1000,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         StudentCourse studentCourse7 = createStudentCourse("7","202404", null, null,89,"A", 3, "B", null);
         //STUDENT_COURSE_CREDITS_A_F_VALID
         StudentCourse studentCourse8 = createStudentCourse("8","202404", null, null,89,"A", 1, "B", null);
-        //STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID
+        //STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID
         StudentCourse studentCourse9 = createStudentCourse("9","202404", null, null,89,"A", 1, "A", null);
         //STUDENT_COURSE_CREDITS_VALID
         StudentCourse studentCourse10 = createStudentCourse("10","202404", null, null,89,"A", 5, "B", null);
@@ -1037,19 +1011,19 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         //STUDENT_RELATED_COURSE_VALID
         StudentCourse studentCourse13 = createStudentCourse("13","202404", null, null,89,"A", 4, "B", "XYZ");
         //STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID
-        StudentCourse studentCourse14 = createStudentCourse("14","202404", null, null,89,"A", 4, "B", null);
+        StudentCourse studentCourse14 = createStudentCourse("14","202404", null, null,89,"A", 4, null, null);
         studentCourse14.setEquivOrChallenge("X");
         //STUDENT_COURSE_EXAM_SPECIAL_CASE_AEGROTAT_VALID
-        StudentCourse studentCourse15 = createStudentCourse("15","202404", null, null,89,"A", 4, "B", null);
+        StudentCourse studentCourse15 = createStudentCourse("15","202404", null, null,89,"A", 4, null, null);
         studentCourse15.setCourseExam(createStudentCourseExam(89, 88, 88, "X"   ));
         //STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID, STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID, STUDENT_COURSE_EXAM_BEST_PERCENT_VALID
-        StudentCourse studentCourse16 = createStudentCourse("16","202404", null, null,89,"A", 4, "B", null);
+        StudentCourse studentCourse16 = createStudentCourse("16","202404", null, null,89,"A", 4, null, null);
         studentCourse16.setCourseExam(createStudentCourseExam(-89, -88, -88,null   ));
         //STUDENT_COURSE_EXAM_MANDATORY_VALID
-        StudentCourse studentCourse17 = createStudentCourse("17","202404", null, null,89,"A", 4, "B", null);
+        StudentCourse studentCourse17 = createStudentCourse("17","202404", null, null,89,"A", 4, null, null);
         studentCourse17.setCourseExam(createStudentCourseExam(89, 88, 88,null   ));
         //STUDENT_COURSE_EXAM_OPTIONAL_VALID
-        StudentCourse studentCourse18 = createStudentCourse("18","202404", null, null,89,"A", 4, "B", null);
+        StudentCourse studentCourse18 = createStudentCourse("18","202404", null, null,89,"A", 4, null, null);
         studentCourse18.setCourseExam(createStudentCourseExam(89, 88, 88,null   ));
 
 
@@ -1141,9 +1115,9 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     private List<Course> getCourses() {
         List<Course> courses = new ArrayList<>();
-        CourseCharacteristics characteristicsBA = CourseCharacteristics.builder().type("BA").code("EC").build();
-        CourseCharacteristics characteristicsLA = CourseCharacteristics.builder().type("LA").code("EC").build();
-        CourseCharacteristics characteristicsOT = CourseCharacteristics.builder().type("CC").code("EC").build();
+        CourseCharacteristics characteristicsBA = CourseCharacteristics.builder().type("BA").code("BA").build();
+        CourseCharacteristics characteristicsLA = CourseCharacteristics.builder().type("LA").code("LD").build();
+        CourseCharacteristics characteristicsOT = CourseCharacteristics.builder().type("CC").code("MI").build();
         List<CourseAllowableCredits> allowableCredits = new ArrayList<>();
         allowableCredits.add(CourseAllowableCredits.builder().creditValue("1").build());
         allowableCredits.add(CourseAllowableCredits.builder().creditValue("2").build());
@@ -1158,10 +1132,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         courses.add(Course.builder().courseID("6").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsLA).courseAllowableCredit(allowableCredits).build());
 
         courses.add(Course.builder().courseID("7").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsBA).courseAllowableCredit(allowableCredits).build());
-        courses.add(Course.builder().courseID("8").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsBA).courseAllowableCredit(allowableCredits).build());
-        courses.add(Course.builder().courseID("9").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsBA).courseAllowableCredit(allowableCredits).build());
-        courses.add(Course.builder().courseID("10").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsBA).courseAllowableCredit(allowableCredits).build());
-        courses.add(Course.builder().courseID("11").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsLA).courseAllowableCredit(allowableCredits).build());
+        courses.add(Course.builder().courseID("8").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsBA).courseAllowableCredit(allowableCredits).courseLevel("11").build());
+        courses.add(Course.builder().courseID("9").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsBA).courseAllowableCredit(allowableCredits).courseLevel("11").build());
+        courses.add(Course.builder().courseID("10").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsBA).courseAllowableCredit(allowableCredits).courseLevel("11").build());
+        courses.add(Course.builder().courseID("11").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseCategory(characteristicsLA).courseAllowableCredit(allowableCredits).courseLevel("11").build());
         courses.add(Course.builder().courseID("12").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseLevel("10").courseCategory(characteristicsLA).courseAllowableCredit(allowableCredits).build());
         courses.add(Course.builder().courseID("13").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseLevel("10").courseCategory(characteristicsLA).courseAllowableCredit(allowableCredits).build());
         courses.add(Course.builder().courseID("14").startDate(LocalDate.now().minusYears(1)).completionEndDate(LocalDate.now().plusYears(1)).courseCode("A").courseLevel("10").courseCategory(characteristicsLA).courseAllowableCredit(allowableCredits).build());

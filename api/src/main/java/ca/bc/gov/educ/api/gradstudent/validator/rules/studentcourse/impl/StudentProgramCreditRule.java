@@ -1,9 +1,11 @@
-package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
+package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.impl;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
-import ca.bc.gov.educ.api.gradstudent.constant.ValidationIssueSeverityCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
+import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.UpsertStudentCourseValidationBaseRule;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
@@ -31,7 +33,10 @@ import java.util.Set;
 @Component
 @Slf4j
 @Order(605)
-public class StudentProgramCreditRule implements StudentCourseValidationBaseRule {
+@AllArgsConstructor
+public class StudentProgramCreditRule implements UpsertStudentCourseValidationBaseRule {
+
+    private final CourseCacheService courseCacheService;
 
     @Override
     public boolean shouldExecute(StudentCourseRuleData studentCourseRuleData, List<ValidationIssue> list) {
@@ -49,9 +54,11 @@ public class StudentProgramCreditRule implements StudentCourseValidationBaseRule
                 validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID));
             }
             if (!validationIssues.isEmpty()) return validationIssues;
-            if(StringUtils.isNotEmpty(studentCourse.getFineArtsAppliedSkills())) {
-                validationIssues.addAll(validateFineArtsAppliedSkillsProgramCode(studentCourseRuleData.getGraduationStudentRecord().getProgram(), studentCourse, course));
+            if(isInvalidFlagValue(studentCourse.getFineArtsAppliedSkills())) {
+                validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID));
             }
+            if (!validationIssues.isEmpty()) return validationIssues;
+            validationIssues.addAll(validateFineArtsAppliedSkillsProgramCode(studentCourseRuleData.getGraduationStudentRecord().getProgram(), studentCourse, course));
         }
         return validationIssues;
     }
@@ -60,26 +67,33 @@ public class StudentProgramCreditRule implements StudentCourseValidationBaseRule
         final List<ValidationIssue> programValidationIssues = new ArrayList<>();
         if(StringUtils.isBlank(programCode)) return programValidationIssues;
         String fineArtsAppliedSkillsValue = studentCourse.getFineArtsAppliedSkills();
-        if(PROGRAM_CODES_BA_LA.contains(programCode)) {
-            if (!(Set.of("B", "A", "F").contains(fineArtsAppliedSkillsValue) && Set.of(BOARD_AUTHORITY_CODE, LOCAL_DEVELOPMENT_CODE).contains(course.getCourseCategory().getCode()))) {
-                programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID));
-            }
-            if("B".equals(fineArtsAppliedSkillsValue) && studentCourse.getCredits() != null && studentCourse.getCredits() != 4) {
+        boolean isLevelGrade11 = StringUtils.isNotBlank(course.getCourseLevel()) && "11".equals(course.getCourseLevel());
+        if(StringUtils.isNotBlank(fineArtsAppliedSkillsValue)  && !(isLevelGrade11 && Set.of("B", "A", "F").contains(fineArtsAppliedSkillsValue) && (BOARD_AUTHORITY_CODE.equals(course.getCourseCategory().getCode()) ||
+                LOCAL_DEVELOPMENT_CODE.equals(course.getCourseCategory().getCode()) ||
+                CAREER_PROGRAM_CODE.equals(course.getCourseCategory().getCode())))) {
+            return List.of(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID));
+        }
+        if(!PROGRAM_CODES_1995.contains(programCode) && StringUtils.isNotBlank(fineArtsAppliedSkillsValue) && Set.of("B", "A", "F").contains(fineArtsAppliedSkillsValue)
+                && Set.of(CAREER_PROGRAM_CODE, LOCAL_DEVELOPMENT_CODE).contains(course.getCourseCategory().getCode())) {
+                programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_1995_VALID));
+        }
+        if(PROGRAM_CODES_1995.contains(programCode) && StringUtils.isNotBlank(fineArtsAppliedSkillsValue)) {
+            if("B".equals(fineArtsAppliedSkillsValue) && ((studentCourse.getCredits() != null && studentCourse.getCredits() != 4) || studentCourse.getCredits() == null)) {
                 programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID));
             }
-            if(Set.of( "A", "F").contains(fineArtsAppliedSkillsValue) && studentCourse.getCredits() != null && studentCourse.getCredits() < 2) {
+
+            if(Set.of( "A", "F").contains(fineArtsAppliedSkillsValue) && ((studentCourse.getCredits() != null && studentCourse.getCredits() < 2) || studentCourse.getCredits() == null)) {
                 programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID));
             }
         }
-        if(PROGRAM_CODES_BA.contains(programCode) && !("B".equals(fineArtsAppliedSkillsValue) && BOARD_AUTHORITY_CODE.equals(course.getCourseCategory().getCode()))) {
-            programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID));
-        }
-        if(isInvalidFlagValue(programCode, fineArtsAppliedSkillsValue)) {
-            programValidationIssues.add(createValidationIssue(ValidationIssueSeverityCode.ERROR, StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID));
-        }
         return programValidationIssues;
     }
-    private boolean isInvalidFlagValue(String programCode, String fineArtsAppliedSkillsValue) {
-        return !PROGRAM_CODES_BA_LA.contains(programCode) && !PROGRAM_CODES_BA.contains(programCode) && StringUtils.isNotBlank(fineArtsAppliedSkillsValue) && Set.of("B", "A", "F").contains(fineArtsAppliedSkillsValue);
+
+    private boolean isInvalidFlagValue(String code) {
+        if(StringUtils.isNotBlank(code)) {
+            return  courseCacheService.getFineArtsAppliedSkillsCodesFromCache().stream().anyMatch(fineArtsAppliedSkillsCode -> fineArtsAppliedSkillsCode.getFineArtsAppliedSkillsCode().equals(code));
+        }
+        return false;
     }
+
 }

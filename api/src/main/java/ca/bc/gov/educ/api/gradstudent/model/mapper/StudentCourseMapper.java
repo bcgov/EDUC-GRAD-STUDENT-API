@@ -6,7 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, StringMapper.class})
+
+@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, StringMapper.class, BigIntegerMapper.class})
 public interface StudentCourseMapper {
 
     StudentCourseMapper mapper = Mappers.getMapper(StudentCourseMapper.class);
