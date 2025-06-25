@@ -6,8 +6,8 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseRuleData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ValidationIssue;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.UpsertStudentCourseValidationBaseRule;
-import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -82,14 +82,11 @@ public class StudentCourseRule implements UpsertStudentCourseValidationBaseRule 
         return sessionDate.isAfter(sessionPeriod.getLeft()) && sessionDate.isBefore(sessionPeriod.getRight());
     }
 
-
     private boolean isValidSessionMonth(String dateValue) {
-        if(org.apache.commons.lang3.StringUtils.isNotBlank(dateValue)) {
-            if(dateValue.length() == 6 || (dateValue.length() == 7 && dateValue.charAt(4) == '-')) {
-                Integer monthValue = Integer.valueOf(org.apache.commons.lang3.StringUtils.right(dateValue,2));
-                if(monthValue >= 1 && monthValue <= 12) {
-                    return true;
-                }
+        if(StringUtils.isNotBlank(dateValue) && (dateValue.length() == 6 || (dateValue.length() == 7 && dateValue.charAt(4) == '-'))) {
+            Integer monthValue = Integer.valueOf(org.apache.commons.lang3.StringUtils.right(dateValue,2));
+            if(monthValue >= 1 && monthValue <= 12) {
+                return true;
             }
         }
         return false;
