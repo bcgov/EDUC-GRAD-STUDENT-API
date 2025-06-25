@@ -30,7 +30,7 @@ public class StudentGraduationRule implements DeleteStudentCourseValidationBaseR
         final List<ValidationIssue> validationIssues = new ArrayList<>();
         if(studentCourseRuleData.getGraduationStudentRecord() != null)
         {
-            boolean isGraduated = StringUtils.isNotBlank(studentCourseRuleData.getGraduationStudentRecord().getProgramCompletionDate()) ? true : false;
+            boolean isGraduated = StringUtils.isNotBlank(studentCourseRuleData.getGraduationStudentRecord().getProgramCompletionDate());
             if(isGraduated && !"SCCP".equals(studentCourseRuleData.getGraduationStudentRecord().getProgram())) {
                 validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_GRADUATION_VALID));
             }

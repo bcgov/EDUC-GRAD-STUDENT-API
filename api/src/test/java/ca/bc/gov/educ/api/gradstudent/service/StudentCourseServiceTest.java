@@ -995,14 +995,12 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
         List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
-        ObjectMapper objectMapper = new ObjectMapper();
         for(StudentCourse studentCourse: studentCourses.values()) {
             UUID studentCourseID = UUID.randomUUID();
             studentCourse.setId(studentCourseID.toString());
             StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
             studentCourseEntity.setId(studentCourseID);
             studentCourseEntities.add(studentCourseEntity);
-            Course course = getCourses().stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID())).findFirst().orElse(null);
         }
         List<UUID> tobeDeleted = studentCourseEntities.stream().map(StudentCourseEntity::getId).toList();
         GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2004-EN");
