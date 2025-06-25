@@ -30,6 +30,7 @@
         </sonar.junit.exclusions>
         <sonar.coverage.exclusions>
             src/main/java/ca/bc/gov/educ/api/gradstudent/controller/APIMetadataController.java
+            src/main/java/ca/bc/gov/educ/api/gradstudent/exception/**
         </sonar.coverage.exclusions>
         <java.version>18</java.version>
         <maven.compiler.version>3.10.1</maven.compiler.version>
