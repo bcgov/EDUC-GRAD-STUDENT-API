@@ -1,0 +1,19 @@
+meta {
+  name: Transfer student courses
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/student/courses/transfer
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "sourceStudentId": "",
+    "targetStudentId": "",
+    "studentCourseIdsToMove": []
+  }
+}

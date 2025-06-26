@@ -4,6 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.*;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityAlreadyExistsException;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.assessment.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
@@ -47,6 +48,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.SCHOOL_OF_RECORD_UPDATED;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_SCHOOL_OF_RECORD;
 
 @Service
 public class GraduationStatusService extends GradBaseService {
@@ -191,11 +194,12 @@ public class GraduationStatusService extends GradBaseService {
 
     @Transactional
     @Retry(name = "generalpostcall")
-    public Pair<GraduationStudentRecord, GradStatusEvent> saveGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, Long batchId, String accessToken) throws JsonProcessingException {
+    public Pair<GraduationStudentRecord, List<GradStatusEvent>> saveGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, Long batchId, String accessToken) throws JsonProcessingException {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            boolean isSchoolOfRecordUpdated = checkIfSchoolOfRecordIsUpdated(sourceObject, gradEntity);
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "recalculateGradStatus", "recalculateProjectedGrad", "programCompletionDate", "studentProjectedGradData");
             gradEntity.setBatchId(batchId);
             if(!gradEntity.getProgram().equalsIgnoreCase("SCCP") && !gradEntity.getProgram().equalsIgnoreCase("NOPROG")) {
@@ -213,28 +217,42 @@ public class GraduationStatusService extends GradBaseService {
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
                     EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
 
+            List<GradStatusEvent> events = new ArrayList<>();
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
+                events.add(gradStatusEvent);
             }
-            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), gradStatusEvent);
+
+            if(isSchoolOfRecordUpdated) {
+                GradStatusEvent gradStatusEventForSchoolOfRecordUpdate = createEventForSchoolOfRecordUpdate(studentID, sourceObject);
+                events.add(gradStatusEventForSchoolOfRecordUpdate);
+            }
+
+            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), events);
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getUpdateUser(), sourceObject,
                     EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
+            List<GradStatusEvent> events = new ArrayList<>();
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
+                events.add(gradStatusEvent);
             }
-            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject), gradStatusEvent);
+            GradStatusEvent gradStatusEventForSchoolOfRecordUpdate = createEventForSchoolOfRecordUpdate(studentID, sourceObject);
+            events.add(gradStatusEventForSchoolOfRecordUpdate);
+
+            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject), events);
         }
     }
 
     @Transactional
     @Retry(name = "generalpostcall")
-    public Pair<GraduationStudentRecord, GradStatusEvent> updateGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, String accessToken) throws JsonProcessingException {
+    public Pair<GraduationStudentRecord, List<GradStatusEvent>> updateGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, String accessToken) throws JsonProcessingException {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            boolean isSchoolOfRecordUpdated = checkIfSchoolOfRecordIsUpdated(sourceObject, gradEntity);
             ValidateDataResult hasDataChanged = validateData(sourceObject, gradEntity, accessToken);
             if (validation.hasErrors()) {
                 validation.stopOnErrors();
@@ -283,13 +301,22 @@ public class GraduationStatusService extends GradBaseService {
             historyService.createStudentHistory(gradEntity, USER_EDIT);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
                     EventType.GRAD_STUDENT_UPDATED, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT, accessToken);
+
+            List<GradStatusEvent> events = new ArrayList<>();
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
+                events.add(gradStatusEvent);
             }
-            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), gradStatusEvent);
+
+            if(isSchoolOfRecordUpdated) {
+                GradStatusEvent gradStatusEventForSchoolOfRecordUpdate = createEventForSchoolOfRecordUpdate(studentID, sourceObject);
+                events.add(gradStatusEventForSchoolOfRecordUpdate);
+            }
+
+            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), events);
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
-            return Pair.of(graduationStatus, null);
+            return Pair.of(graduationStatus, new ArrayList<>());
         }
     }
 
@@ -1516,5 +1543,25 @@ public class GraduationStatusService extends GradBaseService {
         studentEntity.setRecalculateProjectedGrad(activeStatus.equals(student.getStatusCode()) ? "Y" : null);
 
         return studentEntity;
+    }
+
+    private boolean checkIfSchoolOfRecordIsUpdated(GraduationStudentRecordEntity updatedEntity, GraduationStudentRecordEntity existingEntity) {
+        return existingEntity.getSchoolOfRecordId() != null
+                && updatedEntity.getSchoolOfRecordId() != null
+                && existingEntity.getSchoolOfRecordId() != updatedEntity.getSchoolOfRecordId()
+                && (updatedEntity.getStudentStatus().equalsIgnoreCase("A") || updatedEntity.getStudentStatus().equalsIgnoreCase("T"));
+    }
+
+    private GradStatusEvent createEventForSchoolOfRecordUpdate(UUID studentID, GraduationStudentRecordEntity sourceObject) throws JsonProcessingException {
+        var studentForUpdate = StudentForAssessmentUpdate
+                .builder()
+                .studentID(String.valueOf(studentID))
+                .schoolOfRecordID(String.valueOf(sourceObject.getSchoolOfRecordId()))
+                .build();
+
+        GradStatusEvent gradStatusEvent = EventUtil.createEvent(sourceObject.getCreateUser(),
+                sourceObject.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, SCHOOL_OF_RECORD_UPDATED);
+        gradStatusEventRepository.save(gradStatusEvent);
+        return gradStatusEvent;
     }
 }

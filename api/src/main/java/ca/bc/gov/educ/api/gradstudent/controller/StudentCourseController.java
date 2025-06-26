@@ -1,8 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseHistory;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseValidationIssue;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
@@ -101,4 +99,21 @@ public class StudentCourseController {
         return response.GET(studentCourseService.getStudentCourseHistory(studentID));
     }
 
+    @PostMapping(EducGradStudentApiConstants.STUDENT_COURSE_TRANSFER_MAPPING)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRAD_STUDENT_COURSE)
+    @Operation(summary = "Transfer student courses", description = "Transfer student courses to a different student", tags = { "Student courses" })
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+        @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT"),
+        @ApiResponse(responseCode = "204", description = "Transfer successful, no validation issues"),
+        @ApiResponse(responseCode = "200", description = "Validation issues found during transfer")
+    })
+    public ResponseEntity<List<ValidationIssue>> transferStudentCourses(@NotNull @Valid @RequestBody StudentCoursesTransferReq studentCoursesRequest) {
+        logger.debug("transfer student courses from: studentId = {} to: studentId = {}", studentCoursesRequest.getSourceStudentId(), studentCoursesRequest.getTargetStudentId());
+        var results = studentCourseService.transferStudentCourse(studentCoursesRequest);
+        if (results.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(results);
+    }
 }

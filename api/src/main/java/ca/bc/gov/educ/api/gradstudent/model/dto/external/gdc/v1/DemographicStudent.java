@@ -52,6 +52,4 @@ public class DemographicStudent extends BaseModel implements Serializable {
 
     private String isSummerCollection;
 
-    private String vendorID;
-
 }

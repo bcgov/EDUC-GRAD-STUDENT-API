@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
@@ -212,6 +213,80 @@ public class StudentCourseService {
         return courseValidationIssueMap.values().stream().toList();
     }
 
+    @Transactional
+    public List<ValidationIssue> transferStudentCourse(StudentCoursesTransferReq request) {
+        List<ValidationIssue> validationIssues = new ArrayList<>();
+        List<StudentCourseEntity> validEntities = new ArrayList<>();
+        List<StudentCourseEntity> originalEntitiesForHistory = new ArrayList<>();
+
+        List<StudentCourseEntity> existingStudentCourses = studentCourseRepository.findByStudentID(request.getTargetStudentId());
+        assertStudentExists(request.getSourceStudentId(), "Source");
+        assertStudentExists(request.getTargetStudentId(), "Target");
+
+        List<UUID> courseIdsToMove = request.getStudentCourseIdsToMove();
+        Map<UUID, StudentCourseEntity> studentCourseEntityMap = studentCourseRepository.findAllById(courseIdsToMove)
+            .stream().collect(Collectors.toMap(StudentCourseEntity::getId, c -> c));
+
+        for (UUID courseId : courseIdsToMove) {
+            StudentCourseEntity studentCourse = studentCourseEntityMap.get(courseId);
+            if (studentCourse == null) {
+                validationIssues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_NOT_FOUND));
+                continue;
+            }
+            List<ValidationIssue> courseIssues = validateCourseForTransfer(request, studentCourse, existingStudentCourses);
+            if (courseIssues.isEmpty()) {
+                StudentCourseEntity originalCopy = new StudentCourseEntity();
+                BeanUtils.copyProperties(studentCourse, originalCopy);
+                originalEntitiesForHistory.add(originalCopy);
+
+                studentCourse.setStudentID(request.getTargetStudentId());
+                validEntities.add(studentCourse);
+            } else {
+                validationIssues.addAll(courseIssues);
+            }
+        }
+        if(!validEntities.isEmpty()) {
+            studentCourseRepository.saveAll(validEntities);
+            createStudentCourseHistory(request.getTargetStudentId(), validEntities, StudentCourseActivityType.USERCOURSEADD);
+            createStudentCourseHistory(request.getSourceStudentId(), originalEntitiesForHistory, StudentCourseActivityType.USERCOURSEDEL);
+        }
+
+        return validationIssues;
+    }
+
+    private List<ValidationIssue> validateCourseForTransfer(
+        StudentCoursesTransferReq request,
+        StudentCourseEntity course,
+        List<StudentCourseEntity> existingCourses
+    ) {
+        List<ValidationIssue> issues = new ArrayList<>();
+        if (request.getSourceStudentId().equals(request.getTargetStudentId())) {
+            issues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_SAME_STUDENT));
+        }
+        if (!course.getStudentID().equals(request.getSourceStudentId())) {
+            issues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_STUDENT_COURSE_MISMATCH));
+        }
+        boolean courseExistsForTarget = existingCourses.stream().anyMatch(existing ->
+            existing.getCourseID().equals(course.getCourseID()) &&
+                existing.getCourseSession().equals(course.getCourseSession())
+        );
+        if (courseExistsForTarget) {
+            issues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE));
+        }
+        if (isCourseExamDeleteRestricted(course)) {
+            issues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID));
+        }
+        return issues;
+    }
+
+    private void assertStudentExists(UUID studentId, String role) {
+        try {
+            graduationStatusService.getGraduationStatus(studentId);
+        } catch (EntityNotFoundException e) {
+            throw new IllegalArgumentException(role + " student not found: " + studentId);
+        }
+    }
+
     private Map<UUID, StudentCourseValidationIssue> deleteAndCreateHistory(List<StudentCourseEntity> tobeDeleted, UUID studentID, Map<UUID, StudentCourseValidationIssue> courseValidationIssues) {
         if (!tobeDeleted.isEmpty()) {
             studentCourseRepository.deleteAll(tobeDeleted);
@@ -272,6 +347,14 @@ public class StudentCourseService {
         }
         studentCourseValidationIssue.setValidationIssues(new ArrayList<>(validationIssues));
         return studentCourseValidationIssue;
+    }
+
+    private ValidationIssue buildValidationIssue(StudentCourseValidationIssueTypeCode issueTypeCode) {
+        return ValidationIssue.builder()
+            .validationIssueMessage(issueTypeCode.getMessage())
+            .validationFieldName(issueTypeCode.getCode())
+            .validationIssueSeverityCode(issueTypeCode.getSeverityCode().getCode())
+            .build();
     }
 
 }
