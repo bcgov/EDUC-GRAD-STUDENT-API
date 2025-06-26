@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -57,6 +58,51 @@ public class RESTService {
                     .block();
         } catch (Exception e) {
             // catches IOExceptions and the like
+            throw new ServiceException(
+                    getErrorMessage(url, e.getLocalizedMessage()),
+                    (e instanceof WebClientResponseException webClientResponseException) ? webClientResponseException.getStatusCode().value()
+                            : HttpStatus.SERVICE_UNAVAILABLE.value(), e);
+        }
+        return obj;
+    }
+
+    /**
+     * Overloaded get method that allows for a ParameterizedTypeReference to be passed in.
+     * You can call this method if you are expecting a complex type or a list of objects.
+     * Example usage:
+     * <pre>
+     *     	List<Student> students = this.restService.get(
+     * 			String.format(constants.getPenStudentApiByPenUrl(), pen),
+     * 			new ParameterizedTypeReference<List<Student>>() {},
+     * 			null
+     * 		);
+     * </pre>
+     * @param url the url you are calling
+     * @param typeReference the ParameterizedTypeReference for the expected return type
+     * @param webClient the WebClient to use for the request, if null, will use the default webClient
+     * @return the expected return type
+     * @param <T> expected return type
+     */
+    public <T> T get(String url, ParameterizedTypeReference<T> typeReference, WebClient webClient) {
+        T obj;
+        if (webClient == null)
+            webClient = this.webClient;
+        try {
+            obj = webClient
+                    .get()
+                    .uri(url)
+                    .headers(h -> h.set(EducGradStudentApiConstants.CORRELATION_ID, ThreadLocalStateUtil.getCorrelationID()))
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is5xxServerError,
+                            clientResponse -> Mono.error(new ServiceException(getErrorMessage(url, SERVER_ERROR), clientResponse.statusCode().value())))
+                    .bodyToMono(typeReference)
+                    .retryWhen(Retry.backoff(3, Duration.ofSeconds(2))
+                            .filter(ex -> ex instanceof ServiceException || ex instanceof IOException || ex instanceof WebClientRequestException)
+                            .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                                throw new ServiceException(getErrorMessage(url, SERVICE_FAILED_ERROR), HttpStatus.SERVICE_UNAVAILABLE.value());
+                            }))
+                    .block();
+        } catch (Exception e) {
             throw new ServiceException(
                     getErrorMessage(url, e.getLocalizedMessage()),
                     (e instanceof WebClientResponseException webClientResponseException) ? webClientResponseException.getStatusCode().value()
