@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,6 +34,7 @@ import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
@@ -48,7 +51,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     @MockBean GraduationStudentRecordRepository graduationStatusRepository;
 
     @Autowired StudentCourseService studentCourseService;
-    @Autowired GraduationStatusService graduationStatusService;
+    @SpyBean GraduationStatusService graduationStatusService;
     @MockBean CourseService courseService;
     @MockBean CourseCacheService courseCacheService;
     @MockBean HistoryService historyService;
@@ -1103,6 +1106,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setProgramCompletionDate(new java.util.Date());
         graduationStatusEntity.setStudentStatus(studentStatus);
+        graduationStatusEntity.setGpa("3.97");
         if(StringUtils.isNotBlank(program)) {
             graduationStatusEntity.setProgram(program);
         }
@@ -1208,4 +1212,120 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         return equivalentOrChallengeCodes;
     }
 
+    @Test
+    public void testTransferStudentCourse_SuccessfulTransfer() {
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+
+        StudentCourseEntity course = createStudentCourseEntity(sourceId, "123", "202201");
+        course.setId(courseId);
+
+        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(courseId));
+
+        Mockito.when(studentCourseRepository.findAllById(List.of(courseId))).thenReturn(List.of(course));
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(Collections.emptyList());
+        Mockito.when(studentCourseRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setGpa("3.97");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        List<ValidationIssue> result = studentCourseService.transferStudentCourse(request);
+
+        assertThat(result).isEmpty();
+
+        Mockito.verify(studentCourseRepository).saveAll(argThat(iterable -> {
+            List<StudentCourseEntity> list = StreamSupport
+                .stream(iterable.spliterator(), false)
+                .toList();
+            return list.size() == 1 && list.get(0).getStudentID().equals(targetId);
+        }));
+
+        Mockito.verify(historyService).createStudentCourseHistory(
+            List.of(course), StudentCourseActivityType.USERCOURSEADD);
+        Mockito.verify(historyService).createStudentCourseHistory(
+            anyList(), eq(StudentCourseActivityType.USERCOURSEDEL));
+
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentCourses(targetId);
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentCourses(sourceId);
+    }
+
+    @Test
+    public void testTransferStudentCourse_CourseNotFound() {
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID missingCourseId = UUID.randomUUID();
+
+        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(missingCourseId));
+
+        Mockito.when(studentCourseRepository.findById(missingCourseId)).thenReturn(Optional.empty());
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(Collections.emptyList());
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        List<ValidationIssue> result = studentCourseService.transferStudentCourse(request);
+
+        assertThat(result).isNotEmpty();
+        assertThat(result.get(0).getValidationFieldName()).isEqualTo(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_NOT_FOUND.getCode());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testTransferStudentCourse_SourceStudentNotFound() {
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+
+        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(UUID.randomUUID()));
+
+        Mockito.doThrow(new EntityNotFoundException("Not found"))
+            .when(graduationStatusService)
+            .getGraduationStatus(sourceId);
+
+        studentCourseService.transferStudentCourse(request);
+    }
+
+    @Test
+    public void testTransferStudentCourse_DuplicateCourseInTarget() {
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+
+        StudentCourseEntity courseToMove = createStudentCourseEntity(sourceId, "123", "2021S1");
+        courseToMove.setId(courseId);
+
+        StudentCourseEntity existingCourse = createStudentCourseEntity(targetId, "123", "2021S1");
+
+        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(courseId));
+
+        Mockito.doReturn(new GraduationStudentRecord())
+            .when(graduationStatusService)
+            .getGraduationStatus(sourceId);
+        Mockito.doReturn(new GraduationStudentRecord())
+            .when(graduationStatusService)
+            .getGraduationStatus(targetId);
+        Mockito.when(studentCourseRepository.findById(courseId)).thenReturn(Optional.of(courseToMove));
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(List.of(existingCourse));
+
+        List<ValidationIssue> result = studentCourseService.transferStudentCourse(request);
+
+        assertThat(result).isNotEmpty();
+        assertThat(result.stream().anyMatch(issue ->
+            issue.getValidationFieldName().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE.getCode())
+        )).isTrue();
+    }
 }
