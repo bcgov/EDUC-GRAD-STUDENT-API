@@ -1226,7 +1226,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         request.setTargetStudentId(targetId);
         request.setStudentCourseIdsToMove(List.of(courseId));
 
-        Mockito.when(studentCourseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        Mockito.when(studentCourseRepository.findAllById(List.of(courseId))).thenReturn(List.of(course));
         Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(Collections.emptyList());
         Mockito.when(studentCourseRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
 

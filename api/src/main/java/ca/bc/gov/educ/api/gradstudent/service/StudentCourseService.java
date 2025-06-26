@@ -220,13 +220,16 @@ public class StudentCourseService {
         assertStudentExists(request.getSourceStudentId(), "Source");
         assertStudentExists(request.getTargetStudentId(), "Target");
 
-        for (UUID courseId : request.getStudentCourseIdsToMove()) {
-            Optional<StudentCourseEntity> optionalCourse = studentCourseRepository.findById(courseId);
-            if (optionalCourse.isEmpty()) {
+        List<UUID> courseIdsToMove = request.getStudentCourseIdsToMove();
+        Map<UUID, StudentCourseEntity> studentCourseEntityMap = studentCourseRepository.findAllById(courseIdsToMove)
+            .stream().collect(Collectors.toMap(StudentCourseEntity::getId, c -> c));
+
+        for (UUID courseId : courseIdsToMove) {
+            StudentCourseEntity studentCourse = studentCourseEntityMap.get(courseId);
+            if (studentCourse == null) {
                 validationIssues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_NOT_FOUND));
                 continue;
             }
-            StudentCourseEntity studentCourse = optionalCourse.get();
             List<ValidationIssue> courseIssues = validateCourseForTransfer(request, studentCourse, existingStudentCourses);
             if (courseIssues.isEmpty()) {
                 StudentCourseEntity originalCopy = new StudentCourseEntity();
@@ -240,9 +243,9 @@ public class StudentCourseService {
             }
         }
         if(!validEntities.isEmpty()) {
+            studentCourseRepository.saveAll(validEntities);
             createStudentCourseHistory(request.getTargetStudentId(), validEntities, StudentCourseActivityType.USERCOURSEADD);
             createStudentCourseHistory(request.getSourceStudentId(), originalEntitiesForHistory, StudentCourseActivityType.USERCOURSEDEL);
-            studentCourseRepository.saveAll(validEntities);
         }
 
         return validationIssues;
