@@ -11,9 +11,9 @@ import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseMapper;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.UpsertStudentCourseRulesProcessor;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.DeleteStudentCourseRulesProcessor;
-import io.micrometer.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -107,7 +107,7 @@ public class StudentCourseService {
         //Performance consideration: Consolidate and fetch all courses in a single call.
         List<Course> courses = courseService.getCourses(studentCourses.stream()
                 .flatMap(sc -> Stream.of(sc.getCourseID(), sc.getRelatedCourseId()))
-                .filter(Objects::nonNull)
+                .filter(s -> StringUtils.isNotBlank(s))
                 .toList());
         StudentCourseActivityType activityCode = isUpdate ? StudentCourseActivityType.USERCOURSEMOD : StudentCourseActivityType.USERCOURSEADD;
 

@@ -54,7 +54,7 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
                 validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID));
             }
             if (!validationIssues.isEmpty()) return validationIssues;
-            if(isInvalidFlagValue(studentCourse.getFineArtsAppliedSkills())) {
+            if(!isValidFlagValue(studentCourse.getFineArtsAppliedSkills())) {
                 validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID));
             }
             if (!validationIssues.isEmpty()) return validationIssues;
@@ -67,7 +67,7 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
         final List<ValidationIssue> programValidationIssues = new ArrayList<>();
         if(StringUtils.isBlank(programCode)) return programValidationIssues;
         String fineArtsAppliedSkillsValue = studentCourse.getFineArtsAppliedSkills();
-        boolean isLevelGrade11 = StringUtils.isNotBlank(course.getCourseLevel()) && "11".equals(course.getCourseLevel());
+        boolean isLevelGrade11 = StringUtils.isNotBlank(course.getCourseLevel()) && course.getCourseLevel().startsWith("11");
         if(StringUtils.isNotBlank(fineArtsAppliedSkillsValue)  && !(isLevelGrade11 && Set.of("B", "A", "F").contains(fineArtsAppliedSkillsValue) && (BOARD_AUTHORITY_CODE.equals(course.getCourseCategory().getCode()) ||
                 LOCAL_DEVELOPMENT_CODE.equals(course.getCourseCategory().getCode()) ||
                 CAREER_PROGRAM_CODE.equals(course.getCourseCategory().getCode())))) {
@@ -89,11 +89,11 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
         return programValidationIssues;
     }
 
-    private boolean isInvalidFlagValue(String code) {
+    private boolean isValidFlagValue(String code) {
         if(StringUtils.isNotBlank(code)) {
-            return  courseCacheService.getFineArtsAppliedSkillsCodesFromCache().stream().anyMatch(fineArtsAppliedSkillsCode -> fineArtsAppliedSkillsCode.getFineArtsAppliedSkillsCode().equals(code));
+            return courseCacheService.getFineArtsAppliedSkillsCodesFromCache().stream().anyMatch(fineArtsAppliedSkillsCode -> fineArtsAppliedSkillsCode.getFineArtsAppliedSkillsCode().equals(code));
         }
-        return false;
+        return true;
     }
 
 }

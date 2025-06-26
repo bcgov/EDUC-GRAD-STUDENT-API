@@ -15,8 +15,10 @@ public enum StudentCourseValidationIssueTypeCode {
     STUDENT_COURSE_DUPLICATE("course", "The course session is a duplicate of an existing course session for this student" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_UPDATE_NOT_FOUND("course", "Invalid Course - course code/level does not exist for this student" , ValidationIssueSeverityCode.ERROR),
 
+    STUDENT_COURSE_INVALID_DATA("course", "Invalid Course ID/Session - course id and session cannot be empty or blank" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_VALID("course", "Invalid Course code/level - course code/level does not exist in the ministry course registry" , ValidationIssueSeverityCode.ERROR),
     STUDENT_RELATED_COURSE_VALID("relatedCourse", "Invalid Course code/level - course code/level does not exist in the ministry course registry" , ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_SESSION_MONTH_VALID("course", "Course session month must be between 01 and 12" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_SESSION_START_VALID("course", "Course session is before the course start date" , ValidationIssueSeverityCode.WARNING),
     STUDENT_COURSE_SESSION_END_VALID("course", "Course session is after the course completion date" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_SESSION_VALID("course", "Course session cannot be beyond the current reporting period or prior to 198401" , ValidationIssueSeverityCode.WARNING),
@@ -43,8 +45,9 @@ public enum StudentCourseValidationIssueTypeCode {
 
     STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID("equivOrChallenge","Invalid Equivalency or Challenge Code", ValidationIssueSeverityCode.ERROR),
 
-    STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_VALID("fineArtsAppliedSkills", "This course is not Board Authority Authorized or Locally Developed" , ValidationIssueSeverityCode.WARNING),
-    STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_VALID("fineArtsAppliedSkills", "This course is not Board Authority Authorized" , ValidationIssueSeverityCode.WARNING),
+    STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID("fineArtsAppliedSkills", "Flag is not applicable to this course type" , ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID("fineArtsAppliedSkills", "Invalid Fine Arts Applied Skills Code" , ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_1995_VALID("fineArtsAppliedSkills", "Flag is only applicable for this course type if student on the 1995 program" , ValidationIssueSeverityCode.WARNING),
     STUDENT_COURSE_CREDITS_BA_VALID("credits", "Number of Credits must be 4 if B has been selected for the Board Authority Authorized or Locally Developed course Fine Arts/Applied Skills flag" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_CREDITS_A_F_VALID("credits", "Number of Credits must at least 2 if A or F has been selected for the Board Authority Authorized or Locally Developed course Fine Arts/Applied Skills flag" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_CREDITS_VALID("credits", "The number of credits is not an allowable credit value in the Course Registry", ValidationIssueSeverityCode.ERROR),
