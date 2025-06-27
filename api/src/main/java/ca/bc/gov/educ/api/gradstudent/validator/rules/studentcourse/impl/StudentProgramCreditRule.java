@@ -78,13 +78,12 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
                 programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_1995_VALID));
         }
         if (PROGRAM_CODES_1995.contains(programCode)) {
-            programValidationIssues.addAll(validate1995FineArtsAppliedSkillsProgramCode(programCode, studentCourse, course));
+            programValidationIssues.addAll(validate1995FineArtsAppliedSkillsProgramCode(studentCourse));
         }
-
         return programValidationIssues;
     }
 
-    private List<ValidationIssue> validate1995FineArtsAppliedSkillsProgramCode(String programCode, StudentCourse studentCourse, Course course) {
+    private List<ValidationIssue> validate1995FineArtsAppliedSkillsProgramCode(StudentCourse studentCourse) {
         final List<ValidationIssue> programValidationIssues1995 = new ArrayList<>();
         String fineArtsAppliedSkillsValue = studentCourse.getFineArtsAppliedSkills();
         if(StringUtils.isNotBlank(fineArtsAppliedSkillsValue)) {

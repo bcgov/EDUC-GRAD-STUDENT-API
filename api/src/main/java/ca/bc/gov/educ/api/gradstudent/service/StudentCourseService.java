@@ -107,7 +107,7 @@ public class StudentCourseService {
         //Performance consideration: Consolidate and fetch all courses in a single call.
         List<Course> courses = courseService.getCourses(studentCourses.stream()
                 .flatMap(sc -> Stream.of(sc.getCourseID(), sc.getRelatedCourseId()))
-                .filter(s -> StringUtils.isNotBlank(s))
+                .filter(StringUtils::isNotBlank)
                 .toList());
         StudentCourseActivityType activityCode = isUpdate ? StudentCourseActivityType.USERCOURSEMOD : StudentCourseActivityType.USERCOURSEADD;
 
