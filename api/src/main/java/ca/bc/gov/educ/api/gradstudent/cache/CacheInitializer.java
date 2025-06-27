@@ -31,5 +31,6 @@ public class CacheInitializer {
         courseCacheService.loadLetterGrades();
         courseCacheService.loadExamSpecialCases();
         courseCacheService.loadEquivalentOrChallenges();
+        courseCacheService.loadFineArtsAppliedSkillsCodes();
     }
 }

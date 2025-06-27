@@ -54,6 +54,7 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
     @MockBean ExamSpecialCaseCodeService examSpecialCaseCodeService;
     @MockBean EquivalentOrChallengeCodeService equivalentOrChallengeCodeService;
+    @MockBean FineArtsAppliedSkillsCodeService fineArtsAppliedSkillsCodeService;
 
     @Before
     public void setUp(){
@@ -138,6 +139,13 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
         assertNotNull(result);
     }
 
+    @Test
+    public void testGetFineArtsAppliedSkillsCodesFromCache_NoError() {
+        when(fineArtsAppliedSkillsCodeService.findAll()).thenReturn(getFineArtsAppliedSkillsCodes());
+        var result = courseCacheService.getFineArtsAppliedSkillsCodesFromCache() ;
+        assertNotNull(result);
+    }
+
 
     @SneakyThrows
     private List<LetterGrade> getLetterGrades() {
@@ -167,6 +175,14 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
         List<EquivalentOrChallengeCode> equivalentOrChallengeCodes = new ArrayList<>();
         equivalentOrChallengeCodes.add(EquivalentOrChallengeCode.builder().equivalentOrChallengeCode("C").build());
         return equivalentOrChallengeCodes;
+    }
+
+    private List<FineArtsAppliedSkillsCode> getFineArtsAppliedSkillsCodes() {
+        List<FineArtsAppliedSkillsCode> fineArtsAppliedSkillsCodes = new ArrayList<>();
+        fineArtsAppliedSkillsCodes.add(FineArtsAppliedSkillsCode.builder().fineArtsAppliedSkillsCode("B").build());
+        fineArtsAppliedSkillsCodes.add(FineArtsAppliedSkillsCode.builder().fineArtsAppliedSkillsCode("A").build());
+        fineArtsAppliedSkillsCodes.add(FineArtsAppliedSkillsCode.builder().fineArtsAppliedSkillsCode("F").build());
+        return fineArtsAppliedSkillsCodes;
     }
 
 }

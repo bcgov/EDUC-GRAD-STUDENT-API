@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
+import ca.bc.gov.educ.api.gradstudent.validator.rules.ValidationGroups;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
@@ -8,8 +9,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.util.UUID;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
@@ -17,10 +16,11 @@ import java.util.UUID;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StudentCourse extends BaseModel {
 
-    private UUID id; //The property id is used only for update
-    @NotBlank
+    @NotBlank(message = "id is required and cannot be blank", groups = ValidationGroups.Update.class)
+    private String id; //The property id is used only for update & rendering back on read.
+    @NotBlank(message = "Course ID is required and cannot be blank")
     private String courseID;
-    @NotBlank
+    @NotBlank(message = "Course Session is required and cannot be blank")
     private String courseSession;
     private Integer interimPercent;
     private String interimLetterGrade;

@@ -3,7 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.model.mapper;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public class StringMapper {
 
     /**

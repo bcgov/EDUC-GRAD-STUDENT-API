@@ -60,7 +60,7 @@ public class StudentCourseEntity extends BaseEntity {
     @Column(name = "RELATED_COURSE_ID")
     private BigInteger relatedCourseId;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToOne(cascade = {CascadeType.ALL})
     @JsonManagedReference
     @JoinColumn(name = "STUDENT_COURSE_EXAM_ID", referencedColumnName = "STUDENT_COURSE_EXAM_ID")
     private StudentCourseExamEntity courseExam;

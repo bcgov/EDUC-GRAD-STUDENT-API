@@ -5,7 +5,7 @@ import org.mapstruct.Mapper;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public class LocalDateTimeMapper {
 
     /**

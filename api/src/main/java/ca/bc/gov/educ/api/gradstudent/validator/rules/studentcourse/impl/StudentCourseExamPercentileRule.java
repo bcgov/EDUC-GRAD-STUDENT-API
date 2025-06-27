@@ -1,4 +1,4 @@
-package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
+package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.impl;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseExam;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseRuleData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ValidationIssue;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.UpsertStudentCourseValidationBaseRule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ import java.util.List;
 @Component
 @Slf4j
 @Order(608)
-public class StudentCourseExamPercentileRule implements StudentCourseValidationBaseRule {
+public class StudentCourseExamPercentileRule implements UpsertStudentCourseValidationBaseRule {
 
     @Override
     public boolean shouldExecute(StudentCourseRuleData studentCourseRuleData, List<ValidationIssue> list) {
@@ -39,7 +40,6 @@ public class StudentCourseExamPercentileRule implements StudentCourseValidationB
             if(!isAcceptablePercentile(courseExam.getBestExamPercentage())) {
                 validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID));
             }
-
         }
         return validationIssues;
     }

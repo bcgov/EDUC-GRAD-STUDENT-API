@@ -1,12 +1,13 @@
-package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse;
+package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.impl;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
-import io.micrometer.common.util.StringUtils;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.UpsertStudentCourseValidationBaseRule;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +38,7 @@ import java.util.List;
 @Slf4j
 @Order(604)
 @AllArgsConstructor
-public class StudentCoursePercentileGradeRule implements StudentCourseValidationBaseRule {
+public class StudentCoursePercentileGradeRule implements UpsertStudentCourseValidationBaseRule {
 
     private final CourseCacheService courseCacheService;
 
@@ -111,7 +112,7 @@ public class StudentCoursePercentileGradeRule implements StudentCourseValidation
         if (sessionDate.isAfter(LEGISLATION_PERCENT_MANDATORY_DATE)) {
             Course course = studentCourseRuleData.getCourse();
             String studentProgram = studentCourseRuleData.getGraduationStudentRecord().getProgram();
-            if (StringUtils.isNotBlank(studentProgram) && PROGRAM_CODES_BA_LA.contains(studentProgram) && "10".equals(course.getCourseLevel())) {
+            if (StringUtils.isNotBlank(studentProgram) && PROGRAM_CODES_1995.contains(studentProgram) && "10".equals(course.getCourseLevel())) {
                 return false;
             }
             LetterGrade interimLetterGrade = getLetterGrade(studentCourse.getInterimLetterGrade());
