@@ -77,16 +77,26 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
                 && Set.of(CAREER_PROGRAM_CODE, LOCAL_DEVELOPMENT_CODE).contains(course.getCourseCategory().getCode())) {
                 programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_1995_VALID));
         }
-        if(PROGRAM_CODES_1995.contains(programCode) && StringUtils.isNotBlank(fineArtsAppliedSkillsValue)) {
+        if (PROGRAM_CODES_1995.contains(programCode)) {
+            return programValidationIssues;
+        }
+        programValidationIssues.addAll(validate1995FineArtsAppliedSkillsProgramCode(programCode, studentCourse, course));
+        return programValidationIssues;
+    }
+
+    private List<ValidationIssue> validate1995FineArtsAppliedSkillsProgramCode(String programCode, StudentCourse studentCourse, Course course) {
+        final List<ValidationIssue> programValidationIssues1995 = new ArrayList<>();
+        String fineArtsAppliedSkillsValue = studentCourse.getFineArtsAppliedSkills();
+        if(StringUtils.isNotBlank(fineArtsAppliedSkillsValue)) {
             if("B".equals(fineArtsAppliedSkillsValue) && ((studentCourse.getCredits() != null && studentCourse.getCredits() != 4) || studentCourse.getCredits() == null)) {
-                programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID));
+                programValidationIssues1995.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID));
             }
 
             if(Set.of( "A", "F").contains(fineArtsAppliedSkillsValue) && ((studentCourse.getCredits() != null && studentCourse.getCredits() < 2) || studentCourse.getCredits() == null)) {
-                programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID));
+                programValidationIssues1995.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID));
             }
         }
-        return programValidationIssues;
+        return programValidationIssues1995;
     }
 
     private boolean isValidFlagValue(String code) {
