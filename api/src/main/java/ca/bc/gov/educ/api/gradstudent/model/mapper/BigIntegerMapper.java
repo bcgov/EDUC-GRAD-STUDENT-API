@@ -5,7 +5,7 @@ import org.mapstruct.Mapper;
 
 import java.math.BigInteger;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public class BigIntegerMapper {
 
         public BigInteger map(String value) {

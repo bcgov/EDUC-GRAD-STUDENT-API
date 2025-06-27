@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 public class HistoryService {
 
     private static final Logger logger = LoggerFactory.getLogger(HistoryService.class);
+    private static final StudentCourseHistoryMapper studentCourseHistoryMapper = StudentCourseHistoryMapper.mapper;
 
     final
     WebClient studentApiClient;
@@ -42,11 +43,10 @@ public class HistoryService {
     final StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer;
     final HistoryActivityRepository historyActivityRepository;
     final StudentCourseHistoryRepository studentCourseHistoryRepository;
-    final StudentCourseHistoryMapper studentCourseHistoryMapper;
     final EducGradStudentApiConstants constants;
 
     @Autowired
-    public HistoryService(@Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants, HistoryActivityRepository historyActivityRepository, GraduationStudentRecordRepository graduationStatusRepository, StudentCourseHistoryRepository studentCourseHistoryRepository, StudentCourseHistoryMapper studentCourseHistoryMapper) {
+    public HistoryService(@Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository, GraduationStudentRecordHistoryTransformer graduationStudentRecordHistoryTransformer, StudentOptionalProgramHistoryRepository studentOptionalProgramHistoryRepository, StudentOptionalProgramHistoryTransformer studentOptionalProgramHistoryTransformer, EducGradStudentApiConstants constants, HistoryActivityRepository historyActivityRepository, GraduationStudentRecordRepository graduationStatusRepository, StudentCourseHistoryRepository studentCourseHistoryRepository) {
         this.studentApiClient = studentApiClient;
         this.graduationStudentRecordHistoryRepository = graduationStudentRecordHistoryRepository;
         this.graduationStudentRecordHistoryTransformer = graduationStudentRecordHistoryTransformer;
@@ -55,7 +55,6 @@ public class HistoryService {
         this.historyActivityRepository = historyActivityRepository;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentCourseHistoryRepository = studentCourseHistoryRepository;
-        this.studentCourseHistoryMapper = studentCourseHistoryMapper;
         this.constants = constants;
     }
 

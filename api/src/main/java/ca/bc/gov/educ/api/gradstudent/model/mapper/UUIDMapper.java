@@ -5,7 +5,7 @@ import org.mapstruct.Mapper;
 
 import java.util.UUID;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public class UUIDMapper {
 
     public UUID map(String value) {
