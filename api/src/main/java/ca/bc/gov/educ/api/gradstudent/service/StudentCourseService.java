@@ -116,9 +116,9 @@ public class StudentCourseService {
             Course relatedCourse = courses.stream().filter(x -> x.getCourseID().equals(studentCourse.getRelatedCourseId())).findFirst().orElse(null);
             StudentCourse existingStudentCourse = getExistingCourse(studentCourse, existingStudentCourses, isUpdate);
             //Check for duplicate course in the list of student courses
-            boolean isUpsertAllowed = isUpsertAllowed(studentCourses, existingStudentCourse, studentCourse, isUpdate);
+            boolean isUpsertAllowed = isUpsertAllowed(studentCourses, existingStudentCourses, studentCourse, isUpdate);
             if (!isUpsertAllowed) {
-                studentCourseResponse.add(prepareInvalidCourseValidationIssue(studentCourse, course, isUpdate));
+                studentCourseResponse.add(prepareInvalidCourseValidationIssue(studentCourse, existingStudentCourse, course, isUpdate));
             } else {
                 //Perform validation checks
                 StudentCourseRuleData studentCourseRuleData = prepareStudentCourseRuleData(studentCourse, graduationStudentRecord, course, relatedCourse, activityCode);
@@ -140,10 +140,19 @@ public class StudentCourseService {
         return studentCourseResponse;
     }
 
-    private boolean isUpsertAllowed(List<StudentCourse> studentCourses, StudentCourse existingStudentCourse, StudentCourse studentCourse, boolean isUpdate) {
+    private boolean isUpsertAllowed(List<StudentCourse> studentCourses, List<StudentCourse> existingStudentCourses, StudentCourse studentCourse, boolean isUpdate) {
         //Check for invalid course in the list of student courses
         Long dupeCount = studentCourses.stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID()) && x.getCourseSession().equals(studentCourse.getCourseSession())).count();
-        return dupeCount == 1 && ((existingStudentCourse != null && isUpdate) || (existingStudentCourse == null && !isUpdate));
+        if (dupeCount != 1) {
+            return false; // More than one match or none — invalid for upsert
+        }
+        StudentCourse courseCodeLevelMatch = getExistingCourse(studentCourse, existingStudentCourses, false);
+        if (isUpdate) {
+            StudentCourse exactMatch = getExistingCourse(studentCourse, existingStudentCourses, true);
+            return exactMatch != null &&
+                    (courseCodeLevelMatch == null || courseCodeLevelMatch.getId().equals(exactMatch.getId()));
+        }
+        return courseCodeLevelMatch == null;
     }
 
     private Map<String, StudentCourseValidationIssue> persistAndCreateHistory(List<StudentCourseEntity> tobePersisted, UUID studentID, boolean isUpdate, Map<String, StudentCourseValidationIssue> courseValidationIssues) {
@@ -171,8 +180,8 @@ public class StudentCourseService {
         return existingStudentCourses.stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID()) && x.getCourseSession().equals(studentCourse.getCourseSession())).findFirst().orElse(null);
     }
 
-    private StudentCourseValidationIssue prepareInvalidCourseValidationIssue(StudentCourse studentCourse, Course course, boolean isUpdate) {
-        StudentCourseValidationIssueTypeCode invalidTypeCode = isUpdate ? StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_FOUND : StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DUPLICATE;
+    private StudentCourseValidationIssue prepareInvalidCourseValidationIssue(StudentCourse studentCourse,StudentCourse existingStudentCourse, Course course, boolean isUpdate) {
+        StudentCourseValidationIssueTypeCode invalidTypeCode = isUpdate && existingStudentCourse == null ? StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_FOUND : StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DUPLICATE;
         return createCourseValidationIssue(studentCourse, course, List.of(ValidationIssue.builder().validationIssueMessage(invalidTypeCode.getMessage()).validationFieldName(invalidTypeCode.getCode()).validationIssueSeverityCode(invalidTypeCode.getSeverityCode().getCode()).build()));
     }
 

@@ -78,9 +78,9 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
                 programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_1995_VALID));
         }
         if (PROGRAM_CODES_1995.contains(programCode)) {
-            return programValidationIssues;
+            programValidationIssues.addAll(validate1995FineArtsAppliedSkillsProgramCode(programCode, studentCourse, course));
         }
-        programValidationIssues.addAll(validate1995FineArtsAppliedSkillsProgramCode(programCode, studentCourse, course));
+
         return programValidationIssues;
     }
 

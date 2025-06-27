@@ -108,6 +108,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
@@ -139,6 +140,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
@@ -163,6 +166,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -182,6 +187,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
@@ -204,6 +211,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
@@ -272,7 +280,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isEmpty());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isPresent());
@@ -295,6 +303,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
@@ -363,7 +372,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isEmpty());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isPresent());
@@ -386,6 +395,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
@@ -454,7 +464,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isEmpty());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isPresent());
@@ -496,6 +506,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -516,6 +528,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -546,6 +560,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
@@ -580,6 +596,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
@@ -648,7 +665,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isEmpty());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isEmpty());
@@ -683,6 +700,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
@@ -709,10 +727,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse6").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse6").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
-
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
-
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
@@ -749,9 +765,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
-
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isEmpty());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isEmpty());
@@ -786,6 +801,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
@@ -854,7 +870,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isEmpty());
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isEmpty());
@@ -888,6 +904,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -920,6 +938,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -952,6 +972,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -984,6 +1006,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
@@ -1012,6 +1036,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
         List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -1132,7 +1158,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         //NO WARNING MINIMAL DATA
         StudentCourse studentCourse1 = createStudentCourse("5","202504", null, null,87,"A", 4, "B", null);
         //NO WARNING ALL DATA
-        StudentCourse studentCourse2= createStudentCourse("6","202504", 62, "C",85,"B", 4, "B", null);
+        StudentCourse studentCourse2= createStudentCourse("6","202504", 62, "C",85,"B", 4, "", null);
         studentCourse2.setCustomizedCourseName("CUSTOM");
         studentCourse2.setEquivOrChallenge("C");
         studentCourse2.setRelatedCourseId("4");
@@ -1253,6 +1279,15 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         List<EquivalentOrChallengeCode> equivalentOrChallengeCodes = new ArrayList<>();
         equivalentOrChallengeCodes.add(EquivalentOrChallengeCode.builder().equivalentOrChallengeCode("C").build());
         return equivalentOrChallengeCodes;
+    }
+
+    private List<FineArtsAppliedSkillsCode> getFineArtsAppliedSkillsCodes() {
+        List<FineArtsAppliedSkillsCode> fineArtsAppliedSkillsCodes = new ArrayList<>();
+        fineArtsAppliedSkillsCodes.add(FineArtsAppliedSkillsCode.builder().fineArtsAppliedSkillsCode("B").build());
+        fineArtsAppliedSkillsCodes.add(FineArtsAppliedSkillsCode.builder().fineArtsAppliedSkillsCode("A").build());
+        fineArtsAppliedSkillsCodes.add(FineArtsAppliedSkillsCode.builder().fineArtsAppliedSkillsCode("F").build());
+
+        return fineArtsAppliedSkillsCodes;
     }
 
     @Test
