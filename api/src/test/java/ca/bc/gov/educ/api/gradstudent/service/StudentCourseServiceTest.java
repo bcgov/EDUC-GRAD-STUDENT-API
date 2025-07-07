@@ -1048,6 +1048,40 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     }
 
+    @SneakyThrows
+    @Test
+    public void testDeleteStudentCourses_WithError() {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+        Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
+        List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
+        for(StudentCourse studentCourse: studentCourses.values()) {
+            UUID studentCourseID = UUID.randomUUID();
+            studentCourse.setId(studentCourseID.toString());
+            StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
+            studentCourseEntity.setCourseExam(createStudentCourseExamEntity(createStudentCourseExam(80,80,80,"A")));
+            studentCourseEntity.setId(studentCourseID);
+            studentCourseEntities.add(studentCourseEntity);
+        }
+        List<UUID> tobeDeleted = studentCourseEntities.stream().map(StudentCourseEntity::getId).toList();
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "");
+        graduationStatusEntity.setStudentID(studentID);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(studentCourseRepository.findAllById(tobeDeleted)).thenReturn(studentCourseEntities);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
+        assertNotNull(result);
+        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage())).findFirst().isPresent());
+        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage())).findFirst().isPresent());
+
+    }
+
     @Test
     public void testGetStudentCourseHistory() {
         setSecurityContext();
@@ -1148,6 +1182,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         StudentCourseExam studentCourseExam = new StudentCourseExam();
         studentCourseExam.setSchoolPercentage(schoolPercentage);
         studentCourseExam.setBestSchoolPercentage(bestSchoolPercentage);
+        studentCourseExam.setExamPercentage(bestExamPercentage);
         studentCourseExam.setBestExamPercentage(bestExamPercentage);
         studentCourseExam.setSpecialCase(specialCase);
         return studentCourseExam;
@@ -1156,7 +1191,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     private Map<String, StudentCourse> getStudentCoursesTestData_NoValidationIssues() {
         Map<String, StudentCourse> studentCourses = new HashMap<>();
         //NO WARNING MINIMAL DATA
-        StudentCourse studentCourse1 = createStudentCourse("5","202504", null, null,87,"A", 4, "B", null);
+        StudentCourse studentCourse1 = createStudentCourse("5","202504", null, null,87,"A", 4, "B", "7");
         //NO WARNING ALL DATA
         StudentCourse studentCourse2= createStudentCourse("6","202504", 62, "C",85,"B", 4, "", null);
         studentCourse2.setCustomizedCourseName("CUSTOM");
@@ -1193,6 +1228,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         studentCourseExamEntity.setId(UUID.randomUUID());
         studentCourseExamEntity.setSchoolPercentage(courseExam.getSchoolPercentage().doubleValue());
         studentCourseExamEntity.setBestSchoolPercentage(courseExam.getBestSchoolPercentage().doubleValue());
+        if(courseExam.getExamPercentage() != null)
+            studentCourseExamEntity.setExamPercentage(courseExam.getExamPercentage().doubleValue());
         return studentCourseExamEntity;
     }
 

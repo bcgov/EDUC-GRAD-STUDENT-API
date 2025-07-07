@@ -183,6 +183,7 @@ public class StudentCourseService {
             savedEntities.forEach(entity -> {
                 StudentCourseValidationIssue courseValidationIssue = courseValidationIssues.get(entity.getCourseID().toString().concat(entity.getCourseSession()));
                 if (courseValidationIssue != null) {
+                    courseValidationIssue.setId(entity.getId());
                     courseValidationIssue.setHasPersisted(true);
                 }
             });
@@ -224,7 +225,6 @@ public class StudentCourseService {
             );
             if (isCourseExamDeleteRestricted(studentCourse)) {
                 studentCourseValidationIssue.getValidationIssues().add(ValidationIssue.builder().validationIssueMessage(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage()).validationIssueSeverityCode(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getSeverityCode().getCode()).validationFieldName(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getCode()).build());
-
             }
             courseValidationIssueMap.putIfAbsent(studentCourse.getId(), studentCourseValidationIssue);
             boolean hasError = studentCourseValidationIssue.getValidationIssues().stream().anyMatch(issue -> "ERROR".equals(issue.getValidationIssueSeverityCode()));
