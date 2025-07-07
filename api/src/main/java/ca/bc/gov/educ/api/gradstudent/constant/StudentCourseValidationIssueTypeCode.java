@@ -14,6 +14,7 @@ public enum StudentCourseValidationIssueTypeCode {
 
     STUDENT_COURSE_DUPLICATE("course", "The course session is a duplicate of an existing course session for this student" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_UPDATE_NOT_FOUND("course", "Invalid Course - course code/level does not exist for this student" , ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_UPDATE_NOT_ALLOWED("course", "The existing course is examinable. Please enter the exam details" , ValidationIssueSeverityCode.ERROR),
 
     STUDENT_COURSE_INVALID_DATA("course", "Invalid Course ID/Session - course id and session cannot be empty or blank" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_VALID("course", "Invalid Course code/level - course code/level does not exist in the ministry course registry" , ValidationIssueSeverityCode.ERROR),

@@ -59,7 +59,10 @@ public interface StudentCourseValidationBaseRule extends ValidationBaseRule<Stud
     }
 
     default LocalDate getLocalDate(Date date) {
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        if(date != null) {
+            return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
+        return null;
     }
 
 }

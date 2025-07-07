@@ -23,4 +23,9 @@ public interface UpsertStudentCourseValidationBaseRule extends StudentCourseVali
     default boolean isAcceptablePercentile(Integer value) {
         return value == null || (value >= DEFAULT_MIN_PERCENTAGE_VALUE && value <= DEFAULT_MAX_PERCENTAGE_VALUE);
     }
+
+    default boolean isDateWithinRange(LocalDate date, LocalDate startDate, LocalDate endDate) {
+        return date != null && (startDate == null || !date.isBefore(startDate)) &&
+                (endDate == null || !date.isAfter(endDate));
+    }
 }

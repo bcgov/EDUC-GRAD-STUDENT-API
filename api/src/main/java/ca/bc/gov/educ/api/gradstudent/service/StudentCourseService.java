@@ -126,7 +126,7 @@ public class StudentCourseService {
                 boolean hasError = validationIssues.stream().anyMatch(issue -> "ERROR".equals(issue.getValidationIssueSeverityCode()));
                 if (!hasError) {
                     StudentCourseEntity studentCourseEntity = mapper.toEntity(studentCourse);
-                    if (isUpdate && studentCourse.getId() != null && existingStudentCourse != null && studentCourse.getCourseExam() != null) {
+                    if (isUpdate && studentCourse.getId() != null && existingStudentCourse != null && studentCourse.getCourseExam() != null && existingStudentCourse.getCourseExam() != null) {
                         studentCourseEntity.getCourseExam().setId(existingStudentCourse.getCourseExam().getId());
                     }
                     tobePersisted.add(studentCourseEntity);
@@ -149,10 +149,27 @@ public class StudentCourseService {
         StudentCourse courseCodeLevelMatch = getExistingCourse(studentCourse, existingStudentCourses, false);
         if (isUpdate) {
             StudentCourse exactMatch = getExistingCourse(studentCourse, existingStudentCourses, true);
-            return exactMatch != null &&
-                    (courseCodeLevelMatch == null || courseCodeLevelMatch.getId().equals(exactMatch.getId()));
+            return exactMatch != null && (exactMatch.getCourseExam() == null || studentCourse.getCourseExam() != null) &&
+                    (courseCodeLevelMatch == null || courseCodeLevelMatch.getId().equals(exactMatch.getId())) ;
         }
         return courseCodeLevelMatch == null;
+    }
+
+    private StudentCourseValidationIssue prepareInvalidCourseValidationIssue(StudentCourse studentCourse, StudentCourse existingStudentCourse, Course course, boolean isUpdate) {
+        StudentCourseValidationIssueTypeCode invalidTypeCode = determineInvalidTypeCode(studentCourse, existingStudentCourse, isUpdate);
+        return createCourseValidationIssue(studentCourse, course, List.of(ValidationIssue.builder().validationIssueMessage(invalidTypeCode.getMessage()).validationFieldName(invalidTypeCode.getCode()).validationIssueSeverityCode(invalidTypeCode.getSeverityCode().getCode()).build()));
+    }
+
+    private StudentCourseValidationIssueTypeCode determineInvalidTypeCode(StudentCourse studentCourse, StudentCourse existingStudentCourse, boolean isUpdate) {
+        if (isUpdate && existingStudentCourse == null) {
+            return StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_FOUND;
+        }
+        if (existingStudentCourse != null &&
+                existingStudentCourse.getCourseExam() != null &&
+                studentCourse.getCourseExam() == null) {
+            return StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_ALLOWED;
+        }
+        return StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DUPLICATE;
     }
 
     private Map<String, StudentCourseValidationIssue> persistAndCreateHistory(List<StudentCourseEntity> tobePersisted, UUID studentID, boolean isUpdate, Map<String, StudentCourseValidationIssue> courseValidationIssues) {
@@ -166,6 +183,7 @@ public class StudentCourseService {
             savedEntities.forEach(entity -> {
                 StudentCourseValidationIssue courseValidationIssue = courseValidationIssues.get(entity.getCourseID().toString().concat(entity.getCourseSession()));
                 if (courseValidationIssue != null) {
+                    courseValidationIssue.setId(entity.getId());
                     courseValidationIssue.setHasPersisted(true);
                 }
             });
@@ -180,10 +198,6 @@ public class StudentCourseService {
         return existingStudentCourses.stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID()) && x.getCourseSession().equals(studentCourse.getCourseSession())).findFirst().orElse(null);
     }
 
-    private StudentCourseValidationIssue prepareInvalidCourseValidationIssue(StudentCourse studentCourse,StudentCourse existingStudentCourse, Course course, boolean isUpdate) {
-        StudentCourseValidationIssueTypeCode invalidTypeCode = isUpdate && existingStudentCourse == null ? StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_FOUND : StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DUPLICATE;
-        return createCourseValidationIssue(studentCourse, course, List.of(ValidationIssue.builder().validationIssueMessage(invalidTypeCode.getMessage()).validationFieldName(invalidTypeCode.getCode()).validationIssueSeverityCode(invalidTypeCode.getSeverityCode().getCode()).build()));
-    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<StudentCourseValidationIssue> deleteStudentCourses(UUID studentID, List<UUID> studentCourseIDs) {
@@ -203,6 +217,7 @@ public class StudentCourseService {
         existingStudentCourses.forEach(studentCourse -> {
             Course course = courses.stream().filter(x -> x.getCourseID().equals(studentCourse.getCourseID().toString())).findFirst().orElse(null);
             StudentCourseValidationIssue studentCourseValidationIssue = createCourseValidationIssue(
+                    studentCourse.getId().toString(),
                     studentCourse.getCourseID().toString(),
                     studentCourse.getCourseSession(),
                     course,
@@ -210,7 +225,6 @@ public class StudentCourseService {
             );
             if (isCourseExamDeleteRestricted(studentCourse)) {
                 studentCourseValidationIssue.getValidationIssues().add(ValidationIssue.builder().validationIssueMessage(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage()).validationIssueSeverityCode(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getSeverityCode().getCode()).validationFieldName(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getCode()).build());
-
             }
             courseValidationIssueMap.putIfAbsent(studentCourse.getId(), studentCourseValidationIssue);
             boolean hasError = studentCourseValidationIssue.getValidationIssues().stream().anyMatch(issue -> "ERROR".equals(issue.getValidationIssueSeverityCode()));
@@ -343,11 +357,12 @@ public class StudentCourseService {
     }
 
     private StudentCourseValidationIssue createCourseValidationIssue(StudentCourse studentCourse, Course course, List<ValidationIssue> validationIssues) {
-        return createCourseValidationIssue(studentCourse.getCourseID(), studentCourse.getCourseSession(), course, validationIssues);
+        return createCourseValidationIssue(studentCourse.getId() , studentCourse.getCourseID(), studentCourse.getCourseSession(), course, validationIssues);
     }
 
-    private StudentCourseValidationIssue createCourseValidationIssue(String courseId, String courseSession, Course course, List<ValidationIssue> validationIssues) {
+    private StudentCourseValidationIssue createCourseValidationIssue(String id, String courseId, String courseSession, Course course, List<ValidationIssue> validationIssues) {
         StudentCourseValidationIssue studentCourseValidationIssue = new StudentCourseValidationIssue();
+        studentCourseValidationIssue.setId(StringUtils.isNotBlank(id) ? UUID.fromString(id) : null);
         studentCourseValidationIssue.setCourseID(courseId);
         studentCourseValidationIssue.setCourseSession(courseSession);
         if (course != null) {
