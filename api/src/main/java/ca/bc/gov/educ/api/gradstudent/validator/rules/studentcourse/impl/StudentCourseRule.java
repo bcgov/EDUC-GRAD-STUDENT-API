@@ -79,7 +79,7 @@ public class StudentCourseRule implements UpsertStudentCourseValidationBaseRule 
 
     private boolean isSessionDateInCurrentReportingPeriod(LocalDate sessionDate) {
         Pair<LocalDate, LocalDate> sessionPeriod = getCurrentSessionPeriod(sessionDate);
-        return sessionDate.isAfter(sessionPeriod.getLeft()) && sessionDate.isBefore(sessionPeriod.getRight());
+        return isDateWithinRange(sessionDate, sessionPeriod.getLeft(), sessionPeriod.getRight());
     }
 
     private boolean isValidSessionMonth(String dateValue) {
