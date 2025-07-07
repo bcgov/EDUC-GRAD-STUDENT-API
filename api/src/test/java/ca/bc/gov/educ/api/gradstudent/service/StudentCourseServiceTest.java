@@ -68,7 +68,9 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     public void testGetStudentCourses() {
         UUID studentID = UUID.randomUUID();
         StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID,"1","202404");
+        studentCourseEntity.setRelatedCourseId(new BigInteger("2"));
         Mockito.when(studentCourseRepository.findByStudentID(studentID)).thenReturn(Arrays.asList(studentCourseEntity));
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
         var result = studentCourseService.getStudentCourses(studentID) ;
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(1);
@@ -147,6 +149,44 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertThat(result).isNotEmpty().hasSize(2);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
+
+    }
+
+    @Test
+    public void testUpdateStudentCourses_CUR_ExaminableToNonExaminable_Error() {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+        Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
+        List<StudentCourseEntity> studentCourseEntities = new ArrayList<>();
+        for(StudentCourse studentCourse: studentCourses.values()) {
+            UUID studentCourseID = UUID.randomUUID();
+            studentCourse.setId(studentCourseID.toString());
+            StudentCourseEntity studentCourseEntity = createStudentCourseEntity(studentID, studentCourse.getCourseID(), studentCourse.getCourseSession());
+            studentCourseEntity.setCourseExam(createStudentCourseExamEntity(createStudentCourseExam(80,80,80,"A")));
+            studentCourseEntity.setId(studentCourseID);
+            studentCourseEntities.add(studentCourseEntity);
+        }
+
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "");
+        graduationStatusEntity.setStudentID(studentID);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        assertNotNull(result);
+        assertThat(result).isNotEmpty().hasSize(2);
+
+        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_ALLOWED.getMessage())).findFirst().isPresent());
+        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_ALLOWED.getMessage())).findFirst().isPresent());
+
+
 
     }
 
@@ -1091,11 +1131,13 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         for(StudentCourse studentCourse : studentCourses.values()) {
             StudentCourseHistory history = new StudentCourseHistory();
             history.setCourseID(studentCourse.getCourseID());
+            history.setRelatedCourseId(studentCourse.getRelatedCourseId());
             history.setCourseSession(studentCourse.getCourseSession());
             history.setActivityCode(StudentCourseActivityType.USERCOURSEADD.name());
             historyEntities.add(history);
         }
         when(historyService.getStudentCourseHistory(any())).thenReturn(historyEntities);
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
         List<StudentCourseHistory> result = studentCourseService.getStudentCourseHistory(studentID);
         assertEquals(historyEntities, result);
     }
