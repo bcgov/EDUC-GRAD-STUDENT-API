@@ -39,7 +39,7 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
 
     @MockBean
     @Qualifier("studentApiClient")
-    WebClient studentApiClient;
+    WebClient webClient;
 
     @MockBean
     RESTService restService;
@@ -58,7 +58,7 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
 
     @Before
     public void setUp(){
-        when(this.studentApiClient.get()).thenReturn(this.requestHeadersUriMock);
+        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
         when(this.requestHeadersUriMock.uri(any(String.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
@@ -91,25 +91,22 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testGetExaminableCourses_programYear() {
+        when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
+        var result = courseCacheService.getExaminableCoursesFromCacheByProgramYear("1986") ;
+        assertNotNull(result);
+    }
+
+    @Test
     public void testGetExaminableCourses() {
-        final ParameterizedTypeReference<List<ExaminableCourse>> responseType = new ParameterizedTypeReference<>() {};
-
-        when(this.requestHeadersUriMock.uri(eq(this.constants.getExaminableCourseDetailUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-
-        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(getExaminableCourses()));
+        when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
         var result = courseCacheService.getExaminableCoursesFromCache() ;
         assertNotNull(result);
     }
 
     @Test
     public void testGetExaminableCourses_NoError() {
-        final ParameterizedTypeReference<List<ExaminableCourse>> responseType = new ParameterizedTypeReference<>() {};
-
-        when(this.requestHeadersUriMock.uri(eq(this.constants.getExaminableCourseDetailUrl()), any(Function.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-
-        when(this.responseMock.bodyToMono(responseType)).thenReturn(Mono.just(getExaminableCourses()));
+        when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
         Assertions.assertDoesNotThrow(() -> { courseCacheService.getExaminableCoursesFromCache(); });
     }
 
@@ -162,6 +159,10 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     private List<ExaminableCourse> getExaminableCourses() {
         List<ExaminableCourse> examinableCourses = new ArrayList<>();
         examinableCourses.add(ExaminableCourse.builder().courseCode("A").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
+        examinableCourses.add(ExaminableCourse.builder().courseCode("B").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).programYear("1986").build());
+        examinableCourses.add(ExaminableCourse.builder().courseCode("C").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).programYear("1996").build());
+        examinableCourses.add(ExaminableCourse.builder().courseCode("D").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
+
         return examinableCourses;
     }
 

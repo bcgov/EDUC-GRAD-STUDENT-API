@@ -8,6 +8,7 @@ import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.UpsertStudentCourseValidationBaseRule;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -45,20 +46,17 @@ public class StudentCourseExaminableRule implements UpsertStudentCourseValidatio
         StudentCourse studentCourse = studentCourseRuleData.getStudentCourse();
         StudentCourseExam studentCourseExam =studentCourse.getCourseExam();
         Course course = studentCourseRuleData.getCourse();
-        ExaminableCourse examinableCourse = getExaminableCourse(course);
+        ExaminableCourse examinableCourse = getExaminableCourse(course, getProgramYear(studentCourseRuleData.getGraduationStudentRecord().getProgram()));
         LocalDate sessionDate = getSessionDate(studentCourse);
         boolean isCourseMarkedExaminable = studentCourseExam != null;
         boolean isCourseActualExaminable = examinableCourse != null;
         boolean isCourseActualExaminableMandatory = isCourseActualExaminable && isExaminableMandatory(sessionDate, examinableCourse);
-        boolean isCourseActualExaminableOptional = isCourseActualExaminable && !PROGRAM_CODES_1995.contains(studentCourseRuleData.getGraduationStudentRecord().getProgram()) && isExaminableOptional(sessionDate, examinableCourse);
         if(!isCourseMarkedExaminable && isCourseActualExaminableMandatory) {
             ValidationIssueSeverityCode severityCode = Boolean.TRUE.equals(studentCourseRuleData.getIsSystemCoordinator()) ? ValidationIssueSeverityCode.WARNING: ValidationIssueSeverityCode.ERROR;
             validationIssues.add(createValidationIssue(severityCode, StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_VALID));
         }
         if(isCourseMarkedExaminable && !isCourseActualExaminableMandatory) {
             validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID));
-        } else if (isCourseMarkedExaminable && isCourseActualExaminableOptional) {
-            validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID));
         }
         return validationIssues;
     }
@@ -70,14 +68,11 @@ public class StudentCourseExaminableRule implements UpsertStudentCourseValidatio
         return sessionDate.isAfter(mandatoryStart) && (mandatoryEnd == null || sessionDate.isBefore(mandatoryEnd));
     }
 
-    private boolean isExaminableOptional(LocalDate sessionDate, ExaminableCourse examinableCourse) {
-        LocalDate optionalStart = getAsDefaultLocalDate(examinableCourse.getOptionalStart());
-        LocalDate optionalEnd = getAsDefaultLocalDate(examinableCourse.getOptionalEnd());
-        if(optionalStart == null) return false;
-        return sessionDate.isAfter(optionalStart) && (optionalEnd == null || sessionDate.isBefore(optionalEnd));
+    private String getProgramYear(String programCode) {
+        return StringUtils.isNotBlank(programCode)? StringUtils.left(programCode, 4): "DEFAULT";
     }
 
-    private ExaminableCourse getExaminableCourse(Course course) {
-        return courseCacheService.getExaminableCoursesFromCache().stream().filter(examinableCourse -> examinableCourse.getCourseCode().equals(course.getCourseCode()) && (examinableCourse.getCourseLevel().equals(course.getCourseLevel()))).findFirst().orElse(null);
+    private ExaminableCourse getExaminableCourse(Course course, String programYear) {
+        return courseCacheService.getExaminableCoursesFromCacheByProgramYear(programYear).stream().filter(examinableCourse -> examinableCourse.getCourseCode().equals(course.getCourseCode()) && (examinableCourse.getCourseLevel().equals(course.getCourseLevel()))).findFirst().orElse(null);
     }
 }
