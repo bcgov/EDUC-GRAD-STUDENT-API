@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -125,8 +124,7 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     @Test
     public void testGetExaminableCourses_emptyCache() {
         when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(Collections.EMPTY_LIST);
-        var result = courseCacheService.getExaminableCoursesFromCache() ;
-        assertTrue(result.isEmpty());
+        Assertions.assertThrows(IllegalStateException.class, () -> courseCacheService.getExaminableCoursesFromCache());
     }
 
 
