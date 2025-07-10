@@ -21,10 +21,12 @@ import reactor.core.publisher.Mono;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -101,7 +103,6 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     @Test
     public void testGetExaminableCourses_programYear() {
         when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
-        courseCacheService.loadExaminableCourses();
         var result = courseCacheService.getExaminableCoursesFromCacheByProgramYear("1986") ;
         assertNotNull(result);
     }
@@ -123,9 +124,9 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
 
     @Test
     public void testGetExaminableCourses_emptyCache() {
-        when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
+        when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(Collections.EMPTY_LIST);
         var result = courseCacheService.getExaminableCoursesFromCache() ;
-        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
 
