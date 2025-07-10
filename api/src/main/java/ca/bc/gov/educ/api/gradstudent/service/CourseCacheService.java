@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonTransformer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
@@ -15,8 +16,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -31,11 +32,12 @@ public class CourseCacheService {
     private final FineArtsAppliedSkillsCodeService fineArtsAppliedSkillsCodeService;
 
 
-    private final Map<UUID, ExaminableCourse> examinableCourseCache = new ConcurrentHashMap<>();
+    private final Map<String, List<ExaminableCourse>> examinableCourseCache = new ConcurrentHashMap<>();
     private final Map<String, LetterGrade> letterGradeCache = new ConcurrentHashMap<>();
     private final Map<String, ExamSpecialCaseCode> examSpecialCaseCodeCache = new ConcurrentHashMap<>();
     private final Map<String, EquivalentOrChallengeCode> equivalentOrChallengeCodeCache = new ConcurrentHashMap<>();
     private final Map<String, FineArtsAppliedSkillsCode> fineArtsAppliedSkillsCodeCache = new ConcurrentHashMap<>();
+    private static final String EXAMINABLE_COURSE_DEFAULT_PROGRAM_YEAR = "DEFAULT";
 
     @Autowired
     public CourseCacheService(@Qualifier("studentApiClient") WebClient studentApiClient, RESTService restService, JsonTransformer jsonTransformer, EducGradStudentApiConstants constants,
@@ -50,8 +52,13 @@ public class CourseCacheService {
         this.fineArtsAppliedSkillsCodeService = fineArtsAppliedSkillsCodeService;
     }
 
+    public List<ExaminableCourse> getExaminableCoursesFromCacheByProgramYear(String programYear) {
+        programYear = StringUtils.defaultIfBlank(programYear, EXAMINABLE_COURSE_DEFAULT_PROGRAM_YEAR);
+        return CollectionUtils.isEmpty(examinableCourseCache) ? fetchExaminableCoursesByProgramYear(programYear): examinableCourseCache.get(programYear);
+    }
+
     public List<ExaminableCourse> getExaminableCoursesFromCache() {
-        return CollectionUtils.isEmpty(examinableCourseCache) ? fetchExaminableCourses(): examinableCourseCache.values().stream().toList();
+        return getExaminableCoursesFromCacheByProgramYear(EXAMINABLE_COURSE_DEFAULT_PROGRAM_YEAR);
     }
 
     public List<LetterGrade> getLetterGradesFromCache() {
@@ -75,14 +82,30 @@ public class CourseCacheService {
         log.info("Loading Examinable Course cache");
         try {
             List<ExaminableCourse> examinableCourses = fetchExaminableCourses();
-            Map<UUID, ExaminableCourse> newCache = new ConcurrentHashMap<>();
-            examinableCourses.forEach(examinableCourse -> newCache.put(examinableCourse.getExaminableCourseID(), examinableCourse));
+            Map<String, List<ExaminableCourse>> newCacheGrouped =examinableCourses.stream()
+                    .collect(Collectors.groupingBy(
+                            ec -> StringUtils.defaultIfEmpty(ec.getProgramYear(), EXAMINABLE_COURSE_DEFAULT_PROGRAM_YEAR)
+                    ));
             examinableCourseCache.clear();
-            examinableCourseCache.putAll(newCache);
+            examinableCourseCache.putAll(newCacheGrouped);
             log.info("Examinable Course cache successfully loaded with {} entries.", examinableCourses.size());
         } catch (Exception e) {
             log.error("Failed to load Examinable Course: {}", e.getMessage(), e);
         }
+    }
+
+    private List<ExaminableCourse> fetchExaminableCoursesByProgramYear(String programYear) {
+        List<ExaminableCourse> examinableCoursesList = fetchExaminableCourses();
+        if(CollectionUtils.isEmpty(examinableCoursesList)) {
+            throw new IllegalStateException("No examinable courses found in the cache or API response.");
+        }
+        if(StringUtils.isNotBlank(programYear)) {
+            return examinableCoursesList.stream()
+                    .filter(examinableCourse -> programYear.equalsIgnoreCase(examinableCourse.getProgramYear())).toList();
+        }
+        //Blanks are considered as default program year
+        return examinableCoursesList.stream()
+                .filter(examinableCourse -> StringUtils.isBlank(examinableCourse.getProgramYear())).toList();
     }
 
     private List<ExaminableCourse> fetchExaminableCourses() {

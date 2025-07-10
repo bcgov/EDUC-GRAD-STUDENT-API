@@ -35,7 +35,6 @@ public enum StudentCourseValidationIssueTypeCode {
 
     STUDENT_COURSE_EXAM_VALID("course","This course required an exam at the time of the course session date", ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_EXAM_MANDATORY_VALID("course","This course is not showing as examinable during this session. Please enter this course as non-examinable", ValidationIssueSeverityCode.WARNING),
-    STUDENT_COURSE_EXAM_OPTIONAL_VALID("course","This exam for this course showing as optional during this session", ValidationIssueSeverityCode.WARNING),
 
     STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID("schoolPercentage","School percent cannot be null, negative or greater than 100", ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID("bestSchoolPercentage","Best School percent cannot be null, negative or greater than 100", ValidationIssueSeverityCode.ERROR),

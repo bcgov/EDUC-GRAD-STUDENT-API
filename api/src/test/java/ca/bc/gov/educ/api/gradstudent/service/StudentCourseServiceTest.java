@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.data.util.Pair;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -181,13 +182,15 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(2);
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_ALLOWED.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_ALLOWED.getMessage())).findFirst().isPresent());
-
-
-
+        Map<String, List<String>> expectedValidationMessages = new HashMap<>();
+        expectedValidationMessages.put(
+                "studentCourse1", List.of(
+                        StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_ALLOWED.getMessage()
+                ));
+        expectedValidationMessages.put(
+                "studentCourse2", List.of(
+                        StudentCourseValidationIssueTypeCode.STUDENT_COURSE_UPDATE_NOT_ALLOWED.getMessage()
+                ));
     }
 
     @Test
@@ -249,85 +252,49 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
-        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getExaminableCoursesFromCacheByProgramYear("1996")).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage())).findFirst().isPresent());
+        Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
+        expectedValidationMessages.put("studentCourse1", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(), true)
+        ));
+        expectedValidationMessages.put("studentCourse2", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage(), true)
+        ));
+        expectedValidationMessages.put("studentCourse3", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage(), true)
+        ));
+        expectedValidationMessages.put("studentCourse4", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse5", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse6", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse7", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse8", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse9", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse10", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse11", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse12", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse13", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse14", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse15", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_AEGROTAT_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse16", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse17", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse19", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse20", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse21", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage(), true)));
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse4").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse4").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse5").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse5").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse6").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse6").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse10").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse10").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse11").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse11").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse12").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse12").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse13").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse13").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse14").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse14").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse15").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse15").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_AEGROTAT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse17").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse17").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse21").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse21").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage())).findFirst().isPresent());
-
+        assertValidationMessage(studentCourses, result, expectedValidationMessages);
     }
 
     @Test
@@ -341,84 +308,49 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
-        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getExaminableCoursesFromCacheByProgramYear("1996")).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage())).findFirst().isPresent());
+        Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
+        expectedValidationMessages.put("studentCourse1", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(), true)
+        ));
+        expectedValidationMessages.put("studentCourse2", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage(), true)
+        ));
+        expectedValidationMessages.put("studentCourse3", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage(), true)
+        ));
+        expectedValidationMessages.put("studentCourse4", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse5", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse6", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse7", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse8", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse9", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse10", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse11", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse12", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse13", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse14", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse15", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_AEGROTAT_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse16", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse17", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse19", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse20", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse21", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage(), true)));
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse4").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse4").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse5").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse5").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse6").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse6").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse10").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse10").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse11").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse11").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse12").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse12").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse13").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse13").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse14").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse14").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse15").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse15").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_AEGROTAT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse17").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse17").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse21").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse21").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage())).findFirst().isPresent());
+        assertValidationMessage(studentCourses, result, expectedValidationMessages);
 
     }
 
@@ -433,85 +365,49 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
-        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getExaminableCoursesFromCacheByProgramYear("1996")).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage())).findFirst().isPresent());
+        Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
+        expectedValidationMessages.put("studentCourse1", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(), true)
+        ));
+        expectedValidationMessages.put("studentCourse2", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage(), true)
+        ));
+        expectedValidationMessages.put("studentCourse3", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage(), true)
+        ));
+        expectedValidationMessages.put("studentCourse4", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse5", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse6", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse7", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse8", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse9", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse10", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse11", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse12", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse13", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse14", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse15", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_AEGROTAT_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse16", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage(), true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse17", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse19", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse20", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage(), true)));
+        expectedValidationMessages.put("studentCourse21", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage(), true)));
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse4").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse4").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse5").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse5").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse6").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse6").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse10").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse10").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse11").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse11").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse12").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse12").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse13").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse13").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse14").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse14").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse15").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse15").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_AEGROTAT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse17").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse17").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse21").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse21").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage())).findFirst().isPresent());
-
+        assertValidationMessage(studentCourses, result, expectedValidationMessages);
     }
 
     @Test
@@ -634,85 +530,50 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
-        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getExaminableCoursesFromCacheByProgramYear("1996")).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage())).findFirst().isPresent());
+       Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
+        expectedValidationMessages.put("studentCourse1", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse2", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse3", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse4", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse5", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse6", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse7", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse8", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse9", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse10", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse11", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse12", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse13", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse14", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse15", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse16", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse17", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse19", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse20", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage(),false)));
+        expectedValidationMessages.put("studentCourse21", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage(),true)));
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse4").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse4").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse5").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse5").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse6").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse6").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse10").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse10").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse11").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse11").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse12").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse12").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse13").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse13").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse14").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse14").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse15").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse15").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse17").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse17").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isEmpty());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse21").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse21").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage())).findFirst().isPresent());
-
+        assertValidationMessage(studentCourses, result, expectedValidationMessages);
     }
 
     @Test
@@ -738,81 +599,50 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
-        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getExaminableCoursesFromCacheByProgramYear("1996")).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage())).findFirst().isPresent());
+        Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
+        expectedValidationMessages.put("studentCourse1", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse2", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse3", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse4", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse5", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse6", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse7", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse8", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse9", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse10", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse11", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse12", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse13", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse14", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse15", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse16", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse17", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse19", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse20", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage(),false)));
+        expectedValidationMessages.put("studentCourse21", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage(),true)));
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse4").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse4").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse5").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse5").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse6").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse6").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse10").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse10").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse11").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse11").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse12").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse12").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse13").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse13").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse14").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse14").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse15").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse15").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse17").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse17").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isEmpty());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse21").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse21").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage())).findFirst().isPresent());
+        assertValidationMessage(studentCourses, result, expectedValidationMessages);
 
     }
 
@@ -839,84 +669,50 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(studentCourseRepository.findByStudentID(studentID)).thenReturn(studentCourseEntities);
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
-        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getExaminableCoursesFromCacheByProgramYear("1996")).thenReturn(getExaminableCourses());
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage())).findFirst().isPresent());
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage())).findFirst().isPresent());
+        Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
+        expectedValidationMessages.put("studentCourse1", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse2", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_GRADE_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_GRADE_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse3", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse4", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse5", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse6", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse7", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse8", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse9", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse10", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse11", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse12", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse13", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse14", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse15", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse16", List.of(
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage(),true),
+                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage(),true)
+        ));
+        expectedValidationMessages.put("studentCourse17", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse19", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage(),true)));
+        expectedValidationMessages.put("studentCourse20", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage(),false)));
+        expectedValidationMessages.put("studentCourse21", List.of(Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage(),true)));
 
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_Q_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse4").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse4").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_START_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse5").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse5").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse6").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse6").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse7").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse7").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse8").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse8").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_BA_VALID.getMessage())).findFirst().isPresent());
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse9").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse9").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_A_F_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse10").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse10").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse11").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse11").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse12").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse12").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAMINABLE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse13").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse13").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_RELATED_COURSE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse14").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse14").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EQUIVALENCY_CHALLENGE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse15").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse15").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SPECIAL_CASE_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_SCHOOL_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse16").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse16").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_BEST_PERCENT_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse17").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse17").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_MANDATORY_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse18").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse18").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_EXAM_OPTIONAL_VALID.getMessage())).findFirst().isEmpty());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse19").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse19").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_VALID.getMessage())).findFirst().isPresent());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse20").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse20").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INVALID_DATA.getMessage())).findFirst().isEmpty());
-
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse21").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse21").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_MONTH_VALID.getMessage())).findFirst().isPresent());
+        assertValidationMessage(studentCourses, result, expectedValidationMessages);
 
     }
 
@@ -1142,6 +938,34 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertEquals(historyEntities, result);
     }
 
+    private void assertValidationMessage(Map<String, StudentCourse> studentCourses, List<StudentCourseValidationIssue> result, Map<String, List<Pair<String, Boolean>>> expectedValidationMessages) {
+        for (Map.Entry<String, List<Pair<String, Boolean>>> entry : expectedValidationMessages.entrySet()) {
+            String courseKey = entry.getKey();
+            String courseId = studentCourses.get(courseKey).getCourseID();
+            String courseSession = studentCourses.get(courseKey).getCourseSession();
+
+            Optional<StudentCourseValidationIssue> matchedCourse = result.stream()
+                    .filter(x -> x.getCourseID().equals(courseId) && x.getCourseSession().equals(courseSession)).findFirst();
+
+            assertTrue("Course not found for key: " + courseKey, matchedCourse.isPresent());
+
+            List<String> actualValidationMessages = matchedCourse.get().getValidationIssues().stream()
+                    .map(ValidationIssue::getValidationIssueMessage).toList();
+
+            for (Pair<String,Boolean> validationEntry : entry.getValue()) {
+                String expectedMessage = validationEntry.getFirst();
+                Boolean isRequired = validationEntry.getSecond();
+                if(isRequired) {
+                    assertTrue("Missing validation message for " + courseKey + ": " + expectedMessage,
+                            actualValidationMessages.contains(expectedMessage));
+                } else {
+                    assertFalse("Unexpected validation message for " + courseKey + ": " + expectedMessage,
+                            actualValidationMessages.contains(expectedMessage));
+                }
+            }
+        }
+    }
+
     private Map<String, StudentCourse> getStudentCoursesTestData_WithValidationIssues() {
         Map<String, StudentCourse> studentCourses = new HashMap<>();
         //STUDENT_COURSE_INTERIM_PERCENT_VALID, STUDENT_COURSE_FINAL_PERCENT_VALID, STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID
@@ -1348,9 +1172,9 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
     private List<ExaminableCourse> getExaminableCourses() {
         List<ExaminableCourse> examinableCourses = new ArrayList<>();
-        examinableCourses.add(ExaminableCourse.builder().courseCode("A").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
+        examinableCourses.add(ExaminableCourse.builder().courseCode("A").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).programYear("1996").build());
         examinableCourses.add(ExaminableCourse.builder().courseCode("B").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().minusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
-        examinableCourses.add(ExaminableCourse.builder().courseCode("C").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).optionalStart("2020-01").optionalEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
+        examinableCourses.add(ExaminableCourse.builder().courseCode("C").courseLevel("10").examinableStart("1994-01").examinableEnd(LocalDate.now().plusYears(2).getYear()+"-"+String.format("%02d",LocalDate.now().getMonthValue())).build());
         return examinableCourses;
     }
 
