@@ -91,9 +91,26 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testGetExaminableCourses_programYear_Cache() {
+        when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
+        courseCacheService.loadExaminableCourses();
+        var result = courseCacheService.getExaminableCoursesFromCacheByProgramYear("1986") ;
+        assertNotNull(result);
+    }
+
+    @Test
     public void testGetExaminableCourses_programYear() {
         when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
+        courseCacheService.loadExaminableCourses();
         var result = courseCacheService.getExaminableCoursesFromCacheByProgramYear("1986") ;
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGetExaminableCourses_Cache() {
+        when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
+        courseCacheService.loadExaminableCourses();
+        var result = courseCacheService.getExaminableCoursesFromCache() ;
         assertNotNull(result);
     }
 
@@ -103,6 +120,14 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
         var result = courseCacheService.getExaminableCoursesFromCache() ;
         assertNotNull(result);
     }
+
+    @Test
+    public void testGetExaminableCourses_emptyCache() {
+        when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
+        var result = courseCacheService.getExaminableCoursesFromCache() ;
+        assertNotNull(result);
+    }
+
 
     @Test
     public void testGetExaminableCourses_NoError() {
