@@ -3,8 +3,6 @@ package ca.bc.gov.educ.api.gradstudent.model.dc;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
 @Builder
 public class GradStudentRecordPayload {
