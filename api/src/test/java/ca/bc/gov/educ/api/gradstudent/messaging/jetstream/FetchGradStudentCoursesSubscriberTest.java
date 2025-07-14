@@ -1,25 +1,23 @@
 package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
+import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.Connection;
-import io.nats.client.Dispatcher;
 import io.nats.client.Message;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.lang.reflect.Field;
@@ -27,9 +25,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
@@ -40,31 +38,33 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
     private Message mockMessage;
 
     @InjectMocks
-    FetchGradStudentCoursesSubscriber fetchCoursesSubscriber;
+    private FetchGradStudentCoursesSubscriber fetchCoursesSubscriber;
 
-    @Autowired
-    EducGradStudentApiConstants constants;
-    @Autowired
-    StudentCourseService studentCourseService;
     @MockBean
-    NatsConnection natsConnection;
+    private StudentCourseService studentCourseService;
     @MockBean
-    Connection connection;
+    private NatsConnection natsConnection;
     @MockBean
-    Dispatcher dispatcher;
+    private Connection connection;
+    @MockBean
+    private Publisher publisher;
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         openMocks(this);
         when(natsConnection.connection()).thenReturn(connection);
 
-        Field dispatchF = FetchGradStudentCoursesSubscriber.class.getDeclaredField("natsConnection");
-        dispatchF.setAccessible(true);
-        dispatchF.set(fetchCoursesSubscriber, natsConnection.connection());
+        Field studentCourseServiceField = FetchGradStudentCoursesSubscriber.class.getDeclaredField("gradStudentCourseService");
+        studentCourseServiceField.setAccessible(true);
+        studentCourseServiceField.set(fetchCoursesSubscriber, studentCourseService);
+
+        Field natsConnectionField = FetchGradStudentCoursesSubscriber.class.getDeclaredField("natsConnection");
+        natsConnectionField.setAccessible(true);
+        natsConnectionField.set(fetchCoursesSubscriber, natsConnection.connection());
     }
 
     @Test
-    public void test_OnMessage_CoursesFound() throws JsonProcessingException {
+    public void testOnMessage_CoursesFound() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         Event event = prepareEventMessage(studentID);
         when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
@@ -76,7 +76,7 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void test_OnMessage_NoCourses() throws JsonProcessingException {
+    public void testOnMessage_NoCourses() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         Event event = prepareEventMessage(studentID);
         when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
@@ -88,26 +88,26 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void test_OnMessage_EntityNotFound() throws JsonProcessingException {
+    public void testOnMessage_EntityNotFound() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         Event event = prepareEventMessage(studentID);
         when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
 
         when(studentCourseService.getStudentCourses(studentID))
-                .thenThrow(new ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException());
+                .thenThrow(new EntityNotFoundException());
 
         assertDoesNotThrow(() -> fetchCoursesSubscriber.onMessage(mockMessage));
     }
 
     @Test
-    public void test_GetTopicName() {
+    public void testGetTopicName() {
         assertThat(fetchCoursesSubscriber.getTopic())
-                .isEqualTo(ca.bc.gov.educ.api.gradstudent.constant.Topics.GRAD_STUDENT_API_FETCH_GRAD_STUDENT_COURSES_TOPIC.toString());
+                .isEqualTo(Topics.GRAD_STUDENT_API_FETCH_GRAD_STUDENT_COURSES_TOPIC.toString());
     }
 
-    private Event prepareEventMessage(UUID studentID) throws JsonProcessingException {
-        return Event.builder()
-                .eventPayload(studentID.toString())
-                .build();
+    private Event prepareEventMessage(UUID studentID) {
+        Event event = new Event();
+        event.setEventPayload(studentID.toString());
+        return event;
     }
 }
