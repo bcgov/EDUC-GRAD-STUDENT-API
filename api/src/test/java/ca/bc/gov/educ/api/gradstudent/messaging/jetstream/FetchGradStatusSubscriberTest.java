@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
+import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -13,6 +14,7 @@ import ca.bc.gov.educ.api.gradstudent.util.JsonTransformer;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.nats.client.Connection;
 import io.nats.client.Message;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,6 +81,11 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
     @Mock WebClient.RequestBodySpec requestBodyMock;
     @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
     @Mock WebClient.ResponseSpec responseMock;
+    // NATS
+    @MockBean Connection connection;
+    @MockBean NatsConnection natsConnection;
+    @MockBean Publisher publisher;
+    @MockBean Subscriber subscriber;
 
     @MockBean
     GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;

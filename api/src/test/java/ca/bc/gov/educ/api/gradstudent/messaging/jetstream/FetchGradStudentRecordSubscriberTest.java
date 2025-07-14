@@ -1,6 +1,5 @@
 package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
-import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
@@ -8,56 +7,46 @@ import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Message;
-import io.nats.client.MessageHandler;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
+@ExtendWith(MockitoExtension.class)
+public class FetchGradStudentRecordSubscriberTest {
 
-    @MockBean
-    private FetchGradStudentRecordSubscriber ignoredDummySubscriber;
+    @Mock Connection connection;
+    @Mock Dispatcher dispatcher;
+    @Mock GradStudentService gradStudentService;
+    @Mock EducGradStudentApiConstants constants;
 
-    @MockBean
-    private GradStudentService gradStudentService;
-
-    @MockBean
-    private EducGradStudentApiConstants constants;
-
-    @MockBean
-    private Dispatcher dispatcher;
-
+    @InjectMocks
     private FetchGradStudentRecordSubscriber subscriber;
 
-    @Before
-    public void setUp() {
-        subscriber = new FetchGradStudentRecordSubscriber(connection, gradStudentService, constants);
-
-        when(connection.createDispatcher(any(MessageHandler.class)))
-                .thenReturn(dispatcher);
-
+    @BeforeEach
+    void setUp() {
+        when(connection.createDispatcher(eq(subscriber))).thenReturn(dispatcher);
         subscriber.subscribe();
     }
 
     @Test
-    public void testOnMessage_WhenStudentRecordFound_PublishesResponse() throws JsonProcessingException {
+    void testOnMessage_WhenStudentRecordFound_DoesNotThrow() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         Event event = Event.builder().eventPayload(studentID.toString()).build();
-        Message msg = org.mockito.Mockito.mock(Message.class);
+        Message msg = mock(Message.class);
         when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
 
         GradStudentRecord record = new GradStudentRecord(
@@ -65,16 +54,16 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
                 UUID.randomUUID(), UUID.randomUUID(), "Y", "12"
         );
         when(gradStudentService.getGraduationStudentRecord(studentID)).thenReturn(record);
-        when(gradStudentService.parseGraduationStatus(any())).thenReturn(true);
+        when(gradStudentService.parseGraduationStatus(record.toString())).thenReturn(true);
 
         assertDoesNotThrow(() -> subscriber.onMessage(msg));
     }
 
     @Test
-    public void testOnMessage_WhenStudentNotFound_PublishesErrorResponse() throws JsonProcessingException {
+    void testOnMessage_WhenStudentNotFound_DoesNotThrow() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         Event event = Event.builder().eventPayload(studentID.toString()).build();
-        Message msg = org.mockito.Mockito.mock(Message.class);
+        Message msg = mock(Message.class);
         when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
 
         when(gradStudentService.getGraduationStudentRecord(studentID))
@@ -84,10 +73,10 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void testOnMessage_WhenGeneralExceptionOccurs_PublishesErrorResponse() throws JsonProcessingException {
+    void testOnMessage_WhenGeneralExceptionOccurs_DoesNotThrow() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         Event event = Event.builder().eventPayload(studentID.toString()).build();
-        Message msg = org.mockito.Mockito.mock(Message.class);
+        Message msg = mock(Message.class);
         when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
 
         when(gradStudentService.getGraduationStudentRecord(studentID))
