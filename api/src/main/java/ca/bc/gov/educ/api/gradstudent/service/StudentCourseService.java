@@ -44,20 +44,10 @@ public class StudentCourseService {
         if (studentID != null) {
             List<StudentCourseEntity> studentCourseEntities = studentCourseRepository.findByStudentID(studentID);
             return studentCourseEntities.stream().map(entity -> {
-                StudentCourse studentCourse = mapper.toStructure(entity);
-                return studentCourse;
+                return mapper.toStructure(entity);
             }).toList();
         }
         return Collections.emptyList();
-    }
-
-    private BaseCourse getCourseDetails(Course course) {
-        if (course != null) {
-            BaseCourse courseDetails = new BaseCourse();
-            BeanUtils.copyProperties(course, courseDetails);
-            return courseDetails;
-        }
-        return null;
     }
 
     public List<StudentCourseHistory> getStudentCourseHistory(UUID studentID) {
