@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeC
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStudentCoursesSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
@@ -61,6 +62,9 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     @MockBean(name = "studentApiClient")
     @Qualifier("studentApiClient")
     WebClient webClient;
+
+    @MockBean
+    FetchGradStudentCoursesSubscriber fetchGradStudentCoursesSubscriber;
 
     // NATS
     @MockBean
