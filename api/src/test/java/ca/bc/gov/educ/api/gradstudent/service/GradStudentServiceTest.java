@@ -16,6 +16,7 @@ import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordReposito
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.nats.client.Connection;
 import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +39,7 @@ import reactor.core.publisher.Mono;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -87,13 +89,24 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     @Mock WebClient.ResponseSpec responseMock;
 
     // NATS
+    @MockBean Connection connection;
     @MockBean NatsConnection natsConnection;
     @MockBean Publisher publisher;
     @MockBean Subscriber subscriber;
 
     @Before
-    public void setUp() {
+    public void setUp() throws NoSuchFieldException, IllegalAccessException {
         openMocks(this);
+
+        when(natsConnection.connection()).thenReturn(connection);
+
+        Field natsConnectionField = GradStudentService.class.getDeclaredField("natsConnection");
+        if (natsConnectionField != null) {
+            natsConnectionField.setAccessible(true);
+            if (gradStudentService != null && connection != null) {
+                natsConnectionField.set(gradStudentService, connection);
+            }
+        }
     }
 
     @After
