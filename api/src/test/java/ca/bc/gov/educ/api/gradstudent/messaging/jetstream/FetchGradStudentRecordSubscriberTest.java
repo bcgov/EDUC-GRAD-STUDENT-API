@@ -10,23 +10,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Message;
+import io.nats.client.MessageHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class FetchGradStudentRecordSubscriberTest {
+class FetchGradStudentRecordSubscriberTest {
 
     @Mock Connection connection;
     @Mock Dispatcher dispatcher;
@@ -37,50 +36,52 @@ public class FetchGradStudentRecordSubscriberTest {
     private FetchGradStudentRecordSubscriber subscriber;
 
     @BeforeEach
-    void setUp() {
-        when(connection.createDispatcher(eq(subscriber))).thenReturn(dispatcher);
+    void init() {
+        when(connection.createDispatcher(any(MessageHandler.class)))
+                .thenReturn(dispatcher);
         subscriber.subscribe();
     }
 
-    @Test
-    void testOnMessage_WhenStudentRecordFound_DoesNotThrow() throws JsonProcessingException {
-        UUID studentID = UUID.randomUUID();
-        Event event = Event.builder().eventPayload(studentID.toString()).build();
+    private Message buildMsg(UUID studentId) throws JsonProcessingException {
+        Event e = Event.builder().eventPayload(studentId.toString()).build();
+        byte[] data = JsonUtil.getJsonBytesFromObject(e);
         Message msg = mock(Message.class);
-        when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
+        when(msg.getData()).thenReturn(data);
+        when(msg.getReplyTo()).thenReturn("reply");
+        return msg;
+    }
 
-        GradStudentRecord record = new GradStudentRecord(
-                studentID, "Program", Date.valueOf("2023-01-01"),
+    @Test
+    void whenRecordExists_thenNoException() throws Exception {
+        UUID id = UUID.randomUUID();
+        Message msg = buildMsg(id);
+
+        GradStudentRecord rec = new GradStudentRecord(
+                id, "Prog", Date.valueOf("2023-01-01"),
                 UUID.randomUUID(), UUID.randomUUID(), "Y", "12"
         );
-        when(gradStudentService.getGraduationStudentRecord(studentID)).thenReturn(record);
-        when(gradStudentService.parseGraduationStatus(record.toString())).thenReturn(true);
+        when(gradStudentService.getGraduationStudentRecord(id)).thenReturn(rec);
+        when(gradStudentService.parseGraduationStatus(rec.toString())).thenReturn(true);
 
         assertDoesNotThrow(() -> subscriber.onMessage(msg));
     }
 
     @Test
-    void testOnMessage_WhenStudentNotFound_DoesNotThrow() throws JsonProcessingException {
-        UUID studentID = UUID.randomUUID();
-        Event event = Event.builder().eventPayload(studentID.toString()).build();
-        Message msg = mock(Message.class);
-        when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
-
-        when(gradStudentService.getGraduationStudentRecord(studentID))
+    void whenEntityNotFound_thenNoException() throws Exception {
+        UUID id = UUID.randomUUID();
+        Message msg = buildMsg(id);
+        when(gradStudentService.getGraduationStudentRecord(id))
                 .thenThrow(new EntityNotFoundException());
 
         assertDoesNotThrow(() -> subscriber.onMessage(msg));
     }
 
     @Test
-    void testOnMessage_WhenGeneralExceptionOccurs_DoesNotThrow() throws JsonProcessingException {
-        UUID studentID = UUID.randomUUID();
-        Event event = Event.builder().eventPayload(studentID.toString()).build();
-        Message msg = mock(Message.class);
-        when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
-
-        when(gradStudentService.getGraduationStudentRecord(studentID))
-                .thenThrow(new RuntimeException("Boom"));
+    void whenRuntimeException_thenNoException() throws Exception {
+        UUID id = UUID.randomUUID();
+        Message msg = buildMsg(id);
+        when(gradStudentService.getGraduationStudentRecord(id))
+                .thenThrow(new RuntimeException("boom"));
 
         assertDoesNotThrow(() -> subscriber.onMessage(msg));
     }

@@ -10,11 +10,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Message;
+import io.nats.client.MessageHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
@@ -22,12 +22,11 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class FetchGradStudentCoursesSubscriberTest {
+class FetchGradStudentCoursesSubscriberTest {
 
     @Mock Connection connection;
     @Mock Dispatcher dispatcher;
@@ -38,46 +37,48 @@ public class FetchGradStudentCoursesSubscriberTest {
     private FetchGradStudentCoursesSubscriber subscriber;
 
     @BeforeEach
-    void setUp() {
-        when(connection.createDispatcher(eq(subscriber))).thenReturn(dispatcher);
+    void init() {
+        when(connection.createDispatcher(any(MessageHandler.class)))
+                .thenReturn(dispatcher);
         subscriber.subscribe();
     }
 
-    @Test
-    void testOnMessage_WhenStudentCoursesFound_DoesNotThrow() throws JsonProcessingException {
-        UUID studentID = UUID.randomUUID();
-        Event event = Event.builder().eventPayload(studentID.toString()).build();
+    private Message buildMsg(UUID studentId) throws JsonProcessingException {
+        Event e = Event.builder().eventPayload(studentId.toString()).build();
+        byte[] data = JsonUtil.getJsonBytesFromObject(e);
         Message msg = mock(Message.class);
-        when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
+        when(msg.getData()).thenReturn(data);
+        when(msg.getReplyTo()).thenReturn("reply");
+        return msg;
+    }
 
-        List<StudentCourse> courses = List.of(new StudentCourse(), new StudentCourse());
-        when(studentCourseService.getStudentCourses(studentID)).thenReturn(courses);
+    @Test
+    void whenCoursesExist_thenNoException() throws Exception {
+        UUID id = UUID.randomUUID();
+        Message msg = buildMsg(id);
+
+        List<StudentCourse> list = List.of(new StudentCourse(), new StudentCourse());
+        when(studentCourseService.getStudentCourses(id)).thenReturn(list);
 
         assertDoesNotThrow(() -> subscriber.onMessage(msg));
     }
 
     @Test
-    void testOnMessage_WhenStudentNotFound_DoesNotThrow() throws JsonProcessingException {
-        UUID studentID = UUID.randomUUID();
-        Event event = Event.builder().eventPayload(studentID.toString()).build();
-        Message msg = mock(Message.class);
-        when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
-
-        when(studentCourseService.getStudentCourses(studentID))
-                .thenThrow(new EntityNotFoundException());
-
-        assertDoesNotThrow(() -> subscriber.onMessage(msg));
-    }
-
-    @Test
-    void testOnMessage_WhenNoCoursesFound_DoesNotThrow() throws JsonProcessingException {
-        UUID studentID = UUID.randomUUID();
-        Event event = Event.builder().eventPayload(studentID.toString()).build();
-        Message msg = mock(Message.class);
-        when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
-
-        when(studentCourseService.getStudentCourses(studentID))
+    void whenNoCourses_thenNoException() throws Exception {
+        UUID id = UUID.randomUUID();
+        Message msg = buildMsg(id);
+        when(studentCourseService.getStudentCourses(id))
                 .thenReturn(Collections.emptyList());
+
+        assertDoesNotThrow(() -> subscriber.onMessage(msg));
+    }
+
+    @Test
+    void whenNotFound_thenNoException() throws Exception {
+        UUID id = UUID.randomUUID();
+        Message msg = buildMsg(id);
+        when(studentCourseService.getStudentCourses(id))
+                .thenThrow(new EntityNotFoundException());
 
         assertDoesNotThrow(() -> subscriber.onMessage(msg));
     }
