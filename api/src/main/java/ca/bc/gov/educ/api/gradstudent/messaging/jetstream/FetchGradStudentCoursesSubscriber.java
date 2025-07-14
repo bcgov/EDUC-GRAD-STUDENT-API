@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentCourseRecordsPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.*;
@@ -31,7 +32,7 @@ public class FetchGradStudentCoursesSubscriber implements MessageHandler {
     private static final Logger log = LoggerFactory.getLogger(FetchGradStudentCoursesSubscriber.class);
 
     @Autowired
-    public FetchGradStudentCoursesSubscriber(final Connection natsConnection, StudentCourseService gradStudentCourseService) {
+    public FetchGradStudentCoursesSubscriber(final Connection natsConnection, StudentCourseService gradStudentCourseService, EducGradStudentApiConstants constants) {
         this.natsConnection = natsConnection;
         this.gradStudentCourseService = gradStudentCourseService;
     }
