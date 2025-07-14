@@ -7,7 +7,9 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.nats.client.Dispatcher;
 import io.nats.client.Message;
+import io.nats.client.MessageHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,14 +19,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.lang.reflect.Field;
 import java.sql.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -39,18 +39,13 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
     @MockBean
     private GradStudentService gradStudentService;
 
+    @MockBean
+    private Dispatcher dispatcher;
+
     @Before
     public void setUp() throws Exception {
-        openMocks(this);
-        when(natsConnection.connection()).thenReturn(connection);
-
-        Field gradStudentServiceField = FetchGradStudentRecordSubscriber.class.getDeclaredField("gradStudentService");
-        gradStudentServiceField.setAccessible(true);
-        gradStudentServiceField.set(fetchGradStudentRecordSubscriber, gradStudentService);
-
-        Field natsConnectionField = FetchGradStudentRecordSubscriber.class.getDeclaredField("natsConnection");
-        natsConnectionField.setAccessible(true);
-        natsConnectionField.set(fetchGradStudentRecordSubscriber, natsConnection.connection());
+        when(connection.createDispatcher(any(MessageHandler.class)))
+                .thenReturn(dispatcher);
     }
 
     @Test
