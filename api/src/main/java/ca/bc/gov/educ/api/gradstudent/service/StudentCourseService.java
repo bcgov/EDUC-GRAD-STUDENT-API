@@ -43,9 +43,7 @@ public class StudentCourseService {
     public List<StudentCourse> getStudentCourses(UUID studentID) {
         if (studentID != null) {
             List<StudentCourseEntity> studentCourseEntities = studentCourseRepository.findByStudentID(studentID);
-            return studentCourseEntities.stream().map(entity -> {
-                return mapper.toStructure(entity);
-            }).toList();
+            return studentCourseEntities.stream().map(mapper::toStructure).toList();
         }
         return Collections.emptyList();
     }
