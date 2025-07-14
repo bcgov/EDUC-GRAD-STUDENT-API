@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.Dispatcher;
@@ -13,8 +14,6 @@ import io.nats.client.MessageHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -30,61 +29,70 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
 
-    @Mock
-    private Message mockNatsMessage;
-
-    @InjectMocks
-    private FetchGradStudentRecordSubscriber fetchGradStudentRecordSubscriber;
+    @MockBean
+    private FetchGradStudentRecordSubscriber ignoredDummySubscriber;
 
     @MockBean
     private GradStudentService gradStudentService;
 
     @MockBean
+    private EducGradStudentApiConstants constants;
+
+    @MockBean
     private Dispatcher dispatcher;
 
+    private FetchGradStudentRecordSubscriber subscriber;
+
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+        subscriber = new FetchGradStudentRecordSubscriber(connection, gradStudentService, constants);
+
         when(connection.createDispatcher(any(MessageHandler.class)))
                 .thenReturn(dispatcher);
+
+        subscriber.subscribe();
     }
 
     @Test
     public void testOnMessage_WhenStudentRecordFound_PublishesResponse() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         Event event = Event.builder().eventPayload(studentID.toString()).build();
-        byte[] eventPayload = JsonUtil.getJsonBytesFromObject(event);
-        when(mockNatsMessage.getData()).thenReturn(eventPayload);
+        Message msg = org.mockito.Mockito.mock(Message.class);
+        when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
 
-        GradStudentRecord mockRecord = new GradStudentRecord(UUID.randomUUID(), "Program", Date.valueOf("2023-01-01"), UUID.randomUUID(), UUID.randomUUID(), "Y", "12");
-        mockRecord.setStudentID(studentID);
-        mockRecord.setSchoolOfRecordId(UUID.randomUUID());
-        when(gradStudentService.getGraduationStudentRecord(studentID)).thenReturn(mockRecord);
-        when(gradStudentService.parseGraduationStatus(any())).thenReturn(Boolean.TRUE);
+        GradStudentRecord record = new GradStudentRecord(
+                studentID, "Program", Date.valueOf("2023-01-01"),
+                UUID.randomUUID(), UUID.randomUUID(), "Y", "12"
+        );
+        when(gradStudentService.getGraduationStudentRecord(studentID)).thenReturn(record);
+        when(gradStudentService.parseGraduationStatus(any())).thenReturn(true);
 
-        assertDoesNotThrow(() -> fetchGradStudentRecordSubscriber.onMessage(mockNatsMessage));
+        assertDoesNotThrow(() -> subscriber.onMessage(msg));
     }
 
     @Test
     public void testOnMessage_WhenStudentNotFound_PublishesErrorResponse() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         Event event = Event.builder().eventPayload(studentID.toString()).build();
-        byte[] eventPayload = JsonUtil.getJsonBytesFromObject(event);
-        when(mockNatsMessage.getData()).thenReturn(eventPayload);
+        Message msg = org.mockito.Mockito.mock(Message.class);
+        when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
 
-        when(gradStudentService.getGraduationStudentRecord(studentID)).thenThrow(new EntityNotFoundException());
+        when(gradStudentService.getGraduationStudentRecord(studentID))
+                .thenThrow(new EntityNotFoundException());
 
-        assertDoesNotThrow(() -> fetchGradStudentRecordSubscriber.onMessage(mockNatsMessage));
+        assertDoesNotThrow(() -> subscriber.onMessage(msg));
     }
 
     @Test
     public void testOnMessage_WhenGeneralExceptionOccurs_PublishesErrorResponse() throws JsonProcessingException {
         UUID studentID = UUID.randomUUID();
         Event event = Event.builder().eventPayload(studentID.toString()).build();
-        byte[] eventPayload = JsonUtil.getJsonBytesFromObject(event);
-        when(mockNatsMessage.getData()).thenReturn(eventPayload);
+        Message msg = org.mockito.Mockito.mock(Message.class);
+        when(msg.getData()).thenReturn(JsonUtil.getJsonBytesFromObject(event));
 
-        when(gradStudentService.getGraduationStudentRecord(studentID)).thenThrow(new RuntimeException("Unexpected error"));
+        when(gradStudentService.getGraduationStudentRecord(studentID))
+                .thenThrow(new RuntimeException("Boom"));
 
-        assertDoesNotThrow(() -> fetchGradStudentRecordSubscriber.onMessage(mockNatsMessage));
+        assertDoesNotThrow(() -> subscriber.onMessage(msg));
     }
 }
