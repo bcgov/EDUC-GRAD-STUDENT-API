@@ -16,7 +16,6 @@ import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordReposito
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.nats.client.Connection;
 import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
@@ -94,7 +93,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     @MockBean Subscriber subscriber;
 
     @Before
-    public void setUp() throws NoSuchFieldException, IllegalAccessException {
+    public void setUp() {
         openMocks(this);
     }
 
