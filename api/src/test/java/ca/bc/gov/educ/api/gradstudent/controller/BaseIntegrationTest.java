@@ -1,14 +1,19 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.EducGradStudentApiApplication;
+import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentGradeCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentGradeCodeRepository;
+import io.nats.client.Connection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
@@ -23,6 +28,16 @@ public abstract class BaseIntegrationTest {
   
   @Autowired
   StudentGradeCodeRepository studentGradeCodeRepository;
+
+  // NATS
+  @MockBean
+  protected Connection connection;
+  @MockBean
+  protected NatsConnection natsConnection;
+  @MockBean
+  protected Publisher publisher;
+  @MockBean
+  protected Subscriber subscriber;
 
   @BeforeEach
   public void before() {

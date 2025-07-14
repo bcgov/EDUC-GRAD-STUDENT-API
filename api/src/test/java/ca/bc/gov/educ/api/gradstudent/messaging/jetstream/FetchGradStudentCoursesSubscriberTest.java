@@ -2,13 +2,11 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.nats.client.Connection;
 import io.nats.client.Message;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,15 +39,10 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
     @MockBean
     private StudentCourseService studentCourseService;
 
-    @MockBean
-    private Connection natsConnection;
-    @MockBean
-    private NatsConnection natsConnectionWrapper;
-
     @Before
     public void setUp() throws Exception {
         openMocks(this);
-        when(natsConnectionWrapper.connection()).thenReturn(natsConnection);
+        when(natsConnection.connection()).thenReturn(connection);
 
         Field studentCourseServiceField = FetchGradStudentCoursesSubscriber.class.getDeclaredField("gradStudentCourseService");
         studentCourseServiceField.setAccessible(true);
@@ -57,7 +50,7 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
 
         Field natsConnectionField = FetchGradStudentCoursesSubscriber.class.getDeclaredField("natsConnection");
         natsConnectionField.setAccessible(true);
-        natsConnectionField.set(fetchGradStudentCoursesSubscriber, natsConnectionWrapper.connection());
+        natsConnectionField.set(fetchGradStudentCoursesSubscriber, natsConnection.connection());
     }
 
     @Test
