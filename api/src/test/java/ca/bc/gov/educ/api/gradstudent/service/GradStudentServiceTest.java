@@ -89,7 +89,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     @Mock WebClient.ResponseSpec responseMock;
 
     // NATS
-    @MockBean Connection connection;
     @MockBean NatsConnection natsConnection;
     @MockBean Publisher publisher;
     @MockBean Subscriber subscriber;
@@ -97,16 +96,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         openMocks(this);
-
-        when(natsConnection.connection()).thenReturn(connection);
-
-        Field natsConnectionField = GradStudentService.class.getDeclaredField("natsConnection");
-        if (natsConnectionField != null) {
-            natsConnectionField.setAccessible(true);
-            if (gradStudentService != null && connection != null) {
-                natsConnectionField.set(gradStudentService, connection);
-            }
-        }
     }
 
     @After
