@@ -83,4 +83,8 @@ public class FetchGradStudentCoursesSubscriber implements MessageHandler {
             return "{\"exception\": \"JSON Parsing exception\"}";
         }
     }
+
+    public String getTopic() {
+        return TOPIC;
+    }
 }

@@ -89,4 +89,8 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
             return "{\"studentID\": \"\", \"program\": \"\", \"programCompletionDate\": \"\", \"schoolOfRecord\": \"\", \"studentStatusCode\": \"\", \"graduated\": \"\", \"exception\": \"JSON Parsing exception\"}";
         }
     }
+
+    public String getTopic() {
+        return TOPIC;
+    }
 }
