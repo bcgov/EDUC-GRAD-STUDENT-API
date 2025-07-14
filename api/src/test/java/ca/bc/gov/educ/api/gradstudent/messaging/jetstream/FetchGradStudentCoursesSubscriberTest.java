@@ -7,6 +7,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.Connection;
@@ -42,12 +43,19 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
 
     @MockBean
     private StudentCourseService studentCourseService;
-    @MockBean
-    private NatsConnection natsConnection;
+
+    // NATS
     @MockBean
     private Connection connection;
     @MockBean
+    private NatsConnection natsConnection;
+    @MockBean
     private Publisher publisher;
+    @MockBean
+    private Subscriber subscriber;
+
+    @MockBean
+    private EducGradStudentApiConstants constants;
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
@@ -60,7 +68,7 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
 
         Field natsConnectionField = FetchGradStudentCoursesSubscriber.class.getDeclaredField("natsConnection");
         natsConnectionField.setAccessible(true);
-        natsConnectionField.set(fetchCoursesSubscriber, natsConnection.connection());
+        natsConnectionField.set(fetchCoursesSubscriber, connection);
     }
 
     @Test
@@ -68,6 +76,7 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
         UUID studentID = UUID.randomUUID();
         Event event = prepareEventMessage(studentID);
         when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
+        when(mockMessage.getReplyTo()).thenReturn("replyTo");
 
         List<StudentCourse> courses = List.of(new StudentCourse(), new StudentCourse());
         when(studentCourseService.getStudentCourses(studentID)).thenReturn(courses);
@@ -80,6 +89,7 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
         UUID studentID = UUID.randomUUID();
         Event event = prepareEventMessage(studentID);
         when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
+        when(mockMessage.getReplyTo()).thenReturn("replyTo");
 
         when(studentCourseService.getStudentCourses(studentID))
                 .thenReturn(Collections.emptyList());
@@ -92,6 +102,7 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
         UUID studentID = UUID.randomUUID();
         Event event = prepareEventMessage(studentID);
         when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
+        when(mockMessage.getReplyTo()).thenReturn("replyTo");
 
         when(studentCourseService.getStudentCourses(studentID))
                 .thenThrow(new EntityNotFoundException());
