@@ -2,8 +2,6 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.EducGradStudentApiApplication;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentGradeCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentGradeCodeRepository;
@@ -34,10 +32,6 @@ public abstract class BaseIntegrationTest {
   protected Connection connection;
   @MockBean
   protected NatsConnection natsConnection;
-  @MockBean
-  protected Publisher publisher;
-  @MockBean
-  protected Subscriber subscriber;
 
   @BeforeEach
   public void before() {
