@@ -33,9 +33,4 @@ public class StudentCourse extends BaseModel {
     private String relatedCourseId;
     private StudentCourseExam courseExam;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private BaseCourse courseDetails;
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private BaseCourse relatedCourseDetails;
 }

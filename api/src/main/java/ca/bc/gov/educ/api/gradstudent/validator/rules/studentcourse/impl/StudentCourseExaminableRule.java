@@ -65,7 +65,7 @@ public class StudentCourseExaminableRule implements UpsertStudentCourseValidatio
         LocalDate mandatoryStart = getAsDefaultLocalDate(examinableCourse.getExaminableStart());
         LocalDate mandatoryEnd = getAsDefaultLocalDate(examinableCourse.getExaminableEnd());
         if(mandatoryStart == null) return false;
-        return sessionDate.isAfter(mandatoryStart) && (mandatoryEnd == null || sessionDate.isBefore(mandatoryEnd));
+        return isDateWithinRange(sessionDate, mandatoryStart, mandatoryEnd);
     }
 
     private String getProgramYear(String programCode) {
@@ -73,6 +73,10 @@ public class StudentCourseExaminableRule implements UpsertStudentCourseValidatio
     }
 
     private ExaminableCourse getExaminableCourse(Course course, String programYear) {
+        if(courseCacheService.getExaminableCoursesFromCacheByProgramYear(programYear).isEmpty()) {
+            log.warn("No examinable courses found in cache for program year: {}", programYear);
+            return null;
+        }
         return courseCacheService.getExaminableCoursesFromCacheByProgramYear(programYear).stream().filter(examinableCourse -> examinableCourse.getCourseCode().equals(course.getCourseCode()) && (examinableCourse.getCourseLevel().equals(course.getCourseLevel()))).findFirst().orElse(null);
     }
 }
