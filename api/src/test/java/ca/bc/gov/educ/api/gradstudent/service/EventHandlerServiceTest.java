@@ -12,6 +12,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeReco
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDetail;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -165,6 +166,13 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         var demStudent = createMockDemographicStudent("Y", "CSF");
         var studentFromApi = createmockStudent();
         when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+        when(restUtils.getGraduationProgramCodeList(true)).thenReturn(
+                List.of(
+                        new GraduationProgramCode("1950", "Adult Graduation Program", "Description for 1950", 4, LocalDate.now().toString(), null, "associatedCred"),
+                        new GraduationProgramCode("2023", "B.C. Graduation Program", "Description for 2023", 4, LocalDate.now().toString(), null, "associatedCred"),
+                        new GraduationProgramCode("SCCP", "School Completion Certificate Program", "Description for SCCP", 4, LocalDate.now().toString(), null, "associatedCred")
+                )
+        );
         var sagaId = UUID.randomUUID();
         final Event event = Event
                 .builder()
