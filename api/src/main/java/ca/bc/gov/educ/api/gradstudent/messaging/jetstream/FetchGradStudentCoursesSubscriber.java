@@ -3,11 +3,10 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
-import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordPayload;
-import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
-import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentCourseRecordsPayload;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
+import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.*;
@@ -18,23 +17,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.UUID;
 
 @Component
-public class FetchGradStudentRecordSubscriber implements MessageHandler {
+public class FetchGradStudentCoursesSubscriber implements MessageHandler {
 
     private final Connection natsConnection;
     private Dispatcher dispatcher;
-    private final GradStudentService gradStudentService;
+    private final StudentCourseService gradStudentCourseService;
     public static final String RESPONDING_BACK_TO_NATS_ON_CHANNEL = "responding back to NATS on {} channel ";
     public static final String PAYLOAD_LOG = "payload is :: {}";
-    private static final String TOPIC = Topics.GRAD_STUDENT_API_FETCH_GRAD_STUDENT_TOPIC.toString();
-    private static final Logger log = LoggerFactory.getLogger(FetchGradStudentRecordSubscriber.class);
+    private static final String TOPIC = Topics.GRAD_STUDENT_API_FETCH_GRAD_STUDENT_COURSES_TOPIC.toString();
+    private static final Logger log = LoggerFactory.getLogger(FetchGradStudentCoursesSubscriber.class);
 
     @Autowired
-    public FetchGradStudentRecordSubscriber(final Connection natsConnection, GradStudentService gradStudentService, EducGradStudentApiConstants constants) {
+    public FetchGradStudentCoursesSubscriber(final Connection natsConnection, StudentCourseService gradStudentCourseService, EducGradStudentApiConstants constants) {
         this.natsConnection = natsConnection;
-        this.gradStudentService = gradStudentService;
+        this.gradStudentCourseService = gradStudentCourseService;
     }
 
     @PostConstruct
@@ -51,42 +51,36 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
 
         try {
             Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
-            log.info("received GET_STUDENT event :: {}", event.getSagaId());
+            log.info("received GET_STUDENT_COURSES event :: {}", event.getSagaId());
             log.trace(PAYLOAD_LOG, event.getEventPayload());
             UUID studentId = UUID.fromString(event.getEventPayload());
-            GradStudentRecord studentRecord = gradStudentService.getGraduationStudentRecord(studentId);
-            response = getResponse(studentRecord);
+            List<StudentCourse> studentCourseRecords = gradStudentCourseService.getStudentCourses(studentId);
+            response = getResponse(studentCourseRecords);
             log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
         } catch (Exception e) {
             response = getErrorResponse(e);
-            log.error("Error while processing GET_STUDENT event", e);
+            log.error("Error while processing GET_STUDENT_COURSES event", e);
         }
         this.natsConnection.publish(message.getReplyTo(), response.getBytes());
     }
 
-    private String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {
-        GradStudentRecordPayload gradStudentRecordPayload = GradStudentRecordPayload.builder()
-                .studentID(String.valueOf(studentRecord.getStudentID()))
-                .program(studentRecord.getProgram())
-                .programCompletionDate(studentRecord.getProgramCompletionDate() != null ? EducGradStudentApiUtils.formatDate(studentRecord.getProgramCompletionDate()) : null)
-                .schoolOfRecordId(String.valueOf(studentRecord.getSchoolOfRecordId()))
-                .studentStatusCode(studentRecord.getStudentStatus())
-                .schoolAtGradId(studentRecord.getSchoolAtGradId() != null ? studentRecord.getSchoolAtGradId().toString() : null)
-                .graduated(gradStudentService.parseGraduationStatus(studentRecord.getStudentProjectedGradData()).toString())
+    private String getResponse(List<StudentCourse> studentCourseRecords) throws JsonProcessingException {
+        GradStudentCourseRecordsPayload gradStudentRecordPayload = GradStudentCourseRecordsPayload.builder()
+                .courses(studentCourseRecords)
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
     }
 
     private String getErrorResponse(Exception e) {
         String ex = (e instanceof EntityNotFoundException) ? "not found" : "error";
-        GradStudentRecordPayload gradStudentRecordPayload = GradStudentRecordPayload.builder()
+        GradStudentCourseRecordsPayload gradStudentCoursesRecordPayload = GradStudentCourseRecordsPayload.builder()
                 .exception(ex)
                 .build();
         try {
-            return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
+            return JsonUtil.getJsonStringFromObject(gradStudentCoursesRecordPayload);
         } catch (JsonProcessingException exc) {
             log.error("Error while serializing error response", exc);
-            return "{\"studentID\": \"\", \"program\": \"\", \"programCompletionDate\": \"\", \"schoolOfRecord\": \"\", \"studentStatusCode\": \"\", \"graduated\": \"\", \"exception\": \"JSON Parsing exception\"}";
+            return "{\"exception\": \"JSON Parsing exception\"}";
         }
     }
 

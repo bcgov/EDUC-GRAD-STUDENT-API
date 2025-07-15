@@ -4,6 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscriber;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStudentRecordSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
@@ -37,6 +38,7 @@ import reactor.core.publisher.Mono;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -72,6 +74,9 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
     @MockBean
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
+
+    @MockBean
+    FetchGradStudentRecordSubscriber fetchGradStudentRecordSubscriber;
 
     @MockBean
     GraduationStudentRecordRepository graduationStatusRepository;
