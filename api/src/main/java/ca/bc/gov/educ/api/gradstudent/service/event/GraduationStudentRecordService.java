@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service.event;
 
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
@@ -46,8 +47,8 @@ public class GraduationStudentRecordService {
     public static final String CREATE_USER = "createUser";
     public static final String CREATE_DATE = "createDate";
     public static final String YYYY_MM_DD = "uuuuMMdd";
-    public final List<String> FRAL10_PROGRAMS = Arrays.asList("2023-EN", "2018-EN", "2004-EN");
-    public final List<String> FRAL11_PROGRAMS = Arrays.asList("1996-EN", "1986-EN");
+    public final List<String> fral10Programs = Arrays.asList("2023-EN", "2018-EN", "2004-EN");
+    public final List<String> fral11Programs = Arrays.asList("1996-EN", "1986-EN");
 
 
     @Transactional
@@ -77,6 +78,12 @@ public class GraduationStudentRecordService {
         List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         GraduationStudentRecordEntity entity = createGraduationStudentRecordEntity(demStudent, studentFromApi);
+        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
+            entity.setProgram(mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()));
+        } else {
+            entity.setProgram(createProgram());
+        }
+
         entity.setCreateUser(demStudent.getCreateUser());
         entity.setUpdateUser(demStudent.getUpdateUser());
         entity.setCreateDate(LocalDateTime.now());
@@ -145,8 +152,8 @@ public class GraduationStudentRecordService {
         studentCourseRepository.save(studentCourseEntity);
 
         String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
-        boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
-        boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+        boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral10Programs.contains(existingStudentRecordEntity.getProgram());
+        boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral11Programs.contains(existingStudentRecordEntity.getProgram());
 
         if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
             List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
@@ -187,8 +194,8 @@ public class GraduationStudentRecordService {
             studentCourseRepository.save(studentCourseEntity);
 
             String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
-            boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
-            boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+            boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral10Programs.contains(existingStudentRecordEntity.getProgram());
+            boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral11Programs.contains(existingStudentRecordEntity.getProgram());
 
             if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
                 List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
@@ -377,13 +384,15 @@ public class GraduationStudentRecordService {
                 statusChangeCount++;
             }
         }
-//TODO: Uncomment when null program is allowed
-//        var mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
-//        if(!newStudentRecordEntity.getProgram().equalsIgnoreCase(mappedProgram)) {
-//            newStudentRecordEntity.setProgram(mappedProgram);
-//            projectedChangeCount++;
-//            statusChangeCount++;
-//        }
+
+        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear())) {
+            var mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
+            if (!newStudentRecordEntity.getProgram().equalsIgnoreCase(mappedProgram)) {
+                newStudentRecordEntity.setProgram(mappedProgram);
+                projectedChangeCount++;
+                statusChangeCount++;
+            }
+        }
 
         if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getGradRequirementYear().equalsIgnoreCase("SSCP")) {
             var parsedSSCPDate = StringUtils.isNotBlank(demStudent.getSchoolCertificateCompletionDate()) ?
@@ -447,8 +456,6 @@ public class GraduationStudentRecordService {
                 .studentID(UUID.fromString(studentFromApi.getStudentID()))
                 .recalculateGradStatus("Y")
                 .recalculateProjectedGrad("Y")
-                .program(createProgram())
-                //TODO:Uncomment when null program is allowed .program(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()) : createProgram())
                 .adultStartDate(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapAdultStartDate(demStudent.getBirthdate(), demStudent.getGradRequirementYear()): null)
                 .build();
     }
@@ -478,11 +485,11 @@ public class GraduationStudentRecordService {
     }
 
     private String mapGradProgramCode(String demGradProgramCode, String schoolReportingRequirementCode) {
-        if(StringUtils.isNotBlank(demGradProgramCode) && (demGradProgramCode.equalsIgnoreCase("2018")
+        if(demGradProgramCode.equalsIgnoreCase("2018")
         || demGradProgramCode.equalsIgnoreCase("2004")
         || demGradProgramCode.equalsIgnoreCase("1996")
         || demGradProgramCode.equalsIgnoreCase("1986")
-        || demGradProgramCode.equalsIgnoreCase("2023"))) {
+        || demGradProgramCode.equalsIgnoreCase("2023")) {
             return schoolReportingRequirementCode.equalsIgnoreCase("CSF") ? demGradProgramCode + "-PF" : demGradProgramCode + "-EN";
         } else {
             return demGradProgramCode;
@@ -492,11 +499,9 @@ public class GraduationStudentRecordService {
     private String createProgram() {
         List<GraduationProgramCode> codes =  restUtils.getGraduationProgramCodeList(true);
         var filteredCodes = codes.stream().filter(code -> !code.getProgramCode().equalsIgnoreCase("1950") && !code.getProgramCode().equalsIgnoreCase("SSCP") && !code.getProgramCode().equalsIgnoreCase("NOPROG")).findFirst();
-        if(filteredCodes.isPresent()) {
-            var code = filteredCodes.get().getProgramCode().split("-");
-            return code.length == 2 ? code[0] + "-" + "EN" : null;
-        }
-        return null;
+        var code = filteredCodes.orElseThrow(() ->new EntityNotFoundException(GraduationProgramCode.class, "Program Code", "Program Code not found"));
+        var splitProgramCode = code.getProgramCode().split("-");
+        return splitProgramCode.length == 2 ? splitProgramCode[0] + "-" + "EN" : code.getProgramCode();
     }
 
     private boolean checkIfSchoolOfRecordIsUpdated(DemographicStudent demStudent, GraduationStudentRecordEntity existingStudentRecordEntity) {

@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
@@ -12,6 +13,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeReco
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDetail;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -41,14 +43,12 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.ASSESSMENT_STUDENT_UPDATE;
 import static ca.bc.gov.educ.api.gradstudent.constant.Topics.GRAD_STUDENT_API_TOPIC;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -72,7 +72,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     GradStatusEventRepository gradStatusEventRepository;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         CoregCoursesRecord coursesRecord = new CoregCoursesRecord();
         coursesRecord.setStartDate(LocalDateTime.of(1983, 2, 1, 0, 0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
@@ -165,6 +165,13 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         var demStudent = createMockDemographicStudent("Y", "CSF");
         var studentFromApi = createmockStudent();
         when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+        when(restUtils.getGraduationProgramCodeList(true)).thenReturn(
+                List.of(
+                        new GraduationProgramCode("1950", "Adult Graduation Program", "Description for 1950", 4, LocalDate.now().toString(), null, "associatedCred"),
+                        new GraduationProgramCode("2023", "B.C. Graduation Program", "Description for 2023", 4, LocalDate.now().toString(), null, "associatedCred"),
+                        new GraduationProgramCode("SCCP", "School Completion Certificate Program", "Description for SCCP", 4, LocalDate.now().toString(), null, "associatedCred")
+                )
+        );
         var sagaId = UUID.randomUUID();
         final Event event = Event
                 .builder()
@@ -181,6 +188,26 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
 
         var student = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
         assertThat(student).isPresent();
+    }
+
+    @Test
+    void testHandleEvent_givenEventTypePROCESS_STUDENT_DEM_DATA__whenNoStudentExistAndIsSummerAndProgramIsNull_shouldThrowException() throws IOException {
+        var demStudent = createMockDemographicStudent("Y", "CSF");
+        var studentFromApi = createmockStudent();
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+        when(restUtils.getGraduationProgramCodeList(true)).thenReturn(new ArrayList<>());
+        var sagaId = UUID.randomUUID();
+        final Event event = Event
+                .builder()
+                .eventType(EventType.PROCESS_STUDENT_DEM_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> eventHandlerService.handleProcessStudentDemDataEvent(event)
+        );
     }
 
     @Test
@@ -371,9 +398,6 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
-
-        var examinableCourse = studentCourseRepository.findAll();
-//        assertThat(examinableCourse.size()).isEqualTo(2);
     }
 
 
