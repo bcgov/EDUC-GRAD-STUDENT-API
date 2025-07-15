@@ -43,10 +43,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.ASSESSMENT_STUDENT_UPDATE;
 import static ca.bc.gov.educ.api.gradstudent.constant.Topics.GRAD_STUDENT_API_TOPIC;
@@ -198,7 +195,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         var demStudent = createMockDemographicStudent("Y", "CSF");
         var studentFromApi = createmockStudent();
         when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
-
+        when(restUtils.getGraduationProgramCodeList(true)).thenReturn(new ArrayList<>());
         var sagaId = UUID.randomUUID();
         final Event event = Event
                 .builder()
