@@ -73,7 +73,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     GradStatusEventRepository gradStatusEventRepository;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         CoregCoursesRecord coursesRecord = new CoregCoursesRecord();
         coursesRecord.setStartDate(LocalDateTime.of(1983, 2, 1, 0, 0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
@@ -379,9 +379,6 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
-
-        var examinableCourse = studentCourseRepository.findAll();
-//        assertThat(examinableCourse.size()).isEqualTo(2);
     }
 
 

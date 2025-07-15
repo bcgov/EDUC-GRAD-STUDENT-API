@@ -47,8 +47,8 @@ public class GraduationStudentRecordService {
     public static final String CREATE_USER = "createUser";
     public static final String CREATE_DATE = "createDate";
     public static final String YYYY_MM_DD = "uuuuMMdd";
-    public final List<String> FRAL10_PROGRAMS = Arrays.asList("2023-EN", "2018-EN", "2004-EN");
-    public final List<String> FRAL11_PROGRAMS = Arrays.asList("1996-EN", "1986-EN");
+    public final List<String> fral10Programs = Arrays.asList("2023-EN", "2018-EN", "2004-EN");
+    public final List<String> fral11Programs = Arrays.asList("1996-EN", "1986-EN");
 
 
     @Transactional
@@ -152,8 +152,8 @@ public class GraduationStudentRecordService {
         studentCourseRepository.save(studentCourseEntity);
 
         String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
-        boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
-        boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+        boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral10Programs.contains(existingStudentRecordEntity.getProgram());
+        boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral11Programs.contains(existingStudentRecordEntity.getProgram());
 
         if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
             List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
@@ -194,8 +194,8 @@ public class GraduationStudentRecordService {
             studentCourseRepository.save(studentCourseEntity);
 
             String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
-            boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL10_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
-            boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && FRAL11_PROGRAMS.contains(existingStudentRecordEntity.getProgram());
+            boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral10Programs.contains(existingStudentRecordEntity.getProgram());
+            boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral11Programs.contains(existingStudentRecordEntity.getProgram());
 
             if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase("1996-EN")) {
                 List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
