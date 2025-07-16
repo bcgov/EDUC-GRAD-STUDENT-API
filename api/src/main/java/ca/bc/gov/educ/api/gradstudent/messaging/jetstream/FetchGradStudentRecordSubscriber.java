@@ -73,6 +73,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
                 .studentStatusCode(studentRecord.getStudentStatus())
                 .schoolAtGradId(studentRecord.getSchoolAtGradId() != null ? studentRecord.getSchoolAtGradId().toString() : null)
                 .graduated(gradStudentService.parseGraduationStatus(studentRecord.getStudentProjectedGradData()).toString())
+                .studentGrade(studentRecord.getStudentGrade())
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
     }

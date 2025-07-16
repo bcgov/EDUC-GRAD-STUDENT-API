@@ -81,7 +81,7 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
 
         GradStudentRecord rec = new GradStudentRecord(
                 studentID, "Prog", Date.valueOf("2023-01-01"),
-                UUID.randomUUID(), UUID.randomUUID(), "Y", "12"
+                UUID.randomUUID(), UUID.randomUUID(), "Y", "12", "10"
         );
         when(gradStudentService.getGraduationStudentRecord(studentID)).thenReturn(rec);
         when(gradStudentService.parseGraduationStatus(anyString())).thenReturn(true);

@@ -15,5 +15,6 @@ public class GradStudentRecordPayload {
     private String studentStatusCode;
     private String graduated;
     private String schoolAtGradId;
+    private String studentGrade;
 
 }
