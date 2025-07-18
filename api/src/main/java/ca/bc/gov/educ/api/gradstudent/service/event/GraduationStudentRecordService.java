@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service.event;
 
+import ca.bc.gov.educ.api.gradstudent.constant.GradRequirementYearCodes;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
@@ -38,6 +39,7 @@ public class GraduationStudentRecordService {
     private final StudentCourseRepository studentCourseRepository;
     private final FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
     private final EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
+    private static final String [] BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED = new String[]{"BA", "LD"};
     private static final String DATA_CONVERSION_HISTORY_ACTIVITY_CODE = "DATACONVERT"; // confirm,
     private static final String ADD_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXADD";// confirm,
     private final HistoryService historyService;
@@ -144,7 +146,7 @@ public class GraduationStudentRecordService {
 
     private void handleReplaceCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudentDetail courseStudent, String studentID) {
         var coursesRecord = getCoregCoursesRecord(courseStudent.getCourseCode(), courseStudent.getCourseLevel());
-        StudentCourseEntity studentCourseEntity = createStudentCourseEntity(courseStudent, studentID, coursesRecord);
+        StudentCourseEntity studentCourseEntity = createStudentCourseEntity(courseStudent, studentID, coursesRecord, existingStudentRecordEntity);
         studentCourseEntity.setCreateUser(courseStudent.getCreateUser());
         studentCourseEntity.setUpdateUser(courseStudent.getUpdateUser());
         studentCourseEntity.setCreateDate(LocalDateTime.now());
@@ -179,14 +181,14 @@ public class GraduationStudentRecordService {
         } else if(matchingCourseRecord.isPresent() && courseStudent.getCourseStatus().equalsIgnoreCase("A")) {
             var newStudentCourseEntity = new StudentCourseEntity();
             BeanUtils.copyProperties(matchingCourseRecord.get(), newStudentCourseEntity, CREATE_USER, CREATE_DATE);
-            StudentCourseEntity updatedEntity = compareAndupdateStudentCourseEntity(newStudentCourseEntity, courseStudent, coursesRecord);
+            StudentCourseEntity updatedEntity = compareAndUpdateStudentCourseEntity(newStudentCourseEntity, courseStudent, coursesRecord, existingStudentRecordEntity);
             updatedEntity.setCreateUser(courseStudent.getCreateUser());
             updatedEntity.setUpdateUser(courseStudent.getUpdateUser());
             updatedEntity.setCreateDate(LocalDateTime.now());
             updatedEntity.setUpdateDate(LocalDateTime.now());
             studentCourseRepository.save(updatedEntity);
         } else {
-            StudentCourseEntity studentCourseEntity = createStudentCourseEntity(courseStudent, studentID, coursesRecord);
+            StudentCourseEntity studentCourseEntity = createStudentCourseEntity(courseStudent, studentID, coursesRecord, existingStudentRecordEntity);
             studentCourseEntity.setCreateUser(courseStudent.getCreateUser());
             studentCourseEntity.setUpdateUser(courseStudent.getUpdateUser());
             studentCourseEntity.setCreateDate(LocalDateTime.now());
@@ -213,14 +215,19 @@ public class GraduationStudentRecordService {
         graduationStudentRecordRepository.save(existingStudentRecordEntity);
     }
 
-    private StudentCourseEntity compareAndupdateStudentCourseEntity(StudentCourseEntity newStudentCourseEntity, CourseStudentDetail courseStudent, CoregCoursesRecord coregCoursesRecord) {
+    private StudentCourseEntity compareAndUpdateStudentCourseEntity(StudentCourseEntity newStudentCourseEntity, CourseStudentDetail courseStudent, CoregCoursesRecord coregCoursesRecord, GraduationStudentRecordEntity existingStudentRecordEntity) {
         var relatedCourseRecord = StringUtils.isNotBlank(courseStudent.getRelatedCourse()) && StringUtils.isNotBlank(courseStudent.getRelatedLevel()) ?
                 getCoregCoursesRecord(courseStudent.getRelatedCourse(), courseStudent.getRelatedLevel()) : null;
-        var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
-                fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseType()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null)
+        
+        var gradRequirementYear = existingStudentRecordEntity.getProgram().replaceAll("-EN","").replaceAll("-PF","");
+
+        var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) &&
+                ((GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear) && Arrays.stream(BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED).anyMatch(boardAuthorityOrLocallyDeveloped -> boardAuthorityOrLocallyDeveloped.equalsIgnoreCase(coregCoursesRecord.getCourseCategory().getCode())) ||
+                (GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear)) && coregCoursesRecord.getCourseCategory().getCode().equalsIgnoreCase("BA")))) ?
+                fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null)
                 : null;
-        var equivalentOrChallengeCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) ?
-                equivalentOrChallengeCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(EquivalentOrChallengeCodeEntity::getEquivalentOrChallengeCode).orElse(null)
+        var equivalentOrChallengeCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
+                equivalentOrChallengeCodeRepository.findById(courseStudent.getCourseType()).map(EquivalentOrChallengeCodeEntity::getEquivalentOrChallengeCode).orElse(null)
                 : null;
         if(StringUtils.isNotBlank(newStudentCourseEntity.getInterimLetterGrade())
                 && StringUtils.isNotBlank(courseStudent.getInterimLetterGrade())
@@ -253,14 +260,19 @@ public class GraduationStudentRecordService {
         return newStudentCourseEntity;
     }
 
-    private StudentCourseEntity createStudentCourseEntity(CourseStudentDetail courseStudent, String studentID, CoregCoursesRecord coregCoursesRecord) {
+    private StudentCourseEntity createStudentCourseEntity(CourseStudentDetail courseStudent, String studentID, CoregCoursesRecord coregCoursesRecord, GraduationStudentRecordEntity existingStudentRecordEntity) {
         var relatedCourseRecord = StringUtils.isNotBlank(courseStudent.getRelatedCourse()) && StringUtils.isNotBlank(courseStudent.getRelatedLevel()) ?
                 getCoregCoursesRecord(courseStudent.getRelatedCourse(), courseStudent.getRelatedLevel()) : null;
-        var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
-                fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseType()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null)
+
+        var gradRequirementYear = existingStudentRecordEntity.getProgram().replaceAll("-EN","").replaceAll("-PF","");
+        
+        var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) &&
+                ((GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear) && Arrays.stream(BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED).anyMatch(boardAuthorityOrLocallyDeveloped -> boardAuthorityOrLocallyDeveloped.equalsIgnoreCase(coregCoursesRecord.getCourseCategory().getCode())) ||
+                        (GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear)) && coregCoursesRecord.getCourseCategory().getCode().equalsIgnoreCase("BA")))) ?
+                fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null)
                 : null;
-        var equivalentOrChallengeCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) ?
-                equivalentOrChallengeCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(EquivalentOrChallengeCodeEntity::getEquivalentOrChallengeCode).orElse(null)
+        var equivalentOrChallengeCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
+                equivalentOrChallengeCodeRepository.findById(courseStudent.getCourseType()).map(EquivalentOrChallengeCodeEntity::getEquivalentOrChallengeCode).orElse(null)
                 : null;
         return StudentCourseEntity
                 .builder()
@@ -393,8 +405,8 @@ public class GraduationStudentRecordService {
                 statusChangeCount++;
             }
         }
-
-        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getGradRequirementYear().equalsIgnoreCase("SSCP")) {
+        
+        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getGradRequirementYear().equalsIgnoreCase("SCCP")) {
             var parsedSSCPDate = StringUtils.isNotBlank(demStudent.getSchoolCertificateCompletionDate()) ?
                     Date.valueOf(LocalDate.parse(demStudent.getSchoolCertificateCompletionDate(), DateTimeFormatter.ofPattern(YYYY_MM_DD))) : null;
             newStudentRecordEntity.setProgramCompletionDate(parsedSSCPDate);
