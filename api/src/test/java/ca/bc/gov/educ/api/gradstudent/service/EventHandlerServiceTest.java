@@ -143,7 +143,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     @Test
     void testHandleEvent_givenEventTypePROCESS_STUDENT_DEM_DATA__whenNoStudentExist_shouldCreateStudentAndOptionalProgsWithEventOutcome_DEM_STUDENT_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
         var demStudent = createMockDemographicStudent("N", "CSF");
-        demStudent.setGradRequirementYear("SSCP");
+        demStudent.setGradRequirementYear("SCCP");
         when(restUtils.getStudentByPEN(any(), any())).thenReturn(createmockStudent());
         var sagaId = UUID.randomUUID();
         final Event event = Event
