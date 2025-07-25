@@ -107,6 +107,13 @@ public class CourseCacheServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testGetExaminableCourses_programYear_2018() {
+        when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
+        var result = courseCacheService.getExaminableCoursesFromCacheByProgramYear("2018") ;
+        assertNotNull(result);
+    }
+
+    @Test
     public void testGetExaminableCourses_Cache() {
         when(this.restService.get(this.constants.getExaminableCourseDetailUrl(), List.class, webClient)).thenReturn(getExaminableCourses());
         courseCacheService.loadExaminableCourses();

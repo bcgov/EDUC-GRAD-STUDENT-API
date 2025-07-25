@@ -55,7 +55,7 @@ public class CourseCacheService {
     public List<ExaminableCourse> getExaminableCoursesFromCacheByProgramYear(String programYear) {
         programYear = StringUtils.defaultIfBlank(programYear, EXAMINABLE_COURSE_DEFAULT_PROGRAM_YEAR);
         if(!CollectionUtils.isEmpty(examinableCourseCache)) {
-            return examinableCourseCache.getOrDefault(programYear, Collections.emptyList());
+            return examinableCourseCache.containsKey(programYear) ? examinableCourseCache.get(programYear) : examinableCourseCache.getOrDefault(EXAMINABLE_COURSE_DEFAULT_PROGRAM_YEAR , Collections.emptyList());
         }
         return fetchExaminableCoursesByProgramYear(programYear);
     }
