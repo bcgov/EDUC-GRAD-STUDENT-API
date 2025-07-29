@@ -17,6 +17,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,6 +55,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Slf4j
 public class GradStudentServiceTest extends BaseIntegrationTest {
 
     @Autowired
@@ -71,6 +73,9 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     @MockBean
     @Qualifier("studentApiClient")
     WebClient webClient;
+
+    @MockBean
+    RESTService restService;
 
     @MockBean
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
@@ -127,6 +132,28 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         public UUID getSchoolOfRecordId() {
             return schoolOfRecordId;
         }
+    }
+
+    @Test
+    public void getStudentUUIDsFromPens_withValidPens_returnsUUIDs() {
+        Student student1 = new Student();
+        student1.setStudentID(UUID.randomUUID().toString());
+        student1.setPen("123456789");
+        Student student2 = new Student();
+        student2.setStudentID(UUID.randomUUID().toString());
+        student2.setPen("987654321");
+        List<String> pens = List.of(student1.getPen(), student2.getPen());
+
+        when(restService.get(String.format(constants.getPenStudentApiByPenUrl(), student1.getPen()), new ParameterizedTypeReference<List<Student>>() {}, null))
+                .thenReturn(List.of(student1));
+        when(restService.get(String.format(constants.getPenStudentApiByPenUrl(), student2.getPen()), new ParameterizedTypeReference<List<Student>>() {}, null))
+                .thenReturn(List.of(student2));
+
+        List<UUID> result = gradStudentService.getStudentUUIDsFromPens(pens);
+
+        assertThat(result).isNotNull();
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result).contains(UUID.fromString(student1.getStudentID()), UUID.fromString(student2.getStudentID()));
     }
 
 
