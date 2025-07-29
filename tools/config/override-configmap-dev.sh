@@ -43,7 +43,6 @@ PARSER_CONFIG="
 echo Creating config map "$APP_NAME"-config-map
 oc create -n "$GRAD_NAMESPACE"-"$envValue" configmap "$APP_NAME"-config-map \
   --from-literal=APP_LOG_LEVEL="$APP_LOG_LEVEL" \
-  --from-literal=EDUC_SCHOOL_API="http://school-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/" \
   --from-literal=ENABLE_FLYWAY="true" \
   --from-literal=ENABLE_SPLUNK_LOG_HELPER="false" \
   --from-literal=ENABLE_STUDENT_ID_PEN_XREF="true" \
