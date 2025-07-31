@@ -934,11 +934,14 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
         assertNotNull(result);
+
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse2").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse2").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage())).findFirst().isPresent());
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse3").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse3").getCourseSession())).findFirst().get()
+                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage())).findFirst().isPresent());
+        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse4").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse4").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage())).findFirst().isPresent());
 
     }
@@ -1105,10 +1108,12 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         studentCourse2.setRelatedCourseId("4");
         //FINAL GRADE
         StudentCourse studentCourse3 = createStudentCourse("5","202504", null, null,null,"A", 4, "B", "7");
-
+         //FINAL PERCENT WITH GRADE
+        StudentCourse studentCourse4= createStudentCourse("6","202504", 62, "C",null,null, 4, "", null);
         studentCourses.put("studentCourse1", studentCourse1);
         studentCourses.put("studentCourse2", studentCourse2);
         studentCourses.put("studentCourse3", studentCourse3);
+        studentCourses.put("studentCourse4", studentCourse4);
         return studentCourses;
     }
 
@@ -1141,6 +1146,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
             studentCourseExamEntity.setBestSchoolPercentage(courseExam.getBestSchoolPercentage().doubleValue());
         if(courseExam.getExamPercentage() != null)
             studentCourseExamEntity.setExamPercentage(courseExam.getExamPercentage().doubleValue());
+        if(StringUtils.isNotBlank(courseExam.getSpecialCase()))
+            studentCourseExamEntity.setSpecialCase(courseExam.getSpecialCase());
         return studentCourseExamEntity;
     }
 
