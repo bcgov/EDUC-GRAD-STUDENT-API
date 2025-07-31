@@ -598,7 +598,7 @@ public class CommonServiceTest extends BaseIntegrationTest {
         spg.setCareerProgramCode("TEST");
         cpList.add(spg);
 
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), accessToken)).thenReturn(gss);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString())).thenReturn(gss);
         when(graduationStatusService.getGraduationStatusForAlgorithm(studentID)).thenReturn(gradStudentRecord);
         when(gradStudentCareerProgramRepository.findByStudentID(studentID)).thenReturn(cpList);
 

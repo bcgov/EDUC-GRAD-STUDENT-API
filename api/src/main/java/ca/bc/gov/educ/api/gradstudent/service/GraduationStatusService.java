@@ -72,6 +72,7 @@ public class GraduationStatusService extends GradBaseService {
 
     final
     WebClient studentApiClient;
+    private final RESTService restService;
 
     final GraduationStudentRecordRepository graduationStatusRepository;
     final StudentStatusRepository studentStatusRepository;
@@ -93,7 +94,7 @@ public class GraduationStatusService extends GradBaseService {
     final GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository;
 
     @Autowired
-    public GraduationStatusService(@Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants, SchoolService schoolService) {
+    public GraduationStatusService(@Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, StudentStatusRepository studentStatusRepository, GradStatusEventRepository gradStatusEventRepository, StudentNonGradReasonRepository studentNonGradReasonRepository, GraduationStatusTransformer graduationStatusTransformer, StudentOptionalProgramRepository gradStudentOptionalProgramRepository, GraduationStudentRecordSearchRepository graduationStudentRecordSearchRepository, GradStudentOptionalProgramTransformer gradStudentOptionalProgramTransformer, StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer, StudentNonGradReasonTransformer studentNonGradReasonTransformer, GradStudentService gradStudentService, HistoryService historyService, GradValidation validation, EducGradStudentApiConstants constants, SchoolService schoolService, RESTService restService) {
         this.studentApiClient = studentApiClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.studentStatusRepository = studentStatusRepository;
@@ -112,6 +113,7 @@ public class GraduationStatusService extends GradBaseService {
         this.historyService = historyService;
         this.validation = validation;
         this.constants = constants;
+        this.restService = restService;
     }
 
     @Retry(name = "generalgetcall")
@@ -712,7 +714,7 @@ public class GraduationStatusService extends GradBaseService {
         }
 
         // check that op and program combination exists and that the op id matches
-        OptionalProgram optionalProgram1 = getOptionalProgram(graduationStudentRecord.getProgram(), optionalProgram.getOptProgramCode(), accessToken);
+        OptionalProgram optionalProgram1 = getOptionalProgram(graduationStudentRecord.getProgram(), optionalProgram.getOptProgramCode());
         if (optionalProgram1 == null || !optionalProgram1.getOptionalProgramID().equals(optionalProgramID)) {
             validation.addErrorAndStop(String.format("Cannot add optional program: %s to student as it is not available under the program: %s", optionalProgram.getOptionalProgramName(), graduationStudentRecord.getProgram()));
         }
@@ -865,7 +867,7 @@ public class GraduationStatusService extends GradBaseService {
         // Process
         List<StudentCareerProgram> results = studentCareerProgramReq.getCareerProgramCodes().stream().map(c -> persistStudentCareerProgram(studentID, c)).filter(Objects::nonNull).toList();
         if (!results.isEmpty()) {
-            OptionalProgram cp = getOptionalProgram(graduationStudentRecord.getProgram(), "CP", accessToken);
+            OptionalProgram cp = getOptionalProgram(graduationStudentRecord.getProgram(), "CP");
             if (cp != null) {
                 // CP Creation
                 persistStudentOptionalProgramWithAuditHistory(studentID, cp.getOptionalProgramID());
@@ -898,7 +900,7 @@ public class GraduationStatusService extends GradBaseService {
         removeStudentCareerProgram(studentID, careerProgramCode);
         handleBatchFlags(studentID, graduationStudentRecord.getStudentStatus());
 
-        OptionalProgram cp = getOptionalProgram(graduationStudentRecord.getProgram(), "CP", accessToken);
+        OptionalProgram cp = getOptionalProgram(graduationStudentRecord.getProgram(), "CP");
         if (cp != null && !hasAnyCareerPrograms(studentID)) {
             // CP Removal
             removeStudentOptionalProgramWithAuditHistory(studentID, cp.getOptionalProgramID());
@@ -911,15 +913,10 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     @Retry(name = "generalgetcall")
-    public OptionalProgram getOptionalProgram(String mainProgramCode, String optionalProgramCode, String accessToken) {
+    public OptionalProgram getOptionalProgram(String mainProgramCode, String optionalProgramCode) {
         OptionalProgram optionalProgram = null;
         try {
-            optionalProgram = studentApiClient.get()
-                    .uri(String.format(constants.getGradOptionalProgramDetailsUrl(), mainProgramCode, optionalProgramCode))
-                    .headers(h -> h.setBearerAuth(accessToken))
-                    .retrieve()
-                    .bodyToMono(OptionalProgram.class)
-                    .block();
+            optionalProgram = this.restService.get(String.format(constants.getGradOptionalProgramDetailsUrl(), mainProgramCode, optionalProgramCode), OptionalProgram.class, studentApiClient);
         } catch (Exception e) {
             logger.error("Program API is failed to find an optional program: [{}] / [{}]", mainProgramCode, optionalProgramCode);
         }
@@ -1022,7 +1019,7 @@ public class GraduationStatusService extends GradBaseService {
             gradStudentOptionalOptional = gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgramReq.getId());
 
         StudentOptionalProgramEntity sourceObject = new StudentOptionalProgramEntity();
-        OptionalProgram gradOptionalProgram = getOptionalProgram(gradStudentOptionalProgramReq.getMainProgramCode(), gradStudentOptionalProgramReq.getOptionalProgramCode(), accessToken);
+        OptionalProgram gradOptionalProgram = getOptionalProgram(gradStudentOptionalProgramReq.getMainProgramCode(), gradStudentOptionalProgramReq.getOptionalProgramCode());
         sourceObject.setId(gradStudentOptionalProgramReq.getId());
         sourceObject.setStudentID(gradStudentOptionalProgramReq.getStudentID());
         sourceObject.setOptionalProgramCompletionDate(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate() != null ?Date.valueOf(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate()) : null);
@@ -1176,7 +1173,7 @@ public class GraduationStatusService extends GradBaseService {
             return null;
         }
         if (StringUtils.isBlank(graduationStudentRecord.getPen())) {
-            GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(graduationStudentRecord.getStudentID().toString(), accessToken);
+            GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(graduationStudentRecord.getStudentID().toString());
             if (gradSearchStudent != null) {
                 graduationStudentRecord.setPen(gradSearchStudent.getPen());
             }
@@ -1501,19 +1498,19 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     @Transactional
-    public GraduationStudentRecord adoptStudent(Student studentRequest, String accessToken) {
+    public GraduationStudentRecord adoptStudent(Student studentRequest) {
         logger.info("Attempting to adopt student with ID: {}", studentRequest.getStudentID());
         UUID studentID = UUID.fromString(studentRequest.getStudentID());
         if (graduationStatusRepository.existsByStudentID(studentID)) {
             throw new EntityAlreadyExistsException("Graduation student record already exists for student ID: " + studentID);
         }
-        GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(studentRequest.getStudentID(), accessToken);
+        GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(studentRequest.getStudentID());
 
         GraduationStudentRecordEntity newRecord = buildNewGraduationStudentRecord(student);
         GraduationStudentRecordEntity savedRecord = graduationStatusRepository.save(newRecord);
 
         if (ProgramCodes.PF2023.getCode().equals(savedRecord.getProgram())) {
-            OptionalProgram optionalProgram = getOptionalProgram(ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode(), accessToken);
+            OptionalProgram optionalProgram = getOptionalProgram(ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode());
             if(optionalProgram == null) {
                 throw new EntityNotFoundException(String.format("Optional Program %s for %s not found", OptionalProgramCodes.DD.getCode(), ProgramCodes.PF2023.getCode()));
             }

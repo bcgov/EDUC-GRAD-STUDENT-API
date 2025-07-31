@@ -199,7 +199,7 @@ public class CommonService {
 	@Transactional
 	public GradStudentAlgorithmData getGradStudentAlgorithmData(String studentID,String accessToken) {
 		GradStudentAlgorithmData data = new GradStudentAlgorithmData();
-		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID, accessToken);
+		GradSearchStudent gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID);
 		GraduationStudentRecord gradStudentRecord = graduationStatusService.getGraduationStatusForAlgorithm(UUID.fromString(studentID));
 		List<StudentCareerProgram> cpList = getAllGradStudentCareerProgramList(studentID, accessToken);
 		if(gradStudentRecord != null && StringUtils.isNotBlank(gradStudentRecord.getStudentCitizenship())) {

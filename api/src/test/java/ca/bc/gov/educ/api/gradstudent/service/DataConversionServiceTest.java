@@ -775,7 +775,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.empty());
         when(gradStudentOptionalProgramRepository.save(any(StudentOptionalProgramEntity.class))).thenReturn(gradStudentOptionalProgramEntity);
         doNothing().when(historyService).createStudentOptionalProgramHistory(any(), any());
-        when(graduationStatusService.getOptionalProgram(optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode(), "accessToken")).thenReturn(optionalProgram);
+        when(graduationStatusService.getOptionalProgram(optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode())).thenReturn(optionalProgram);
 
         var result = dataConversionService.saveStudentOptionalProgram(studentOptionalProgramReq, "accessToken");
 
@@ -835,7 +835,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStudentRecordEntity));
         when(gradStudentOptionalProgramRepository.findByStudentIDAndOptionalProgramID(studentID, optionalProgramID)).thenReturn(Optional.of(gradStudentOptionalProgramEntity));
         when(gradStudentOptionalProgramRepository.save(gradStudentOptionalProgramEntity)).thenReturn(gradStudentOptionalProgramEntity);
-        when(graduationStatusService.getOptionalProgram(optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode(), "accessToken")).thenReturn(optionalProgram);
+        when(graduationStatusService.getOptionalProgram(optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode())).thenReturn(optionalProgram);
 
         var result = dataConversionService.saveStudentOptionalProgram(studentOptionalProgramReq, "accessToken");
         doNothing().when(historyService).createStudentOptionalProgramHistory(any(), any());
@@ -889,7 +889,7 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStudentRecordEntity));
         when(gradStudentCareerProgramRepository.findByStudentIDAndCareerProgramCode(studentID, careerProgramCode)).thenReturn(Optional.empty());
         when(gradStudentCareerProgramRepository.save(gradStudentCareerProgramEntity)).thenReturn(gradStudentCareerProgramEntity);
-        when(graduationStatusService.getOptionalProgram(optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode(), "accessToken")).thenReturn(optionalProgram);
+        when(graduationStatusService.getOptionalProgram(optionalProgram.getGraduationProgramCode(), optionalProgram.getOptProgramCode())).thenReturn(optionalProgram);
 
         var result = dataConversionService.saveStudentCareerProgram(studentCareerProgram);
         assertThat(result).isNotNull();
