@@ -1013,7 +1013,7 @@ public class GraduationStatusService extends GradBaseService {
         }
     }
 
-    public StudentOptionalProgram updateStudentGradOptionalProgram(StudentOptionalProgramReq gradStudentOptionalProgramReq, String accessToken) {
+    public StudentOptionalProgram updateStudentGradOptionalProgram(StudentOptionalProgramReq gradStudentOptionalProgramReq) {
         Optional<StudentOptionalProgramEntity> gradStudentOptionalOptional = Optional.empty();
         if(gradStudentOptionalProgramReq.getId() != null)
             gradStudentOptionalOptional = gradStudentOptionalProgramRepository.findById(gradStudentOptionalProgramReq.getId());

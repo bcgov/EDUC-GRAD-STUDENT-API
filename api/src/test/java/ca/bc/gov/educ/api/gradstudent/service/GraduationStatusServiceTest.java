@@ -1832,7 +1832,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
-        var result = graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "accessToken");
+        var result = graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentOptionalProgramEntity.getId());

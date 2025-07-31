@@ -289,10 +289,10 @@ public class GraduationStatusControllerTest {
         studentOptionalProgram.setPen(pen);
         studentOptionalProgram.setOptionalProgramCompletionDate(gradStudentOptionalProgramReq.getOptionalProgramCompletionDate());
 
-        Mockito.when(graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "accessToken")).thenReturn(studentOptionalProgram);
+        Mockito.when(graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq)).thenReturn(studentOptionalProgram);
         Mockito.when(responseHelper.GET(studentOptionalProgram)).thenReturn(ResponseEntity.ok().body(studentOptionalProgram));
-        var result = graduationStatusController.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "accessToken");
-        Mockito.verify(graduationStatusService).updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "accessToken");
+        var result = graduationStatusController.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq);
+        Mockito.verify(graduationStatusService).updateStudentGradOptionalProgram(gradStudentOptionalProgramReq);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
