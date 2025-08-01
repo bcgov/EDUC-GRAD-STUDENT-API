@@ -436,7 +436,7 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Adopt a Student", description = "Adopt a Student", tags = {"Student Demographics"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public GraduationStudentRecord adoptStudent(@RequestBody Student student) {
-        return gradStatusService.adoptStudent(student);
+    public GraduationStudentRecord adoptStudent(@PathVariable String studentID) {
+        return gradStatusService.adoptStudent(UUID.fromString(studentID), null);
     }
 }
