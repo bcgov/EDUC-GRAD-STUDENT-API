@@ -79,8 +79,7 @@ public class GraduationStudentRecordService {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void handleAssessmentAdoptEvent(String studentID, final GradStatusEvent event) {
-        List<Student> student = restUtils.getStudents(UUID.randomUUID(), Set.of(studentID));
-        graduationStatusService.adoptStudent(student.get(0), event.getUpdateUser());
+        graduationStatusService.adoptStudent(UUID.fromString(studentID), event.getUpdateUser());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)

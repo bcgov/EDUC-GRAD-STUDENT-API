@@ -1498,13 +1498,12 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     @Transactional
-    public GraduationStudentRecord adoptStudent(Student studentRequest, String updateUser) {
-        logger.info("Attempting to adopt student with ID: {}", studentRequest.getStudentID());
-        UUID studentID = UUID.fromString(studentRequest.getStudentID());
+    public GraduationStudentRecord adoptStudent(UUID studentID, String updateUser) {
+        logger.info("Attempting to adopt student with ID: {}", studentID);
         if (graduationStatusRepository.existsByStudentID(studentID)) {
             throw new EntityAlreadyExistsException("Graduation student record already exists for student ID: " + studentID);
         }
-        GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(studentRequest.getStudentID());
+        GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(String.valueOf(studentID));
 
         GraduationStudentRecordEntity newRecord = buildNewGraduationStudentRecord(student);
         if(StringUtils.isNotBlank(updateUser)) {
