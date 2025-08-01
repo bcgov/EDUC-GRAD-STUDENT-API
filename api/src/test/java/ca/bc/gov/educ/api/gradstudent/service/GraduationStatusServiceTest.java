@@ -3763,9 +3763,9 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
             .thenReturn(true);
         when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentUUID.toString()))
             .thenReturn(gradSearchStudent);
-
+        var studentTemp = UUID.fromString(request.getStudentID());
         // When / Then
-        assertThatThrownBy(() -> graduationStatusService.adoptStudent(UUID.fromString(request.getStudentID()), null))
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(studentTemp, null))
             .isInstanceOf(EntityAlreadyExistsException.class)
             .hasMessageContaining("Graduation student record already exists for student ID: " + studentUUID);
 
@@ -3779,9 +3779,9 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
         when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID()))
             .thenThrow(new RuntimeException("Student API not reachable"));
-
+        var studentTemp = UUID.fromString(request.getStudentID());
         // When / Then
-        assertThatThrownBy(() -> graduationStatusService.adoptStudent(UUID.fromString(request.getStudentID()), null))
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(studentTemp, null))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Student API not reachable");
     }
@@ -3799,8 +3799,9 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(graduationStatusRepository.existsByStudentID(any())).thenReturn(false);
         when(schoolService.getSchoolByMincode("123456")).thenReturn(null);
 
+        var studentTemp = UUID.fromString(request.getStudentID());
         // When / Then
-        assertThatThrownBy(() -> graduationStatusService.adoptStudent(UUID.fromString(request.getStudentID()), null))
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(studentTemp, null))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessageContaining("School not found for mincode: 123456");
     }
@@ -3828,8 +3829,9 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(requestHeadersMock.retrieve()).thenReturn(responseMock);
         when(responseMock.bodyToMono(OptionalProgram.class)).thenReturn(null);
 
+        var studentTemp = UUID.fromString(request.getStudentID());
         // When / Then
-        assertThatThrownBy(() -> graduationStatusService.adoptStudent(UUID.fromString(request.getStudentID()), null))
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(studentTemp, null))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessageContaining("Optional Program DD for 2023-PF not found");
     }
