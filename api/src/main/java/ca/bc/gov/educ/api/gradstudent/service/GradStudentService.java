@@ -28,9 +28,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.util.Date;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,15 +58,17 @@ public class GradStudentService {
 
 	final EducGradStudentApiConstants constants;
 	final WebClient studentApiClient;
+	private final RESTService restService;
 	final GraduationStudentRecordRepository graduationStatusRepository;
 	final GraduationStatusTransformer graduationStatusTransformer;
 
 	@Autowired
-	public GradStudentService(EducGradStudentApiConstants constants, @Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, GraduationStatusTransformer graduationStatusTransformer) {
+	public GradStudentService(EducGradStudentApiConstants constants, @Qualifier("studentApiClient") WebClient studentApiClient, GraduationStudentRecordRepository graduationStatusRepository, GraduationStatusTransformer graduationStatusTransformer, RESTService restService) {
 		this.constants = constants;
 		this.studentApiClient = studentApiClient;
 		this.graduationStatusRepository = graduationStatusRepository;
 		this.graduationStatusTransformer = graduationStatusTransformer;
+		this.restService = restService;
 	}
 
 	public StudentSearch getStudentFromStudentAPI(StudentSearchRequest studentSearchRequest, Integer pageNumber, Integer pageSize, String accessToken) {
@@ -95,7 +94,7 @@ public class GradStudentService {
 			List<Student> studentList = response != null ? response.getContent():new ArrayList<>();
 			if (!studentList.isEmpty()) {
 				studentList.forEach(st -> {
-					GradSearchStudent gradStu = populateGradSearchStudent(st, accessToken);
+					GradSearchStudent gradStu = populateGradSearchStudent(st);
 					gradStudentList.add(gradStu);
 				});
 			}
@@ -151,7 +150,7 @@ public class GradStudentService {
 			List<Student> studentList = response != null ? response.getContent() : new ArrayList<>();
 			if (!studentList.isEmpty()) {
 				studentList.forEach(st -> {
-					GradSearchStudent gradStu = populateGradSearchStudent(st, accessToken);
+					GradSearchStudent gradStu = populateGradSearchStudent(st);
 					if(gradStu.getProgram() != null) {
 						gradStudentList.add(gradStu);
 					}
@@ -246,7 +245,7 @@ public class GradStudentService {
 				.retrieve().bodyToMono(new ParameterizedTypeReference<List<Student>>() {}).block();
     	if (stuDataList != null && !stuDataList.isEmpty()) {
 			stuDataList.forEach(st -> {
-				GradSearchStudent gradStu = populateGradSearchStudent(st, accessToken);
+				GradSearchStudent gradStu = populateGradSearchStudent(st);
 				gradStudentList.add(gradStu);
 			});
 		}
@@ -317,7 +316,7 @@ public class GradStudentService {
 		return gradStu;
 	}
 
-    private GradSearchStudent populateGradSearchStudent(Student student, String accessToken) {
+    private GradSearchStudent populateGradSearchStudent(Student student) {
 		GradSearchStudent gradStu = new GradSearchStudent();
 		BeanUtils.copyProperties(student, gradStu);
 		GraduationStudentRecordEntity graduationStatusEntity = graduationStatusRepository.findByStudentID(UUID.fromString(student.getStudentID()));
@@ -329,9 +328,8 @@ public class GradStudentService {
 			gradStu.setSchoolOfRecordId(gradObj.getSchoolOfRecordId() != null? gradObj.getSchoolOfRecordId().toString() : null);
 			gradStu.setStudentCitizenship(gradObj.getStudentCitizenship());
 		
-			SchoolClob schoolClob = studentApiClient.get().uri(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()))
-				.headers(h -> h.setBearerAuth(accessToken))
-				.retrieve().bodyToMono(SchoolClob.class).block();
+			SchoolClob schoolClob = this.restService.get(String.format(constants.getSchoolClobBySchoolIdUrl(), gradStu.getSchoolOfRecordId()), SchoolClob.class, studentApiClient);
+
 			if (schoolClob != null) {
 				gradStu.setSchoolOfRecord(schoolClob.getMinCode());
 				gradStu.setTranscriptEligibility(schoolClob.getTranscriptEligibility());
@@ -344,13 +342,11 @@ public class GradStudentService {
 
     @Transactional
 	@Retry(name = "searchbyid")
-    public GradSearchStudent getStudentByStudentIDFromStudentAPI(String studentID, String accessToken) {
-    	Student stuData = studentApiClient.get().uri(String.format(constants.getPenStudentApiByStudentIdUrl(), studentID))
-				.headers(h -> h.setBearerAuth(accessToken))
-				.retrieve().bodyToMono(Student.class).block();
+    public GradSearchStudent getStudentByStudentIDFromStudentAPI(String studentID) {
+    	Student stuData = restService.get(String.format(constants.getPenStudentApiByStudentIdUrl(), studentID), Student.class, studentApiClient);
     	GradSearchStudent gradStu = new GradSearchStudent();
     	if (stuData != null) {
-			gradStu = populateGradSearchStudent(stuData, accessToken);			
+			gradStu = populateGradSearchStudent(stuData);
 		}    	
     	return gradStu;
     }
@@ -358,7 +354,7 @@ public class GradStudentService {
 	@Transactional
 	@Retry(name = "searchbyid")
 	public GraduationStudentRecordDistribution getStudentByStudentIDFromGrad(String studentID,String accessToken) {
-		return graduationStatusTransformer.tToDForDistribution(graduationStatusRepository.findByStudentID(UUID.fromString(studentID)), getStudentByStudentIDFromStudentAPI(studentID, accessToken));
+		return graduationStatusTransformer.tToDForDistribution(graduationStatusRepository.findByStudentID(UUID.fromString(studentID)), getStudentByStudentIDFromStudentAPI(studentID));
 	}
 
 	@Transactional

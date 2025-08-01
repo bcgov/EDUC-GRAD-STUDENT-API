@@ -159,10 +159,9 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT_OPTIONAL_PROGRAM)
     @Operation(summary = "Update/Create Student Optional Grad Status by Student ID", description = "Update/Create Student Optional Grad Status by Student ID", tags = { "Optional Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public ResponseEntity<StudentOptionalProgram> updateStudentGradOptionalProgram(@RequestBody StudentOptionalProgramReq gradStudentOptionalProgramReq,
-                                                                                   @RequestHeader(name="Authorization") String accessToken) {
+    public ResponseEntity<StudentOptionalProgram> updateStudentGradOptionalProgram(@RequestBody StudentOptionalProgramReq gradStudentOptionalProgramReq) {
         logger.debug("Update student Grad Status for PEN: ");
-        return response.GET(gradStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq,accessToken.replace(BEARER, "")));
+        return response.GET(gradStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq));
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_RECALCULATE)
@@ -437,7 +436,7 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Adopt a Student", description = "Adopt a Student", tags = {"Student Demographics"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public GraduationStudentRecord adoptStudent(@RequestBody Student student, @RequestHeader(name = "Authorization") String accessToken) {
-        return gradStatusService.adoptStudent(student,accessToken.replace(BEARER, ""));
+    public GraduationStudentRecord adoptStudent(@RequestBody Student student) {
+        return gradStatusService.adoptStudent(student);
     }
 }

@@ -38,7 +38,6 @@ import reactor.core.publisher.Mono;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -86,6 +85,9 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     @Mock WebClient.RequestBodySpec requestBodyMock;
     @Mock WebClient.RequestBodyUriSpec requestBodyUriMock;
     @Mock WebClient.ResponseSpec responseMock;
+
+    @MockBean
+    RESTService restService;
 
     // NATS
     @MockBean NatsConnection natsConnection;
@@ -195,11 +197,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         schoolClob.setMinCode(mincode);
         schoolClob.setSchoolName(schoolName);
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
+        when(this.restService.get(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId), SchoolClob.class, webClient)).thenReturn(schoolClob);
 
         StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder().legalFirstName(legalFirstName).legalLastName(legalFirstName).mincode(mincode).build();
         var result = gradStudentService.getStudentFromStudentAPI(studentSearchRequest, 1, 10, "accessToken");
@@ -247,11 +245,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         schoolClob.setMinCode(mincode);
         schoolClob.setSchoolName(schoolName);
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
+        when(this.restService.get(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId), SchoolClob.class, webClient)).thenReturn(schoolClob);
 
         final Student student = new Student();
         student.setStudentID(studentID.toString());
@@ -777,11 +771,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         schoolClob.setMinCode(mincode);
         schoolClob.setSchoolName(schoolName);
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(),schoolId))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
+        when(this.restService.get(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId), SchoolClob.class, webClient)).thenReturn(schoolClob);
 
         var result = gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken");
 
@@ -838,11 +828,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         student.setStatusCode("A");
         student.setDob("1990-01-01");
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getPenStudentApiByStudentIdUrl(),studentID))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(Student.class)).thenReturn(Mono.just(student));
+        when(this.restService.get(String.format(constants.getPenStudentApiByStudentIdUrl(), studentID), Student.class, webClient)).thenReturn(student);
 
         // Graduation Status
         final GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
@@ -871,13 +857,9 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         schoolClob.setMinCode(mincode);
         schoolClob.setSchoolName(schoolName);
 
-        when(this.webClient.get()).thenReturn(this.requestHeadersUriMock);
-        when(this.requestHeadersUriMock.uri(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.headers(any(Consumer.class))).thenReturn(this.requestHeadersMock);
-        when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
-        when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
+        when(this.restService.get(String.format(constants.getSchoolClobBySchoolIdUrl(), schoolId), SchoolClob.class, webClient)).thenReturn(schoolClob);
 
-        var result = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), "accessToken");
+        var result = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString());
 
         assertThat(result).isNotNull();
 
@@ -1012,7 +994,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
 
-        var gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), "accessToken");
+        var gradStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString());
         assertThat(gradStudent).isNotNull();
 
         GraduationStudentRecordDistribution rec2 = new GraduationStudentRecordDistribution();

@@ -97,6 +97,8 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
     GradValidation validation;
     @MockBean @Qualifier("studentApiClient")
     WebClient webClient;
+    @MockBean
+    RESTService restService;
 
     @MockBean
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
@@ -757,7 +759,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString(), "accessToken")).thenReturn(gss);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString())).thenReturn(gss);
 
         School school = new School();
         school.setSchoolId(schoolId.toString());
@@ -1830,7 +1832,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
 
-        var result = graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq, "accessToken");
+        var result = graduationStatusService.updateStudentGradOptionalProgram(gradStudentOptionalProgramReq);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(gradStudentOptionalProgramEntity.getId());
@@ -3704,12 +3706,12 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
             .schoolReportingRequirementCode("STANDARD")
             .build();
 
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID(), accessToken))
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID()))
             .thenReturn(gradSearchStudent);
         when(schoolService.getSchoolByMincode(any())).thenReturn(school);
 
         // When
-        GraduationStudentRecord result = graduationStatusService.adoptStudent(request, accessToken);
+        GraduationStudentRecord result = graduationStatusService.adoptStudent(request);
 
         // Then
         assertThat(result).isNotNull();
@@ -3738,18 +3740,14 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         OptionalProgram optionalProgram = new OptionalProgram();
         optionalProgram.setOptionalProgramID(UUID.randomUUID());
 
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID(), accessToken)).thenReturn(gradSearchStudent);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID())).thenReturn(gradSearchStudent);
         when(graduationStatusRepository.existsByStudentID(any())).thenReturn(false);
         when(schoolService.getSchoolByMincode(gradSearchStudent.getMincode())).thenReturn(school);
 
-        when(this.webClient.get()).thenReturn(requestHeadersUriMock);
-        when(requestHeadersUriMock.uri(String.format(constants.getGradOptionalProgramDetailsUrl(), ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode()))).thenReturn(requestHeadersMock);
-        when(requestHeadersMock.headers(any(Consumer.class))).thenReturn(requestHeadersMock);
-        when(requestHeadersMock.retrieve()).thenReturn(responseMock);
-        when(responseMock.bodyToMono(OptionalProgram.class)).thenReturn(Mono.just(optionalProgram));
+        when(this.restService.get(String.format(constants.getGradOptionalProgramDetailsUrl(), ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode()), OptionalProgram.class, webClient)).thenReturn(optionalProgram);
 
         // When
-        GraduationStudentRecord result = graduationStatusService.adoptStudent(request, accessToken);
+        GraduationStudentRecord result = graduationStatusService.adoptStudent(request);
 
         // Then
         assertThat(result).isNotNull();
@@ -3771,11 +3769,11 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
         when(graduationStatusRepository.existsByStudentID(studentUUID))
             .thenReturn(true);
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentUUID.toString(), accessToken))
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentUUID.toString()))
             .thenReturn(gradSearchStudent);
 
         // When / Then
-        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request, accessToken))
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request))
             .isInstanceOf(EntityAlreadyExistsException.class)
             .hasMessageContaining("Graduation student record already exists for student ID: " + studentUUID);
 
@@ -3787,11 +3785,11 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         // Given
         Student request = Student.builder().studentID(UUID.randomUUID().toString()).build();
 
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID(), accessToken))
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID()))
             .thenThrow(new RuntimeException("Student API not reachable"));
 
         // When / Then
-        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request, accessToken))
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Student API not reachable");
     }
@@ -3805,12 +3803,12 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
         Student request = Student.builder().studentID(gradSearchStudent.getStudentID()).build();
 
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID(), accessToken)).thenReturn(gradSearchStudent);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID())).thenReturn(gradSearchStudent);
         when(graduationStatusRepository.existsByStudentID(any())).thenReturn(false);
         when(schoolService.getSchoolByMincode("123456")).thenReturn(null);
 
         // When / Then
-        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request, accessToken))
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessageContaining("School not found for mincode: 123456");
     }
@@ -3828,7 +3826,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
             .schoolId(UUID.randomUUID().toString())
             .build();
 
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID(), accessToken)).thenReturn(gradSearchStudent);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID())).thenReturn(gradSearchStudent);
         when(graduationStatusRepository.existsByStudentID(any())).thenReturn(false);
         when(schoolService.getSchoolByMincode(gradSearchStudent.getMincode())).thenReturn(school);
 
@@ -3839,7 +3837,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(responseMock.bodyToMono(OptionalProgram.class)).thenReturn(null);
 
         // When / Then
-        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request, accessToken))
+        assertThatThrownBy(() -> graduationStatusService.adoptStudent(request))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessageContaining("Optional Program DD for 2023-PF not found");
     }

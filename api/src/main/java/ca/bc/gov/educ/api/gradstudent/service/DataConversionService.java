@@ -138,7 +138,7 @@ public class DataConversionService extends GradBaseService {
                     studentOptionalProgramReq.setMainProgramCode(currentGradProgramCode);
                 }
             }
-            OptionalProgram gradOptionalProgram = graduationStatusService.getOptionalProgram(studentOptionalProgramReq.getMainProgramCode(), studentOptionalProgramReq.getOptionalProgramCode(), accessToken);
+            OptionalProgram gradOptionalProgram = graduationStatusService.getOptionalProgram(studentOptionalProgramReq.getMainProgramCode(), studentOptionalProgramReq.getOptionalProgramCode());
             if (gradOptionalProgram == null) {
                 return null;
             }
