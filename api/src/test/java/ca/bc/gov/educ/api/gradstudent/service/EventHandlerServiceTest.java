@@ -5,6 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseAllowableCreditRecord;
@@ -15,6 +16,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDet
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
@@ -70,7 +72,10 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     StudentCourseRepository studentCourseRepository;
     @Autowired
     GradStatusEventRepository gradStatusEventRepository;
-
+    @MockBean
+    GradStudentService gradStudentService;
+    @MockBean
+    SchoolService schoolService;
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -347,6 +352,40 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
 
         eventHandlerService.handleAssessmentUpdatedDataEvent(event);
         var student = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        assertThat(student).isPresent();
+        assertThat(student.get().getRecalculateGradStatus()).isEqualTo("Y");
+        assertThat(student.get().getRecalculateProjectedGrad()).isEqualTo("Y");
+    }
+
+    @Test
+    void testHandleEvent_givenEventTypeASSESSMENT_STUDENT_UPDATE_AndStudentDoesNotExist_shouldAdoptStudent() throws IOException {
+        var sagaId = UUID.randomUUID();
+
+        GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
+        Student request = Student.builder().studentID(gradSearchStudent.getStudentID()).build();
+        School school = School.builder()
+                .schoolId(UUID.randomUUID().toString())
+                .mincode(gradSearchStudent.getMincode())
+                .schoolCategoryCode("PUB")
+                .schoolReportingRequirementCode("STANDARD")
+                .build();
+
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID()))
+                .thenReturn(gradSearchStudent);
+        when(schoolService.getSchoolByMincode(any())).thenReturn(school);
+
+        GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(String.valueOf(ASSESSMENT_STUDENT_UPDATE))
+                .sagaId(sagaId)
+                .eventPayload(JsonUtil.getJsonStringFromObject(gradSearchStudent.getStudentID()))
+                .eventOutcome("ASSESSMENT_STUDENT_UPDATED")
+                .eventStatus("DB_COMMITTED")
+                .build();
+        gradStatusEventRepository.save(event);
+
+        eventHandlerService.handleAssessmentUpdatedDataEvent(event);
+        var student = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(gradSearchStudent.getStudentID()));
         assertThat(student).isPresent();
         assertThat(student.get().getRecalculateGradStatus()).isEqualTo("Y");
         assertThat(student.get().getRecalculateProjectedGrad()).isEqualTo("Y");
