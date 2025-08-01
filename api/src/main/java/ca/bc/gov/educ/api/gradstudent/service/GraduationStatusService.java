@@ -1498,7 +1498,7 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     @Transactional
-    public GraduationStudentRecord adoptStudent(Student studentRequest) {
+    public GraduationStudentRecord adoptStudent(Student studentRequest, String updateUser) {
         logger.info("Attempting to adopt student with ID: {}", studentRequest.getStudentID());
         UUID studentID = UUID.fromString(studentRequest.getStudentID());
         if (graduationStatusRepository.existsByStudentID(studentID)) {
@@ -1507,6 +1507,9 @@ public class GraduationStatusService extends GradBaseService {
         GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(studentRequest.getStudentID());
 
         GraduationStudentRecordEntity newRecord = buildNewGraduationStudentRecord(student);
+        if(StringUtils.isNotBlank(updateUser)) {
+            newRecord.setUpdateUser(updateUser);
+        }
         GraduationStudentRecordEntity savedRecord = graduationStatusRepository.save(newRecord);
 
         if (ProgramCodes.PF2023.getCode().equals(savedRecord.getProgram())) {

@@ -13,6 +13,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProg
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
+import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -43,6 +44,7 @@ public class GraduationStudentRecordService {
     private static final String DATA_CONVERSION_HISTORY_ACTIVITY_CODE = "DATACONVERT"; // confirm,
     private static final String ADD_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXADD";// confirm,
     private final HistoryService historyService;
+    private final GraduationStatusService graduationStatusService;
     public static final String CURRENT = "CUR";
     public static final String TERMINATED = "TER";
     public static final String DECEASED = "DEC";
@@ -73,6 +75,12 @@ public class GraduationStudentRecordService {
         newStudentRecordEntity.setRecalculateProjectedGrad("Y");
         newStudentRecordEntity.setRecalculateGradStatus("Y");
         graduationStudentRecordRepository.save(newStudentRecordEntity);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void handleAssessmentAdoptEvent(String studentID, final GradStatusEvent event) {
+        List<Student> student = restUtils.getStudents(UUID.randomUUID(), Set.of(studentID));
+        graduationStatusService.adoptStudent(student.get(0), event.getUpdateUser());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -222,8 +230,8 @@ public class GraduationStudentRecordService {
         var gradRequirementYear = existingStudentRecordEntity.getProgram().replaceAll("-EN","").replaceAll("-PF","");
 
         var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) &&
-                ((GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear) && Arrays.stream(BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED).anyMatch(boardAuthorityOrLocallyDeveloped -> boardAuthorityOrLocallyDeveloped.equalsIgnoreCase(coregCoursesRecord.getCourseCategory().getCode())) ||
-                (GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear)) && coregCoursesRecord.getCourseCategory().getCode().equalsIgnoreCase("BA")))) ?
+                (GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear) && Arrays.stream(BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED).anyMatch(boardAuthorityOrLocallyDeveloped -> boardAuthorityOrLocallyDeveloped.equalsIgnoreCase(coregCoursesRecord.getCourseCategory().getCode())) ||
+                (GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear)) && coregCoursesRecord.getCourseCategory().getCode().equalsIgnoreCase("BA"))) ?
                 fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null)
                 : null;
         var equivalentOrChallengeCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
@@ -267,8 +275,8 @@ public class GraduationStudentRecordService {
         var gradRequirementYear = existingStudentRecordEntity.getProgram().replaceAll("-EN","").replaceAll("-PF","");
         
         var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) &&
-                ((GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear) && Arrays.stream(BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED).anyMatch(boardAuthorityOrLocallyDeveloped -> boardAuthorityOrLocallyDeveloped.equalsIgnoreCase(coregCoursesRecord.getCourseCategory().getCode())) ||
-                        (GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear)) && coregCoursesRecord.getCourseCategory().getCode().equalsIgnoreCase("BA")))) ?
+                (GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear) && Arrays.stream(BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED).anyMatch(boardAuthorityOrLocallyDeveloped -> boardAuthorityOrLocallyDeveloped.equalsIgnoreCase(coregCoursesRecord.getCourseCategory().getCode())) ||
+                        (GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear)) && coregCoursesRecord.getCourseCategory().getCode().equalsIgnoreCase("BA"))) ?
                 fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null)
                 : null;
         var equivalentOrChallengeCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?

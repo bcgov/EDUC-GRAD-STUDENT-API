@@ -119,7 +119,8 @@ public class EventHandlerService {
                                 graduationStudentRecordService.handleAssessmentUpdateEvent(student.get(), event);
                                 updateEvent(event);
                             } else {
-                                log.info("Student does not exist in GRAD :: {}", event.getEventId());
+                                graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event);
+                                updateEvent(event);
                             }
                             break;
                         default:

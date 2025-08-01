@@ -437,6 +437,6 @@ public class GraduationStatusController {
     @Operation(summary = "Adopt a Student", description = "Adopt a Student", tags = {"Student Demographics"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public GraduationStudentRecord adoptStudent(@RequestBody Student student) {
-        return gradStatusService.adoptStudent(student);
+        return gradStatusService.adoptStudent(student, null);
     }
 }
