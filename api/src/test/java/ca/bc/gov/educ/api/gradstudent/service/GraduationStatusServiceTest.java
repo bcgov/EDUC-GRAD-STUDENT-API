@@ -2732,7 +2732,6 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
     @Test
     void testGetStudentsForYearlyDistribution() {
         UUID schoolId = UUID.randomUUID();
-        List<GraduationStudentRecordEntity> histList = new ArrayList<>();
 
         GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(new UUID(1, 1));
@@ -2746,7 +2745,6 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         graduationStatusEntity.setLegalFirstName("Asdad");
         graduationStatusEntity.setLegalMiddleNames("Adad");
         graduationStatusEntity.setLegalLastName("sadad");
-        histList.add(graduationStatusEntity);
 
         when(graduationStatusRepository.findStudentsForYearlyDistribution(PageRequest.of(0, PAGE_SIZE))).thenReturn(new Page() {
 

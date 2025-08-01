@@ -217,7 +217,7 @@ public class GraduationStatusService extends GradBaseService {
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, GRAD_ALG);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
-                    EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
+                    EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG);
 
             List<GradStatusEvent> events = new ArrayList<>();
             if (gradStatusEvent != null) {
@@ -234,7 +234,7 @@ public class GraduationStatusService extends GradBaseService {
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(sourceObject.getUpdateUser(), sourceObject,
-                    EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG, accessToken);
+                    EventType.GRAD_STUDENT_GRADUATED, EventOutcome.GRAD_STATUS_UPDATED, GRAD_ALG);
             List<GradStatusEvent> events = new ArrayList<>();
             if (gradStatusEvent != null) {
                 gradStatusEventRepository.save(gradStatusEvent);
@@ -302,7 +302,7 @@ public class GraduationStatusService extends GradBaseService {
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
-                    EventType.GRAD_STUDENT_UPDATED, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT, accessToken);
+                    EventType.GRAD_STUDENT_UPDATED, EventOutcome.GRAD_STATUS_UPDATED, USER_EDIT);
 
             List<GradStatusEvent> events = new ArrayList<>();
             if (gradStatusEvent != null) {
@@ -1105,7 +1105,7 @@ public class GraduationStatusService extends GradBaseService {
                     gradEntity = graduationStatusRepository.save(gradEntity);
                     historyService.createStudentHistory(gradEntity, USER_UNDO_CMPL);
                     final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
-                            EventType.GRAD_STUDENT_UNDO_COMPLETION, EventOutcome.GRAD_STATUS_UPDATED, USER_UNDO_CMPL, accessToken);
+                            EventType.GRAD_STUDENT_UNDO_COMPLETION, EventOutcome.GRAD_STATUS_UPDATED, USER_UNDO_CMPL);
                     if (gradStatusEvent != null) {
                         gradStatusEventRepository.save(gradStatusEvent);
                     }
@@ -1167,8 +1167,7 @@ public class GraduationStatusService extends GradBaseService {
     private GradStatusEvent createGradStatusEvent(String updateUser,
                                                   GraduationStudentRecordEntity graduationStudentRecord,
                                                   EventType eventType, EventOutcome eventOutcome,
-                                                  String activityCode,
-                                                  String accessToken) throws JsonProcessingException {
+                                                  String activityCode) throws JsonProcessingException {
         if (!constants.isTraxUpdateEnabled()) {
             return null;
         }

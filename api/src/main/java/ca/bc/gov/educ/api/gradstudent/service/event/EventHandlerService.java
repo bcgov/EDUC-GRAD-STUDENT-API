@@ -111,21 +111,18 @@ public class EventHandlerService {
             if (eventFromDB.getEventStatus().equals(EventStatus.DB_COMMITTED.toString())) {
                 log.info("Processing event with event ID :: {}", event.getEventId());
                 try {
-                    switch (event.getEventType()) {
-                        case "ASSESSMENT_STUDENT_UPDATE":
-                            final String studentID = JsonUtil.getJsonObjectFromString(String.class, event.getEventPayload());
-                            Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentID);
-                            if(student.isPresent()) {
-                                graduationStudentRecordService.handleAssessmentUpdateEvent(student.get(), event);
-                                updateEvent(event);
-                            } else {
-                                graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event);
-                                updateEvent(event);
-                            }
-                            break;
-                        default:
-                            log.warn("Silently ignoring event: {}", event);
-                            break;
+                    if (event.getEventType().equals("ASSESSMENT_STUDENT_UPDATE")) {
+                        final String studentID = JsonUtil.getJsonObjectFromString(String.class, event.getEventPayload());
+                        Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentID);
+                        if (student.isPresent()) {
+                            graduationStudentRecordService.handleAssessmentUpdateEvent(student.get(), event);
+                            updateEvent(event);
+                        } else {
+                            graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event);
+                            updateEvent(event);
+                        }
+                    } else {
+                        log.warn("Silently ignoring event: {}", event);
                     }
                     log.info("Event was processed, ID :: {}", event.getEventId());
                 } catch (final Exception exception) {
