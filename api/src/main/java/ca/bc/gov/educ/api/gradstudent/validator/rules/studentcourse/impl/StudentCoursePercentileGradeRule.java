@@ -97,7 +97,7 @@ public class StudentCoursePercentileGradeRule implements UpsertStudentCourseVali
     private boolean validateLetterGrade(LocalDate sessionDate, Integer percent, LetterGrade letterGrade) {
         if(letterGrade != null) {
             return isDateWithinRange(sessionDate, getLocalDate(letterGrade.getEffectiveDate()), getLocalDate(letterGrade.getExpiryDate())) &&
-                    (percent == null || (letterGrade.getPercentRangeLow() <= percent && letterGrade.getPercentRangeHigh() >= percent));
+                    (percent == null || (letterGrade.getPercentRangeLow() != null && letterGrade.getPercentRangeHigh() != null && letterGrade.getPercentRangeLow() <= percent && letterGrade.getPercentRangeHigh() >= percent));
         }
         return true;
     }
