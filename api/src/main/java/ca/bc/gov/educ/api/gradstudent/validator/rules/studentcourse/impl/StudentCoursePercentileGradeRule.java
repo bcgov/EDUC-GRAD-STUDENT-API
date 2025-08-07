@@ -116,10 +116,10 @@ public class StudentCoursePercentileGradeRule implements UpsertStudentCourseVali
             }
             LetterGrade interimLetterGrade = getLetterGrade(studentCourse.getInterimLetterGrade());
             LetterGrade finalLetterGrade = getLetterGrade(studentCourse.getFinalLetterGrade());
-            if (interimLetterGrade != null && interimLetterGrade.getPercentRangeLow().equals(DEFAULT_MIN_PERCENTAGE_VALUE) && interimLetterGrade.getPercentRangeHigh().equals(DEFAULT_MIN_PERCENTAGE_VALUE)) {
+            if (interimLetterGrade != null && interimLetterGrade.getPercentRangeLow() == null && interimLetterGrade.getPercentRangeHigh() == null) {
                 return false;
             }
-            if (finalLetterGrade != null && finalLetterGrade.getPercentRangeLow().equals(DEFAULT_MIN_PERCENTAGE_VALUE) && finalLetterGrade.getPercentRangeHigh().equals(DEFAULT_MIN_PERCENTAGE_VALUE)) {
+            if (finalLetterGrade != null && finalLetterGrade.getPercentRangeLow() == null && finalLetterGrade.getPercentRangeHigh() == null) {
                 return false;
             }
         }
