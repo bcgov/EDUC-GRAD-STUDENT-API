@@ -97,7 +97,7 @@ public class StudentCoursePercentileGradeRule implements UpsertStudentCourseVali
     private boolean validateLetterGrade(LocalDate sessionDate, Integer percent, LetterGrade letterGrade) {
         if(letterGrade != null) {
             return isDateWithinRange(sessionDate, getLocalDate(letterGrade.getEffectiveDate()), getLocalDate(letterGrade.getExpiryDate())) &&
-                    (percent == null || (letterGrade.getPercentRangeLow() <= percent && letterGrade.getPercentRangeHigh() >= percent));
+                    (percent == null || (letterGrade.getPercentRangeLow() != null && letterGrade.getPercentRangeHigh() != null && letterGrade.getPercentRangeLow() <= percent && letterGrade.getPercentRangeHigh() >= percent));
         }
         return true;
     }
@@ -116,10 +116,10 @@ public class StudentCoursePercentileGradeRule implements UpsertStudentCourseVali
             }
             LetterGrade interimLetterGrade = getLetterGrade(studentCourse.getInterimLetterGrade());
             LetterGrade finalLetterGrade = getLetterGrade(studentCourse.getFinalLetterGrade());
-            if (interimLetterGrade != null && interimLetterGrade.getPercentRangeLow().equals(DEFAULT_MIN_PERCENTAGE_VALUE) && interimLetterGrade.getPercentRangeHigh().equals(DEFAULT_MIN_PERCENTAGE_VALUE)) {
+            if (interimLetterGrade != null && interimLetterGrade.getPercentRangeLow() == null && interimLetterGrade.getPercentRangeHigh() == null) {
                 return false;
             }
-            if (finalLetterGrade != null && finalLetterGrade.getPercentRangeLow().equals(DEFAULT_MIN_PERCENTAGE_VALUE) && finalLetterGrade.getPercentRangeHigh().equals(DEFAULT_MIN_PERCENTAGE_VALUE)) {
+            if (finalLetterGrade != null && finalLetterGrade.getPercentRangeLow() == null && finalLetterGrade.getPercentRangeHigh() == null) {
                 return false;
             }
         }
