@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseAllowableCreditRecord;
@@ -42,6 +43,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -118,6 +120,14 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                         new OptionalProgramCode(UUID.randomUUID(), "FR", "SCCP French Certificate", "", 1, "2020-01-01T00:00:00", "2099-12-31T23:59:59", "", "", "unitTests", LocalDateTime.now().toString(), "unitTests", LocalDateTime.now().toString()),
                         new OptionalProgramCode(UUID.randomUUID(), "AD", "Advanced Placement", "", 2, "2020-01-01T00:00:00", "2099-12-31T23:59:59", "", "", "unitTests", LocalDateTime.now().toString(), "unitTests", LocalDateTime.now().toString()),
                         new OptionalProgramCode(UUID.randomUUID(), "DD", "Dual Dogwood", "", 3, "2020-01-01T00:00:00", "2099-12-31T23:59:59", "", "", "unitTests", LocalDateTime.now().toString(), "unitTests", LocalDateTime.now().toString())
+                )
+        );
+
+        when(restUtils.getLetterGradeList()).thenReturn(
+                List.of(
+                        new LetterGrade("A", "4", "Y", 100, 86, Date.valueOf(LocalDate.now().plusYears(1)), Date.valueOf(LocalDate.now())),
+                        new LetterGrade("C+", "2.5", "Y", 72, 67, Date.valueOf(LocalDate.now().plusYears(1)), Date.valueOf(LocalDate.now())),
+                        new LetterGrade("IE", "0", "N",  null, null, Date.valueOf(LocalDate.now().plusYears(1)), Date.valueOf(LocalDate.now()))
                 )
         );
 
@@ -418,6 +428,33 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     @Test
     void testHandleEvent_givenEventTypePROCESS_STUDENT_COURSE_DATA__whenReportingModeIsREPLACE_shouldNotDeleteExaminableCourseWithEventOutcome_COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
         var course = createMockCourseStudent("N", "REPLACE");
+        var studentFromApi = createmockStudent();
+        graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.randomUUID()));
+        var mockCourse = createStudentCourseEntity(UUID.fromString(studentFromApi.getStudentID()),"101","202401");
+        mockCourse.setCourseExam(StudentCourseExamEntity.builder().build());
+        studentCourseRepository.save(mockCourse);
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+        var sagaId = UUID.randomUUID();
+        final Event event = Event
+                .builder()
+                .eventType(EventType.PROCESS_STUDENT_COURSE_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(course))
+                .build();
+        var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
+        assertThat(response).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(responseEvent).isNotNull();
+        assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
+    }
+
+    @Test
+    void testHandleEvent_givenEventTypePROCESS_STUDENT_COURSE_DATA__whenReportingModeIsREPLACE_shouldNotSetInterimPercentage_IfRangeIsNull_COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
+        var course = createMockCourseStudent("N", "REPLACE");
+        var studentDetail  = course.getStudentDetails().get(0);
+        studentDetail.setInterimLetterGrade("IE");
+        studentDetail.setInterimPercentage("60");
         var studentFromApi = createmockStudent();
         graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.randomUUID()));
         var mockCourse = createStudentCourseEntity(UUID.fromString(studentFromApi.getStudentID()),"101","202401");
