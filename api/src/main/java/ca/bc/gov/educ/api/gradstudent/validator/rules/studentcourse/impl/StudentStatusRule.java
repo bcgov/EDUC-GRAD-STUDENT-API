@@ -40,8 +40,6 @@ public class StudentStatusRule implements UpsertStudentCourseValidationBaseRule,
         {
             StudentCourseValidationIssueTypeCode issueType = switch (studentCourseRuleData.getGraduationStudentRecord().getStudentStatus()) {
                 case "MER" -> StudentCourseValidationIssueTypeCode.STUDENT_STATUS_MER;
-                case "TER" -> StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER;
-                case "ARC" -> StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC;
                 case "DEC" -> StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC;
                 default -> null;
             };
