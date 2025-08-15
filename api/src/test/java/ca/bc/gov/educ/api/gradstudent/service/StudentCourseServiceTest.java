@@ -283,7 +283,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
         expectedValidationMessages.put("studentCourse1", List.of(
-                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage(), true),
                 Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(), true),
                 Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(), true)
         ));
@@ -339,7 +338,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
         expectedValidationMessages.put("studentCourse1", List.of(
-                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage(), true),
                 Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(), true),
                 Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(), true)
         ));
@@ -446,9 +444,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
-
 
     }
 
@@ -468,10 +463,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
-
-
+        
     }
 
     @Test
@@ -561,7 +553,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
        Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
         expectedValidationMessages.put("studentCourse1", List.of(
-                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage(),true),
                 Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(),true),
                 Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(),true)
         ));
@@ -630,7 +621,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
         expectedValidationMessages.put("studentCourse1", List.of(
-                Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage(),true),
                 Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_INTERIM_PERCENT_VALID.getMessage(),true),
                 Pair.of(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINAL_PERCENT_VALID.getMessage(),true)
         ));
@@ -766,9 +756,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_TER.getMessage())).findFirst().isPresent());
-
 
     }
 
@@ -800,9 +787,6 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
         assertNotNull(result);
-        assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
-                .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_ARC.getMessage())).findFirst().isPresent());
-
 
     }
 

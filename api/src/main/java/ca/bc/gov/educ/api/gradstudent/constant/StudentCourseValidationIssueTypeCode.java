@@ -8,8 +8,6 @@ import java.util.Map;
 public enum StudentCourseValidationIssueTypeCode {
 
     STUDENT_STATUS_MER("studentStatus", "This student is showing as merged.  Student Course / Exam Data cannot be updated for students with a status of \"MER\" merged", ValidationIssueSeverityCode.ERROR),
-    STUDENT_STATUS_TER("studentStatus", "This student has been terminated.  Re-activate by setting their status to \"CUR\" if they are currently attending school", ValidationIssueSeverityCode.WARNING),
-    STUDENT_STATUS_ARC("studentStatus", "This student is not active.  Re-activate by setting their status to \"CUR\" if they are currently attending school", ValidationIssueSeverityCode.WARNING),
     STUDENT_STATUS_DEC("studentStatus", "This student is showing as deceased.", ValidationIssueSeverityCode.WARNING),
 
     STUDENT_COURSE_DUPLICATE("course", "The course session is a duplicate of an existing course session for this student" , ValidationIssueSeverityCode.ERROR),
@@ -22,7 +20,7 @@ public enum StudentCourseValidationIssueTypeCode {
     STUDENT_COURSE_SESSION_MONTH_VALID("course", "Course session month must be between 01 and 12" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_SESSION_START_VALID("course", "Course session is before the course start date" , ValidationIssueSeverityCode.WARNING),
     STUDENT_COURSE_SESSION_END_VALID("course", "Course session is after the course completion date" , ValidationIssueSeverityCode.ERROR),
-    STUDENT_COURSE_SESSION_VALID("course", "Course session cannot be beyond the current reporting period or prior to 198401" , ValidationIssueSeverityCode.WARNING),
+    STUDENT_COURSE_SESSION_VALID("course", "Course session cannot be after the current reporting period or prior to 198401" , ValidationIssueSeverityCode.WARNING),
     STUDENT_COURSE_Q_VALID("course", "Only use Q code if student was on Adult program at time of course completion or if course is marked as Equivalency" , ValidationIssueSeverityCode.WARNING),
 
     STUDENT_COURSE_EXAMINABLE_VALID("course","This course required an exam at the time of the course session date",ValidationIssueSeverityCode.ERROR),
@@ -31,7 +29,7 @@ public enum StudentCourseValidationIssueTypeCode {
     STUDENT_COURSE_INTERIM_GRADE_VALID("interimLetterGrade", "Invalid Letter Grade" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_FINAL_PERCENT_VALID("finalPercent", "Final percent cannot be negative or greater than 100" , ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_FINAL_GRADE_VALID("finalLetterGrade", "Invalid Letter Grade" , ValidationIssueSeverityCode.ERROR),
-    STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID("finalLetterGrade", "Course session is in the past. Enter a final mark" , ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID("finalLetterGrade", "Course session is current or in the past. Enter a final mark" , ValidationIssueSeverityCode.WARNING),
 
     STUDENT_COURSE_EXAM_VALID("course","This course required an exam at the time of the course session date", ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_EXAM_MANDATORY_VALID("course","This course is not showing as examinable during this session. Please enter this course as non-examinable", ValidationIssueSeverityCode.WARNING),
