@@ -290,7 +290,7 @@ public class StudentCourseService {
     private boolean isCourseExamDeleteRestricted(StudentCourseEntity studentCourseEntity) {
         if (studentCourseEntity.getCourseExam() != null) {
             StudentCourseExamEntity studentCourseExamEntity = studentCourseEntity.getCourseExam();
-            if (studentCourseExamEntity.getExamPercentage() != null || studentCourseEntity.getCompletedCoursePercentage() != null || StringUtils.isNotBlank(studentCourseEntity.getCompletedCourseLetterGrade()) || (StringUtils.isNotBlank(studentCourseExamEntity.getSpecialCase()) && !"N".equals(studentCourseExamEntity.getSpecialCase()))) {
+            if (studentCourseExamEntity.getExamPercentage() != null || (StringUtils.isNotBlank(studentCourseExamEntity.getSpecialCase()) && !"N".equals(studentCourseExamEntity.getSpecialCase()))) {
                 return true;
             }
         }
