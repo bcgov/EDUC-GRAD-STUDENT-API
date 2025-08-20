@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -110,14 +111,15 @@ public class CommonService {
 		logger.debug("saveStudentNote");
 		StudentRecordNoteEntity toBeSaved = studentNoteTransformer.transformToEntity(studentNote);
 		String userName = ThreadLocalStateUtil.getCurrentUser();
+		toBeSaved.setCreateDate(LocalDateTime.now());
 		toBeSaved.setCreateUser(userName);
-		toBeSaved.setUpdateUser(userName);
 		if(studentNote.getId() != null) {
 			Optional<StudentRecordNoteEntity> existingEnity = studentNoteRepository.findById(studentNote.getId());
 			if(existingEnity.isPresent()) {
 				StudentRecordNoteEntity gradEntity = existingEnity.get();
 				if(studentNote.getNote() != null) {
 					gradEntity.setUpdateUser(userName);
+					gradEntity.setUpdateDate(LocalDateTime.now());
 					gradEntity.setNote(studentNote.getNote());
 				}
 				if(studentNote.getStudentID() != null) {
