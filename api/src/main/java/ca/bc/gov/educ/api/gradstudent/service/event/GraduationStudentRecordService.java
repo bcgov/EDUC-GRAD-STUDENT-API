@@ -198,16 +198,21 @@ public class GraduationStudentRecordService {
         String course = StringUtils.isEmpty(courseStudent.getCourseLevel()) ? courseStudent.getCourseCode() : String.format("%-5s", courseStudent.getCourseCode()) + courseStudent.getCourseLevel();
         boolean isFRAL10 = (course.equalsIgnoreCase("FRAL 10") || course.equalsIgnoreCase("FRALP 10")) && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral10Programs.contains(existingStudentRecordEntity.getProgram());
         boolean isFRAL11 = course.equalsIgnoreCase("FRAL 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && fral11Programs.contains(existingStudentRecordEntity.getProgram());
-
+        
         if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase(EN_1996_CODE)) {
             List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
             var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
-            if(frProgram.isPresent()) {
+            if(frProgram.isPresent() && !hasFrenchProgram(existingStudentRecordEntity.getStudentID(), frProgram.get().getOptionalProgramID())) {
                 var entity = createStudentOptionalProgramEntity(frProgram.get().getOptionalProgramID(), existingStudentRecordEntity.getStudentID(), courseStudent.getCreateUser(), courseStudent.getUpdateUser());
                 var savedEntity = studentOptionalProgramRepository.save(entity);
                 historyService.createStudentOptionalProgramHistory(savedEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
             }
         }
+    }
+    
+    private boolean hasFrenchProgram(UUID studentID, UUID optionalProgramID) {
+        var programs = studentOptionalProgramRepository.findByStudentID(studentID);
+        return programs.stream().anyMatch(program -> program.getOptionalProgramID().equals(optionalProgramID));
     }
 
     private StudentCourseEntity compareAndUpdateStudentCourseEntity(StudentCourseEntity newStudentCourseEntity, CourseStudentDetail courseStudent, CoregCoursesRecord coregCoursesRecord, GraduationStudentRecordEntity existingStudentRecordEntity) {
