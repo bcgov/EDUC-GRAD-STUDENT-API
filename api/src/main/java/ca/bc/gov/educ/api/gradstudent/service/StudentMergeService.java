@@ -42,7 +42,10 @@ public class StudentMergeService {
         //Copy Notes : If exists in Source Student, copy to Target Student
         List<StudentNote> studentNoteList = this.commonService.getAllStudentNotes(studentID);
         if (CollectionUtils.isNotEmpty(studentNoteList)) {
-            studentNoteList.forEach(note -> note.setStudentID(trueStudentID.toString()));
+            studentNoteList.forEach(note -> {
+                note.setStudentID(trueStudentID.toString());
+                note.setId(UUID.randomUUID());
+            });
             this.commonService.saveStudentNotes(studentNoteList);
         }
         return true;

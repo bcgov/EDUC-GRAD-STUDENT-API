@@ -5,12 +5,16 @@ import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.penservices.v1.StudentMerge;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentNoteTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentNoteRepository;
 import ca.bc.gov.educ.api.gradstudent.service.event.StudentMergeEventHandlerService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -25,11 +29,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -45,10 +53,17 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
     @Autowired
     GraduationStudentRecordRepository graduationStatusRepository;
 
+
+    @Autowired
+    StudentNoteRepository studentNoteRepository;
     @MockBean
     GradStudentService gradStudentService;
     @MockBean
     SchoolService schoolService;
+    @Autowired
+    StudentNoteTransformer studentNoteTransformer;
+    @Autowired
+    private CommonService commonService;
 
     @BeforeEach
     void setUp() {
@@ -70,8 +85,6 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
         assertTrue(mergeResult);
     }
 
-
-
     @Test
     void testHandleEvent_givenEventType_CREATE_MERGE_studentID_doesExist_trueStudentID_doesNotExist_adoptSuccess() throws IOException {
         UUID studentID = UUID.randomUUID();
@@ -79,6 +92,45 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
         GraduationStudentRecord graduationStudentRecord = createGraduationStudentRecord(studentID);
         GraduationStudentRecordEntity graduationStudentRecordEntity = createGraduationStudentRecordEntity(graduationStudentRecord);
         graduationStatusRepository.save(graduationStudentRecordEntity);
+        //Create Record in Grad
+        UUID trueStudentID = UUID.randomUUID();
+        GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
+        gradSearchStudent.setStudentID(trueStudentID.toString());
+        Student request = Student.builder().studentID(trueStudentID.toString()).build();
+        School school = School.builder()
+                .schoolId(UUID.randomUUID().toString())
+                .mincode(gradSearchStudent.getMincode())
+                .schoolCategoryCode("PUB")
+                .schoolReportingRequirementCode("STANDARD")
+                .build();
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID()))
+                .thenReturn(gradSearchStudent);
+        when(schoolService.getSchoolByMincode(any())).thenReturn(school);
+        //Merge Process
+        var mergeStudentPayload = createStudentMergePayload(studentID, trueStudentID);
+        final GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(EventType.CREATE_MERGE.name())
+                .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
+                .build();
+        Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
+        assertTrue(mergeResult);
+        GraduationStudentRecordEntity gradStudentRecord = graduationStatusRepository.findByStudentID(studentID);
+        assertEquals(gradStudentRecord.getStudentStatus(), "MER");
+    }
+
+    @Test
+    void testHandleEvent_givenEventType_CREATE_MERGE_studentID_doesExist_trueStudentID_doesNotExist_adoptSuccess_WithNotes() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        //Create Record in Grad
+        GraduationStudentRecord graduationStudentRecord = createGraduationStudentRecord(studentID);
+        GraduationStudentRecordEntity graduationStudentRecordEntity = createGraduationStudentRecordEntity(graduationStudentRecord);
+        graduationStatusRepository.save(graduationStudentRecordEntity);
+        //Add notes
+        List<StudentRecordNoteEntity> studentNoteEntityList = createNotesEntityForStudent(studentID);
+        studentNoteRepository.saveAll(studentNoteEntityList);
+        List<StudentNote>  studentNotes = commonService.getAllStudentNotes(studentID);
+        assertThat(studentNotes).isNotEmpty().hasSize(2);
         //Create Record in Grad
         UUID trueStudentID = UUID.randomUUID();
         GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
@@ -160,6 +212,53 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
                 .build();
         Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
         assertTrue(mergeResult);
+    }
+
+    @Test
+    void testHandleEvent_givenEventType_CREATE_MERGE_studentID_doesExist_trueStudentID_doesExist_WithNotes() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        //Create Record in Grad
+        GraduationStudentRecord graduationStudentRecord = createGraduationStudentRecord(studentID);
+        GraduationStudentRecordEntity graduationStudentRecordEntity = createGraduationStudentRecordEntity(graduationStudentRecord);
+        graduationStatusRepository.save(graduationStudentRecordEntity);
+        //Add notes
+        List<StudentRecordNoteEntity> studentNoteEntityList = createNotesEntityForStudent(studentID);
+        studentNoteRepository.saveAll(studentNoteEntityList);
+        List<StudentNote>  studentNotes = commonService.getAllStudentNotes(studentID);
+        assertThat(studentNotes).isNotEmpty().hasSize(2);
+        //Create Record in Grad
+        UUID trueStudentID = UUID.randomUUID();
+        GraduationStudentRecord graduationTrueStudentRecord = createGraduationStudentRecord(trueStudentID);
+        GraduationStudentRecordEntity graduationTrueStudentRecordEntity = createGraduationStudentRecordEntity(graduationTrueStudentRecord);
+        graduationStatusRepository.save(graduationTrueStudentRecordEntity);
+        //Merge Process
+        var mergeStudentPayload = createStudentMergePayload(studentID, trueStudentID);
+        final GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(EventType.CREATE_MERGE.name())
+                .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
+                .build();
+        Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
+        assertTrue(mergeResult);
+    }
+
+    private List<StudentRecordNoteEntity> createNotesEntityForStudent(UUID studentID) {
+        final List<StudentRecordNoteEntity> allNotesList = new ArrayList<>();
+
+        final StudentRecordNoteEntity note1 = new StudentRecordNoteEntity();
+        note1.setId(UUID.randomUUID());
+        note1.setStudentID(studentID);
+        note1.setNote("Test1 Comments");
+        note1.setUpdateDate(LocalDateTime.now());
+        allNotesList.add(note1);
+
+        final StudentRecordNoteEntity note2 = new StudentRecordNoteEntity();
+        note2.setId(UUID.randomUUID());
+        note2.setStudentID(studentID);
+        note2.setNote("Test2 Comments");
+        note2.setUpdateDate(LocalDateTime.now(Clock.offset(Clock.systemDefaultZone(), Duration.ofHours(3))));
+        allNotesList.add(note2);
+        return allNotesList;
     }
 
     private GraduationStudentRecord createGraduationStudentRecord(UUID studentID) {
