@@ -73,10 +73,8 @@ public class PenServicesEventHandlerDelegatorServiceTest extends BaseIntegration
                 break; // break out after trying for 5 seconds.
             }
             val event = this.gradStatusEventRepository.findByEventId(eventID);
-            if (event.isPresent()) {
-                if (EventStatus.PROCESSED.toString().equalsIgnoreCase(event.get().getEventStatus())) {
-                    break;
-                }
+            if (event.isPresent() && EventStatus.PROCESSED.toString().equalsIgnoreCase(event.get().getEventStatus())) {
+                break;
             }
             TimeUnit.MILLISECONDS.sleep(50);
             i++;
