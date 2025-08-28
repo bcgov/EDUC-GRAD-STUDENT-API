@@ -215,7 +215,6 @@ public class GradStudentControllerTest {
         course1.setGraduationStudentRecordEntity(entity);
         var set  = new HashSet<StudentCoursePaginationEntity>();
         set.add(course1);
-        entity.setStudentCoursePaginationEntities(set);
         gradStudentPaginationRepository.save(entity);
 
         final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("graduationStudentRecordEntity.schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
