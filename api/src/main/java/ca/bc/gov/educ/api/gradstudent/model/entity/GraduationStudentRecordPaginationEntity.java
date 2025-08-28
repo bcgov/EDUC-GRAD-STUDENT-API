@@ -30,9 +30,5 @@ public class GraduationStudentRecordPaginationEntity extends BaseEntity {
 
     @Column(name = "SCHOOL_OF_RECORD_ID", nullable = true)
     private UUID schoolOfRecordId;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(mappedBy = "graduationStudentRecordEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = StudentCoursePaginationEntity.class)
-    Set<StudentCoursePaginationEntity> studentCoursePaginationEntities;
+    
 }
