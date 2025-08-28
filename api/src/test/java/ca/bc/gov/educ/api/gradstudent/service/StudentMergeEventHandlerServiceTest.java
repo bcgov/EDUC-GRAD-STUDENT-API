@@ -116,7 +116,7 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
         Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
         assertTrue(mergeResult);
         GraduationStudentRecordEntity gradStudentRecord = graduationStatusRepository.findByStudentID(studentID);
-        assertEquals(gradStudentRecord.getStudentStatus(), "MER");
+        assertEquals("MER", gradStudentRecord.getStudentStatus());
     }
 
     @Test
@@ -155,7 +155,7 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
         Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
         assertTrue(mergeResult);
         GraduationStudentRecordEntity gradStudentRecord = graduationStatusRepository.findByStudentID(studentID);
-        assertEquals(gradStudentRecord.getStudentStatus(), "MER");
+        assertEquals("MER", gradStudentRecord.getStudentStatus());
     }
 
     @Test
