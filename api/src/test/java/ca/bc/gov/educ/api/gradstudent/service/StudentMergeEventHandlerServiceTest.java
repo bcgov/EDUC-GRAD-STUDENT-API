@@ -1,0 +1,197 @@
+package ca.bc.gov.educ.api.gradstudent.service;
+
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
+import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.penservices.v1.StudentMerge;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.service.event.StudentMergeEventHandlerService;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
+import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.mockito.MockitoAnnotations;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
+
+    @Autowired
+    StudentMergeEventHandlerService studentMergeEventHandlerService;
+    @Autowired
+    GradStatusEventRepository gradStatusEventRepository;
+    @Autowired
+    GraduationStudentRecordRepository graduationStatusRepository;
+
+    @MockBean
+    GradStudentService gradStudentService;
+    @MockBean
+    SchoolService schoolService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        gradStatusEventRepository.deleteAll();
+    }
+
+    @Test
+    void testHandleEvent_givenEventType_CREATE_MERGE_studentID_doesNotExist_trueStudentID_doesNotExist() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        UUID trueStudentID = UUID.randomUUID();
+        var mergeStudentPayload = createStudentMergePayload(studentID, trueStudentID);
+        final GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(EventType.CREATE_MERGE.name())
+                .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
+                .build();
+        Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
+        assertTrue(mergeResult);
+    }
+
+
+
+    @Test
+    void testHandleEvent_givenEventType_CREATE_MERGE_studentID_doesExist_trueStudentID_doesNotExist_adoptSuccess() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        //Create Record in Grad
+        GraduationStudentRecord graduationStudentRecord = createGraduationStudentRecord(studentID);
+        GraduationStudentRecordEntity graduationStudentRecordEntity = createGraduationStudentRecordEntity(graduationStudentRecord);
+        graduationStatusRepository.save(graduationStudentRecordEntity);
+        //Create Record in Grad
+        UUID trueStudentID = UUID.randomUUID();
+        GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
+        gradSearchStudent.setStudentID(trueStudentID.toString());
+        Student request = Student.builder().studentID(trueStudentID.toString()).build();
+        School school = School.builder()
+                .schoolId(UUID.randomUUID().toString())
+                .mincode(gradSearchStudent.getMincode())
+                .schoolCategoryCode("PUB")
+                .schoolReportingRequirementCode("STANDARD")
+                .build();
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID()))
+                .thenReturn(gradSearchStudent);
+        when(schoolService.getSchoolByMincode(any())).thenReturn(school);
+        //Merge Process
+        var mergeStudentPayload = createStudentMergePayload(studentID, trueStudentID);
+        final GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(EventType.CREATE_MERGE.name())
+                .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
+                .build();
+        Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
+        assertTrue(mergeResult);
+        GraduationStudentRecordEntity gradStudentRecord = graduationStatusRepository.findByStudentID(studentID);
+        assertEquals(gradStudentRecord.getStudentStatus(), "MER");
+    }
+
+    @Test
+    void testHandleEvent_givenEventType_CREATE_MERGE_studentID_doesExist_trueStudentID_doesNotExist_adoptFailed() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        //Create Record in Grad
+        GraduationStudentRecord graduationStudentRecord = createGraduationStudentRecord(studentID);
+        GraduationStudentRecordEntity graduationStudentRecordEntity = createGraduationStudentRecordEntity(graduationStudentRecord);
+        graduationStatusRepository.save(graduationStudentRecordEntity);
+        //Create Record in Grad
+        UUID trueStudentID = UUID.randomUUID();
+        GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
+        gradSearchStudent.setStudentID(trueStudentID.toString());
+        Student request = Student.builder().studentID(trueStudentID.toString()).build();
+        School school = School.builder()
+                .schoolId(UUID.randomUUID().toString())
+                .mincode(gradSearchStudent.getMincode())
+                .schoolCategoryCode("PUB")
+                .schoolReportingRequirementCode("STANDARD")
+                .build();
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID()))
+                .thenReturn(null);
+        when(schoolService.getSchoolByMincode(any())).thenReturn(school);
+        //Merge Process
+        var mergeStudentPayload = createStudentMergePayload(studentID, trueStudentID);
+        final GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(EventType.CREATE_MERGE.name())
+                .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
+                .build();
+        assertThrows(RuntimeException.class, () -> {
+            studentMergeEventHandlerService.processMergeEvent(event);
+        });
+    }
+
+    @Test
+    void testHandleEvent_givenEventType_CREATE_MERGE_studentID_doesExist_trueStudentID_doesExist() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        //Create Record in Grad
+        GraduationStudentRecord graduationStudentRecord = createGraduationStudentRecord(studentID);
+        GraduationStudentRecordEntity graduationStudentRecordEntity = createGraduationStudentRecordEntity(graduationStudentRecord);
+        graduationStatusRepository.save(graduationStudentRecordEntity);
+        //Create Record in Grad
+        UUID trueStudentID = UUID.randomUUID();
+        GraduationStudentRecord graduationTrueStudentRecord = createGraduationStudentRecord(trueStudentID);
+        GraduationStudentRecordEntity graduationTrueStudentRecordEntity = createGraduationStudentRecordEntity(graduationTrueStudentRecord);
+        graduationStatusRepository.save(graduationTrueStudentRecordEntity);
+        //Merge Process
+        var mergeStudentPayload = createStudentMergePayload(studentID, trueStudentID);
+        final GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(EventType.CREATE_MERGE.name())
+                .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
+                .build();
+        Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
+        assertTrue(mergeResult);
+    }
+
+    private GraduationStudentRecord createGraduationStudentRecord(UUID studentID) {
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setPen("123456789");
+        graduationStatus.setStudentStatus("A");
+        graduationStatus.setRecalculateGradStatus("Y");
+        graduationStatus.setProgram("2018-EN");
+        graduationStatus.setSchoolOfRecordId(null);
+        graduationStatus.setSchoolAtGradId(null);
+        graduationStatus.setGpa("4");
+        graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
+        return graduationStatus;
+    }
+
+    private GraduationStudentRecordEntity createGraduationStudentRecordEntity(GraduationStudentRecord graduationStatus) {
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        BeanUtils.copyProperties(graduationStatus, graduationStatusEntity);
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+        return graduationStatusEntity;
+    }
+
+    private List<StudentMerge> createStudentMergePayload(UUID studentID, UUID trueStudentID) {
+        final List<StudentMerge> studentMerges = new ArrayList<>();
+        final StudentMerge merge = new StudentMerge();
+        merge.setStudentID(studentID.toString());
+        merge.setMergeStudentID(trueStudentID.toString());
+        merge.setStudentMergeDirectionCode("TO");
+        merge.setStudentMergeSourceCode("MI");
+        studentMerges.add(merge);
+        return studentMerges;
+    }
+
+}

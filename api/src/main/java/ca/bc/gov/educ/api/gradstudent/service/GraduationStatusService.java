@@ -1503,7 +1503,9 @@ public class GraduationStatusService extends GradBaseService {
             throw new EntityAlreadyExistsException("Graduation student record already exists for student ID: " + studentID);
         }
         GradSearchStudent student = gradStudentService.getStudentByStudentIDFromStudentAPI(String.valueOf(studentID));
-
+        if(student == null) {
+            throw new EntityNotFoundException("Unable to fetch student details for student ID: " + studentID);
+        }
         GraduationStudentRecordEntity newRecord = buildNewGraduationStudentRecord(student);
         if(StringUtils.isNotBlank(updateUser)) {
             newRecord.setUpdateUser(updateUser);

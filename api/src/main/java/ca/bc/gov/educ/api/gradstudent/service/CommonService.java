@@ -135,6 +135,20 @@ public class CommonService {
 		return studentNoteTransformer.transformToDTO(studentNoteRepository.save(toBeSaved));
 	}
 
+	public List<StudentNote> saveStudentNotes(List<StudentNote> studentNotes) {
+		List<StudentRecordNoteEntity> recordNoteEntities = studentNotes.stream()
+				.map(studentNote -> {
+					StudentRecordNoteEntity entity = studentNoteTransformer.transformToEntity(studentNote);
+					entity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
+					return entity;
+				})
+				.toList();
+		List<StudentNote> responseList = studentNoteTransformer.transformToDTO(studentNoteRepository.saveAll(recordNoteEntities));
+
+		responseList.sort(Comparator.comparing(StudentNote::getUpdateDate).reversed());
+		return responseList;
+	}
+
 	public int deleteNote(UUID noteID) {
 		Optional<StudentRecordNoteEntity> existingEnity = studentNoteRepository.findById(noteID);
 		if(existingEnity.isPresent()) {
