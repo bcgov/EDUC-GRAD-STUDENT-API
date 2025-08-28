@@ -242,6 +242,33 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
         assertTrue(mergeResult);
     }
 
+    @Test
+    void testHandleEvent_givenEventType_INVALID_MERGE_DIRECTION() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        UUID trueStudentID = UUID.randomUUID();
+        var mergeStudentPayload = createInvalidStudentMergePayload(studentID, trueStudentID);
+        final GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(EventType.CREATE_MERGE.name())
+                .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
+                .build();
+        Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
+        assertTrue(mergeResult);
+    }
+
+    @Test
+    void testHandleEvent_givenEventType_DEMERGE() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        UUID trueStudentID = UUID.randomUUID();
+        var deMergeStudentPayload = createInvalidStudentMergePayload(studentID, trueStudentID);
+        final GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(EventType.DELETE_MERGE.name())
+                .eventPayload(JsonUtil.getJsonStringFromObject(deMergeStudentPayload))
+                .build();
+        assertDoesNotThrow(() -> studentMergeEventHandlerService.processDeMergeEvent(event));
+    }
+
     private List<StudentRecordNoteEntity> createNotesEntityForStudent(UUID studentID) {
         final List<StudentRecordNoteEntity> allNotesList = new ArrayList<>();
 
@@ -288,6 +315,17 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
         merge.setStudentID(studentID.toString());
         merge.setMergeStudentID(trueStudentID.toString());
         merge.setStudentMergeDirectionCode("TO");
+        merge.setStudentMergeSourceCode("MI");
+        studentMerges.add(merge);
+        return studentMerges;
+    }
+
+    private List<StudentMerge> createInvalidStudentMergePayload(UUID studentID, UUID trueStudentID) {
+        final List<StudentMerge> studentMerges = new ArrayList<>();
+        final StudentMerge merge = new StudentMerge();
+        merge.setStudentID(studentID.toString());
+        merge.setMergeStudentID(trueStudentID.toString());
+        merge.setStudentMergeDirectionCode("XYZ");
         merge.setStudentMergeSourceCode("MI");
         studentMerges.add(merge);
         return studentMerges;
