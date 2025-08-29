@@ -136,10 +136,14 @@ public class CommonService {
 	}
 
 	public List<StudentNote> saveStudentNotes(List<StudentNote> studentNotes) {
+        String userName = ThreadLocalStateUtil.getCurrentUser();
 		List<StudentRecordNoteEntity> recordNoteEntities = studentNotes.stream()
 				.map(studentNote -> {
 					StudentRecordNoteEntity entity = studentNoteTransformer.transformToEntity(studentNote);
-					entity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
+                    entity.setCreateDate(LocalDateTime.now());
+                    entity.setCreateUser(userName);
+					entity.setUpdateUser(userName);
+                    entity.setUpdateDate(LocalDateTime.now());
 					return entity;
 				})
 				.toList();
