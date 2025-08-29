@@ -53,8 +53,8 @@ public class JetStreamEventScheduler {
     log.debug("PUBLISH_GRAD_STATUS_EVENTS_TO_JET_STREAM: started - cron {}, lockAtMostFor {}", constants.getGradToTraxCronRun(), constants.getGradToTraxLockAtMostFor());
     LockAssert.assertLocked();
     log.info("Fired jet stream choreography scheduler");
-    var gradSchoolEventTypes = Arrays.asList(EventType.ASSESSMENT_STUDENT_UPDATE.toString());
-    var results = gradStatusEventRepository.findByEventStatusAndEventTypeNotIn(DB_COMMITTED.toString(), gradSchoolEventTypes);
+    var gradSchoolEventTypes = Arrays.asList(EventType.UPDATE_SCHOOL_OF_RECORD.toString(), EventType.GRAD_STUDENT_GRADUATED.toString(), EventType.GRAD_STUDENT_UPDATED.toString(), EventType.GRAD_STUDENT_UNDO_COMPLETION.toString());
+    var results = gradStatusEventRepository.findByEventStatusAndEventTypeIn(DB_COMMITTED.toString(), gradSchoolEventTypes);
     if (!results.isEmpty()) {
       results.forEach(el -> {
         if (el.getUpdateDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
@@ -69,7 +69,7 @@ public class JetStreamEventScheduler {
 
     final var resultsForIncoming = this.gradStatusEventRepository.findAllByEventStatusAndCreateDateBeforeAndEventTypeNotInOrderByCreateDate(DB_COMMITTED.toString(), LocalDateTime.now().minusMinutes(1), 500, gradSchoolEventTypes);
     if (!resultsForIncoming.isEmpty()) {
-      log.info("Found {} grad school choreographed events which needs to be processed.", resultsForIncoming.size());
+      log.info("Found {} choreographed events which needs to be processed.", resultsForIncoming.size());
       resultsForIncoming.forEach(this.eventHandlerService::handleAssessmentUpdatedDataEvent);
     }
   }

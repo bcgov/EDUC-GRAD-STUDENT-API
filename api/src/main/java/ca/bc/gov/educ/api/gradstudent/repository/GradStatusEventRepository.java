@@ -32,7 +32,7 @@ public interface GradStatusEventRepository extends JpaRepository<GradStatusEvent
    */
   Optional<GradStatusEvent> findBySagaIdAndEventType(UUID sagaId, String eventType);
 
-  List<GradStatusEvent> findByEventStatusAndEventTypeNotIn(String eventStatus, List<String> eventTypes);
+  List<GradStatusEvent> findByEventStatusAndEventTypeIn(String eventStatus, List<String> eventTypes);
   /**
    * Find by event status list.
    *
