@@ -1,14 +1,18 @@
 package ca.bc.gov.educ.api.gradstudent.scheduler;
 
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
+import ca.bc.gov.educ.api.gradstudent.service.event.EventHandlerService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockAssert;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
@@ -22,7 +26,7 @@ public class JetStreamEventScheduler {
 
   private final GradStatusEventRepository gradStatusEventRepository;
   private final Publisher publisher;
-
+  private final EventHandlerService eventHandlerService;
   private final EducGradStudentApiConstants constants;
 
   /**
@@ -32,10 +36,11 @@ public class JetStreamEventScheduler {
    * @param publisher                 the publisher
    */
   public JetStreamEventScheduler(final GradStatusEventRepository gradStatusEventRepository,
-                                 final Publisher publisher,
+                                 final Publisher publisher, EventHandlerService eventHandlerService,
                                  final EducGradStudentApiConstants constants) {
     this.gradStatusEventRepository = gradStatusEventRepository;
     this.publisher = publisher;
+    this.eventHandlerService = eventHandlerService;
     this.constants = constants;
   }
 
@@ -47,21 +52,25 @@ public class JetStreamEventScheduler {
   public void findAndPublishGradStatusEventsToJetStream() {
     log.debug("PUBLISH_GRAD_STATUS_EVENTS_TO_JET_STREAM: started - cron {}, lockAtMostFor {}", constants.getGradToTraxCronRun(), constants.getGradToTraxLockAtMostFor());
     LockAssert.assertLocked();
-    var results = gradStatusEventRepository.findByEventStatusOrderByCreateDate(DB_COMMITTED.toString());
+    log.info("Fired jet stream choreography scheduler");
+    var gradSchoolEventTypes = Arrays.asList(EventType.ASSESSMENT_STUDENT_UPDATE.toString());
+    var results = gradStatusEventRepository.findByEventStatusAndEventTypeNotIn(DB_COMMITTED.toString(), gradSchoolEventTypes);
     if (!results.isEmpty()) {
-      int cnt = 0;
-      for (GradStatusEvent el : results) {
-        if (cnt++ >= constants.getGradToTraxProcessingThreshold()) {
-          log.info(" ==> Reached the processing threshold of {}", constants.getGradToTraxProcessingThreshold());
-          break;
+      results.forEach(el -> {
+        if (el.getUpdateDate().isBefore(LocalDateTime.now().minusMinutes(5))) {
+          try {
+            publisher.dispatchChoreographyEvent(el);
+          } catch (final Exception ex) {
+            log.error("Exception while trying to publish message", ex);
+          }
         }
-        try {
-          publisher.dispatchChoreographyEvent(el);
-        } catch (final Exception ex) {
-          log.error("Exception while trying to publish message", ex);
-        }
-      }
-      log.debug("PUBLISH_GRAD_STATUS_EVENTS_TO_JET_STREAM: processing is completed");
+      });
+    }
+
+    final var resultsForIncoming = this.gradStatusEventRepository.findAllByEventStatusAndCreateDateBeforeAndEventTypeNotInOrderByCreateDate(DB_COMMITTED.toString(), LocalDateTime.now().minusMinutes(1), 500, gradSchoolEventTypes);
+    if (!resultsForIncoming.isEmpty()) {
+      log.info("Found {} grad school choreographed events which needs to be processed.", resultsForIncoming.size());
+      resultsForIncoming.forEach(this.eventHandlerService::handleAssessmentUpdatedDataEvent);
     }
   }
 }

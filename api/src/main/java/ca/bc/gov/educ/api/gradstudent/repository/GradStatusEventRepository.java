@@ -32,6 +32,7 @@ public interface GradStatusEventRepository extends JpaRepository<GradStatusEvent
    */
   Optional<GradStatusEvent> findBySagaIdAndEventType(UUID sagaId, String eventType);
 
+  List<GradStatusEvent> findByEventStatusAndEventTypeNotIn(String eventStatus, List<String> eventTypes);
   /**
    * Find by event status list.
    *
@@ -46,4 +47,11 @@ public interface GradStatusEventRepository extends JpaRepository<GradStatusEvent
   void deleteByCreateDateBefore(LocalDateTime createDate);
 
   Optional<GradStatusEvent> findByEventId(UUID eventId);
+
+  @Query(value = "select event.* from STATUS_EVENT event where event.EVENT_STATUS = :eventStatus " +
+          "AND event.CREATE_DATE < :createDate " +
+          "AND event.EVENT_TYPE not in :eventTypes " +
+          "ORDER BY event.CREATE_DATE asc " +
+          "FETCH FIRST :limit ROWS ONLY", nativeQuery=true)
+  List<GradStatusEvent> findAllByEventStatusAndCreateDateBeforeAndEventTypeNotInOrderByCreateDate(String eventStatus, LocalDateTime createDate, int limit, List<String> eventTypes);
 }
