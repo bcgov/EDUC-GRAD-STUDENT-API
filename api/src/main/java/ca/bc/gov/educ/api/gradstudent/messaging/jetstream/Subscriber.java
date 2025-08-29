@@ -1,9 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
+import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
 import ca.bc.gov.educ.api.gradstudent.service.JetStreamEventHandlerService;
 import ca.bc.gov.educ.api.gradstudent.service.event.EventHandlerDelegatorService;
+import ca.bc.gov.educ.api.gradstudent.service.event.PenServicesEventHandlerDelegatorService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import ca.bc.gov.educ.api.gradstudent.util.LogHelper;
@@ -44,6 +46,7 @@ public class Subscriber {
   private final EducGradStudentApiConstants constants;
   private final Map<String, List<String>> streamTopicsMap = new HashMap<>();
   private final EventHandlerDelegatorService eventHandlerDelegatorServiceV1;
+  private final PenServicesEventHandlerDelegatorService penServicesEventHandlerDelegatorService;
   private final Executor subscriberExecutor = new EnhancedQueueExecutor.Builder()
           .setThreadFactory(new ThreadFactoryBuilder().setNameFormat("jet-stream-subscriber-%d").build())
           .setCorePoolSize(2).setMaximumPoolSize(2).setKeepAliveTime(Duration.ofMillis(1000)).build();
@@ -55,11 +58,13 @@ public class Subscriber {
    * @param jetStreamEventHandlerService the stan event handler service
    */
   @Autowired
-  public Subscriber(final Connection natsConnection, final JetStreamEventHandlerService jetStreamEventHandlerService, final EducGradStudentApiConstants constants, EventHandlerDelegatorService eventHandlerDelegatorServiceV1) {
+  public Subscriber(final Connection natsConnection, final JetStreamEventHandlerService jetStreamEventHandlerService, final EducGradStudentApiConstants constants, EventHandlerDelegatorService eventHandlerDelegatorServiceV1,
+                    PenServicesEventHandlerDelegatorService penServicesEventHandlerDelegatorService) {
     this.jetStreamEventHandlerService = jetStreamEventHandlerService;
     this.natsConnection = natsConnection;
     this.constants = constants;
     this.eventHandlerDelegatorServiceV1 = eventHandlerDelegatorServiceV1;
+    this.penServicesEventHandlerDelegatorService = penServicesEventHandlerDelegatorService;
     this.initializeStreamTopicMap();
   }
 
@@ -67,9 +72,12 @@ public class Subscriber {
     final List<String> gradEventsTopics = new ArrayList<>();
     gradEventsTopics.add(GRAD_STATUS_EVENT_TOPIC.toString());
     final List<String> instituteEventsTopics = new ArrayList<>();
-    instituteEventsTopics.add("STUDENT_ASSESSMENT_EVENTS_TOPIC");
+    instituteEventsTopics.add(Topics.STUDENT_ASSESSMENT_EVENTS_TOPIC.name());
+    final List<String> penServicesEventsTopics = new ArrayList<>();
+    penServicesEventsTopics.add(Topics.PEN_SERVICES_EVENTS_TOPIC.name());
     this.streamTopicsMap.put(EducGradStudentApiConstants.STREAM_NAME, gradEventsTopics);
     this.streamTopicsMap.put("ASSESSMENT_EVENTS", instituteEventsTopics);
+    this.streamTopicsMap.put("PEN_SERVICES_EVENTS", penServicesEventsTopics);
   }
 
 
@@ -111,7 +119,9 @@ public class Subscriber {
         try {
           if(event.getEventType().equals(EventType.ASSESSMENT_STUDENT_UPDATE)) {
             this.eventHandlerDelegatorServiceV1.handleChoreographyEvent(event, message);
-          }else{
+          } else if (event.getEventType().equals(EventType.CREATE_MERGE) || event.getEventType().equals(EventType.DELETE_MERGE)) {
+            this.penServicesEventHandlerDelegatorService.handleChoreographyEvent(event, message);
+          } else{
             jetStreamEventHandlerService.updateEventStatus(event);
             log.info("Received event :: {} ", event);
             message.ack();
