@@ -5,9 +5,11 @@ import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Course;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.algorithm.v1.StudentCourseAlgorithmData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseAllowableCreditRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCharacteristicsRecord;
@@ -28,8 +30,12 @@ import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.event.EventHandlerService;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
@@ -78,6 +84,10 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     GradStudentService gradStudentService;
     @MockBean
     SchoolService schoolService;
+    @MockBean
+    CourseService courseService;
+    
+    private final ObjectMapper objectMapper = new ObjectMapper();
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -476,6 +486,254 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
     }
 
+    @Nested
+    @DisplayName("handleGetStudentCoursesEvent Tests")
+    class HandleGetStudentCoursesEventTests {
+        
+        @Nested
+        @DisplayName("Happy Path Scenarios")
+        class HappyPathScenarios {
+            
+            @Test
+            @DisplayName("Should return enhanced courses when student has courses")
+            void testHandleGetStudentCoursesEvent_WhenStudentHasCourses_ShouldReturnEnhancedCourses() throws IOException {
+                // Arrange
+                UUID studentID = graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.randomUUID(), UUID.randomUUID())).getStudentID();
+                
+                // Create mock student courses
+                var studentCourse1 = createStudentCourseEntity(studentID, "101", "202401");
+                var studentCourse2 = createStudentCourseEntity(studentID, "102", "202402");
+                studentCourseRepository.save(studentCourse1);
+                studentCourseRepository.save(studentCourse2);
+                
+                // Mock course service to return course details
+                List<Course> mockCourses = Arrays.asList(
+                    Course.builder()
+                        .courseID("101")
+                        .courseCode("MATH")
+                        .courseName("Mathematics 12")
+                        .numCredits(4)
+                        .courseLevel("12")
+                        .genericCourseType("G")
+                        .language("EN")
+                        .build(),
+                    Course.builder()
+                        .courseID("102")
+                        .courseCode("ENG")
+                        .courseName("English 12")
+                        .numCredits(4)
+                        .courseLevel("12")
+                        .genericCourseType("G")
+                        .language("EN")
+                        .build()
+                );
+                when(courseService.getCourses(any())).thenReturn(mockCourses);
+                
+                Event event = Event.builder()
+                    .eventPayload(studentID.toString())
+                    .build();
+                
+                // Act
+                byte[] result = eventHandlerService.handleGetStudentCoursesEvent(event);
+                
+                // Assert
+                assertThat(result).isNotEmpty();
+                List<StudentCourseAlgorithmData> enhancedCourses = objectMapper.readValue(result, new TypeReference<>() {
+                });
+                assertThat(enhancedCourses.size()).isEqualTo(2);
+                
+                // Verify first course
+                StudentCourseAlgorithmData firstCourse = enhancedCourses.get(0);
+                assertThat(firstCourse.getCourseCode()).isEqualTo("MATH");
+                assertThat(firstCourse.getCourseName()).isEqualTo("Mathematics 12");
+                assertThat(firstCourse.getOriginalCredits()).isEqualTo(4);
+                assertThat(firstCourse.getCourseLevel()).isEqualTo("12");
+                assertThat(firstCourse.getGenericCourseType()).isEqualTo("G");
+                assertThat(firstCourse.getLanguage()).isEqualTo("EN");
+            }
+
+            @Test
+            @DisplayName("Should return empty array when student has no courses")
+            void testHandleGetStudentCoursesEvent_WhenStudentHasNoCourses_ShouldReturnEmptyArray() {
+                // Arrange
+                UUID studentID = UUID.randomUUID();
+                Event event = Event.builder()
+                    .eventPayload(studentID.toString())
+                    .build();
+                
+                // Act
+                byte[] result = eventHandlerService.handleGetStudentCoursesEvent(event);
+                
+                // Assert
+                assertThat(result).isEmpty();
+            }
+
+            @Test
+            @DisplayName("Should enhance courses with related course information")
+            void testHandleGetStudentCoursesEvent_WhenStudentHasCoursesWithRelatedCourses_ShouldEnhanceBothCourses() throws IOException {
+                // Arrange
+                UUID studentID = graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.randomUUID(), UUID.randomUUID())).getStudentID();
+                
+                // Create mock student course with related course
+                var studentCourse = createStudentCourseEntity(studentID, "101", "202401");
+                studentCourse.setRelatedCourseId(new BigInteger("102"));
+                studentCourseRepository.save(studentCourse);
+                
+                // Mock course service to return course details including related course
+                List<Course> mockCourses = Arrays.asList(
+                    Course.builder()
+                        .courseID("101")
+                        .courseCode("MATH")
+                        .courseName("Mathematics 12")
+                        .numCredits(4)
+                        .courseLevel("12")
+                        .genericCourseType("G")
+                        .language("EN")
+                        .build(),
+                    Course.builder()
+                        .courseID("102")
+                        .courseCode("MATH-AP")
+                        .courseName("Mathematics 12 Advanced Placement")
+                        .numCredits(4)
+                        .courseLevel("12")
+                        .genericCourseType("G")
+                        .language("EN")
+                        .build()
+                );
+                when(courseService.getCourses(any())).thenReturn(mockCourses);
+                
+                Event event = Event.builder()
+                    .eventPayload(studentID.toString())
+                    .build();
+                
+                // Act
+                byte[] result = eventHandlerService.handleGetStudentCoursesEvent(event);
+                
+                // Assert
+                assertThat(result).isNotEmpty();
+                List<StudentCourseAlgorithmData> enhancedCourses = objectMapper.readValue(result, new TypeReference<>() {
+                });
+                assertThat(enhancedCourses.size()).isEqualTo(1);
+                
+                StudentCourseAlgorithmData enhancedCourse = enhancedCourses.get(0);
+                assertThat(enhancedCourse.getCourseCode()).isEqualTo("MATH");
+                assertThat(enhancedCourse.getRelatedCourse()).isEqualTo("MATH-AP");
+                assertThat(enhancedCourse.getRelatedCourseName()).isEqualTo("Mathematics 12 Advanced Placement");
+            }
+        }
+        
+        @Nested
+        @DisplayName("Error Handling Scenarios")
+        class ErrorHandlingScenarios {
+            
+            @Test
+            @DisplayName("Should return empty array when course service throws exception")
+            void testHandleGetStudentCoursesEvent_WhenCourseServiceThrowsException_ShouldReturnEmptyArray() {
+                // Arrange
+                UUID studentID = graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.randomUUID(), UUID.randomUUID())).getStudentID();
+                
+                // Create mock student course
+                var studentCourse = createStudentCourseEntity(studentID, "101", "202401");
+                studentCourseRepository.save(studentCourse);
+                
+                // Mock course service to throw exception
+                when(courseService.getCourses(any())).thenThrow(new RuntimeException("Course service error"));
+                
+                Event event = Event.builder()
+                    .eventPayload(studentID.toString())
+                    .build();
+                
+                // Act
+                byte[] result = eventHandlerService.handleGetStudentCoursesEvent(event);
+                
+                // Assert
+                assertThat(result).isEmpty();
+            }
+
+            @Test
+            @DisplayName("Should return empty array when course service returns empty list")
+            void testHandleGetStudentCoursesEvent_WhenCourseServiceReturnsEmptyList_ShouldReturnEmptyArray() {
+                // Arrange
+                UUID studentID = graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.randomUUID(), UUID.randomUUID())).getStudentID();
+                
+                // Create mock student course
+                var studentCourse = createStudentCourseEntity(studentID, "101", "202401");
+                studentCourseRepository.save(studentCourse);
+                
+                // Mock course service to return empty list
+                when(courseService.getCourses(any())).thenReturn(Collections.emptyList());
+                
+                Event event = Event.builder()
+                    .eventPayload(studentID.toString())
+                    .build();
+                
+                // Act
+                byte[] result = eventHandlerService.handleGetStudentCoursesEvent(event);
+                
+                // Assert
+                assertThat(result).isEmpty();
+            }
+
+            @Test
+            @DisplayName("Should return empty array when course service returns missing courses")
+            void testHandleGetStudentCoursesEvent_WhenCourseServiceReturnsMissingCourses_ShouldReturnEmptyArray() {
+                // Arrange
+                UUID studentID = graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.randomUUID(), UUID.randomUUID())).getStudentID();
+                
+                // Create mock student course
+                var studentCourse = createStudentCourseEntity(studentID, "102", "202401");
+                studentCourseRepository.save(studentCourse);
+                
+                // Mock course service to return only one course when two are requested
+                List<Course> mockCourses = Collections.singletonList(
+                    Course.builder()
+                        .courseID("101")
+                        .courseCode("MATH")
+                        .courseName("Mathematics 12")
+                        .numCredits(4)
+                        .courseLevel("12")
+                        .genericCourseType("G")
+                        .language("EN")
+                        .build()
+                );
+                when(courseService.getCourses(any())).thenReturn(mockCourses);
+                
+                Event event = Event.builder()
+                    .eventPayload(studentID.toString())
+                    .build();
+                
+                // Act
+                byte[] result = eventHandlerService.handleGetStudentCoursesEvent(event);
+                
+                // Assert
+                assertThat(result).isEmpty();
+            }
+
+            @Test
+            @DisplayName("Should return empty array when enhancement process throws exception")
+            void testHandleGetStudentCoursesEvent_WhenEnhancementProcessThrowsException_ShouldReturnEmptyArray() {
+                // Arrange
+                UUID studentID = graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.randomUUID(), UUID.randomUUID())).getStudentID();
+                
+                // Create mock student course with invalid course code that will cause enhancement to fail
+                var studentCourse = createStudentCourseEntity(studentID, "101", "202401");
+                studentCourseRepository.save(studentCourse);
+                
+                // Mock course service to throw exception during enhancement
+                when(courseService.getCourses(any())).thenThrow(new RuntimeException("Course service error"));
+                
+                Event event = Event.builder()
+                    .eventPayload(studentID.toString())
+                    .build();
+                
+                // Act
+                byte[] result = eventHandlerService.handleGetStudentCoursesEvent(event);
+                
+                // Assert
+                assertThat(result).isEmpty();
+            }
+        }
+    }
 
     private StudentCourseEntity createStudentCourseEntity(UUID studentID, String courseId, String courseSession) {
         StudentCourseEntity studentCourseEntity = new StudentCourseEntity();

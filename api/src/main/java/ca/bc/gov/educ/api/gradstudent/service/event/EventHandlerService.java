@@ -4,12 +4,17 @@ import ca.bc.gov.educ.api.gradstudent.constant.EventStatus;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Course;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.algorithm.v1.StudentCourseAlgorithmData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.assessment.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseAlgorithmDataMapper;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
+import ca.bc.gov.educ.api.gradstudent.service.CourseService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -25,7 +30,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.MESSAGE_PUBLISHED;
 import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.SCHOOL_OF_RECORD_UPDATED;
@@ -48,8 +55,11 @@ public class EventHandlerService {
      * The constant EVENT_PAYLOAD.
      */
 
+    private static final StudentCourseAlgorithmDataMapper STUDENT_COURSE_ALGORITHM_DATA_MAPPER = StudentCourseAlgorithmDataMapper.mapper;
     private final GraduationStudentRecordService graduationStudentRecordService;
+    private final CourseService courseService;
     private final GradStatusEventRepository gradStatusEventRepository;
+    private final StudentCourseRepository studentCourseRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -124,6 +134,85 @@ public class EventHandlerService {
                 }
             }
         }
+    }
+
+    public byte[] handleGetStudentCoursesEvent(Event event) {
+        val studentCourseEntityList = studentCourseRepository.findByStudentID(UUID.fromString(event.getEventPayload()));
+        log.info("Found :: {} assessment student records for student ID :: {}", studentCourseEntityList.size(), UUID.fromString(event.getEventPayload()));
+        if (!studentCourseEntityList.isEmpty()) {
+            try {
+                var studentCourses = studentCourseEntityList.stream().map(STUDENT_COURSE_ALGORITHM_DATA_MAPPER::toStructure).collect(Collectors.toList());
+
+                List<StudentCourseAlgorithmData> enhancedStudentCourses = enhanceStudentCoursesWithCourseDetails(studentCourses);
+                return JsonUtil.getJsonBytesFromObject(enhancedStudentCourses);
+            } catch (Exception e) {
+                log.error("Error enhancing student courses with course details: {}", e.getMessage(), e);
+                return new byte[0];
+            }
+        } else {
+            return new byte[0];
+        }
+    }
+
+    private List<StudentCourseAlgorithmData> enhanceStudentCoursesWithCourseDetails(List<StudentCourseAlgorithmData> studentCourses) {
+        List<String> courseIDs = studentCourses.stream()
+            .flatMap(studentCourse -> Stream.of(
+                studentCourse.getCourseCode(),
+                studentCourse.getRelatedCourse()
+            ))
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+
+        if (courseIDs.isEmpty()) {
+            log.error("No valid course IDs found in student courses");
+            throw new RuntimeException("No valid course IDs found in student courses");
+        }
+
+        // Get course details from CourseService
+        List<Course> courseDetails = courseService.getCourses(courseIDs);
+
+        if (courseDetails.isEmpty()) {
+            log.error("No course details found for course IDs: {}", courseIDs);
+            throw new RuntimeException("No course details found for course IDs: " + courseIDs);
+        }
+
+        // Create a map for quick lookup
+        Map<String, Course> courseMap = courseDetails.stream()
+            .collect(Collectors.toMap(Course::getCourseID, course -> course));
+
+        // Check if all course IDs were found
+        List<String> missingCourseIDs = courseIDs.stream()
+            .filter(courseID -> !courseMap.containsKey(courseID))
+            .collect(Collectors.toList());
+
+        if (!missingCourseIDs.isEmpty()) {
+            log.error("Missing course details for course IDs: {}", missingCourseIDs);
+            throw new RuntimeException("Missing course details for course IDs: " + missingCourseIDs);
+        }
+
+        // Enhance each student course with course details
+        return studentCourses.stream()
+            .peek(studentCourse -> {
+                if(studentCourse.getRelatedCourse() != null) {
+                    Course courseDetail = courseMap.get(studentCourse.getRelatedCourse());
+                    studentCourse.setRelatedCourse(courseDetail.getCourseCode());
+                    studentCourse.setRelatedCourseName(courseDetail.getCourseName());
+                }
+                if (studentCourse.getCourseCode() != null) {
+                    Course courseDetail = courseMap.get(studentCourse.getCourseCode());
+                    studentCourse.setCourseCode(courseDetail.getCourseCode());
+                    studentCourse.setCourseName(courseDetail.getCourseName());
+                    studentCourse.setOriginalCredits(courseDetail.getNumCredits());
+                    studentCourse.setCourseLevel(courseDetail.getCourseLevel());
+                    studentCourse.setGenericCourseType(courseDetail.getGenericCourseType());
+                    studentCourse.setCourseName(courseDetail.getCourseName());
+                    studentCourse.setLanguage(courseDetail.getLanguage());
+                } else {
+                    throw new RuntimeException("Student course missing course information");
+                }
+            })
+            .collect(Collectors.toList());
     }
 
     private GradStatusEvent createEventRecord(Event event) {
