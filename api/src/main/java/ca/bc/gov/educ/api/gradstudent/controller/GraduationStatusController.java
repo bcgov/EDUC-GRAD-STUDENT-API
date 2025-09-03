@@ -439,4 +439,15 @@ public class GraduationStatusController {
     public GraduationStudentRecord adoptStudent(@PathVariable String studentID) {
         return gradStatusService.adoptStudent(UUID.fromString(studentID), null);
     }
+
+
+    @PutMapping (EducGradStudentApiConstants.GRAD_STUDENT_RECALCULATE_STATUS)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
+    @Operation(summary = "Update Student Grad Status Flag for Student ID", description = "Update Student Grad Status Flag for Student ID", tags = { "Student Graduation Status" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<String> updateStudentGradFlagByStudentID(@PathVariable UUID studentID) {
+        logger.debug("Update Student Grad Status Flag for Student ID - {}", studentID);
+        gradStatusService.updateBatchFlagsForStudentByStatus(studentID);
+        return response.GET("SUCCESS");
+    }
 }

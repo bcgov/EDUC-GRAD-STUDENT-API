@@ -51,6 +51,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_NON_GRAD_REASON_BY_PEN = "/pen/{pen}/nongrad-reason";
     public static final String GET_ALL_STUDENT_GRADE_CODES = "/grade-codes";
     public static final String GRAD_STUDENT_ADOPT = "/adopt/{studentID}";
+    public static final String GRAD_STUDENT_RECALCULATE_STATUS = "/recalculate/grad-status/{studentID}";
 
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN = "/optionalprogram/studentid/{studentID}";
     public static final String GRAD_STUDENT_OPTIONAL_PROGRAM_BY_PEN_PROGRAM_OPTIONAL_PROGRAM = "/optionalprogram/{studentID}/{optionalProgramID}";

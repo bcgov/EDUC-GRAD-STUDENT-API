@@ -1276,8 +1276,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         Mockito.verify(historyService).createStudentCourseHistory(
             anyList(), eq(StudentCourseActivityType.USERCOURSEDEL));
 
-        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentCourses(targetId);
-        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentCourses(sourceId);
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentByStatus(targetId);
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentByStatus(sourceId);
     }
 
     @Test
