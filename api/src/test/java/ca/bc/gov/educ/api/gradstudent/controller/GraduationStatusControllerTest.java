@@ -695,4 +695,27 @@ public class GraduationStatusControllerTest {
         graduationStatusController.getStudentNonGradReasonByPen(pen);
         Mockito.verify(graduationStatusService).getNonGradReason(pen);
     }
+
+    @Test
+    public void testUpdateupdateStudentFlagByStudentID() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+        String batchJobType = "REGALG";
+        String mincode = "123456789";
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus("CUR");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+
+        Mockito.doNothing().when(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+        graduationStatusController.updateStudentGradFlagByStudentID(studentID);
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+    }
 }
