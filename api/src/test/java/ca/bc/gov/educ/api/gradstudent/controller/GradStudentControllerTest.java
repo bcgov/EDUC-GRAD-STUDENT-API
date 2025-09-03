@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentPaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,6 +57,9 @@ public class GradStudentControllerTest {
 
     @Autowired
     GradStudentPaginationRepository gradStudentPaginationRepository;
+
+    @Autowired
+    StudentCoursePaginationRepository studentcoursePaginationRepository;
 
     @Test
     public void testFake() {
@@ -216,6 +220,7 @@ public class GradStudentControllerTest {
         var set  = new HashSet<StudentCoursePaginationEntity>();
         set.add(course1);
         gradStudentPaginationRepository.save(entity);
+        studentcoursePaginationRepository.save(course1);
 
         final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("graduationStudentRecordEntity.schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
 
