@@ -700,8 +700,6 @@ public class GraduationStatusControllerTest {
     public void testUpdateupdateStudentFlagByStudentID() {
         UUID studentID = UUID.randomUUID();
         UUID schoolId = UUID.randomUUID();
-        String batchJobType = "REGALG";
-        String mincode = "123456789";
 
         StudentList stList = new StudentList();
         stList.setStudentids(Arrays.asList(studentID));
