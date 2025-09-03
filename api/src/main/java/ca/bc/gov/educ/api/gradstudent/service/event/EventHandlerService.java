@@ -1,6 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.service.event;
 
 import ca.bc.gov.educ.api.gradstudent.constant.EventStatus;
+import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
+import ca.bc.gov.educ.api.gradstudent.exception.ServiceException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
@@ -162,11 +164,11 @@ public class EventHandlerService {
             ))
             .filter(Objects::nonNull)
             .distinct()
-            .collect(Collectors.toList());
+            .toList();
 
         if (courseIDs.isEmpty()) {
             log.error("No valid course IDs found in student courses");
-            throw new RuntimeException("No valid course IDs found in student courses");
+            throw new ServiceException("No valid course IDs found in student courses");
         }
 
         // Get course details from CourseService
@@ -174,7 +176,7 @@ public class EventHandlerService {
 
         if (courseDetails.isEmpty()) {
             log.error("No course details found for course IDs: {}", courseIDs);
-            throw new RuntimeException("No course details found for course IDs: " + courseIDs);
+            throw new EntityNotFoundException("No course details found for course IDs: " + courseIDs);
         }
 
         // Create a map for quick lookup
@@ -184,11 +186,11 @@ public class EventHandlerService {
         // Check if all course IDs were found
         List<String> missingCourseIDs = courseIDs.stream()
             .filter(courseID -> !courseMap.containsKey(courseID))
-            .collect(Collectors.toList());
+            .toList();
 
         if (!missingCourseIDs.isEmpty()) {
             log.error("Missing course details for course IDs: {}", missingCourseIDs);
-            throw new RuntimeException("Missing course details for course IDs: " + missingCourseIDs);
+            throw new ServiceException("Missing course details for course IDs: " + missingCourseIDs);
         }
 
         // Enhance each student course with course details
@@ -209,10 +211,10 @@ public class EventHandlerService {
                     studentCourse.setCourseName(courseDetail.getCourseName());
                     studentCourse.setLanguage(courseDetail.getLanguage());
                 } else {
-                    throw new RuntimeException("Student course missing course information");
+                    throw new ServiceException("Student course missing course information");
                 }
             })
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private GradStatusEvent createEventRecord(Event event) {

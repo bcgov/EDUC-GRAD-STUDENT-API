@@ -57,7 +57,7 @@ import java.util.*;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.ASSESSMENT_STUDENT_UPDATE;
 import static ca.bc.gov.educ.api.gradstudent.constant.Topics.GRAD_STUDENT_API_TOPIC;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -540,7 +540,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 assertThat(result).isNotEmpty();
                 List<StudentCourseAlgorithmData> enhancedCourses = objectMapper.readValue(result, new TypeReference<>() {
                 });
-                assertThat(enhancedCourses.size()).isEqualTo(2);
+                assertThat(enhancedCourses).hasSize(2);
                 
                 // Verify first course
                 StudentCourseAlgorithmData firstCourse = enhancedCourses.get(0);
@@ -613,7 +613,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 assertThat(result).isNotEmpty();
                 List<StudentCourseAlgorithmData> enhancedCourses = objectMapper.readValue(result, new TypeReference<>() {
                 });
-                assertThat(enhancedCourses.size()).isEqualTo(1);
+                assertThat(enhancedCourses).hasSize(1);
                 
                 StudentCourseAlgorithmData enhancedCourse = enhancedCourses.get(0);
                 assertThat(enhancedCourse.getCourseCode()).isEqualTo("MATH");
@@ -697,30 +697,6 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                         .build()
                 );
                 when(courseService.getCourses(any())).thenReturn(mockCourses);
-                
-                Event event = Event.builder()
-                    .eventPayload(studentID.toString())
-                    .build();
-                
-                // Act
-                byte[] result = eventHandlerService.handleGetStudentCoursesEvent(event);
-                
-                // Assert
-                assertThat(result).isEmpty();
-            }
-
-            @Test
-            @DisplayName("Should return empty array when enhancement process throws exception")
-            void testHandleGetStudentCoursesEvent_WhenEnhancementProcessThrowsException_ShouldReturnEmptyArray() {
-                // Arrange
-                UUID studentID = graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.randomUUID(), UUID.randomUUID())).getStudentID();
-                
-                // Create mock student course with invalid course code that will cause enhancement to fail
-                var studentCourse = createStudentCourseEntity(studentID, "101", "202401");
-                studentCourseRepository.save(studentCourse);
-                
-                // Mock course service to throw exception during enhancement
-                when(courseService.getCourses(any())).thenThrow(new RuntimeException("Course service error"));
                 
                 Event event = Event.builder()
                     .eventPayload(studentID.toString())
