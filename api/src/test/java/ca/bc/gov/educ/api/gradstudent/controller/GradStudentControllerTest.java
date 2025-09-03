@@ -217,8 +217,6 @@ public class GradStudentControllerTest {
         course1.setEquivOrChallenge("C");
         course1.setCourseID(BigInteger.ONE);
         course1.setGraduationStudentRecordEntity(entity);
-        var set  = new HashSet<StudentCoursePaginationEntity>();
-        set.add(course1);
         gradStudentPaginationRepository.save(entity);
         studentcoursePaginationRepository.save(course1);
 
