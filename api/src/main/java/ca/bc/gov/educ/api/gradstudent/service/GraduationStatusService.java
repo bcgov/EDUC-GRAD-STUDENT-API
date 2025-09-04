@@ -328,6 +328,10 @@ public class GraduationStatusService extends GradBaseService {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
+            if(StringUtils.isBlank(gradEntity.getStudentStatus())) {
+                logger.info("Grad status student status is blank for studentID: {}", studentID);
+                return;
+            }
             boolean isUpdated = false;
             String status = gradEntity.getStudentStatus().toUpperCase();
             if(Set.of("CUR", "ARC", "TER", "DEC").contains(status) && !"Y".equals(gradEntity.getRecalculateGradStatus())) {
