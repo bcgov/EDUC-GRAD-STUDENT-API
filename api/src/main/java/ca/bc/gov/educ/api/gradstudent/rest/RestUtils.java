@@ -161,14 +161,16 @@ public class RestUtils {
     } finally {
       writeLock.unlock();
     }
-    log.info("Loaded  {} optional programs to memory", this.optionalProgramCodesMap.values().size());
+    log.info("Loaded  {} optional programs to memory", this.optionalProgramCodesMap.size());
   }
 
   public void populateLetterGradeMap() {
     val writeLock = this.letterGradeLock.writeLock();
     try {
       writeLock.lock();
-      for (val grade : this.getLetterGrades()) {
+      var payload = this.getLetterGrades();
+      log.debug("Returned letter grade payload is: {}", payload);
+      for (val grade : payload) {
         this.letterGradeMap.put(grade.getGrade(), grade);
       }
     } catch (Exception ex) {
@@ -176,7 +178,7 @@ public class RestUtils {
     } finally {
       writeLock.unlock();
     }
-    log.info("Loaded  {} letter grades to memory", this.letterGradeMap.values().size());
+    log.info("Loaded  {} letter grades to memory", this.letterGradeMap.size());
   }
 
   private List<LetterGrade> getLetterGrades() {
