@@ -223,9 +223,9 @@ public class GraduationStudentRecordService {
         
         var gradRequirementYear = existingStudentRecordEntity.getProgram().replace("-EN","").replace("-PF","");
 
-        var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) &&
-                (GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear) && Arrays.stream(BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED).anyMatch(boardAuthorityOrLocallyDeveloped -> boardAuthorityOrLocallyDeveloped.equalsIgnoreCase(coregCoursesRecord.getCourseCategory().getCode())) ||
-                (GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear)) && coregCoursesRecord.getCourseCategory().getCode().equalsIgnoreCase("BA"))) ?
+        var fineArtsSkillsCode = StringUtils.isNotBlank(courseStudent.getCourseGraduationRequirement()) && StringUtils.isNotBlank(courseStudent.getCourseLevel()) && courseStudent.getCourseLevel().equalsIgnoreCase("11") &&
+                ((GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear) && Arrays.stream(BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED).anyMatch(boardAuthorityOrLocallyDeveloped -> boardAuthorityOrLocallyDeveloped.equalsIgnoreCase(coregCoursesRecord.getCourseCategory().getCode()))) ||
+                ((GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear)) && coregCoursesRecord.getCourseCategory().getCode().equalsIgnoreCase("BA")))) ?
                 fineArtsAppliedSkillsCodeRepository.findById(courseStudent.getCourseGraduationRequirement()).map(FineArtsAppliedSkillsCodeEntity::getFineArtsAppliedSkillsCode).orElse(null)
                 : null;
         var equivalentOrChallengeCode = StringUtils.isNotBlank(courseStudent.getCourseType()) ?
