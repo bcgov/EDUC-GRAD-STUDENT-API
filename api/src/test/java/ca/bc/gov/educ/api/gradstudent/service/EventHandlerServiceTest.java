@@ -64,6 +64,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     @Autowired
     EventHandlerService eventHandlerService;
     @Autowired
+    CourseCacheService courseCacheService;
+    @Autowired
     RestUtils restUtils;
     @MockBean
     @Qualifier("studentApiClient")
@@ -123,7 +125,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 )
         );
 
-        when(restUtils.getLetterGradeList()).thenReturn(
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(
                 List.of(
                         new LetterGrade("A", "4", "Y", 100, 86, Date.valueOf(LocalDate.now().plusYears(1)), Date.valueOf(LocalDate.now())),
                         new LetterGrade("C+", "2.5", "Y", 72, 67, Date.valueOf(LocalDate.now().plusYears(1)), Date.valueOf(LocalDate.now())),
