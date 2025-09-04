@@ -257,7 +257,8 @@ public class GraduationStudentRecordService {
         }
 
 
-        newStudentCourseEntity.setInterimPercent(mapInterimPercent(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()));
+        newStudentCourseEntity.setInterimPercent(mapPercentage(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()));
+        newStudentCourseEntity.setCompletedCoursePercentage(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
         newStudentCourseEntity.setFineArtsAppliedSkills(fineArtsSkillsCode);
         newStudentCourseEntity.setEquivOrChallenge(equivalentOrChallengeCode);
 
@@ -284,8 +285,9 @@ public class GraduationStudentRecordService {
                 .courseID(new BigInteger(coregCoursesRecord.getCourseID()))
                 .courseSession(courseStudent.getCourseYear() + courseStudent.getCourseMonth())
                 .interimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
-                .interimPercent(mapInterimPercent(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
+                .interimPercent(mapPercentage(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
                 .completedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
+                .completedCoursePercentage(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
                 .relatedCourseId(relatedCourseRecord != null ? new BigInteger(relatedCourseRecord.getCourseID()) : null)
                 .customizedCourseName(StringUtils.isNotBlank(coregCoursesRecord.getGenericCourseType()) && coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G") ? courseStudent.getCourseDescription() : null)
                 .fineArtsAppliedSkills(fineArtsSkillsCode)
@@ -304,7 +306,7 @@ public class GraduationStudentRecordService {
         }
     }
 
-    private Double mapInterimPercent(String letterGrade, String percent) {
+    private Double mapPercentage(String letterGrade, String percent) {
         List<LetterGrade> letterGradeList = courseCacheService.getLetterGradesFromCache();
         var doublePercent = percent != null ? Double.parseDouble(percent) : null;
         if(StringUtils.isNotBlank(letterGrade)) {
