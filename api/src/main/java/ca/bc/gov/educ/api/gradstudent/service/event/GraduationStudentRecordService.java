@@ -298,8 +298,9 @@ public class GraduationStudentRecordService {
     private String mapLetterGrade(String letterGrade, String percent) {
         List<LetterGrade> letterGradeList = courseCacheService.getLetterGradesFromCache();
         if(StringUtils.isBlank(letterGrade) && StringUtils.isNotBlank(percent)) {
-            var letterEntity =  letterGradeList.stream().filter(grade -> grade.getPercentRangeHigh() >= Integer.parseInt(percent)
-                    && grade.getPercentRangeLow() <= Integer.parseInt(percent)).findFirst();
+            var letterEntity =  letterGradeList.stream().filter(grade -> grade.getPercentRangeHigh() != null &&
+                    grade.getPercentRangeHigh() >= Integer.parseInt(percent)
+                    && grade.getPercentRangeLow() != null && grade.getPercentRangeLow() <= Integer.parseInt(percent)).findFirst();
             return letterEntity.map(LetterGrade::getGrade).orElse(null);
         } else {
             return letterGrade;
