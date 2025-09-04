@@ -24,16 +24,16 @@ public class StudentCourseExamEntity extends BaseEntity {
     private UUID id;
 
     @Column(name = "SCHOOL_PERCENT")
-    private Double schoolPercentage;
+    private Integer schoolPercentage;
 
     @Column(name = "SCHOOL_BEST_PERCENT")
-    private Double bestSchoolPercentage;
+    private Integer bestSchoolPercentage;
 
     @Column(name = "EXAM_PERCENT")
-    private Double examPercentage;
+    private Integer examPercentage;
 
     @Column(name = "EXAM_BEST_PERCENT")
-    private Double bestExamPercentage;
+    private Integer bestExamPercentage;
 
     @Column(name = "EXAM_SPECIAL_CASE_CODE")
     private String specialCase;
