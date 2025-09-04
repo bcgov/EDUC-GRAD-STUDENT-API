@@ -716,4 +716,92 @@ public class GraduationStatusControllerTest {
         graduationStatusController.updateStudentGradFlagByStudentID(studentID);
         Mockito.verify(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
     }
+
+    @Test
+    public void testUpdateupdateStudentFlagByStudentID_StatusMER() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus("MER");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+
+        Mockito.doNothing().when(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+        graduationStatusController.updateStudentGradFlagByStudentID(studentID);
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+    }
+
+    @Test
+    public void testUpdateupdateStudentFlagByStudentID_StatusCUR_SkipUpdate() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus("CUR");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+        graduationStatus.setRecalculateProjectedGrad("Y");
+        graduationStatus.setRecalculateGradStatus("Y");
+
+
+        Mockito.doNothing().when(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+        graduationStatusController.updateStudentGradFlagByStudentID(studentID);
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+    }
+
+    @Test
+    public void testUpdateupdateStudentFlagByStudentID_StatusTER_SkipUpdate() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus("TER");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+        graduationStatus.setRecalculateProjectedGrad("Y");
+        graduationStatus.setRecalculateGradStatus("Y");
+
+
+        Mockito.doNothing().when(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+        graduationStatusController.updateStudentGradFlagByStudentID(studentID);
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+    }
+
+    @Test
+    public void testUpdateupdateStudentFlagByStudentID_StatusNull() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus(null);
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+
+        Mockito.doNothing().when(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+        graduationStatusController.updateStudentGradFlagByStudentID(studentID);
+        Mockito.verify(graduationStatusService).updateBatchFlagsForStudentByStatus(studentID);
+    }
 }

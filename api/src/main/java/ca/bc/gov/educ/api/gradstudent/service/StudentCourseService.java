@@ -84,8 +84,12 @@ public class StudentCourseService {
                 boolean hasError = validationIssues.stream().anyMatch(issue -> "ERROR".equals(issue.getValidationIssueSeverityCode()));
                 if (!hasError) {
                     StudentCourseEntity studentCourseEntity = mapper.toEntity(studentCourse);
-                    if (isUpdate && studentCourse.getId() != null && existingStudentCourse != null && studentCourse.getCourseExam() != null && existingStudentCourse.getCourseExam() != null) {
-                        studentCourseEntity.getCourseExam().setId(existingStudentCourse.getCourseExam().getId());
+                    if (isUpdate && studentCourse.getId() != null && existingStudentCourse != null) {
+                        studentCourseEntity.setCreateDate(existingStudentCourse.getCreateDate());
+                        studentCourseEntity.setCreateUser(existingStudentCourse.getCreateUser());
+                        if (studentCourse.getCourseExam() != null && existingStudentCourse.getCourseExam() != null) {
+                            BeanUtils.copyProperties(existingStudentCourse.getCourseExam(), studentCourseEntity.getCourseExam(), "schoolPercentage", "bestSchoolPercentage", "bestExamPercentage", "specialCase", "updateUser", "updateDate");
+                        }
                     }
                     tobePersisted.add(studentCourseEntity);
                 }

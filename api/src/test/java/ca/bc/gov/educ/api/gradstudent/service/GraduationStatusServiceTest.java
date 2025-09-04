@@ -3876,5 +3876,130 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         assertThatNoException();
     }
 
+    @Test
+    void testUpdateStudentStatus_() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus("CUR");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+        Mockito.when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatus));
+        graduationStatusService.updateBatchFlagsForStudentByStatus(studentID);
+        assertThatNoException();
+    }
+
+
+    @Test
+    void testUpdateStudentFlagByStudentID_StatusMER() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus("M");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+        Mockito.when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatus));
+        graduationStatusService.updateBatchFlagsForStudentByStatus(studentID);
+        assertThatNoException();
+    }
+
+    @Test
+    void testUpdateStudentFlagByStudentID_StatusCUR_SkipUpdate() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus("CUR");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+        graduationStatus.setRecalculateProjectedGrad("Y");
+        graduationStatus.setRecalculateGradStatus("Y");
+
+        Mockito.when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatus));
+        graduationStatusService.updateBatchFlagsForStudentByStatus(studentID);
+        assertThatNoException();
+    }
+
+    @Test
+    void testUpdateStudentFlagByStudentID_StatusTER_SkipUpdate() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus("TER");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+        Mockito.when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatus));
+        graduationStatusService.updateBatchFlagsForStudentByStatus(studentID);
+        assertThatNoException();
+    }
+
+
+    @Test
+    void testUpdateStudentFlagByStudentID_StatusNull() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus(null);
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+        Mockito.when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatus));
+        graduationStatusService.updateBatchFlagsForStudentByStatus(studentID);
+        assertThatNoException();
+    }
+
+
+    @Test
+    void testUpdateupdateStudentFlagByStudentID_Invalid() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        StudentList stList = new StudentList();
+        stList.setStudentids(Arrays.asList(studentID));
+
+        GraduationStudentRecordEntity graduationStatus = new GraduationStudentRecordEntity();
+        graduationStatus.setStudentID(UUID.randomUUID());
+        graduationStatus.setSchoolOfRecordId(schoolId);
+        graduationStatus.setStudentStatus("CUR");
+        graduationStatus.setStudentGrade("12");
+        graduationStatus.setGpa("4");
+
+        Mockito.when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
+        graduationStatusService.updateBatchFlagsForStudentByStatus(studentID);
+        assertThatNoException();
+    }
+
 
 }
