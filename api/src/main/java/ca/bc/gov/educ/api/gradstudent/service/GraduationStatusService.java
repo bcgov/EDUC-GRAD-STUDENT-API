@@ -330,13 +330,12 @@ public class GraduationStatusService extends GradBaseService {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
             boolean isUpdated = false;
             String status = gradEntity.getStudentStatus().toUpperCase();
-            if("CUR".equals(status)) {
+            if(Set.of("CUR", "ARC", "TER", "DEC").contains(status) && !"Y".equals(gradEntity.getRecalculateGradStatus())) {
                 gradEntity.setRecalculateGradStatus("Y");
-                gradEntity.setRecalculateProjectedGrad("Y");
                 isUpdated = true;
             }
-            if(List.of("ARC","TER","DEC").contains(status)) {
-                gradEntity.setRecalculateGradStatus("Y");
+            if("CUR".equals(status) && !"Y".equals(gradEntity.getRecalculateProjectedGrad())) {
+                gradEntity.setRecalculateProjectedGrad("Y");
                 isUpdated = true;
             }
             if(isUpdated) {

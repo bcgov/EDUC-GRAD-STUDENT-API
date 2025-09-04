@@ -63,7 +63,7 @@ import static org.mockito.Mockito.when;
 class EventHandlerServiceTest extends BaseIntegrationTest {
     @Autowired
     EventHandlerService eventHandlerService;
-    @Autowired
+    @MockBean
     CourseCacheService courseCacheService;
     @Autowired
     RestUtils restUtils;

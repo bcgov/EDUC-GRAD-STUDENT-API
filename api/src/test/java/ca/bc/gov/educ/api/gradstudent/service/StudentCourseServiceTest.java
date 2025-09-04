@@ -1132,11 +1132,11 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         StudentCourseExamEntity studentCourseExamEntity = new StudentCourseExamEntity();
         studentCourseExamEntity.setId(UUID.randomUUID());
         if(courseExam.getSchoolPercentage() != null)
-            studentCourseExamEntity.setSchoolPercentage(courseExam.getSchoolPercentage().doubleValue());
+            studentCourseExamEntity.setSchoolPercentage(courseExam.getSchoolPercentage());
         if(courseExam.getBestSchoolPercentage() != null)
-            studentCourseExamEntity.setBestSchoolPercentage(courseExam.getBestSchoolPercentage().doubleValue());
+            studentCourseExamEntity.setBestSchoolPercentage(courseExam.getBestSchoolPercentage());
         if(courseExam.getExamPercentage() != null)
-            studentCourseExamEntity.setExamPercentage(courseExam.getExamPercentage().doubleValue());
+            studentCourseExamEntity.setExamPercentage(courseExam.getExamPercentage());
         if(StringUtils.isNotBlank(courseExam.getSpecialCase()))
             studentCourseExamEntity.setSpecialCase(courseExam.getSpecialCase());
         return studentCourseExamEntity;
