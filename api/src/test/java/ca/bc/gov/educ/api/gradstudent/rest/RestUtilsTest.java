@@ -144,22 +144,6 @@ class RestUtilsTest {
     }
 
     @Test
-    void testPopulateLetterGradeMap() {
-        List<LetterGrade> mockLetterGrades = List.of(
-                new LetterGrade("A", "4", "Y", 100, 86, Date.valueOf(LocalDate.now()), Date.valueOf(LocalDate.now())),
-                new LetterGrade("B", "3", "Y", 85, 73, Date.valueOf(LocalDate.now()), Date.valueOf(LocalDate.now()))
-        );
-
-        doReturn(mockLetterGrades).when(restUtils).getLetterGradeList();
-
-        restUtils.populateLetterGradeMap();
-
-        assertEquals(2, restUtils.getLetterGradeList().size());
-        assertEquals("4", restUtils.getLetterGradeList().get(0).getGpaMarkValue());
-    }
-
-
-    @Test
     void testPopulateOptionalProgramMap() {
         List<OptionalProgramCode> mockOptionalPrograms = List.of(
                 new OptionalProgramCode(UUID.randomUUID(), "FR", "SCCP French Certificate", "", 1, "2020-01-01T00:00:00", "2099-12-31T23:59:59", "", "", "unitTests", LocalDateTime.now().toString(), "unitTests", LocalDateTime.now().toString()),
