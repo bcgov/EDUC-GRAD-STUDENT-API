@@ -58,9 +58,7 @@ public class RestUtils {
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final WebClient webClient;
   private final ReadWriteLock optionalProgramLock = new ReentrantReadWriteLock();
-  private final ReadWriteLock letterGradeLock = new ReentrantReadWriteLock();
   private final ReadWriteLock gradProgramLock = new ReentrantReadWriteLock();
-  private final Map<String, LetterGrade> letterGradeMap = new ConcurrentHashMap<>();
   private final Map<String, OptionalProgramCode> optionalProgramCodesMap = new ConcurrentHashMap<>();
   private final Map<String, GraduationProgramCode> gradProgramCodeMap = new ConcurrentHashMap<>();
   final EducGradStudentApiConstants constants;
@@ -89,7 +87,6 @@ public class RestUtils {
   private void initialize() {
     this.populateGradProgramCodesMap();
     this.populateOptionalProgramsMap();
-    this.populateLetterGradeMap();
   }
 
   @Scheduled(cron = "${cron.scheduled.process.cache-cron.run}")
@@ -162,42 +159,6 @@ public class RestUtils {
       writeLock.unlock();
     }
     log.info("Loaded  {} optional programs to memory", this.optionalProgramCodesMap.size());
-  }
-
-  public void populateLetterGradeMap() {
-    val writeLock = this.letterGradeLock.writeLock();
-    try {
-      writeLock.lock();
-      var payload = this.getLetterGrades();
-      log.debug("Returned letter grade payload is: {}", payload);
-      for (val grade : payload) {
-        this.letterGradeMap.put(grade.getGrade(), grade);
-      }
-    } catch (Exception ex) {
-      log.error("Unable to load map cache letter grade {}", ex);
-    } finally {
-      writeLock.unlock();
-    }
-    log.info("Loaded  {} letter grades to memory", this.letterGradeMap.size());
-  }
-
-  private List<LetterGrade> getLetterGrades() {
-    log.info("Calling Grad student graduation api to load grades to memory");
-    return this.webClient.get()
-            .uri(this.constants.getLetterGradesUrl())
-            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .retrieve()
-            .bodyToFlux(LetterGrade.class)
-            .collectList()
-            .block();
-  }
-
-  public List<LetterGrade> getLetterGradeList() {
-    if (this.letterGradeMap.isEmpty()) {
-      log.info("Letter Grade map is empty reloading them");
-      this.populateLetterGradeMap();
-    }
-    return this.letterGradeMap.values().stream().toList();
   }
 
   public List<OptionalProgramCode> getOptionalProgramCodeList() {

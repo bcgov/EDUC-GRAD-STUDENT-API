@@ -22,6 +22,9 @@ public class CacheInitializer {
         log.info("Initializing cache at startup...");
         courseCacheService.loadExaminableCourses();
         courseCacheService.loadLetterGrades();
+        courseCacheService.loadExamSpecialCases();
+        courseCacheService.loadEquivalentOrChallenges();
+        courseCacheService.loadFineArtsAppliedSkillsCodes();
     }
 
     @Scheduled(cron = "${cron.scheduled.process.refresh-course-details.run}")

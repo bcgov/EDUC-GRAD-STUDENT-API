@@ -13,6 +13,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProg
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
+import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class GraduationStudentRecordService {
     private final RestUtils restUtils;
+    private final CourseCacheService courseCacheService;
     private final GraduationStudentRecordRepository graduationStudentRecordRepository;
     private final StudentOptionalProgramRepository studentOptionalProgramRepository;
     private final StudentCourseRepository studentCourseRepository;
@@ -292,7 +294,7 @@ public class GraduationStudentRecordService {
     }
 
     private String mapLetterGrade(String letterGrade, String percent) {
-        List<LetterGrade> letterGradeList = restUtils.getLetterGradeList();
+        List<LetterGrade> letterGradeList = courseCacheService.getLetterGradesFromCache();
         if(StringUtils.isBlank(letterGrade) && StringUtils.isNotBlank(percent)) {
             var letterEntity =  letterGradeList.stream().filter(grade -> grade.getPercentRangeHigh() >= Integer.parseInt(percent)
                     && grade.getPercentRangeLow() <= Integer.parseInt(percent)).findFirst();
@@ -303,7 +305,7 @@ public class GraduationStudentRecordService {
     }
 
     private Double mapInterimPercent(String letterGrade, String percent) {
-        List<LetterGrade> letterGradeList = restUtils.getLetterGradeList();
+        List<LetterGrade> letterGradeList = courseCacheService.getLetterGradesFromCache();
         var doublePercent = percent != null ? Double.parseDouble(percent) : null;
         if(StringUtils.isNotBlank(letterGrade)) {
             var letterEntity =  letterGradeList.stream()
