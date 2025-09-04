@@ -184,7 +184,7 @@ public class RestUtils {
   private List<LetterGrade> getLetterGrades() {
     log.info("Calling Grad student graduation api to load grades to memory");
     return this.webClient.get()
-            .uri(this.constants.getLetterGradesUrl() + "/lettergrade")
+            .uri(this.constants.getLetterGradesUrl())
             .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .retrieve()
             .bodyToFlux(LetterGrade.class)
