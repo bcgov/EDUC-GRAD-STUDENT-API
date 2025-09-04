@@ -4,14 +4,12 @@ import ca.bc.gov.educ.api.gradstudent.constant.EventStatus;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
-import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.assessment.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -26,12 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.MESSAGE_PUBLISHED;
 import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.SCHOOL_OF_RECORD_UPDATED;
@@ -104,7 +98,7 @@ public class EventHandlerService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void handleAssessmentUpdatedDataEvent(GradStatusEvent event) throws JsonProcessingException {
+    public void handleAssessmentUpdatedDataEvent(GradStatusEvent event) {
         val eventFromDBOptional = this.gradStatusEventRepository.findById(event.getEventId());
         if (eventFromDBOptional.isPresent()) {
             val eventFromDB = eventFromDBOptional.get();

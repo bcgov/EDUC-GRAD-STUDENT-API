@@ -324,7 +324,7 @@ public class GraduationStatusService extends GradBaseService {
 
     @Transactional
     @Retry(name = "generalpostcall")
-    public void updateBatchFlagsForStudentCourses(UUID studentID) {
+    public void updateBatchFlagsForStudentByStatus(UUID studentID) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
@@ -343,6 +343,7 @@ public class GraduationStatusService extends GradBaseService {
                 gradEntity.setUpdateDate(LocalDateTime.now());
                 gradEntity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
                 graduationStatusRepository.saveAndFlush(gradEntity);
+                historyService.createStudentHistory(gradEntity, HistoryActivityCodes.USEREDIT.getCode());
             }
         }
     }

@@ -284,7 +284,7 @@ public class StudentCourseService {
 
     private void createStudentCourseHistory(UUID studentID, List<StudentCourseEntity> studentCourseEntities, StudentCourseActivityType historyActivityCode) {
         historyService.createStudentCourseHistory(studentCourseEntities, historyActivityCode);
-        graduationStatusService.updateBatchFlagsForStudentCourses(studentID);
+        graduationStatusService.updateBatchFlagsForStudentByStatus(studentID);
     }
 
     private boolean isCourseExamDeleteRestricted(StudentCourseEntity studentCourseEntity) {
