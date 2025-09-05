@@ -50,7 +50,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
 
         Predicate datesRangePredicate = criteriaBuilder.and();
         if(searchCriteria.getGradDateFrom() != null && searchCriteria.getGradDateTo() != null) {
-            boolean transcriptDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode,  "USERDISTOT", "USERDISTRT");
+            boolean transcriptDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOT", "USERDISTRT");
             if(transcriptDist) {
                 curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER", "DEC"));
             }
