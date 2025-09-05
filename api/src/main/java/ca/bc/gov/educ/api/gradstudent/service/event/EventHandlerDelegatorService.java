@@ -91,6 +91,13 @@ public class EventHandlerDelegatorService {
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
+        case GET_STUDENT_COURSES:
+          log.info("Received GET_STUDENT_COURSES event :: {}", event);
+          log.trace(PAYLOAD_LOG, event.getEventPayload());
+          response = eventHandlerService.handleGetStudentCoursesEvent(event);
+          log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          publishToNATS(event, message, isSynchronous, response);
+          break;
         default:
           log.info("silently ignoring other events :: {}", event);
           break;
