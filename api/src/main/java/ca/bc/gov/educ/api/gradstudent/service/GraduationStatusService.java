@@ -315,7 +315,14 @@ public class GraduationStatusService extends GradBaseService {
                 events.add(gradStatusEventForSchoolOfRecordUpdate);
             }
 
-            return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), events);
+            GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
+
+            List<StudentCareerProgramEntity> studentCareerProgramEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
+            gradStatus.setCareerPrograms(gradStudentCareerProgramTransformer.transformToDTO(studentCareerProgramEntities));
+            List<StudentOptionalProgram> studentOptionalPrograms = getStudentGradOptionalProgram(studentID, accessToken);
+            gradStatus.setOptionalPrograms(studentOptionalPrograms);
+
+            return Pair.of(gradStatus, events);
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
             return Pair.of(graduationStatus, new ArrayList<>());
