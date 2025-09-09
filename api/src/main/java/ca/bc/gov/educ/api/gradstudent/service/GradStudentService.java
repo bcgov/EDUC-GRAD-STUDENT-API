@@ -28,10 +28,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -286,12 +283,6 @@ public class GradStudentService {
 		if(criteria != null) criteriaList.add(criteria);
 	}
 
-	private GradSearchStudent populateGradStudent(GraduationStudentRecordEntity gradRecord, String accessToken) {
-		GradSearchStudent gradStu = new GradSearchStudent();
-		BeanUtils.copyProperties(gradRecord, gradStu);
-		return populateGradStudent(gradStu, accessToken);
-	}
-
 	private GradSearchStudent populateGradStudent(GraduationStudentRecordView gradRecord, String accessToken) {
 		GradSearchStudent gradStu = new GradSearchStudent();
 		BeanUtils.copyProperties(gradRecord, gradStu);
@@ -392,11 +383,31 @@ public class GradStudentService {
 			result.addAll(searchRequest.getStudentIDs());
 		}
 		if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
-			result.addAll(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens()));
+			result.addAll(getStudentIDsByPens(searchRequest.getPens()));
 		}
 		if(searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));
 		}
+		return result;
+	}
+
+	public List<UUID> getStudentIDsByPens(List<String> pens) {
+		return (pens == null || pens.isEmpty()) ? new ArrayList<>() : resolveStudentPENsToUUIDs(pens).values().stream().toList();
+	}
+
+	public Map<String, UUID> resolveStudentPENsToUUIDs(List<String> pens){
+		Map<String, UUID> result = new HashMap<>();
+		pens.forEach(pen -> {
+			try{
+				Student s = this.restService.get(this.constants.getPenStudentApiByPenUrl() + pen, Student.class, null);
+				if (s != null && s.getStudentID() != null) {
+					result.put(pen, UUID.fromString(s.getStudentID()));
+				}
+			}
+			catch (Exception e) {
+				logger.error("Error obtaining student id from PEN {}", e.getMessage());
+			}
+		});
 		return result;
 	}
 
