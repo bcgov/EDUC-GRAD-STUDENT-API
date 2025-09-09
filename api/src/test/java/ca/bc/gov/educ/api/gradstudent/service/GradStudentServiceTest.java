@@ -17,7 +17,6 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -94,15 +93,13 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     @MockBean Publisher publisher;
     @MockBean Subscriber subscriber;
 
+    private static final String FAKE_PEN = "123456789";
+
     @Before
     public void setUp() {
         openMocks(this);
     }
 
-    @After
-    public void tearDown() {
-
-    }
 
     private static class TestGraduationCountProjection implements GraduationCountProjection {
         private Long currentGraduates;
@@ -138,7 +135,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         final UUID studentID = UUID.randomUUID();
         final String legalFirstName = "Legal";
         final String legalLastName = "Test";
-        final String pen = "123456789";
+        final String pen = FAKE_PEN;
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
@@ -229,7 +226,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     public void testGetGRADStudents() {
         // ID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
+        final String pen = FAKE_PEN;
         final String legalFirstName = "FirstName";
         final String legalLastName = "LastName";
         final String program = "2018-EN";
@@ -326,7 +323,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     public void testGetStudentFromStudentAPIGradOnly() {
         // ID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
+        final String pen = FAKE_PEN;
         final String legalFirstName = "FirstName";
         final String legalLastName = "LastName";
         final String program = "2018-EN";
@@ -524,9 +521,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         testGetStudentByPenFromStudentAPI();
 
         final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
-        final String pen = "123456789";
-        final String firstName = "FirstName";
-        final String lastName = "LastName";
+        final String pen = FAKE_PEN;
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
@@ -586,9 +581,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         testGetStudentByPenFromStudentAPI();
 
         final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
-        final String pen = "123456789";
-        final String firstName = "FirstName";
-        final String lastName = "LastName";
+        final String pen = FAKE_PEN;
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
@@ -648,9 +641,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         testGetStudentByPenFromStudentAPI();
 
         final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
-        final String pen = "123456789";
-        final String firstName = "FirstName";
-        final String lastName = "LastName";
+        final String pen = FAKE_PEN;
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
@@ -709,7 +700,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     public void testGetStudentByPenFromStudentAPI() {
         // ID
         final UUID studentID = UUID.fromString("ac339d70-7649-1a2e-8176-4a336df2204b");
-        final String pen = "123456789";
+        final String pen = FAKE_PEN;
         final String firstName = "FirstName";
         final String lastName = "LastName";
         final String program = "2018-EN";
@@ -802,7 +793,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     public void testGetStudentByStudentIDFromStudentAPI() {
         // ID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
+        final String pen = FAKE_PEN;
         final String firstName = "FirstName";
         final String lastName = "LastName";
         final String program = "2018-EN";
@@ -887,14 +878,10 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     public void testAddNewPenFromStudentAPI() {
         // ID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
+        final String pen = FAKE_PEN;
         final String firstName = "FirstName";
         final String lastName = "LastName";
-        final String program = "2018-EN";
-        final String gradStatus = "A";
-        final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test School";
 
         // Grad Student
         final StudentCreate student = new StudentCreate();
@@ -930,7 +917,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     public void testGetStudentInfoFromGRAD() {
         // ID
         final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
+        final String pen = FAKE_PEN;
         final String firstName = "FirstName";
         final String lastName = "LastName";
         final String program = "2018-EN";
@@ -1041,19 +1028,31 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         UUID schoolId = UUID.randomUUID();
         UUID studentId = UUID.randomUUID();
         List<UUID> result = List.of(studentId);
+        Student student = new Student();
+        student.setStudentID(studentId.toString());
 
         StudentSearchRequest searchRequest = StudentSearchRequest.builder()
                 .schoolIds(List.of(schoolId))
-                .pens(List.of("12345678"))
+                .pens(List.of(FAKE_PEN))
                 .studentIDs(result)
                 .build();
 
         when(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds())).thenReturn(result);
-        when(graduationStatusRepository.findStudentIDsByPenIn(searchRequest.getPens())).thenReturn(result);
+        when(restService.get(this.constants.getPenStudentApiByPenUrl() + searchRequest.getPens().get(0), Student.class, null)).thenReturn(student);
         when(graduationStatusRepository.findAllStudentGuids()).thenReturn(result);
 
         List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
-        assertThat(results).isNotEmpty();
+        assertThat(results.get(0)).isEqualTo(studentId);
+    }
+
+    @Test
+    public void testGetStudentIDsByPens_Given_PEN_Should_Return_Student_ID() {
+        List<String> pens = List.of(FAKE_PEN);
+        Student student = new Student();
+        student.setStudentID(UUID.randomUUID().toString());
+        when(restService.get(this.constants.getPenStudentApiByPenUrl() + pens.get(0), Student.class, null)).thenReturn(student);
+        List<UUID> result = gradStudentService.getStudentIDsByPens(pens);
+        assertThat(result.get(0)).isEqualTo(UUID.fromString(student.getStudentID()));
     }
 
     @Test
