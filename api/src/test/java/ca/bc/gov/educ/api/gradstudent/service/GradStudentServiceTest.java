@@ -1056,6 +1056,18 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testGetStudentIDsByPens_Given_Empty_Array_Should_Return_Empty(){
+        assertThat(gradStudentService.getStudentIDsByPens(List.of())).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentIDsByPens_Given_Null_Return_Should_Return_Empty(){
+        List<String> pens = List.of(FAKE_PEN);
+        when(restService.get(this.constants.getPenStudentApiByPenUrl() + pens.get(0), Student.class, null)).thenReturn(null);
+        assertThat(gradStudentService.getStudentIDsByPens(List.of())).isEmpty();
+    }
+
+    @Test
     public void testGetGraduationStudentRecord_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
         UUID studentID = UUID.randomUUID();
         GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
