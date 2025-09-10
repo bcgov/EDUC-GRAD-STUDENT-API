@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.service.event;
 
 import ca.bc.gov.educ.api.gradstudent.constant.GradRequirementYearCodes;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
@@ -16,7 +17,12 @@ import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +62,7 @@ public class GraduationStudentRecordService {
     public static final String EN_1996_CODE = "1996-EN";
     public final List<String> fral10Programs = Arrays.asList("2023-EN", "2018-EN", "2004-EN");
     public final List<String> fral11Programs = Arrays.asList(EN_1996_CODE, "1986-EN");
-
+    private static final Logger logger = LoggerFactory.getLogger(GraduationStudentRecordService.class);
 
     @Transactional
     public Student getStudentByPenFromStudentAPI(String pen) {
@@ -90,7 +96,7 @@ public class GraduationStudentRecordService {
         List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         GraduationStudentRecordEntity entity = createGraduationStudentRecordEntity(demStudent, studentFromApi);
-        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
+        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && "N".equalsIgnoreCase(demStudent.getIsSummerCollection())) {
             entity.setProgram(mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()));
         } else {
             entity.setProgram(createProgram());
@@ -120,6 +126,23 @@ public class GraduationStudentRecordService {
         boolean isSchoolOfRecordUpdated = checkIfSchoolOfRecordIsUpdated(demStudent, existingStudentRecordEntity);
         BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, CREATE_USER, CREATE_DATE);
         GraduationStudentRecordEntity updatedEntity = compareAndUpdateGraduationStudentRecordEntity(demStudent, newStudentRecordEntity);
+
+        if (StringUtils.isNotBlank(demStudent.getGradRequirementYear())) {
+            String incomingProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
+            GraduationData graduationData = null;
+            try {
+                graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(existingStudentRecordEntity.getStudentGradData(), GraduationData.class);
+            } catch (JsonProcessingException e) {
+                logger.debug("Parsing Graduation Data Error {}", e.getOriginalMessage());
+            }
+            boolean isGraduated = graduationData != null && graduationData.isGraduated();
+            boolean hasProgramCompletionDate = existingStudentRecordEntity.getProgramCompletionDate() != null;
+            boolean completedSCCP = hasProgramCompletionDate && "SCCP".equalsIgnoreCase(existingStudentRecordEntity.getProgram());
+            if (!isGraduated || completedSCCP) {
+                updatedEntity.setProgram(incomingProgram);
+            }
+        }
+
         updatedEntity.setUpdateUser(demStudent.getUpdateUser());
         updatedEntity.setUpdateDate(LocalDateTime.now());
         var savedStudentRecord = graduationStudentRecordRepository.save(updatedEntity);
