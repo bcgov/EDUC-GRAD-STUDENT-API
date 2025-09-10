@@ -125,23 +125,6 @@ public class GraduationStudentRecordService {
         boolean isSchoolOfRecordUpdated = checkIfSchoolOfRecordIsUpdated(demStudent, existingStudentRecordEntity);
         BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, CREATE_USER, CREATE_DATE);
         GraduationStudentRecordEntity updatedEntity = compareAndUpdateGraduationStudentRecordEntity(demStudent, newStudentRecordEntity);
-
-        if (StringUtils.isNotBlank(demStudent.getGradRequirementYear())) {
-            String incomingProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
-            GraduationData graduationData = null;
-            try {
-                graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(existingStudentRecordEntity.getStudentGradData(), GraduationData.class);
-            } catch (Exception e) {
-                logger.debug("Parsing Graduation Data Error {}", e.getMessage());
-            }
-            boolean isGraduated = graduationData != null && graduationData.isGraduated();
-            boolean hasProgramCompletionDate = existingStudentRecordEntity.getProgramCompletionDate() != null;
-            boolean completedSCCP = hasProgramCompletionDate && "SCCP".equalsIgnoreCase(existingStudentRecordEntity.getProgram());
-            if (!isGraduated || completedSCCP) {
-                updatedEntity.setProgram(incomingProgram);
-            }
-        }
-
         updatedEntity.setUpdateUser(demStudent.getUpdateUser());
         updatedEntity.setUpdateDate(LocalDateTime.now());
         var savedStudentRecord = graduationStudentRecordRepository.save(updatedEntity);
@@ -441,9 +424,18 @@ public class GraduationStudentRecordService {
             }
         }
 
-        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear())) {
-            var mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
-            if (!newStudentRecordEntity.getProgram().equalsIgnoreCase(mappedProgram)) {
+        if (StringUtils.isNotBlank(demStudent.getGradRequirementYear())) {
+            String mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
+            GraduationData graduationData = null;
+            try {
+                graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(newStudentRecordEntity.getStudentGradData(), GraduationData.class);
+            } catch (Exception e) {
+                logger.debug("Parsing Graduation Data Error {}", e.getMessage());
+            }
+            boolean isGraduated = graduationData != null && graduationData.isGraduated();
+            boolean hasProgramCompletionDate = newStudentRecordEntity.getProgramCompletionDate() != null;
+            boolean completedSCCP = hasProgramCompletionDate && "SCCP".equalsIgnoreCase(newStudentRecordEntity.getProgram());
+            if (!isGraduated || completedSCCP) {
                 newStudentRecordEntity.setProgram(mappedProgram);
                 projectedChangeCount++;
                 statusChangeCount++;

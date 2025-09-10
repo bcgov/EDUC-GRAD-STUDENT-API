@@ -713,6 +713,90 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         }
     }
 
+    @Test
+    void testHandleEvent_givenStudentExists_whenIncomingGradYearAndNotGraduated_shouldUpdateProgram() throws IOException {
+        var demStudent = createMockDemographicStudent("Y", "REGULAR");
+        demStudent.setGradRequirementYear("2018");
+        var studentFromApi = createmockStudent();
+
+        var existing = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolID()));
+        existing.setStudentGradData(null);
+        graduationStudentRecordRepository.save(existing);
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+
+        var sagaId = UUID.randomUUID();
+        final Event event = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_DEM_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+
+        eventHandlerService.handleProcessStudentDemDataEvent(event);
+
+        var persisted = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        assertThat(persisted).isPresent();
+        assertThat(persisted.get().getProgram()).isEqualTo("2018-EN");
+    }
+
+    @Test
+    void testHandleEvent_givenStudentExists_whenIncomingGradYearAndGraduatedNonSCCP_shouldNotUpdateProgram() throws IOException {
+        var demStudent = createMockDemographicStudent("Y", "REGULAR");
+        demStudent.setGradRequirementYear("2018");
+        var studentFromApi = createmockStudent();
+
+        var existing = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolID()));
+        existing.setProgram("2023-EN");
+        existing.setStudentGradData("{\"graduated\":true}");
+        graduationStudentRecordRepository.save(existing);
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+
+        var sagaId = UUID.randomUUID();
+        final Event event = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_DEM_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+
+        eventHandlerService.handleProcessStudentDemDataEvent(event);
+
+        var persisted = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        assertThat(persisted).isPresent();
+        assertThat(persisted.get().getProgram()).isEqualTo("2023-EN");
+    }
+
+    @Test
+    void testHandleEvent_givenStudentExists_whenIncomingGradYearAndCompletedSCCP_shouldUpdateProgram() throws IOException {
+        var demStudent = createMockDemographicStudent("Y", "REGULAR");
+        demStudent.setGradRequirementYear("2018");
+        var studentFromApi = createmockStudent();
+
+        var existing = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolID()));
+        existing.setProgram("SCCP");
+        existing.setProgramCompletionDate(Date.valueOf(LocalDate.now()));
+        existing.setStudentGradData("{\"graduated\":true}");
+        graduationStudentRecordRepository.save(existing);
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+
+        var sagaId = UUID.randomUUID();
+        final Event event = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_DEM_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+
+        eventHandlerService.handleProcessStudentDemDataEvent(event);
+
+        var persisted = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        assertThat(persisted).isPresent();
+        assertThat(persisted.get().getProgram()).isEqualTo("2018-EN");
+    }
+
     private StudentCourseEntity createStudentCourseEntity(UUID studentID, String courseId, String courseSession) {
         StudentCourseEntity studentCourseEntity = new StudentCourseEntity();
         studentCourseEntity.setStudentID(studentID);
