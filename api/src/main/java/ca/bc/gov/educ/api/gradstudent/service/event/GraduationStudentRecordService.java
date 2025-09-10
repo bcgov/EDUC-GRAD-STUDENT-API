@@ -17,7 +17,6 @@ import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
@@ -132,8 +131,8 @@ public class GraduationStudentRecordService {
             GraduationData graduationData = null;
             try {
                 graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(existingStudentRecordEntity.getStudentGradData(), GraduationData.class);
-            } catch (JsonProcessingException e) {
-                logger.debug("Parsing Graduation Data Error {}", e.getOriginalMessage());
+            } catch (Exception e) {
+                logger.debug("Parsing Graduation Data Error {}", e.getMessage());
             }
             boolean isGraduated = graduationData != null && graduationData.isGraduated();
             boolean hasProgramCompletionDate = existingStudentRecordEntity.getProgramCompletionDate() != null;
