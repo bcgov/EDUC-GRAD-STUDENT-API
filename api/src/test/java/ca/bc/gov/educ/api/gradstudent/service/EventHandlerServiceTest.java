@@ -20,13 +20,8 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStude
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseExamEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.event.EventHandlerService;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -82,6 +77,10 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     StudentCourseRepository studentCourseRepository;
     @Autowired
     GradStatusEventRepository gradStatusEventRepository;
+    @MockBean
+    FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
+    @MockBean
+    EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
     @MockBean
     GradStudentService gradStudentService;
     @MockBean
@@ -711,6 +710,54 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 assertThat(result).isEmpty();
             }
         }
+    }
+
+    @Test
+    void testHandleEvent_givenCourseAppend_when1996_Grade11_BA_shouldSetFineArtsAppliedSkillsCode() throws IOException {
+        var course = createMockCourseStudent("Y", "APPEND");
+        var detail = course.getStudentDetails().get(0);
+        detail.setCourseLevel("11");
+        detail.setCourseCode("PH");
+        detail.setCourseGraduationRequirement("F");
+        detail.setCourseYear("2024");
+        detail.setCourseMonth("01");
+        detail.setCourseStatus("A");
+
+        var studentFromApi = createmockStudent();
+
+        var gradRecord = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.randomUUID());
+        gradRecord.setProgram("1996-EN");
+        graduationStudentRecordRepository.save(gradRecord);
+
+        var existingCourse = createStudentCourseEntity(UUID.fromString(studentFromApi.getStudentID()), "101", "202401");
+        studentCourseRepository.save(existingCourse);
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+
+        var fa = new FineArtsAppliedSkillsCodeEntity();
+        fa.setFineArtsAppliedSkillsCode("F");
+        when(fineArtsAppliedSkillsCodeRepository.findById("F")).thenReturn(java.util.Optional.of(fa));
+
+        when(equivalentOrChallengeCodeRepository.findById(any())).thenReturn(java.util.Optional.empty());
+
+        var sagaId = UUID.randomUUID();
+        final Event event = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_COURSE_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(course))
+                .build();
+
+        var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
+
+        assertThat(response).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(responseEvent).isNotNull();
+        assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
+
+        var persisted = studentCourseRepository.findByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        assertThat(persisted).hasSize(1);
+        assertThat(persisted.get(0).getFineArtsAppliedSkills()).isEqualTo("F");
     }
 
     private StudentCourseEntity createStudentCourseEntity(UUID studentID, String courseId, String courseSession) {
