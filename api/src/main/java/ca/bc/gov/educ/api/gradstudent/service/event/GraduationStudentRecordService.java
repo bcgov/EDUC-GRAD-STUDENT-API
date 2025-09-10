@@ -259,6 +259,7 @@ public class GraduationStudentRecordService {
 
         newStudentCourseEntity.setInterimPercent(mapPercentage(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()));
         newStudentCourseEntity.setCompletedCoursePercentage(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
+        newStudentCourseEntity.setCredits(StringUtils.isNotBlank(courseStudent.getNumberOfCredits()) ? Integer.parseInt(courseStudent.getNumberOfCredits()) : 0);
         newStudentCourseEntity.setFineArtsAppliedSkills(fineArtsSkillsCode);
         newStudentCourseEntity.setEquivOrChallenge(equivalentOrChallengeCode);
 
@@ -292,6 +293,7 @@ public class GraduationStudentRecordService {
                 .customizedCourseName(StringUtils.isNotBlank(coregCoursesRecord.getGenericCourseType()) && coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G") ? courseStudent.getCourseDescription() : null)
                 .fineArtsAppliedSkills(fineArtsSkillsCode)
                 .equivOrChallenge(equivalentOrChallengeCode)
+                .credits(StringUtils.isNotBlank(courseStudent.getNumberOfCredits()) ? Integer.parseInt(courseStudent.getNumberOfCredits()) : 0)
                 .build();
     }
 
