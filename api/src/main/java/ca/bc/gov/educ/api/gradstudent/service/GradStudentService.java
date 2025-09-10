@@ -399,9 +399,9 @@ public class GradStudentService {
 		Map<String, UUID> result = new HashMap<>();
 		pens.forEach(pen -> {
 			try{
-				Student s = this.restService.get(this.constants.getPenStudentApiByPenUrl() + pen, Student.class, null);
-				if (s != null && s.getStudentID() != null) {
-					result.put(pen, UUID.fromString(s.getStudentID()));
+				Student[] s = this.restService.get(String.format(this.constants.getPenStudentApiByPenUrl(), pen), Student[].class, null);
+				if (s != null && s.length > 0) {
+					result.put(pen, UUID.fromString(s[0].getStudentID()));
 				}
 			}
 			catch (Exception e) {

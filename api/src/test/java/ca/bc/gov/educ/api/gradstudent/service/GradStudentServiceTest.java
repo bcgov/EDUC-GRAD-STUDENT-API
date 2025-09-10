@@ -1050,7 +1050,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         List<String> pens = List.of(FAKE_PEN);
         Student student = new Student();
         student.setStudentID(UUID.randomUUID().toString());
-        when(restService.get(this.constants.getPenStudentApiByPenUrl() + pens.get(0), Student.class, null)).thenReturn(student);
+        when(restService.get(String.format(this.constants.getPenStudentApiByPenUrl(), pens.get(0)), Student[].class, null)).thenReturn(new Student[]{student});
         List<UUID> result = gradStudentService.getStudentIDsByPens(pens);
         assertThat(result.get(0)).isEqualTo(UUID.fromString(student.getStudentID()));
     }
@@ -1063,8 +1063,25 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     @Test
     public void testGetStudentIDsByPens_Given_Null_Return_Should_Return_Empty(){
         List<String> pens = List.of(FAKE_PEN);
-        when(restService.get(this.constants.getPenStudentApiByPenUrl() + pens.get(0), Student.class, null)).thenReturn(null);
+        when(restService.get(String.format(this.constants.getPenStudentApiByPenUrl(), pens.get(0)), Student.class, null)).thenReturn(null);
         assertThat(gradStudentService.getStudentIDsByPens(List.of())).isEmpty();
+    }
+
+    @Test
+    public void testResolveStudentPENsToUUIDs_Given_Valid_Pens_Should_Return_Map() {
+        List<String> pens = List.of(FAKE_PEN, "321654987", "987654321");
+        Student student = new Student();
+        student.setStudentID(UUID.randomUUID().toString());
+        Student student2 = new Student();
+        student2.setStudentID(UUID.randomUUID().toString());
+        Student student3 = new Student();
+        student3.setStudentID(UUID.randomUUID().toString());
+        when(restService.get(String.format(this.constants.getPenStudentApiByPenUrl(), pens.get(0)), Student[].class, null)).thenReturn(new Student[]{student});
+        when(restService.get(String.format(this.constants.getPenStudentApiByPenUrl(), pens.get(1)), Student[].class, null)).thenReturn(new Student[]{student2});
+        when(restService.get(String.format(this.constants.getPenStudentApiByPenUrl(), pens.get(2)), Student[].class, null)).thenReturn(new Student[]{student3});
+        Map<String, UUID> result = gradStudentService.resolveStudentPENsToUUIDs(pens);
+        assertThat(result).size().isEqualTo(pens.size());
+        assertThat(result.get(pens.get(0))).isEqualByComparingTo(UUID.fromString(student.getStudentID()));
     }
 
     @Test
