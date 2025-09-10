@@ -760,6 +760,64 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         assertThat(persisted.get(0).getFineArtsAppliedSkills()).isEqualTo("F");
     }
 
+    @Test
+    void given1996_Grade11_LD_shouldSetFineArts() throws Exception {
+        var course = createMockCourseStudent("Y", "APPEND");
+        var d = course.getStudentDetails().get(0);
+        d.setCourseLevel("11");
+        d.setCourseGraduationRequirement("F");
+
+        var student = createmockStudent();
+        var grad = createMockGraduationStudentRecordEntity(UUID.fromString(student.getStudentID()), UUID.randomUUID());
+        grad.setProgram("1996-EN");
+        graduationStudentRecordRepository.save(grad);
+
+        var coreg = restUtils.getCoursesByExternalID(UUID.randomUUID(), "PH   11 ");
+        coreg.getCourseCategory().setCode("LD");
+        when(restUtils.getCoursesByExternalID(any(), any())).thenReturn(coreg);
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(student);
+        var fa = new FineArtsAppliedSkillsCodeEntity(); fa.setFineArtsAppliedSkillsCode("F");
+        when(fineArtsAppliedSkillsCodeRepository.findById("F")).thenReturn(Optional.of(fa));
+        when(equivalentOrChallengeCodeRepository.findById(any())).thenReturn(Optional.empty());
+
+        var event = Event.builder().eventType(EventType.PROCESS_STUDENT_COURSE_DATA)
+                .eventPayload(JsonUtil.getJsonStringFromObject(course)).build();
+
+        eventHandlerService.handleProcessStudentCourseDataEvent(event);
+
+        var persisted = studentCourseRepository.findByStudentID(UUID.fromString(student.getStudentID()));
+        assertThat(persisted).hasSize(1);
+        assertThat(persisted.get(0).getFineArtsAppliedSkills()).isEqualTo("F");
+    }
+
+    @Test
+    void given2018_Grade11_BA_shouldSetFineArts() throws Exception {
+        var course = createMockCourseStudent("Y", "APPEND");
+        var d = course.getStudentDetails().get(0);
+        d.setCourseLevel("11");
+        d.setCourseGraduationRequirement("F");
+
+        var student = createmockStudent();
+        var grad = createMockGraduationStudentRecordEntity(UUID.fromString(student.getStudentID()), UUID.randomUUID());
+        grad.setProgram("2018-EN");
+        graduationStudentRecordRepository.save(grad);
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(student);
+        var fa = new FineArtsAppliedSkillsCodeEntity(); fa.setFineArtsAppliedSkillsCode("F");
+        when(fineArtsAppliedSkillsCodeRepository.findById("F")).thenReturn(Optional.of(fa));
+        when(equivalentOrChallengeCodeRepository.findById(any())).thenReturn(Optional.empty());
+
+        var event = Event.builder().eventType(EventType.PROCESS_STUDENT_COURSE_DATA)
+                .eventPayload(JsonUtil.getJsonStringFromObject(course)).build();
+
+        eventHandlerService.handleProcessStudentCourseDataEvent(event);
+
+        var persisted = studentCourseRepository.findByStudentID(UUID.fromString(student.getStudentID()));
+        assertThat(persisted).hasSize(1);
+        assertThat(persisted.get(0).getFineArtsAppliedSkills()).isEqualTo("F");
+    }
+
     private StudentCourseEntity createStudentCourseEntity(UUID studentID, String courseId, String courseSession) {
         StudentCourseEntity studentCourseEntity = new StudentCourseEntity();
         studentCourseEntity.setStudentID(studentID);
