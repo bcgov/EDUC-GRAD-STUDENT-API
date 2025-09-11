@@ -95,7 +95,7 @@ public class GraduationStudentRecordService {
         List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         GraduationStudentRecordEntity entity = createGraduationStudentRecordEntity(demStudent, studentFromApi);
-        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && "N".equalsIgnoreCase(demStudent.getIsSummerCollection())) {
+        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
             entity.setProgram(mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()));
         } else {
             entity.setProgram(createProgram());
