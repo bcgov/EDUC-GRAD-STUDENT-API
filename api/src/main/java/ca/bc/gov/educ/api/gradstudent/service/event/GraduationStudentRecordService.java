@@ -49,7 +49,6 @@ public class GraduationStudentRecordService {
     private final StudentCourseRepository studentCourseRepository;
     private final FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
     private final EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
-    private static final String [] BOARD_AUTHORITY_OR_LOCALLY_DEVELOPED = new String[]{"BA", "LD"};
     private static final String DATA_CONVERSION_HISTORY_ACTIVITY_CODE = "DATACONVERT"; // confirm,
     private static final String ADD_ONGOING_HISTORY_ACTIVITY_CODE = "TRAXADD";// confirm,
     private final HistoryService historyService;
@@ -153,9 +152,13 @@ public class GraduationStudentRecordService {
         savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
 
         if (!optionalProgramsToRemove.isEmpty() || !programIDsToAdd.isEmpty()) {
-            savedStudentRecord.setRecalculateProjectedGrad("Y");
-            savedStudentRecord.setRecalculateGradStatus("Y");
-            graduationStudentRecordRepository.save(savedStudentRecord);
+            boolean projAlreadyY = "Y".equalsIgnoreCase(savedStudentRecord.getRecalculateProjectedGrad());
+            boolean statusAlreadyY = "Y".equalsIgnoreCase(savedStudentRecord.getRecalculateGradStatus());
+            if (!projAlreadyY || !statusAlreadyY) {
+                savedStudentRecord.setRecalculateProjectedGrad("Y");
+                savedStudentRecord.setRecalculateGradStatus("Y");
+                graduationStudentRecordRepository.save(savedStudentRecord);
+            }
         }
 
         return isSchoolOfRecordUpdated;
