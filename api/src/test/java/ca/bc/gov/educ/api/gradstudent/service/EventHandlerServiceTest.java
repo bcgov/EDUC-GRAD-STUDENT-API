@@ -713,7 +713,92 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    void testHandleEvent_givenCourseAppend_when1996_Grade11_BA_shouldSetFineArtsAppliedSkillsCode() throws IOException {
+    void testHandleEvent_givenStudentExists_whenIncomingGradYearAndNotGraduated_shouldUpdateProgram() throws IOException {
+        var demStudent = createMockDemographicStudent("Y", "REGULAR");
+        demStudent.setGradRequirementYear("2018");
+        var studentFromApi = createmockStudent();
+
+        var existing = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolID()));
+        existing.setStudentGradData(null);
+        graduationStudentRecordRepository.save(existing);
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+
+        var sagaId = UUID.randomUUID();
+        final Event event = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_DEM_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+
+        eventHandlerService.handleProcessStudentDemDataEvent(event);
+
+        var persisted = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        assertThat(persisted).isPresent();
+        assertThat(persisted.get().getProgram()).isEqualTo("2018-EN");
+    }
+
+    @Test
+    void testHandleEvent_givenStudentExists_whenIncomingGradYearAndGraduatedNonSCCP_shouldNotUpdateProgram() throws IOException {
+        var demStudent = createMockDemographicStudent("Y", "REGULAR");
+        demStudent.setGradRequirementYear("2018");
+        var studentFromApi = createmockStudent();
+
+        var existing = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolID()));
+        existing.setProgram("2023-EN");
+        existing.setStudentGradData("{\"graduated\":true}");
+        graduationStudentRecordRepository.save(existing);
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+
+        var sagaId = UUID.randomUUID();
+        final Event event = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_DEM_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+
+        eventHandlerService.handleProcessStudentDemDataEvent(event);
+
+        var persisted = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        assertThat(persisted).isPresent();
+        assertThat(persisted.get().getProgram()).isEqualTo("2023-EN");
+    }
+
+    @Test
+    void testHandleEvent_givenStudentExists_whenIncomingGradYearAndCompletedSCCP_shouldUpdateProgram() throws IOException {
+        var demStudent = createMockDemographicStudent("Y", "REGULAR");
+        demStudent.setGradRequirementYear("2018");
+        var studentFromApi = createmockStudent();
+
+        var existing = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolID()));
+        existing.setProgram("SCCP");
+        existing.setProgramCompletionDate(Date.valueOf(LocalDate.now()));
+        existing.setStudentGradData("{\"graduated\":true}");
+        graduationStudentRecordRepository.save(existing);
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+
+        var sagaId = UUID.randomUUID();
+        final Event event = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_DEM_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+
+        eventHandlerService.handleProcessStudentDemDataEvent(event);
+
+        var persisted = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        assertThat(persisted).isPresent();
+        assertThat(persisted.get().getProgram()).isEqualTo("2018-EN");
+    }
+
+    @Test
+    void testHandleEvent_givenCourseAppend_when1996_Grade11_BA_shouldSetFineArtsAppliedSkillsCode () throws
+    IOException {
         var course = createMockCourseStudent("Y", "APPEND");
         var detail = course.getStudentDetails().get(0);
         detail.setCourseLevel("11");
@@ -761,7 +846,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    void given1996_Grade11_LD_shouldSetFineArts() throws Exception {
+    void given1996_Grade11_LD_shouldSetFineArts () throws Exception {
         var course = createMockCourseStudent("Y", "APPEND");
         var d = course.getStudentDetails().get(0);
         d.setCourseLevel("11");
@@ -777,7 +862,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         when(restUtils.getCoursesByExternalID(any(), any())).thenReturn(coreg);
 
         when(restUtils.getStudentByPEN(any(), any())).thenReturn(student);
-        var fa = new FineArtsAppliedSkillsCodeEntity(); fa.setFineArtsAppliedSkillsCode("F");
+        var fa = new FineArtsAppliedSkillsCodeEntity();
+        fa.setFineArtsAppliedSkillsCode("F");
         when(fineArtsAppliedSkillsCodeRepository.findById("F")).thenReturn(Optional.of(fa));
         when(equivalentOrChallengeCodeRepository.findById(any())).thenReturn(Optional.empty());
 
@@ -792,7 +878,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    void given2018_Grade11_BA_shouldSetFineArts() throws Exception {
+    void given2018_Grade11_BA_shouldSetFineArts () throws Exception {
         var course = createMockCourseStudent("Y", "APPEND");
         var d = course.getStudentDetails().get(0);
         d.setCourseLevel("11");
@@ -804,7 +890,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         graduationStudentRecordRepository.save(grad);
 
         when(restUtils.getStudentByPEN(any(), any())).thenReturn(student);
-        var fa = new FineArtsAppliedSkillsCodeEntity(); fa.setFineArtsAppliedSkillsCode("F");
+        var fa = new FineArtsAppliedSkillsCodeEntity();
+        fa.setFineArtsAppliedSkillsCode("F");
         when(fineArtsAppliedSkillsCodeRepository.findById("F")).thenReturn(Optional.of(fa));
         when(equivalentOrChallengeCodeRepository.findById(any())).thenReturn(Optional.empty());
 
@@ -818,7 +905,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         assertThat(persisted.get(0).getFineArtsAppliedSkills()).isEqualTo("F");
     }
 
-    private StudentCourseEntity createStudentCourseEntity(UUID studentID, String courseId, String courseSession) {
+    private StudentCourseEntity createStudentCourseEntity (UUID studentID, String courseId, String courseSession){
         StudentCourseEntity studentCourseEntity = new StudentCourseEntity();
         studentCourseEntity.setStudentID(studentID);
         studentCourseEntity.setCourseID(new BigInteger(courseId));
@@ -826,8 +913,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         return studentCourseEntity;
     }
 
-    private CourseStudent createMockCourseStudent(String isSummerCollection, String submissionMode) {
-       var courseDetail = CourseStudentDetail.builder()
+    private CourseStudent createMockCourseStudent (String isSummerCollection, String submissionMode){
+        var courseDetail = CourseStudentDetail.builder()
                 .pen("123456789")
                 .createDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
@@ -848,10 +935,10 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .courseLevel("12")
                 .build();
 
-       return CourseStudent.builder().submissionModeCode(submissionMode).isSummerCollection(isSummerCollection).pen("123456789").studentDetails(List.of(courseDetail)).build();
+        return CourseStudent.builder().submissionModeCode(submissionMode).isSummerCollection(isSummerCollection).pen("123456789").studentDetails(List.of(courseDetail)).build();
     }
 
-    private Student createmockStudent() {
+    private Student createmockStudent () {
         Student studentApiStudent = new Student();
         studentApiStudent.setStudentID(UUID.randomUUID().toString());
         studentApiStudent.setPen("123456789");
@@ -863,7 +950,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         return studentApiStudent;
     }
 
-    private GraduationStudentRecordEntity createMockGraduationStudentRecordEntity(UUID studentID, UUID schoolID) {
+    private GraduationStudentRecordEntity createMockGraduationStudentRecordEntity (UUID studentID, UUID schoolID){
         final GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
         graduationStatusEntity.setStudentID(studentID);
         graduationStatusEntity.setPen("123456789");
@@ -874,7 +961,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         return graduationStatusEntity;
     }
 
-    private DemographicStudent createMockDemographicStudent(String isSummerCollection, String schoolReportingRequirementCode) {
+    private DemographicStudent createMockDemographicStudent (String isSummerCollection, String
+    schoolReportingRequirementCode){
         return DemographicStudent.builder()
                 .pen("123456789")
                 .createDate(LocalDateTime.now())

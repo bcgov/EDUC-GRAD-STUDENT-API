@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.service.event;
 
 import ca.bc.gov.educ.api.gradstudent.constant.GradRequirementYearCodes;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
@@ -16,7 +17,11 @@ import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +61,7 @@ public class GraduationStudentRecordService {
     public static final String EN_1996_CODE = "1996-EN";
     public final List<String> fral10Programs = Arrays.asList("2023-EN", "2018-EN", "2004-EN");
     public final List<String> fral11Programs = Arrays.asList(EN_1996_CODE, "1986-EN");
-
+    private static final Logger logger = LoggerFactory.getLogger(GraduationStudentRecordService.class);
 
     @Transactional
     public Student getStudentByPenFromStudentAPI(String pen) {
@@ -430,9 +435,18 @@ public class GraduationStudentRecordService {
             }
         }
 
-        if(StringUtils.isNotBlank(demStudent.getGradRequirementYear())) {
-            var mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
-            if (!newStudentRecordEntity.getProgram().equalsIgnoreCase(mappedProgram)) {
+        if (StringUtils.isNotBlank(demStudent.getGradRequirementYear())) {
+            String mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
+            GraduationData graduationData = null;
+            try {
+                graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(newStudentRecordEntity.getStudentGradData(), GraduationData.class);
+            } catch (Exception e) {
+                logger.debug("Parsing Graduation Data Error {}", e.getMessage());
+            }
+            boolean isGraduated = graduationData != null && graduationData.isGraduated();
+            boolean hasProgramCompletionDate = newStudentRecordEntity.getProgramCompletionDate() != null;
+            boolean completedSCCP = hasProgramCompletionDate && "SCCP".equalsIgnoreCase(newStudentRecordEntity.getProgram());
+            if (!isGraduated || completedSCCP) {
                 newStudentRecordEntity.setProgram(mappedProgram);
                 projectedChangeCount++;
                 statusChangeCount++;
