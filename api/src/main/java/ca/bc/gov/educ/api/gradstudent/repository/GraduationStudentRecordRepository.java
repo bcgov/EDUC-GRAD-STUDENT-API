@@ -91,6 +91,11 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	Integer archiveStudents(String inStudStatFrom, String inStudStatTo, long batchId, String userName);
 
 	// Data Conversion
+	/**
+	 * Obtain student ids from student api. xref table to be removed.
+	 * @deprecated since 1.27.0 — use {@link ca.bc.gov.educ.api.gradstudent.service.GradStudentService#getStudentIDsByPens(List)} instead.
+	 */
+	@Deprecated(forRemoval = true)
 	@Modifying
     @Query(value="insert into STUDENT_GUID_PEN_XREF(STUDENT_GUID, STUDENT_PEN, CREATE_USER, CREATE_DATE, UPDATE_USER, UPDATE_DATE)\n"
             + "values (:studentGuid, :pen, :userName, :currentTime, :userName, :currentTime) ", nativeQuery=true)
@@ -100,7 +105,12 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
             @Param("userName") String userName,
             @Param("currentTime") LocalDateTime currentTime);
 
-    @Modifying
+	/**
+	 * Obtain student ids from student api. xref table to be removed.
+	 * @deprecated since 1.27.0 — use {@link ca.bc.gov.educ.api.gradstudent.service.GradStudentService#getStudentIDsByPens(List)} instead.
+	 */
+	@Deprecated(forRemoval = true)
+	@Modifying
     @Query(value="update STUDENT_GUID_PEN_XREF set STUDENT_PEN = :pen, UPDATE_USER = :userName, UPDATE_DATE = :currentTime\n"
             + "where STUDENT_GUID = :studentGuid", nativeQuery=true)
     void updateStudentGuidPenXrefRecord(
@@ -113,7 +123,12 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
             "where gpx.STUDENT_GUID = :studentGuid", nativeQuery=true)
     long countStudentGuidPenXrefRecord(@Param("studentGuid") UUID studentGuid);
 
-    @Query(value="select e.studentID from StudentGuidPenXrefEntity e where e.pen in (:pens)")
+	/**
+	 * Obtain student ids from student api. xref table to be removed.
+	 * @deprecated since 1.27.0 — use {@link ca.bc.gov.educ.api.gradstudent.service.GradStudentService#getStudentIDsByPens(List)} instead.
+	 */
+	@Deprecated(forRemoval = true)
+	@Query(value="select e.studentID from StudentGuidPenXrefEntity e where e.pen in (:pens)")
 	List<UUID> findStudentIDsByPenIn(@Param("pens") List<String> pens);
 
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus = :statusCode and c.studentID in :studentIDList")
