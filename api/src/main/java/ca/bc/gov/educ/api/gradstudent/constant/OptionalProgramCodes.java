@@ -3,11 +3,14 @@ package ca.bc.gov.educ.api.gradstudent.constant;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public enum OptionalProgramCodes {
 
-    DD("DD");
+    DD("DD"),   // English Dual Dogwood
+    FR("FR"),   // French Language Certificate
+    FI("FI");   // French Immersion
 
     @Getter
     private final String code;
@@ -22,6 +25,10 @@ public enum OptionalProgramCodes {
         return Arrays.stream(ENUM_VALUES)
             .filter(e -> e.code.equals(code))
             .findFirst();
+    }
+
+    public static List<String> getProtectedCodes() {
+        return Arrays.asList(FI.getCode(), FR.getCode(), DD.getCode());
     }
 
 }
