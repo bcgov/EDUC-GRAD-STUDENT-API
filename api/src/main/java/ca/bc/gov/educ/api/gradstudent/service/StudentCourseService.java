@@ -63,10 +63,12 @@ public class StudentCourseService {
         List<StudentCourse> existingStudentCourses = getStudentCourses(studentID);
         GraduationStudentRecord graduationStudentRecord = graduationStatusService.getGraduationStatus(studentID);
         //Performance consideration: Consolidate and fetch all courses in a single call.
+        log.info("Retrieving {} student courses from DB", existingStudentCourses.size());
         List<Course> courses = courseService.getCourses(studentCourses.stream()
                 .flatMap(sc -> Stream.of(sc.getCourseID(), sc.getRelatedCourseId()))
                 .filter(StringUtils::isNotBlank)
                 .toList());
+        log.info("Retrieved {} student courses", courses.size());
         StudentCourseActivityType activityCode = isUpdate ? StudentCourseActivityType.USERCOURSEMOD : StudentCourseActivityType.USERCOURSEADD;
 
         studentCourses.forEach(studentCourse -> {
