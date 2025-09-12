@@ -42,7 +42,9 @@ public class StudentCourseService {
 
     public List<StudentCourse> getStudentCourses(UUID studentID) {
         if (studentID != null) {
+            log.info("getStudentCourses: studentID = {}", studentID);
             List<StudentCourseEntity> studentCourseEntities = studentCourseRepository.findByStudentID(studentID);
+            log.info("Retrieved {} student courses for studentID = {}", studentCourseEntities.size(), studentID);
             return studentCourseEntities.stream().map(mapper::toStructure).toList();
         }
         return Collections.emptyList();
