@@ -201,7 +201,6 @@ public class GraduationStatusService extends GradBaseService {
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            boolean isSchoolOfRecordUpdated = checkIfSchoolOfRecordIsUpdated(sourceObject, gradEntity);
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "recalculateGradStatus", "recalculateProjectedGrad", "programCompletionDate", "studentProjectedGradData");
             gradEntity.setBatchId(batchId);
             if(!gradEntity.getProgram().equalsIgnoreCase("SCCP") && !gradEntity.getProgram().equalsIgnoreCase("NOPROG")) {
@@ -225,11 +224,6 @@ public class GraduationStatusService extends GradBaseService {
                 events.add(gradStatusEvent);
             }
 
-            if(isSchoolOfRecordUpdated) {
-                GradStatusEvent gradStatusEventForSchoolOfRecordUpdate = createEventForSchoolOfRecordUpdate(studentID, sourceObject);
-                events.add(gradStatusEventForSchoolOfRecordUpdate);
-            }
-
             return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity), events);
         } else {
             sourceObject = graduationStatusRepository.saveAndFlush(sourceObject);
@@ -240,8 +234,6 @@ public class GraduationStatusService extends GradBaseService {
                 gradStatusEventRepository.save(gradStatusEvent);
                 events.add(gradStatusEvent);
             }
-            GradStatusEvent gradStatusEventForSchoolOfRecordUpdate = createEventForSchoolOfRecordUpdate(studentID, sourceObject);
-            events.add(gradStatusEventForSchoolOfRecordUpdate);
 
             return Pair.of(graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject), events);
         }
