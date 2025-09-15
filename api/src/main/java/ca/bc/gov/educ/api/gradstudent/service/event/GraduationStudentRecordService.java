@@ -109,11 +109,11 @@ public class GraduationStudentRecordService {
         var savedStudentRecord = graduationStudentRecordRepository.save(entity);
         historyService.createStudentHistory(savedStudentRecord, ADD_ONGOING_HISTORY_ACTIVITY_CODE);
 
-        List<UUID> incomingProgramIDs = getOptionalProgramIDForIncomingPrograms(demStudent, optionalProgramCodes);
+        List<UUID> incomingProgramIDs = getOptionalProgramIDForIncomingPrograms(demStudent, optionalProgramCodes, entity.getProgram());
         incomingProgramIDs.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
 
         if(StringUtils.isNotBlank(savedStudentRecord.getProgram()) && savedStudentRecord.getProgram().equalsIgnoreCase("SCCP") && savedStudentRecord.getProgramCompletionDate() != null && demStudent.getSchoolReportingRequirementCode().equalsIgnoreCase("CSF")) {
-            var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
+            var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR",  entity.getProgram());
             frProgram.ifPresent(optionalProgramCode -> optionalProgramEntities.add(createStudentOptionalProgramEntity(optionalProgramCode.getOptionalProgramID(), savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         }
         var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
@@ -131,15 +131,15 @@ public class GraduationStudentRecordService {
         var savedStudentRecord = graduationStudentRecordRepository.save(updatedEntity);
 
         List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
-        List<UUID> incomingProgramIDs = getOptionalProgramIDForIncomingPrograms(demStudent, optionalProgramCodes);
+        List<UUID> incomingProgramIDs = getOptionalProgramIDForIncomingPrograms(demStudent, optionalProgramCodes, updatedEntity.getProgram());
         if (StringUtils.endsWithIgnoreCase(savedStudentRecord.getProgram(), "-PF")) {
-            getOptionalProgramCode(optionalProgramCodes, OptionalProgramCodes.DD.getCode())
+            getOptionalProgramCode(optionalProgramCodes, OptionalProgramCodes.DD.getCode(), updatedEntity.getProgram())
                     .map(OptionalProgramCode::getOptionalProgramID)
                     .filter(ddId -> !incomingProgramIDs.contains(ddId))
                     .ifPresent(incomingProgramIDs::add);
         }
         boolean isGraduated = deriveIfGraduated(savedStudentRecord);
-        var optionalProgramsToRemove = getOptionalProgramForRemoval(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs, optionalProgramCodes, isGraduated);
+        var optionalProgramsToRemove = getOptionalProgramForRemoval(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs, optionalProgramCodes, isGraduated, updatedEntity.getProgram());
         if(!optionalProgramsToRemove.isEmpty()) {
             studentOptionalProgramRepository.deleteAll(optionalProgramsToRemove);
         }
@@ -227,7 +227,7 @@ public class GraduationStudentRecordService {
         
         if(isFRAL10 || isFRAL11 || course.equalsIgnoreCase("FRALP 11") && StringUtils.isNotBlank(existingStudentRecordEntity.getProgram()) && existingStudentRecordEntity.getProgram().equalsIgnoreCase(EN_1996_CODE)) {
             List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
-            var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR");
+            var frProgram = getOptionalProgramCode(optionalProgramCodes, "FR", existingStudentRecordEntity.getProgram());
             if(frProgram.isPresent() && !hasFrenchProgram(existingStudentRecordEntity.getStudentID(), frProgram.get().getOptionalProgramID())) {
                 var entity = createStudentOptionalProgramEntity(frProgram.get().getOptionalProgramID(), existingStudentRecordEntity.getStudentID(), courseStudent.getCreateUser(), courseStudent.getUpdateUser());
                 var savedEntity = studentOptionalProgramRepository.save(entity);
@@ -361,14 +361,14 @@ public class GraduationStudentRecordService {
         return restUtils.getCoursesByExternalID(UUID.randomUUID(), externalID);
     }
 
-    private List<StudentOptionalProgramEntity> getOptionalProgramForRemoval(UUID studentID, List<UUID> incomingProgramIDs, List<OptionalProgramCode> optionalProgramCodes, boolean isGraduated) {
+    private List<StudentOptionalProgramEntity> getOptionalProgramForRemoval(UUID studentID, List<UUID> incomingProgramIDs, List<OptionalProgramCode> optionalProgramCodes, boolean isGraduated, String gradProgram) {
         if (isGraduated) {
             return Collections.emptyList();
         }
         List<StudentOptionalProgramEntity> existingPrograms = studentOptionalProgramRepository.findByStudentID(studentID);
 
         Set<UUID> protectedIds = OptionalProgramCodes.getProtectedCodes().stream()
-                .map(code -> getOptionalProgramCode(optionalProgramCodes, code))
+                .map(code -> getOptionalProgramCode(optionalProgramCodes, code, gradProgram))
                 .flatMap(Optional::stream)
                 .map(OptionalProgramCode::getOptionalProgramID)
                 .collect(Collectors.toSet());
@@ -395,30 +395,30 @@ public class GraduationStudentRecordService {
         return optionalProgramsToAdd;
     }
 
-    private List<UUID> getOptionalProgramIDForIncomingPrograms(DemographicStudent demStudent, List<OptionalProgramCode> optionalProgramCodes) {
+    private List<UUID> getOptionalProgramIDForIncomingPrograms(DemographicStudent demStudent, List<OptionalProgramCode> optionalProgramCodes, String gradProgram) {
         List<UUID> optionalProgramIDs = new ArrayList<>();
         if(StringUtils.isNotBlank(demStudent.getProgramCode1())) {
-            var programCode1Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode1()));
+            var programCode1Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode1()), gradProgram);
             programCode1Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode2())) {
-            var programCode2Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode2()));
+            var programCode2Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode2()), gradProgram);
             programCode2Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode3())) {
-            var programCode3Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode3()));
+            var programCode3Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode3()), gradProgram);
             programCode3Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode4())) {
-            var programCode4Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode4()));
+            var programCode4Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode4()), gradProgram);
             programCode4Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode5())) {
-            var programCode5Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode5()));
+            var programCode5Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode5()), gradProgram);
             programCode5Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
         return optionalProgramIDs;
@@ -493,8 +493,13 @@ public class GraduationStudentRecordService {
         return newStudentRecordEntity;
     }
 
-    private Optional<OptionalProgramCode> getOptionalProgramCode(List<OptionalProgramCode> optionalProgramCodes, String incomingProgramCode) {
-        return  optionalProgramCodes.stream().filter(program -> program.getOptProgramCode().equalsIgnoreCase(incomingProgramCode)).findFirst();
+    private Optional<OptionalProgramCode> getOptionalProgramCode(List<OptionalProgramCode> optionalProgramCodes, String incomingProgramCode, String gradProgram) {
+        return  optionalProgramCodes
+                .stream()
+                .filter(program -> program.getOptProgramCode().equalsIgnoreCase(incomingProgramCode)
+                        && StringUtils.isNotBlank(gradProgram)
+                        && StringUtils.isNotBlank(program.getGraduationProgramCode())
+                        && program.getGraduationProgramCode().equalsIgnoreCase(gradProgram)).findFirst();
     }
 
     private StudentOptionalProgramEntity createStudentOptionalProgramEntity(UUID programID, UUID studentID, String createUser, String updateUser) {
