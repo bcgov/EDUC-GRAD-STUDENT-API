@@ -181,6 +181,8 @@ endpoint:
       url: http://test
     examinable-course-details:
       url: http://test
+  institute:
+    url: http://test
 
 #Splunk LogHelper
 splunk:

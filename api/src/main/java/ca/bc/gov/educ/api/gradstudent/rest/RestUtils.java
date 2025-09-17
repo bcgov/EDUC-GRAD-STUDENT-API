@@ -13,6 +13,8 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -61,7 +63,11 @@ public class RestUtils {
   private final ReadWriteLock gradProgramLock = new ReentrantReadWriteLock();
   private final Map<String, OptionalProgramCode> optionalProgramCodesMap = new ConcurrentHashMap<>();
   private final Map<String, GraduationProgramCode> gradProgramCodeMap = new ConcurrentHashMap<>();
+  private final Map<String, District> districtMap = new ConcurrentHashMap<>();
+  private final Map<String, School> schoolMap = new ConcurrentHashMap<>();
   final EducGradStudentApiConstants constants;
+  private final ReadWriteLock districtLock = new ReentrantReadWriteLock();
+  private final ReadWriteLock schoolLock = new ReentrantReadWriteLock();
 
   public static final Executor bgTask = new EnhancedQueueExecutor.Builder()
           .setThreadFactory(new ThreadFactoryBuilder().setNameFormat("bg-task-executor-%d").build())
@@ -87,11 +93,66 @@ public class RestUtils {
   private void initialize() {
     this.populateGradProgramCodesMap();
     this.populateOptionalProgramsMap();
+    this.populateDistrictMap();
+    this.populateSchoolMap();
   }
 
   @Scheduled(cron = "${cron.scheduled.process.cache-cron.run}")
   public void scheduled() {
     this.init();
+  }
+
+
+  public void populateDistrictMap() {
+    val writeLock = this.districtLock.writeLock();
+    try {
+      writeLock.lock();
+      for (val district : this.getDistricts()) {
+        this.districtMap.put(district.getDistrictId(), district);
+      }
+    } catch (Exception ex) {
+      log.error("Unable to load map cache district ", ex);
+    } finally {
+      writeLock.unlock();
+    }
+    log.info("Loaded  {} districts to memory", this.districtMap.values().size());
+  }
+
+  public List<District> getDistricts() {
+    log.info("Calling Institute api to load districts to memory");
+    return this.webClient.get()
+            .uri(constants.getInstituteApiURL() + "/district")
+            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .retrieve()
+            .bodyToFlux(District.class)
+            .collectList()
+            .block();
+  }
+
+  public void populateSchoolMap() {
+    val writeLock = this.schoolLock.writeLock();
+    try {
+      writeLock.lock();
+      for (val school : this.getSchools()) {
+        this.schoolMap.put(school.getSchoolId(), school);
+      }
+    } catch (Exception ex) {
+      log.error("Unable to load map cache school {}", ex);
+    } finally {
+      writeLock.unlock();
+    }
+    log.info("Loaded  {} schools to memory", this.schoolMap.values().size());
+  }
+
+  private List<School> getSchools() {
+    log.info("Calling Institute api to load schools to memory");
+    return this.webClient.get()
+            .uri(constants.getInstituteApiURL() + "/school")
+            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .retrieve()
+            .bodyToFlux(School.class)
+            .collectList()
+            .block();
   }
 
   private List<OptionalProgramCode> getOptionalPrograms() {
@@ -244,6 +305,30 @@ public class RestUtils {
       Thread.currentThread().interrupt();
       throw new GradStudentAPIRuntimeException(NATS_TIMEOUT + correlationID);
     }
+  }
+
+  public Optional<District> getDistrictByDistrictID(final String districtID) {
+    if (this.districtMap.isEmpty()) {
+      log.info("District map is empty reloading schools");
+      this.populateDistrictMap();
+    }
+    return Optional.ofNullable(this.districtMap.get(districtID));
+  }
+
+  public List<School> getSchoolList() {
+    if (this.schoolMap.isEmpty()) {
+      log.info("School map is empty reloading schools get all school tombstones");
+      this.populateSchoolMap();
+    }
+    return new ArrayList<>(this.schoolMap.values());
+  }
+
+  public Optional<School> getSchoolBySchoolID(final String schoolID) {
+    if (this.schoolMap.isEmpty()) {
+      log.info("School map is empty reloading schools");
+      this.populateSchoolMap();
+    }
+    return Optional.ofNullable(this.schoolMap.get(schoolID));
   }
 
 }

@@ -230,6 +230,8 @@ endpoint:
       url: ${GRAD_COURSE_API}api/v2/course/search
     examinable-course-details:
       url: ${GRAD_COURSE_API}api/v1/course/examinablecourses
+  institute:
+    url: ${INSTITUTE_URL}/api/v1/institute
 
 
 #Splunk LogHelper

@@ -228,4 +228,6 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	 * @param <T>
 	 */
 	<T> T findByStudentID(UUID studentId, Class<T> type);
+
+	List<GraduationStudentRecordEntity> findByProgramCompletionDateIsGreaterThanEqualAndProgramCompletionDateIsLessThanEqualAndSchoolAtGradIdIn(Date startDate, Date endDate, List<UUID> schoolOfRecordIds);
 }
