@@ -2,6 +2,8 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.EducGradStudentApiApplication;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentGradeCodeEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentGradeCodeRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -54,5 +56,30 @@ public abstract class BaseIntegrationTest {
         .statusCode("A")
         .mincode("123456789")
         .build();
+  }
+
+  public District createMockDistrict() {
+    final District district = new District();
+    district.setDistrictId(UUID.randomUUID().toString());
+    district.setDisplayName("Marco's district");
+    district.setDistrictNumber("036");
+    district.setDistrictStatusCode("ACTIVE");
+    district.setPhoneNumber("123456789");
+    return district;
+  }
+
+  public School createMockSchoolTombstone() {
+    return School.builder()
+            .schoolId(UUID.randomUUID().toString())
+            .mincode("123456")
+            .schoolNumber("01001")
+            .displayName("Mock School Tombstone 01001")
+            .schoolOrganizationCode("QUARTER")
+            .schoolCategoryCode("PUBLIC")
+            .facilityTypeCode("STANDARD")
+            .schoolReportingRequirementCode("REGULAR")
+            .openedDate("2018-07-01 00:00:00.000")
+            .closedDate(null)
+            .build();
   }
 }
