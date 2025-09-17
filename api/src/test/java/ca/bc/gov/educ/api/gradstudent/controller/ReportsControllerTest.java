@@ -1,7 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
@@ -24,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,15 +48,18 @@ class ReportsControllerTest extends BaseIntegrationTest {
     private RestUtils restUtils;
     @Autowired
     private GraduationStudentRecordRepository graduationStudentRecordRepository;
+    @Autowired
+    private StudentOptionalProgramRepository studentOptionalProgramRepository;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        studentOptionalProgramRepository.deleteAll();
         graduationStudentRecordRepository.deleteAll();
     }
 
     @Test
-    void testGetDownloadableReport_LTP12ItemAnalysis_ShouldReturnCSVFile() throws Exception {
+    void testGetDownloadableReport_YukonReport_withMissingDistrictID_ShouldReturnBadRequest() throws Exception {
         final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_STUDENT_REPORT";
         final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
 
@@ -71,6 +77,67 @@ class ReportsControllerTest extends BaseIntegrationTest {
 
         graduationStudentRecordRepository.save(student);
 
+        UUID districtID = null;
+
+        var fromDate = LocalDate.now().minusDays(10).toString();
+        var toDate = LocalDate.now().toString();
+
+        this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/" + districtID + "/download/" + fromDate + "/" + toDate)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetDownloadableReport_YukonReport_withMissingDates_ShouldReturnBadRequest() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_STUDENT_REPORT";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID = UUID.randomUUID();
+        GraduationStudentRecordEntity student = new GraduationStudentRecordEntity();
+        student.setStudentID(UUID.randomUUID());
+        student.setPen("123456789");
+        student.setStudentStatus("A");
+        student.setRecalculateGradStatus("Y");
+        student.setProgram("2023-EN");
+        student.setSchoolOfRecordId(schoolID);
+        student.setSchoolAtGradId(schoolID);
+        student.setGpa("4");
+        student.setProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+
+        graduationStudentRecordRepository.save(student);
+
+        this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/" + UUID.randomUUID() + "/download/" + " " + "/" + " ")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetDownloadableReport_getYukonReport_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_STUDENT_REPORT";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+        var optProg = new OptionalProgramCode(UUID.randomUUID(), "DD", "Dual Dogwood", "", 3, "2020-01-01T00:00:00", "2099-12-31T23:59:59", "", "", "unitTests", LocalDateTime.now().toString(), "unitTests", LocalDateTime.now().toString());
+
+        var schoolID = UUID.randomUUID();
+        GraduationStudentRecordEntity student = new GraduationStudentRecordEntity();
+        student.setStudentID(UUID.randomUUID());
+        student.setPen("123456789");
+        student.setStudentStatus("A");
+        student.setRecalculateGradStatus("Y");
+        student.setProgram("2023-EN");
+        student.setSchoolOfRecordId(schoolID);
+        student.setSchoolAtGradId(schoolID);
+        student.setGpa("4");
+        student.setProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+        graduationStudentRecordRepository.save(student);
+
+        StudentOptionalProgramEntity optProgram = new StudentOptionalProgramEntity();
+        optProgram.setStudentID(student.getStudentID());
+        optProgram.setOptionalProgramID(optProg.getOptionalProgramID());
+        optProgram.setOptionalProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+        studentOptionalProgramRepository.save(optProgram);
+
         var district = createMockDistrict();
         var school = createMockSchoolTombstone();
         school.setSchoolId(String.valueOf(schoolID));
@@ -79,6 +146,7 @@ class ReportsControllerTest extends BaseIntegrationTest {
         when(restUtils.getDistrictByDistrictID(any())).thenReturn(Optional.of(district));
         when(restUtils.getSchoolList()).thenReturn(List.of(school));
         when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+        when(restUtils.getOptionalProgramCodeList()).thenReturn(List.of(optProg));
 
         var fromDate = LocalDate.now().minusDays(10).toString();
         var toDate = LocalDate.now().toString();
