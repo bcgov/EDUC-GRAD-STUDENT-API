@@ -385,6 +385,11 @@ public class GradStudentService {
 		if(searchRequest.getPens() != null && !searchRequest.getPens().isEmpty()) {
 			result.addAll(getStudentIDsByPens(searchRequest.getPens()));
 		}
+        if (searchRequest.getPrograms() != null && !searchRequest.getPrograms().isEmpty()
+                && searchRequest.getGrades() != null && !searchRequest.getGrades().isEmpty()
+                && searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
+            result.addAll(graduationStatusRepository.findByProgramInAndSchoolOfRecordInAndGradeIn(searchRequest.getPrograms(), searchRequest.getGrades(), searchRequest.getSchoolIds()));
+        }
 		if(searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));
 		}
