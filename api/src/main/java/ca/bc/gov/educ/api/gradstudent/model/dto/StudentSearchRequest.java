@@ -38,6 +38,7 @@ public class StudentSearchRequest implements Serializable {
     private List<UUID> studentIDs;
     private List<String> statuses;
     private List<String> reportTypes;
+    private List<String> grades;
 
     @JsonFormat(pattern= EducGradStudentApiConstants.DEFAULT_DATE_FORMAT)
     LocalDate gradDateFrom;
@@ -80,6 +81,13 @@ public class StudentSearchRequest implements Serializable {
             programs = new ArrayList<>();
         }
         return programs;
+    }
+
+    public List<String> getGrades() {
+        if(grades == null) {
+            grades = new ArrayList<>();
+        }
+        return grades;
     }
 
     public String toJson() {

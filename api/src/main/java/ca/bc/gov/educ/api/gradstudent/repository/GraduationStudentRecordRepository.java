@@ -59,6 +59,12 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.schoolOfRecordId IN (:schoolOfRecordIds)")
 	List<UUID> findBySchoolOfRecordIdIn(List<UUID> schoolOfRecordIds);
 
+    @Query("select c.studentID from GraduationStudentRecordEntity c " +
+            "where (:schoolOfRecordIds is null or c.schoolOfRecordId IN (:schoolOfRecordIds)) " +
+            "and (:studentGrades is null or c.studentGrade IN (:studentGrades)) " +
+            "and (:graduationProgramCodes is null or c.program IN (:graduationProgramCodes))")
+    List<UUID> findByProgramInAndSchoolOfRecordInAndGradeIn(List<String> graduationProgramCodes, List<String> studentGrades, List<UUID> schoolOfRecordIds);
+
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
 	List<UUID> findByStudentStatus(String studentStatus);
 
