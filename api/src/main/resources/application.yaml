@@ -231,7 +231,7 @@ endpoint:
     examinable-course-details:
       url: ${GRAD_COURSE_API}api/v1/course/examinablecourses
   institute:
-    url: ${INSTITUTE_URL}/api/v1/institute
+    url: ${INSTITUTE_URL}
 
 
 #Splunk LogHelper
