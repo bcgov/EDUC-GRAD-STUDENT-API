@@ -5,14 +5,17 @@ import ca.bc.gov.educ.api.gradstudent.constant.v1.YukonReportHeader;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.DownloadableReportResponse;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
@@ -79,20 +82,38 @@ public class CSVReportService {
     }
 
     private List<String> prepareDataForCsv(GraduationStudentRecordEntity student, School school, List<OptionalProgramCode> optionalProgramCodes) {
+        var studentData = StringUtils.isNotBlank(student.getStudentGradData()) ? deriveStudentData(student) : null;
         return new ArrayList<>(Arrays.asList(
                 school.getMincode(),
                 school.getDisplayName(),
-                student.getPen(),
-                student.getLegalLastName(),
-                student.getLegalFirstName(),
-                student.getLegalMiddleNames(),
+                studentData != null &&  studentData.getGradStudent() != null ? studentData.getGradStudent().getPen() : "",
+                studentData != null &&  studentData.getGradStudent() != null ? studentData.getGradStudent().getLegalLastName() : "",
+                studentData != null &&  studentData.getGradStudent() != null ? studentData.getGradStudent().getLegalFirstName() : "",
+                studentData != null &&  studentData.getGradStudent() != null ? studentData.getGradStudent().getLegalMiddleNames() : "",
                 student.getProgram(),
-                optionalProgram(student.getStudentID(), student.getProgram(), optionalProgramCodes, OptionalProgramCodes.FI.getCode()) + "," + optionalProgram(student.getStudentID(), student.getProgram(), optionalProgramCodes, OptionalProgramCodes.DD.getCode()),
-                student.getProgramCompletionDate().toString()
+                getOptionalProgram(student.getStudentID(), student.getProgram(), optionalProgramCodes),
+                student.getProgramCompletionDate() != null ? EducGradStudentApiUtils.formatDate(student.getProgramCompletionDate()) : ""
         ));
     }
 
-    private String optionalProgram(UUID studentID, String gradProgram, List<OptionalProgramCode> optionalProgramCodes, String programCode) {
+    private String getOptionalProgram(UUID studentID, String gradProgram, List<OptionalProgramCode> optionalProgramCodes) {
+        var fiProgram = optionalProgramCalc(studentID, gradProgram, optionalProgramCodes, OptionalProgramCodes.FI.getCode());
+        var ddProgram = optionalProgramCalc(studentID, gradProgram, optionalProgramCodes, OptionalProgramCodes.DD.getCode());
+        var prog = StringUtils.isBlank(fiProgram) ? ddProgram : fiProgram;
+        return  StringUtils.isNotBlank(fiProgram) && StringUtils.isNotBlank(ddProgram) ? fiProgram + "," + ddProgram : prog;
+    }
+
+    private GraduationData deriveStudentData(GraduationStudentRecordEntity studentRecord) {
+        GraduationData graduationData = null;
+        try {
+            graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(studentRecord.getStudentGradData(), GraduationData.class);
+        } catch (Exception e) {
+            throw new GradStudentAPIRuntimeException(e);
+        }
+        return graduationData;
+    }
+
+    private String optionalProgramCalc(UUID studentID, String gradProgram, List<OptionalProgramCode> optionalProgramCodes, String programCode) {
         var studentOptionalProgram = studentOptionalProgramRepository.findByStudentID(studentID);
         var optProgram = getOptionalProgramCode(optionalProgramCodes, programCode,  gradProgram);
 
