@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 
+import ca.bc.gov.educ.api.gradstudent.EducGradStudentApiApplication;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(classes = {EducGradStudentApiApplication.class})
 @AutoConfigureMockMvc
 class GraduationStatusControllerMVCTest {
 
