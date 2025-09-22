@@ -103,6 +103,7 @@ public class GraduationStatusController {
     public ResponseEntity<GraduationStudentRecord> updateStudentGradStatus(@PathVariable String studentID,
                                                                            @RequestBody @Valid GraduationStudentRecord graduationStatus,
                                                                            @RequestHeader(name="Authorization") String accessToken) throws JsonProcessingException {
+        logger.debug("update student Grad Status by Student ID");
         var result = gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken.replace(BEARER, ""));
         var events = result.getRight();
         if(!events.isEmpty()) {
