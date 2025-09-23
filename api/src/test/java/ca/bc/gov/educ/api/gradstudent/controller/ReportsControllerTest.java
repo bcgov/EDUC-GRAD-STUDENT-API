@@ -8,6 +8,7 @@ import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordReposito
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -130,6 +131,60 @@ class ReportsControllerTest extends BaseIntegrationTest {
         student.setSchoolAtGradId(schoolID);
         student.setGpa("4");
         student.setProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+        graduationStudentRecordRepository.save(student);
+
+        StudentOptionalProgramEntity optProgram = new StudentOptionalProgramEntity();
+        optProgram.setStudentID(student.getStudentID());
+        optProgram.setOptionalProgramID(optProg.getOptionalProgramID());
+        optProgram.setOptionalProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+        studentOptionalProgramRepository.save(optProgram);
+
+        var district = createMockDistrict();
+        var school = createMockSchoolTombstone();
+        school.setSchoolId(String.valueOf(schoolID));
+        school.setDistrictId(district.getDistrictId());
+
+        when(restUtils.getDistrictByDistrictID(any())).thenReturn(Optional.of(district));
+        when(restUtils.getSchoolList()).thenReturn(List.of(school));
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+        when(restUtils.getOptionalProgramCodeList()).thenReturn(List.of(optProg));
+
+        var fromDate = LocalDate.now().minusDays(10).toString();
+        var toDate = LocalDate.now().toString();
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/" + district.getDistrictId() + "/download/" + fromDate + "/" + toDate)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("yukon-report");
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+
+    @Test
+    void testGetDownloadableReport_getYukonReport_WithStudentData_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_STUDENT_REPORT";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+        var optProg = new OptionalProgramCode(UUID.randomUUID(), "FI", "French Immersion", "", 3, "2020-01-01T00:00:00", "2099-12-31T23:59:59", "", "", "unitTests", LocalDateTime.now().toString(), "unitTests", LocalDateTime.now().toString());
+
+        GraduationData data = new GraduationData();
+        data.setGradStudent(GradSearchStudent.builder().legalFirstName("Test").legalLastName("Test").pen("123456789").gradeCode("08").build());
+        var schoolID = UUID.randomUUID();
+        GraduationStudentRecordEntity student = new GraduationStudentRecordEntity();
+        student.setStudentID(UUID.randomUUID());
+        student.setPen("123456789");
+        student.setStudentStatus("A");
+        student.setRecalculateGradStatus("Y");
+        student.setProgram("2023-EN");
+        student.setSchoolOfRecordId(schoolID);
+        student.setSchoolAtGradId(schoolID);
+        student.setGpa("4");
+        student.setProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+        student.setStudentGradData(JsonUtil.getJsonStringFromObject(data));
         graduationStudentRecordRepository.save(student);
 
         StudentOptionalProgramEntity optProgram = new StudentOptionalProgramEntity();
