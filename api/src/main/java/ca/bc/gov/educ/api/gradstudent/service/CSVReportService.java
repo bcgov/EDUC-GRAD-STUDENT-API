@@ -104,7 +104,7 @@ public class CSVReportService {
     }
 
     private GraduationData deriveStudentData(GraduationStudentRecordEntity studentRecord) {
-        GraduationData graduationData = null;
+        GraduationData graduationData;
         try {
             graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(studentRecord.getStudentGradData(), GraduationData.class);
         } catch (Exception e) {

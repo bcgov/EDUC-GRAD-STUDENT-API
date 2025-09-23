@@ -164,6 +164,65 @@ class ReportsControllerTest extends BaseIntegrationTest {
         assertThat(summary.getDocumentData()).isNotBlank();
     }
 
+    @Test
+    void testGetDownloadableReport_getYukonReport_WithNoStudent_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_STUDENT_REPORT";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+        var optProg1 = new OptionalProgramCode(UUID.randomUUID(), "DD", "Dual Dogwood", "", 3, "2020-01-01T00:00:00", "2099-12-31T23:59:59", "", "", "unitTests", LocalDateTime.now().toString(), "unitTests", LocalDateTime.now().toString());
+        var optProg2 = new OptionalProgramCode(UUID.randomUUID(), "FI", "French Immersion", "", 3, "2020-01-01T00:00:00", "2099-12-31T23:59:59", "", "", "unitTests", LocalDateTime.now().toString(), "unitTests", LocalDateTime.now().toString());
+
+        GraduationData data = new GraduationData();
+        data.setGradStudent(null);
+        var schoolID = UUID.randomUUID();
+        GraduationStudentRecordEntity student = new GraduationStudentRecordEntity();
+        student.setStudentID(UUID.randomUUID());
+        student.setPen("123456789");
+        student.setStudentStatus("A");
+        student.setRecalculateGradStatus("Y");
+        student.setProgram("2023-EN");
+        student.setSchoolOfRecordId(schoolID);
+        student.setSchoolAtGradId(schoolID);
+        student.setGpa("4");
+        student.setProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+        student.setStudentGradData(JsonUtil.getJsonStringFromObject(data));
+        graduationStudentRecordRepository.save(student);
+
+        StudentOptionalProgramEntity optProgram1 = new StudentOptionalProgramEntity();
+        optProgram1.setStudentID(student.getStudentID());
+        optProgram1.setOptionalProgramID(optProg1.getOptionalProgramID());
+        optProgram1.setOptionalProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+
+        StudentOptionalProgramEntity optProgram2 = new StudentOptionalProgramEntity();
+        optProgram2.setStudentID(student.getStudentID());
+        optProgram2.setOptionalProgramID(optProg2.getOptionalProgramID());
+        optProgram2.setOptionalProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+        studentOptionalProgramRepository.saveAll(List.of(optProgram1, optProgram2));
+
+        var district = createMockDistrict();
+        var school = createMockSchoolTombstone();
+        school.setSchoolId(String.valueOf(schoolID));
+        school.setDistrictId(district.getDistrictId());
+
+        when(restUtils.getDistrictByDistrictID(any())).thenReturn(Optional.of(district));
+        when(restUtils.getSchoolList()).thenReturn(List.of(school));
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+        when(restUtils.getOptionalProgramCodeList()).thenReturn(List.of(optProg1, optProg2));
+
+        var fromDate = LocalDate.now().minusDays(10).toString();
+        var toDate = LocalDate.now().toString();
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/" + district.getDistrictId() + "/download/" + fromDate + "/" + toDate)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        val summary = objectMapper.readValue(resultActions.andReturn().getResponse().getContentAsByteArray(), DownloadableReportResponse.class);
+
+        assertThat(summary).isNotNull();
+        assertThat(summary.getReportType()).isEqualTo("yukon-report");
+        assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
 
     @Test
     void testGetDownloadableReport_getYukonReport_WithStudentData_ShouldReturnCSVFile() throws Exception {
