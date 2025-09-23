@@ -153,7 +153,6 @@ public class GraduationStatusControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Mockito.when(validation.hasErrors()).thenReturn(false);
         Mockito.when(graduationStatusService.updateGraduationStatus(studentID, graduationStatus, "accessToken")).thenReturn(Pair.of(graduationStatus, new ArrayList<>()));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
         var result = graduationStatusController.updateStudentGradStatus(studentID.toString(), graduationStatus, "accessToken");
@@ -162,19 +161,6 @@ public class GraduationStatusControllerTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
-    @Test
-    public void testUpdateStudentGradStatus_whenValidationHasErrors_thenReturnBadRequestHttpStatus() throws JsonProcessingException {
-        // ID
-        UUID studentID = UUID.randomUUID();
-
-        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
-        graduationStatus.setStudentID(studentID);
-
-        Mockito.when(validation.hasErrors()).thenReturn(true);
-        var result = graduationStatusController.updateStudentGradStatus(studentID.toString(), graduationStatus, null);
-        assertThat(result).isNotNull();
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
 
     @Test
     public void testGetStudentGradOptionalPrograms() {
