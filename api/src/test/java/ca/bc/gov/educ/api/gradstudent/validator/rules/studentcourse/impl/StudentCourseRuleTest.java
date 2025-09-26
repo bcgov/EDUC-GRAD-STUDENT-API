@@ -290,8 +290,7 @@ public class StudentCourseRuleTest {
         LocalDate currentDate = LocalDate.now();
         String currentMonth = String.format("%04d%02d", currentDate.getYear(), currentDate.getMonthValue());
         String currentMonthWithDash = String.format("%04d-%02d", currentDate.getYear(), currentDate.getMonthValue());
-        
-        // Test data: {sessionValue, shouldHaveError, description}
+
         Object[][] testCases = {
             // Valid cases - should not have session month error
             {currentMonth, false, "Valid current month"},
