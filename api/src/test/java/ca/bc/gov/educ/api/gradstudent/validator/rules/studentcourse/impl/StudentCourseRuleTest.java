@@ -142,21 +142,6 @@ public class StudentCourseRuleTest {
     }
 
     @Test
-    public void testExecuteValidation_WhenSessionMonthIsInvalid_ShouldReturnSessionMonthError() {
-        // Given
-        studentCourse.setCourseSession("202313"); // Invalid month 13
-
-        // When
-        List<ValidationIssue> result = studentCourseRule.executeValidation(studentCourseRuleData);
-
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getValidationFieldName()).isEqualTo("course");
-        assertThat(result.get(0).getValidationIssueMessage()).contains("Course session month must be between 01 and 12");
-        assertThat(result.get(0).getValidationIssueSeverityCode()).isEqualTo(ValidationIssueSeverityCode.ERROR.getCode());
-    }
-
-    @Test
     public void testExecuteValidation_WhenSessionDateIsBeforeCourseStartDate_ShouldReturnSessionStartWarning() {
         // Given
         LocalDate currentDate = LocalDate.now();
@@ -301,73 +286,55 @@ public class StudentCourseRuleTest {
     }
 
     @Test
-    public void testExecuteValidation_WithValidSessionMonth_ShouldNotReturnSessionMonthError() {
-        // Given
+    public void testExecuteValidation_SessionMonthValidation() {
         LocalDate currentDate = LocalDate.now();
-        String sessionDate = String.format("%04d%02d", currentDate.getYear(), currentDate.getMonthValue());
-        studentCourse.setCourseSession(sessionDate); // Valid current month
-        // Set start date to 1st day of 2 months before (since getSessionDate converts to 1st day)
-        course.setStartDate(LocalDate.of(currentDate.getYear(), currentDate.getMonthValue(), 1).minusMonths(2));
-        // Set completion date to 1st day of 2 months after
-        course.setCompletionEndDate(LocalDate.of(currentDate.getYear(), currentDate.getMonthValue(), 1).plusMonths(2));
+        String currentMonth = String.format("%04d%02d", currentDate.getYear(), currentDate.getMonthValue());
+        String currentMonthWithDash = String.format("%04d-%02d", currentDate.getYear(), currentDate.getMonthValue());
+        
+        // Test data: {sessionValue, shouldHaveError, description}
+        Object[][] testCases = {
+            // Valid cases - should not have session month error
+            {currentMonth, false, "Valid current month"},
+            {currentMonthWithDash, false, "Valid current month with dash"},
+            {"202303", false, "Valid month 03"},
+            {"2023-03", false, "Valid month 03 with dash"},
+            
+            // Invalid cases - should have session month error
+            {"202313", true, "Invalid month 13"},
+            {"202300", true, "Invalid month 00"},
+            {"2023", true, "Invalid format - too short"},
+            {"2023012", true, "Invalid format - too long"}
+        };
 
-        // When
-        List<ValidationIssue> result = studentCourseRule.executeValidation(studentCourseRuleData);
+        for (Object[] testCase : testCases) {
+            String sessionValue = (String) testCase[0];
+            boolean shouldHaveError = (Boolean) testCase[1];
+            String description = (String) testCase[2];
 
-        // Then
-        boolean hasSessionMonthIssue = result.stream()
-                .anyMatch(issue -> issue.getValidationIssueMessage().contains("Course session month must be between 01 and 12"));
-        assertFalse(hasSessionMonthIssue);
-    }
+            // Given
+            studentCourse.setCourseSession(sessionValue);
+            
+            // Set up course dates for valid session tests
+            if (!shouldHaveError) {
+                course.setStartDate(LocalDate.of(currentDate.getYear(), currentDate.getMonthValue(), 1).minusMonths(2));
+                course.setCompletionEndDate(LocalDate.of(currentDate.getYear(), currentDate.getMonthValue(), 1).plusMonths(2));
+            }
 
-    @Test
-    public void testExecuteValidation_WithValidSessionMonthWithDash_ShouldNotReturnSessionMonthError() {
-        // Given
-        LocalDate currentDate = LocalDate.now();
-        String sessionDate = String.format("%04d-%02d", currentDate.getYear(), currentDate.getMonthValue());
-        studentCourse.setCourseSession(sessionDate); // Valid current month with dash
-        // Set start date to 1st day of 2 months before (since getSessionDate converts to 1st day)
-        course.setStartDate(LocalDate.of(currentDate.getYear(), currentDate.getMonthValue(), 1).minusMonths(2));
-        // Set completion date to 1st day of 2 months after
-        course.setCompletionEndDate(LocalDate.of(currentDate.getYear(), currentDate.getMonthValue(), 1).plusMonths(2));
+            // When
+            List<ValidationIssue> result = studentCourseRule.executeValidation(studentCourseRuleData);
 
-        // When
-        List<ValidationIssue> result = studentCourseRule.executeValidation(studentCourseRuleData);
-
-        // Then
-        boolean hasSessionMonthIssue = result.stream()
-                .anyMatch(issue -> issue.getValidationIssueMessage().contains("Course session month must be between 01 and 12"));
-        assertFalse(hasSessionMonthIssue);
-    }
-
-    @Test
-    public void testExecuteValidation_WithInvalidSessionMonth_ShouldReturnSessionMonthError() {
-        // Given
-        studentCourse.setCourseSession("202313"); // Invalid month 13
-
-        // When
-        List<ValidationIssue> result = studentCourseRule.executeValidation(studentCourseRuleData);
-
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getValidationFieldName()).isEqualTo("course");
-        assertThat(result.get(0).getValidationIssueMessage()).contains("Course session month must be between 01 and 12");
-        assertThat(result.get(0).getValidationIssueSeverityCode()).isEqualTo(ValidationIssueSeverityCode.ERROR.getCode());
-    }
-
-    @Test
-    public void testExecuteValidation_WithInvalidSessionFormat_ShouldReturnSessionMonthError() {
-        // Given
-        studentCourse.setCourseSession("2023"); // Invalid format
-
-        // When
-        List<ValidationIssue> result = studentCourseRule.executeValidation(studentCourseRuleData);
-
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getValidationFieldName()).isEqualTo("course");
-        assertThat(result.get(0).getValidationIssueMessage()).contains("Course session month must be between 01 and 12");
-        assertThat(result.get(0).getValidationIssueSeverityCode()).isEqualTo(ValidationIssueSeverityCode.ERROR.getCode());
+            // Then
+            if (shouldHaveError) {
+                assertThat(result).as("Test case: " + description).hasSize(1);
+                assertThat(result.get(0).getValidationFieldName()).as("Test case: " + description).isEqualTo("course");
+                assertThat(result.get(0).getValidationIssueMessage()).as("Test case: " + description).contains("Course session month must be between 01 and 12");
+                assertThat(result.get(0).getValidationIssueSeverityCode()).as("Test case: " + description).isEqualTo(ValidationIssueSeverityCode.ERROR.getCode());
+            } else {
+                boolean hasSessionMonthIssue = result.stream()
+                        .anyMatch(issue -> issue.getValidationIssueMessage().contains("Course session month must be between 01 and 12"));
+                assertFalse("Test case: " + description, hasSessionMonthIssue);
+            }
+        }
     }
 
     @Test
