@@ -101,7 +101,7 @@ public class EventHandlerService {
         });
         var studentFromApi = graduationStudentRecordService.getStudentByPenFromStudentAPI(courseStudent.getPen());
         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
-        log.info("handleProcessStudentCourseDataEvent found student :: {}", student);
+        log.debug("handleProcessStudentCourseDataEvent found student :: {}", student);
 
         graduationStudentRecordService.handleStudentCourseRecord(student.get(), courseStudent, studentFromApi);
         event.setEventOutcome(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
