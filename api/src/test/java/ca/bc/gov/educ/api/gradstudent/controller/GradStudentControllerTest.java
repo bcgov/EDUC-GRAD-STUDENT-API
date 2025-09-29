@@ -186,13 +186,13 @@ public class GradStudentControllerTest {
                 .programs(List.of("1950", "SCCP", "2018"))
                 .grades(List.of("12", "AD"))
                 .build();
-
+        
         List<UUID> expectedStudentIds = List.of(UUID.randomUUID(), UUID.randomUUID());
-
+        
         // When
         Mockito.when(gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest)).thenReturn(expectedStudentIds);
         List<UUID> result = gradStudentController.searchGraduationStudentRecords(searchRequest);
-
+        
         // Then
         Mockito.verify(gradStudentService).getStudentIDsBySearchCriteriaOrAll(searchRequest);
         assertEquals(expectedStudentIds, result);

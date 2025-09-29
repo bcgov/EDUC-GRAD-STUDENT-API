@@ -287,14 +287,16 @@ public class RestUtils {
       if (responseMessage == null) {
         throw new GradStudentAPIRuntimeException(NO_RESPONSE_RECEIVED_WITHIN_TIMEOUT_FOR_CORRELATION_ID + correlationID);
       }
+      log.info("Received response from NATS for externalID {}: {}", externalID, responseMessage);
 
       byte[] responseData = responseMessage.getData();
       if (responseData.length == 0) {
         log.debug("No course information found for externalID {}", externalID);
         throw new EntityNotFoundException(CoregCoursesRecord.class);
       }
+      log.info("made it past null data check for externalID {}", externalID);
 
-      log.debug("Received response from NATS: {}", new String(responseData, StandardCharsets.UTF_8));
+      log.info("Received response from NATS: {}", new String(responseData, StandardCharsets.UTF_8));
       return objectMapper.readValue(responseData, refCourseInformation);
 
     } catch (EntityNotFoundException ex) {

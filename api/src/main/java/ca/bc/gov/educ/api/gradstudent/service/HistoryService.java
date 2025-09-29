@@ -72,12 +72,13 @@ public class HistoryService {
     }
 
     public void createStudentOptionalProgramHistory(StudentOptionalProgramEntity curStudentOptionalProgramEntity, String historyActivityCode) {
-        logger.debug("Create Student Optional History");
+        logger.info("Create Student Optional History");
         final StudentOptionalProgramHistoryEntity studentOptionalProgramHistoryEntity = new StudentOptionalProgramHistoryEntity();
         BeanUtils.copyProperties(curStudentOptionalProgramEntity, studentOptionalProgramHistoryEntity);
         studentOptionalProgramHistoryEntity.setStudentOptionalProgramID(curStudentOptionalProgramEntity.getId());
         studentOptionalProgramHistoryEntity.setActivityCode(historyActivityCode);
         studentOptionalProgramHistoryEntity.setStudentOptionalProgramData("{ EMPTY CLOB }");
+
         studentOptionalProgramHistoryRepository.save(studentOptionalProgramHistoryEntity);
     }
 
