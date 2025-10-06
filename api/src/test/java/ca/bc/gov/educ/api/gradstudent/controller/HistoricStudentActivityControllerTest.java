@@ -55,11 +55,11 @@ class HistoricStudentActivityControllerTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].historicStudentActivityId").value(testEntity.getHistoricStudentActivityID().toString()))
-                .andExpect(jsonPath("$[0].graduationStudentRecordId").value(testEntity.getGraduationStudentRecordID().toString()))
+                .andExpect(jsonPath("$[0].historicStudentActivityID").value(testEntity.getHistoricStudentActivityID().toString()))
+                .andExpect(jsonPath("$[0].graduationStudentRecordID").value(testEntity.getGraduationStudentRecordID().toString()))
                 .andExpect(jsonPath("$[0].type").value("ADD"))
                 .andExpect(jsonPath("$[0].program").value("2023"))
-                .andExpect(jsonPath("$[0].userId").value("USER123"));
+                .andExpect(jsonPath("$[0].userID").value("USER123"));
     }
 
     @Test

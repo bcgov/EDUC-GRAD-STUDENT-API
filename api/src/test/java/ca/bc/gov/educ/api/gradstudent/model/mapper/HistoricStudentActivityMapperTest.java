@@ -71,9 +71,9 @@ public class HistoricStudentActivityMapperTest {
         assertThat(dto.getBatch()).isNull();
         assertThat(dto.getSeqNo()).isNull();
         assertThat(dto.getCreateUser()).isNull();
-        assertThat(dto.getCreateDate()).isNull();
+        assertThat(dto.getCreateDate()).isNotNull();
         assertThat(dto.getUpdateUser()).isNull();
-        assertThat(dto.getUpdateDate()).isNull();
+        assertThat(dto.getUpdateDate()).isNotNull();
     }
 
     @Test
