@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -26,6 +25,6 @@ public class HistoricStudentActivityService {
         List<HistoricStudentActivityEntity> entities = historicStudentActivityRepository.findByGraduationStudentRecordID(studentID);
         return entities.stream()
                 .map(HistoricStudentActivityMapper.mapper::toStructure)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

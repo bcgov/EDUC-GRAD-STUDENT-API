@@ -31,14 +31,14 @@ class HistoricStudentActivityControllerTest extends BaseIntegrationTest {
     private HistoricStudentActivityEntity testEntity;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         testEntity = createHistoricStudentActivityEntity();
         testEntity = historicStudentActivityRepository.save(testEntity);
         testStudentId = testEntity.getGraduationStudentRecordID();
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         historicStudentActivityRepository.deleteAll();
     }
 

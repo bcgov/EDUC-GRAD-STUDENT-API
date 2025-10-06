@@ -98,13 +98,13 @@ public class HistoricStudentActivityMapperTest {
 
         // Then
         assertThat(dto).isNotNull();
-        assertThat(dto.getType()).isEqualTo("");
-        assertThat(dto.getProgram()).isEqualTo("");
-        assertThat(dto.getUserID()).isEqualTo("");
-        assertThat(dto.getBatch()).isEqualTo("");
-        assertThat(dto.getSeqNo()).isEqualTo("");
-        assertThat(dto.getCreateUser()).isEqualTo("");
-        assertThat(dto.getUpdateUser()).isEqualTo("");
+        assertThat(dto.getType()).isEmpty();
+        assertThat(dto.getProgram()).isEmpty();
+        assertThat(dto.getUserID()).isEmpty();
+        assertThat(dto.getBatch()).isEmpty();
+        assertThat(dto.getSeqNo()).isEmpty();
+        assertThat(dto.getCreateUser()).isEmpty();
+        assertThat(dto.getUpdateUser()).isEmpty();
     }
 
     private HistoricStudentActivityEntity createHistoricStudentActivityEntity() {
