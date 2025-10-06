@@ -18,7 +18,6 @@ public interface UpsertStudentCourseValidationBaseRule extends StudentCourseVali
 
     default Pair<LocalDate, LocalDate> getCurrentSessionPeriod() {
         LocalDate now = LocalDate.now();
-        // Academic year runs from October 1 to September 30
         // If we're in October or later, the reporting period is Oct 1 (current year) to Sep 30 (next year)
         // If we're before October, the reporting period is Oct 1 (last year) to Sep 30 (current year)
         int startYear = now.getMonthValue() >= 10 ? now.getYear() : now.getYear() - 1;
