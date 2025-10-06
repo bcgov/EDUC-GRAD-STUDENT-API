@@ -78,7 +78,7 @@ public class StudentCourseRule implements UpsertStudentCourseValidationBaseRule 
     }
 
     private boolean isAfterCurrentReportingPeriodEndDate(LocalDate sessionDate) {
-        Pair<LocalDate, LocalDate> sessionPeriod = getCurrentSessionPeriod(sessionDate);
+        Pair<LocalDate, LocalDate> sessionPeriod = getCurrentSessionPeriod();
         return sessionDate.isAfter(sessionPeriod.getRight());
     }
 
