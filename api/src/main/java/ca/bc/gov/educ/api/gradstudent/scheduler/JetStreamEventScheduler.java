@@ -75,10 +75,10 @@ public class JetStreamEventScheduler {
 
       resultsForIncoming.forEach(event -> {
         switch (event.getEventType()) {
-          case ASSESSMENT_STUDENT_UPDATE:
+          case "ASSESSMENT_STUDENT_UPDATE":
             this.eventHandlerService.handleAssessmentUpdatedDataEvent(event);
             break;
-          case UPDATE_STUDENT:
+          case "UPDATE_STUDENT":
             this.eventHandlerService.handleStudentUpdatedDataEvent(event);
             break;
         }
