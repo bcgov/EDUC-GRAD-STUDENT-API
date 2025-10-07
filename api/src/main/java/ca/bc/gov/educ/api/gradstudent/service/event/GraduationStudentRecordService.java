@@ -77,15 +77,12 @@ public class GraduationStudentRecordService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void handleAssessmentUpdateEvent(GraduationStudentRecordEntity existingStudentRecordEntity, final GradStatusEvent event) {
-        var newStudentRecordEntity = new GraduationStudentRecordEntity();
-        BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, CREATE_USER, CREATE_DATE);
-
-        newStudentRecordEntity.setUpdateUser(event.getUpdateUser());
-        newStudentRecordEntity.setUpdateDate(LocalDateTime.now());
-        newStudentRecordEntity.setRecalculateProjectedGrad("Y");
-        newStudentRecordEntity.setRecalculateGradStatus("Y");
-        graduationStudentRecordRepository.save(newStudentRecordEntity);
+    public void handleSetFlagsForGradStudent(GraduationStudentRecordEntity existingStudentRecordEntity, final GradStatusEvent event) {
+        existingStudentRecordEntity.setUpdateUser(event.getUpdateUser());
+        existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
+        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
+        existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        graduationStudentRecordRepository.save(existingStudentRecordEntity);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
