@@ -910,6 +910,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         studentCourseEntity.setStudentID(studentID);
         studentCourseEntity.setCourseID(new BigInteger(courseId));
         studentCourseEntity.setCourseSession(courseSession);
+        studentCourseEntity.setCredits(0);
         return studentCourseEntity;
     }
 

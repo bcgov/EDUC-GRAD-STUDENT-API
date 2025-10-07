@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.BaseModel;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -39,6 +40,7 @@ public class CourseStudentDetail extends BaseModel implements Serializable {
 
     private String  courseStatus;
 
+    @NotNull(message = "numberOfCredits cannot be null")
     private String  numberOfCredits;
 
     private String  relatedCourse;

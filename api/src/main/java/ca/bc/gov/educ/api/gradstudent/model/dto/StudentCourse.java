@@ -2,7 +2,6 @@ package ca.bc.gov.educ.api.gradstudent.model.dto;
 
 import ca.bc.gov.educ.api.gradstudent.validator.rules.ValidationGroups;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,6 +25,7 @@ public class StudentCourse extends BaseModel {
     private String interimLetterGrade;
     private Integer finalPercent;
     private String finalLetterGrade;
+    @NotNull(message = "credits cannot be null")
     private Integer credits;
     private String equivOrChallenge;
     private String fineArtsAppliedSkills;
