@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
+import static ca.bc.gov.educ.api.gradstudent.constant.EventType.ASSESSMENT_STUDENT_UPDATE;
+import static ca.bc.gov.educ.api.gradstudent.constant.EventType.UPDATE_STUDENT;
 
 /**
  * This class is responsible to check the GRAD_STATUS_EVENT table periodically and publish messages to JET STREAM; if some them are not yet published
@@ -70,7 +72,18 @@ public class JetStreamEventScheduler {
     final var resultsForIncoming = this.gradStatusEventRepository.findAllByEventStatusAndCreateDateBeforeAndEventTypeNotInOrderByCreateDate(DB_COMMITTED.toString(), LocalDateTime.now().minusMinutes(1), 500, gradSchoolEventTypes);
     if (!resultsForIncoming.isEmpty()) {
       log.info("Found {} choreographed events which needs to be processed.", resultsForIncoming.size());
-      resultsForIncoming.forEach(this.eventHandlerService::handleAssessmentUpdatedDataEvent);
+
+      resultsForIncoming.forEach(event -> {
+        switch (event.getEventType()) {
+          case ASSESSMENT_STUDENT_UPDATE:
+            this.eventHandlerService.handleAssessmentUpdatedDataEvent(event);
+            break;
+          case UPDATE_STUDENT:
+            this.eventHandlerService.handleStudentUpdatedDataEvent(event);
+            break;
+        }
+      });
+      
     }
   }
 }
