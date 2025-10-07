@@ -59,7 +59,9 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
             log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
         } catch (Exception e) {
             response = getErrorResponse(e);
-            log.error("Error while processing GET_STUDENT event", e);
+            if(!(e instanceof EntityNotFoundException)) {
+                log.error("Error while processing GET_STUDENT event", e);
+            }
         }
         this.natsConnection.publish(message.getReplyTo(), response.getBytes());
     }
