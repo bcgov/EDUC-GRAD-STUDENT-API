@@ -11,6 +11,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.algorithm.v1.StudentCou
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.assessment.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.student.v1.StudentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseAlgorithmDataMapper;
@@ -37,6 +38,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.MESSAGE_PUBLISHED;
+import static ca.bc.gov.educ.api.gradstudent.constant.EventType.ASSESSMENT_STUDENT_UPDATE;
+import static ca.bc.gov.educ.api.gradstudent.constant.EventType.UPDATE_STUDENT;
 import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.SCHOOL_OF_RECORD_UPDATED;
 import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_SCHOOL_OF_RECORD;
 
@@ -117,16 +120,42 @@ public class EventHandlerService {
             if (eventFromDB.getEventStatus().equals(EventStatus.DB_COMMITTED.toString())) {
                 log.info("Processing event with event ID :: {}", event.getEventId());
                 try {
-                    if (event.getEventType().equals("ASSESSMENT_STUDENT_UPDATE")) {
+                    if (event.getEventType().equals(ASSESSMENT_STUDENT_UPDATE.toString())) {
                         final String studentID = JsonUtil.getJsonObjectFromString(String.class, event.getEventPayload());
                         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentID);
                         if (student.isPresent()) {
-                            graduationStudentRecordService.handleAssessmentUpdateEvent(student.get(), event);
+                            graduationStudentRecordService.handleSetFlagsForGradStudent(student.get(), event);
                             updateEvent(event);
                         } else {
                             graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event);
                             updateEvent(event);
                         }
+                    } else {
+                        log.warn("Silently ignoring event: {}", event);
+                    }
+                    log.info("Event was processed, ID :: {}", event.getEventId());
+                } catch (final Exception exception) {
+                    log.error("Exception while processing event :: {}", event, exception);
+                }
+            }
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleStudentUpdatedDataEvent(GradStatusEvent event) {
+        val eventFromDBOptional = this.gradStatusEventRepository.findById(event.getEventId());
+        if (eventFromDBOptional.isPresent()) {
+            val eventFromDB = eventFromDBOptional.get();
+            if (eventFromDB.getEventStatus().equals(EventStatus.DB_COMMITTED.toString())) {
+                log.info("Processing event with event ID :: {}", event.getEventId());
+                try {
+                    if (event.getEventType().equals(UPDATE_STUDENT.toString())) {
+                        final StudentUpdate studentUpdate = JsonUtil.getJsonObjectFromString(StudentUpdate.class, event.getEventPayload());
+                        Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentUpdate.getStudentID());
+                        if (student.isPresent()) {
+                            graduationStudentRecordService.handleSetFlagsForGradStudent(student.get(), event);
+                        }
+                        updateEvent(event);
                     } else {
                         log.warn("Silently ignoring event: {}", event);
                     }

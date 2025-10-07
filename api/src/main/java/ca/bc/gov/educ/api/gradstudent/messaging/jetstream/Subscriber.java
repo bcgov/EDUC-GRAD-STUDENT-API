@@ -73,10 +73,13 @@ public class Subscriber {
     gradEventsTopics.add(GRAD_STATUS_EVENT_TOPIC.toString());
     final List<String> instituteEventsTopics = new ArrayList<>();
     instituteEventsTopics.add(Topics.STUDENT_ASSESSMENT_EVENTS_TOPIC.name());
+    final List<String> studentEventsTopics = new ArrayList<>();
+    studentEventsTopics.add(Topics.STUDENT_EVENTS_TOPIC.name());
     final List<String> penServicesEventsTopics = new ArrayList<>();
     penServicesEventsTopics.add(Topics.PEN_SERVICES_EVENTS_TOPIC.name());
     this.streamTopicsMap.put(EducGradStudentApiConstants.STREAM_NAME, gradEventsTopics);
     this.streamTopicsMap.put("ASSESSMENT_EVENTS", instituteEventsTopics);
+    this.streamTopicsMap.put("STUDENT_EVENTS", studentEventsTopics);
     this.streamTopicsMap.put("PEN_SERVICES_EVENTS", penServicesEventsTopics);
   }
 
@@ -118,6 +121,8 @@ public class Subscriber {
       this.subscriberExecutor.execute(() -> {
         try {
           if(event.getEventType().equals(EventType.ASSESSMENT_STUDENT_UPDATE)) {
+            this.eventHandlerDelegatorServiceV1.handleChoreographyEvent(event, message);
+          } else if(event.getEventType().equals(EventType.UPDATE_STUDENT)) {
             this.eventHandlerDelegatorServiceV1.handleChoreographyEvent(event, message);
           } else if (event.getEventType().equals(EventType.CREATE_MERGE) || event.getEventType().equals(EventType.DELETE_MERGE)) {
             this.penServicesEventHandlerDelegatorService.handleChoreographyEvent(event, message);

@@ -49,18 +49,32 @@ public class EventHandlerDelegatorService {
   }
 
   public void handleChoreographyEvent(@NonNull final ChoreographedEvent choreographedEvent, final Message message) throws IOException {
-      if(!this.graduationStatusService.eventExistsInDB(choreographedEvent).isPresent()) {
+    try {
+      if (this.graduationStatusService.eventExistsInDB(choreographedEvent).isEmpty()) {
         final var persistedEvent = this.graduationStatusService.persistEventToDB(choreographedEvent);
-        if(persistedEvent != null) {
+        if (persistedEvent != null) {
           message.ack(); // acknowledge to Jet Stream that api got the message and it is now in DB.
           log.info("acknowledged to Jet Stream...");
-          this.eventHandlerService.handleAssessmentUpdatedDataEvent(persistedEvent);
+
+          switch (choreographedEvent.getEventType()) {
+            case ASSESSMENT_STUDENT_UPDATE:
+              this.eventHandlerService.handleAssessmentUpdatedDataEvent(persistedEvent);
+              break;
+            case UPDATE_STUDENT:
+              this.eventHandlerService.handleStudentUpdatedDataEvent(persistedEvent);
+              break;
+            default:
+              log.info("Silently ignoring other events :: {}", choreographedEvent);
+              break;
+          }
+        } else {
+          message.ack(); // acknowledge to Jet Stream that api got the message and it is already in DB.
+          log.debug("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
         }
       }
-      else {
-        message.ack(); // acknowledge to Jet Stream that api got the message and it is already in DB.
-        log.debug("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
-      }
+    }catch (final Exception e) {
+      log.error("Exception", e);
+    }
   }
 
   /**
