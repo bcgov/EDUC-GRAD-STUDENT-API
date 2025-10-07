@@ -73,7 +73,7 @@ public class EventHandlerDelegatorService {
         }
       }
     }catch (final Exception e) {
-      log.error("Exception", e);
+      log.error("Exception occurred processing choreographed event: {}", e.getMessage());
     }
   }
 
