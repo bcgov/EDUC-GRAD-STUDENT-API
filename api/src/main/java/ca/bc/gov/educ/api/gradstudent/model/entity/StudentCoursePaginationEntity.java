@@ -37,7 +37,7 @@ public class StudentCoursePaginationEntity extends BaseEntity {
     @Column(name = "FINAL_PERCENT")
     private Double completedCoursePercentage;
 
-    @Column(name = "NUMBER_CREDITS")
+    @Column(name = "NUMBER_CREDITS", nullable = false)
     private Integer credits;
 
     @Column(name = "EQUIVALENT_OR_CHALLENGE_CODE")
