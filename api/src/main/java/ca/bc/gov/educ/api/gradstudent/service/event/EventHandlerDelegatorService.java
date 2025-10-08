@@ -119,8 +119,7 @@ public class EventHandlerDelegatorService {
           break;
       }
     } catch (final Exception e) {
-      e.printStackTrace();
-      log.error("Exception occurred processing event message: {}", e.getMessage());
+      log.error("Exception occurred processing event message: ", e);
     }
   }
 
