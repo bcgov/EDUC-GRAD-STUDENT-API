@@ -136,7 +136,7 @@ public class Subscriber {
         }
       });
     } catch (final Exception ex) {
-      log.error("Exception ", ex);
+      log.error("Exception occurred processing incoming message: {}", ex.getMessage());
     }
   }
 
