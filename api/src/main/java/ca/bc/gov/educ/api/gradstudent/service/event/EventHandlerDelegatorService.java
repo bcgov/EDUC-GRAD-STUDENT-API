@@ -50,7 +50,9 @@ public class EventHandlerDelegatorService {
 
   public void handleChoreographyEvent(@NonNull final ChoreographedEvent choreographedEvent, final Message message) throws IOException {
     try {
+      log.info("Prior to processing Choreographed event {}", choreographedEvent);
       if (this.graduationStatusService.eventExistsInDB(choreographedEvent).isEmpty()) {
+        log.info("Inside processing Choreographed event {}", choreographedEvent);
         final var persistedEvent = this.graduationStatusService.persistEventToDB(choreographedEvent);
         if (persistedEvent != null) {
           message.ack(); // acknowledge to Jet Stream that api got the message and it is now in DB.
@@ -69,7 +71,7 @@ public class EventHandlerDelegatorService {
           }
         } else {
           message.ack(); // acknowledge to Jet Stream that api got the message and it is already in DB.
-          log.debug("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
+          log.info("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
         }
       }
     }catch (final Exception e) {
@@ -117,7 +119,7 @@ public class EventHandlerDelegatorService {
           break;
       }
     } catch (final Exception e) {
-      log.error("Exception", e);
+      log.error("Exception occurred processing event message: {}", e.getMessage());
     }
   }
 
