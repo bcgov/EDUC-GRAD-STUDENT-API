@@ -235,7 +235,7 @@ public class RestUtils {
       final TypeReference<Event> refEvent = new TypeReference<>() {};
       final TypeReference<Student> refPenMatchResult = new TypeReference<>() {};
       Object event = Event.builder().sagaId(correlationID).eventType(EventType.GET_STUDENT).eventPayload(assignedPEN).build();
-      val responseMessage = this.messagePublisher.requestMessage(Topics.STUDENT_EVENTS_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
+      val responseMessage = this.messagePublisher.requestMessage(Topics.STUDENT_API_TOPIC.toString(), JsonUtil.getJsonBytesFromObject(event)).completeOnTimeout(null, 120, TimeUnit.SECONDS).get();
       if (responseMessage != null) {
         byte[] data = responseMessage.getData();
         if (data == null || data.length == 0) {
