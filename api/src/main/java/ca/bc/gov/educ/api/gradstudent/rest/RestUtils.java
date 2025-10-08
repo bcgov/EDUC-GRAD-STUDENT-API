@@ -156,13 +156,15 @@ public class RestUtils {
 
   private List<OptionalProgramCode> getOptionalPrograms() {
     log.info("Calling Grad api to load optional programs to memory");
-    return this.webClient.get()
+    var optProgs =  this.webClient.get()
             .uri(constants.getGradProgramUrl() + "/optionalprograms")
             .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .retrieve()
             .bodyToFlux(OptionalProgramCode.class)
             .collectList()
             .block();
+    log.debug("Optional programs returned: {}", optProgs);
+    return optProgs;
   }
 
   private List<GraduationProgramCode> getGraduationProgramCodes() {
