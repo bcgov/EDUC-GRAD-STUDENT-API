@@ -71,6 +71,7 @@ public class EventHandlerService {
     public Pair<byte[], GradStatusEvent> handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
         final DemographicStudent demStudent = JsonUtil.getJsonObjectFromString(DemographicStudent.class, event.getEventPayload());
         var studentFromApi = graduationStudentRecordService.getStudentByPenFromStudentAPI(demStudent.getPen());
+        log.debug("Student response from API is: {}", studentFromApi);
         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
         log.debug("handleProcessStudentDemDataEvent found student :: {}", student);
 
