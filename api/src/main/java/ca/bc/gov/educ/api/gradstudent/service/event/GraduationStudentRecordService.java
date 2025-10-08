@@ -137,6 +137,7 @@ public class GraduationStudentRecordService {
 
         List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
         List<UUID> incomingProgramIDs = getOptionalProgramIDForIncomingPrograms(demStudent, optionalProgramCodes, updatedEntity.getProgram());
+        log.debug("Found these incoming optional program IDs :: {}", incomingProgramIDs);
         if (StringUtils.endsWithIgnoreCase(savedStudentRecord.getProgram(), "-PF")) {
             getOptionalProgramCode(optionalProgramCodes, OptionalProgramCodes.DD.getCode(), updatedEntity.getProgram())
                     .map(OptionalProgramCode::getOptionalProgramID)
