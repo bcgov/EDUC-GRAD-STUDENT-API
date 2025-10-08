@@ -60,7 +60,7 @@ public class RestUtils {
   private final WebClient webClient;
   private final ReadWriteLock optionalProgramLock = new ReentrantReadWriteLock();
   private final ReadWriteLock gradProgramLock = new ReentrantReadWriteLock();
-  private final Map<String, OptionalProgramCode> optionalProgramCodesMap = new ConcurrentHashMap<>();
+  private final Map<UUID, OptionalProgramCode> optionalProgramCodesMap = new ConcurrentHashMap<>();
   private final Map<String, GraduationProgramCode> gradProgramCodeMap = new ConcurrentHashMap<>();
   private final Map<String, District> districtMap = new ConcurrentHashMap<>();
   private final Map<String, School> schoolMap = new ConcurrentHashMap<>();
@@ -156,15 +156,13 @@ public class RestUtils {
 
   private List<OptionalProgramCode> getOptionalPrograms() {
     log.info("Calling Grad api to load optional programs to memory");
-    var optProgs =  this.webClient.get()
+    return this.webClient.get()
             .uri(constants.getGradProgramUrl() + "/optionalprograms")
             .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .retrieve()
             .bodyToFlux(OptionalProgramCode.class)
             .collectList()
             .block();
-    log.debug("Optional programs returned: {}", optProgs);
-    return optProgs;
   }
 
   private List<GraduationProgramCode> getGraduationProgramCodes() {
@@ -213,7 +211,7 @@ public class RestUtils {
     try {
       writeLock.lock();
       for (val program : this.getOptionalPrograms()) {
-        this.optionalProgramCodesMap.put(program.getOptProgramCode(), program);
+        this.optionalProgramCodesMap.put(program.getOptionalProgramID(), program);
       }
     } catch (Exception ex) {
       log.error("Unable to load map cache optional program {}", ex);
