@@ -145,11 +145,13 @@ public class GraduationStudentRecordService {
         }
         boolean isGraduated = deriveIfGraduated(savedStudentRecord);
         var optionalProgramsToRemove = getOptionalProgramForRemoval(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs, optionalProgramCodes, isGraduated, updatedEntity.getProgram());
+        log.debug("Found optional program IDs to remove :: {}", optionalProgramsToRemove);
         if(!optionalProgramsToRemove.isEmpty()) {
             studentOptionalProgramRepository.deleteAll(optionalProgramsToRemove);
         }
 
         List<UUID> programIDsToAdd = getOptionalProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs);
+        log.debug("Found optional program IDs to add :: {}", programIDsToAdd);
 
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
