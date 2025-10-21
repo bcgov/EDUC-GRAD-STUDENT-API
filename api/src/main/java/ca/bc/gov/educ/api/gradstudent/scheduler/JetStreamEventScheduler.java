@@ -45,10 +45,7 @@ public class JetStreamEventScheduler {
     this.eventHandlerService = eventHandlerService;
     this.constants = constants;
   }
-
-  /**
-   * Find and publish grad status events to stan.
-   */
+   
   @Scheduled(cron = "${cron.scheduled.process.events.stan.run}")
   @SchedulerLock(name = "PUBLISH_GRAD_STATUS_EVENTS_TO_JET_STREAM", lockAtLeastFor = "${cron.scheduled.process.events.stan.lockAtLeastFor}", lockAtMostFor = "${cron.scheduled.process.events.stan.lockAtMostFor}")
   public void findAndPublishGradStatusEventsToJetStream() {
