@@ -114,30 +114,31 @@ public class Subscriber {
    */
   public void onMessage(final Message message) {
     log.debug("Received message Subject:: {} , SID :: {} , sequence :: {}, pending :: {} ", message.getSubject(), message.getSID(), message.metaData().consumerSequence(), message.metaData().pendingCount());
-    try {
-      val eventString = new String(message.getData());
-      LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());
-      ChoreographedEvent event = JsonUtil.getJsonObjectFromString(ChoreographedEvent.class, eventString);
-      this.subscriberExecutor.execute(() -> {
-        try {
-          if(event.getEventType().equals(EventType.ASSESSMENT_STUDENT_UPDATE)) {
-            this.eventHandlerDelegatorServiceV1.handleChoreographyEvent(event, message);
-          } else if(event.getEventType().equals(EventType.UPDATE_STUDENT)) {
-            this.eventHandlerDelegatorServiceV1.handleChoreographyEvent(event, message);
-          } else if (event.getEventType().equals(EventType.CREATE_MERGE) || event.getEventType().equals(EventType.DELETE_MERGE)) {
-            this.penServicesEventHandlerDelegatorService.handleChoreographyEvent(event, message);
-          } else{
-            jetStreamEventHandlerService.updateEventStatus(event);
-            log.info("Received event :: {} ", event);
-            message.ack();
-          }
-        } catch (final IOException e) {
-          log.error("IOException ", e);
-        }
-      });
-    } catch (final Exception ex) {
-      log.error("Exception occurred processing incoming message: ", ex);
-    }
+    message.ack();
+//    try {
+//      val eventString = new String(message.getData());
+//      LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());
+//      ChoreographedEvent event = JsonUtil.getJsonObjectFromString(ChoreographedEvent.class, eventString);
+//      this.subscriberExecutor.execute(() -> {
+//        try {
+//          if(event.getEventType().equals(EventType.ASSESSMENT_STUDENT_UPDATE)) {
+//            this.eventHandlerDelegatorServiceV1.handleChoreographyEvent(event, message);
+//          } else if(event.getEventType().equals(EventType.UPDATE_STUDENT)) {
+//            this.eventHandlerDelegatorServiceV1.handleChoreographyEvent(event, message);
+//          } else if (event.getEventType().equals(EventType.CREATE_MERGE) || event.getEventType().equals(EventType.DELETE_MERGE)) {
+//            this.penServicesEventHandlerDelegatorService.handleChoreographyEvent(event, message);
+//          } else{
+//            jetStreamEventHandlerService.updateEventStatus(event);
+//            log.info("Received event :: {} ", event);
+//            message.ack();
+//          }
+//        } catch (final IOException e) {
+//          log.error("IOException ", e);
+//        }
+//      });
+//    } catch (final Exception ex) {
+//      log.error("Exception occurred processing incoming message: ", ex);
+//    }
   }
 
 }
