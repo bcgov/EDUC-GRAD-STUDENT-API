@@ -69,10 +69,10 @@ public class EventHandlerDelegatorService {
               log.info("Silently ignoring other events :: {}", choreographedEvent);
               break;
           }
-        } else {
-          message.ack(); // acknowledge to Jet Stream that api got the message and it is already in DB.
-          log.info("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
-        }
+        } 
+      } else {
+        message.ack(); // acknowledge to Jet Stream that api got the message and it is already in DB.
+        log.info("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
       }
     }catch (final Exception e) {
       log.error("Exception occurred processing choreographed event: {}", e.getMessage());
