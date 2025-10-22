@@ -115,6 +115,7 @@ public class Subscriber {
   public void onMessage(final Message message) {
     log.debug("Received message Subject:: {} , SID :: {} , sequence :: {}, pending :: {} ", message.getSubject(), message.getSID(), message.metaData().consumerSequence(), message.metaData().pendingCount());
     message.ack();
+    log.info("Message automatically acknowledged");
 //    try {
 //      val eventString = new String(message.getData());
 //      LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());
