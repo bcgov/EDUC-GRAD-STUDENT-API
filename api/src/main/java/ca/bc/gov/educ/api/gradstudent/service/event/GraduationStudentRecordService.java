@@ -339,7 +339,7 @@ public class GraduationStudentRecordService {
     private String resolveFineArtsAppliedSkillsCode(CourseStudentDetail courseStudent, CoregCoursesRecord coregCoursesRecord, GraduationStudentRecordEntity existingStudentRecordEntity) {
         var gradRequirementYear = existingStudentRecordEntity.getProgram().replace("-EN","").replace("-PF","");
         var catCode = coregCoursesRecord.getCourseCategory() != null && coregCoursesRecord.getCourseCategory().getCode() != null ? coregCoursesRecord.getCourseCategory().getCode() : "";
-        var isGrade11 = "11".equalsIgnoreCase(courseStudent.getCourseLevel());
+        var isGrade11 = StringUtils.startsWithIgnoreCase(courseStudent.getCourseLevel(), "11"); //some levels include letter like '11A'
         var is1996 = GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear);
         var is2004_2018_2023 = GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear));
         var isBA = "BA".equalsIgnoreCase(catCode);
