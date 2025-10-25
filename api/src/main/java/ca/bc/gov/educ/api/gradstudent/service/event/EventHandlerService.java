@@ -7,6 +7,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Course;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUpdateResult;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.algorithm.v1.StudentCourseAlgorithmData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.assessment.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
@@ -15,6 +16,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.student.v1.StudentUpdat
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseAlgorithmDataMapper;
+import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import ca.bc.gov.educ.api.gradstudent.service.CourseService;
@@ -40,7 +42,9 @@ import java.util.stream.Stream;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.MESSAGE_PUBLISHED;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.ASSESSMENT_STUDENT_UPDATE;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.UPDATE_STUDENT;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.GRAD_STUDENT_CITIZENSHIP_UPDATED;
 import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.SCHOOL_OF_RECORD_UPDATED;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_GRAD_STUDENT_CITIZENSHIP;
 import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_SCHOOL_OF_RECORD;
 
 /**
@@ -52,51 +56,59 @@ import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_SCHOOL_OF
 @SuppressWarnings("java:S3864")
 public class EventHandlerService {
 
-    /**
-     * The constant PAYLOAD_LOG.
-     */
     public static final String PAYLOAD_LOG = "payload is :: {}";
-    /**
-     * The constant EVENT_PAYLOAD.
-     */
-
     private static final StudentCourseAlgorithmDataMapper STUDENT_COURSE_ALGORITHM_DATA_MAPPER = StudentCourseAlgorithmDataMapper.mapper;
     private final GraduationStudentRecordService graduationStudentRecordService;
     private final CourseService courseService;
     private final GradStatusEventRepository gradStatusEventRepository;
     private final StudentCourseRepository studentCourseRepository;
+    private final GraduationStatusTransformer graduationStatusTransformer;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<byte[], GradStatusEvent> handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
+    public Pair<byte[], List<GradStatusEvent>> handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
         final DemographicStudent demStudent = JsonUtil.getJsonObjectFromString(DemographicStudent.class, event.getEventPayload());
         var studentFromApi = graduationStudentRecordService.getStudentByPenFromStudentAPI(demStudent.getPen());
         log.debug("Student response from API is: {}", studentFromApi);
         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
         log.debug("handleProcessStudentDemDataEvent found student :: {}", student);
 
-        boolean isSchoolOfRecordUpdated = false;
+        List<GradStatusEvent> gradStatusEventList = new ArrayList<>();
+        GradStudentUpdateResult gradStudentUpdateResult = null;
+        GraduationStudentRecordEntity  graduationStudentRecordEntity;
         if(student.isPresent()) {
-            isSchoolOfRecordUpdated = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, student.get());
+            var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, student.get());
+            gradStudentUpdateResult = result.getLeft();
+            graduationStudentRecordEntity = result.getRight();
         } else {
-            graduationStudentRecordService.createNewStudentRecord(demStudent, studentFromApi);
+            graduationStudentRecordEntity = graduationStudentRecordService.createNewStudentRecord(demStudent, studentFromApi);
         }
-
-        GradStatusEvent gradStatusEvent = null;
-        if(isSchoolOfRecordUpdated) {
-            var studentForUpdate = StudentForAssessmentUpdate
-                    .builder()
-                    .studentID(studentFromApi.getStudentID())
-                    .schoolOfRecordID(demStudent.getSchoolID())
-                    .build();
-            gradStatusEvent = EventUtil.createEvent(demStudent.getCreateUser(),
-                    demStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, SCHOOL_OF_RECORD_UPDATED);
-            gradStatusEventRepository.save(gradStatusEvent);
+        
+        if(gradStudentUpdateResult != null) {
+            if(gradStudentUpdateResult.isSchoolOfRecordUpdated()) {
+                var studentForUpdate = StudentForAssessmentUpdate
+                        .builder()
+                        .studentID(studentFromApi.getStudentID())
+                        .schoolOfRecordID(demStudent.getSchoolID())
+                        .build();
+                var gradStatusEvent = EventUtil.createEvent(demStudent.getCreateUser(),
+                        demStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, SCHOOL_OF_RECORD_UPDATED);
+                gradStatusEventRepository.save(gradStatusEvent);
+                gradStatusEventList.add(gradStatusEvent);
+            }
+            
+            if(gradStudentUpdateResult.isCitizenshipUpdated()) {
+                var gradStudent = graduationStatusTransformer.transformToDTO(graduationStudentRecordEntity);
+                var gradStatusEvent = EventUtil.createEvent(demStudent.getCreateUser(),
+                        demStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(gradStudent), UPDATE_GRAD_STUDENT_CITIZENSHIP, GRAD_STUDENT_CITIZENSHIP_UPDATED);
+                gradStatusEventRepository.save(gradStatusEvent);
+                gradStatusEventList.add(gradStatusEvent);
+            }
         }
 
         event.setEventOutcome(EventOutcome.DEM_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
         val studentEvent = createEventRecord(event);
-        return Pair.of(createResponseEvent(studentEvent), gradStatusEvent);
+        return Pair.of(createResponseEvent(studentEvent), gradStatusEventList);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -114,7 +126,7 @@ public class EventHandlerService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void handleAssessmentUpdatedDataEvent(GradStatusEvent event) {
+    public GradStatusEvent handleAssessmentUpdatedDataEvent(GradStatusEvent event) {
         val eventFromDBOptional = this.gradStatusEventRepository.findById(event.getEventId());
         if (eventFromDBOptional.isPresent()) {
             val eventFromDB = eventFromDBOptional.get();
@@ -128,8 +140,10 @@ public class EventHandlerService {
                             graduationStudentRecordService.handleSetFlagsForGradStudent(student.get(), event);
                             updateEvent(event);
                         } else {
-                            graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event);
+                            var adoptEvent = graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event);
                             updateEvent(event);
+                            log.info("Event was processed, ID :: {}", event.getEventId());
+                            return adoptEvent;
                         }
                     } else {
                         log.warn("Silently ignoring event: {}", event);
@@ -140,6 +154,7 @@ public class EventHandlerService {
                 }
             }
         }
+        return null;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

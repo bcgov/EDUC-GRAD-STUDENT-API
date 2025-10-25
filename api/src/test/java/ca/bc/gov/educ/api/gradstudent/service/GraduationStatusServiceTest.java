@@ -22,7 +22,6 @@ import ca.bc.gov.educ.api.gradstudent.util.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.time.DateUtils;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -3687,7 +3686,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    void testAdoptStudent_successful_withoutOptionalProgram() {
+    void testAdoptStudent_successful_withoutOptionalProgram() throws JsonProcessingException {
         // Given
         GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
         Student request = Student.builder().studentID(gradSearchStudent.getStudentID()).build();
@@ -3703,7 +3702,8 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(schoolService.getSchoolByMincode(any())).thenReturn(school);
 
         // When
-        GraduationStudentRecord result = graduationStatusService.adoptStudent(UUID.fromString(request.getStudentID()), null);
+        var pair = graduationStatusService.adoptStudent(UUID.fromString(request.getStudentID()), null);
+        var result = pair.getLeft();
 
         // Then
         assertThat(result).isNotNull();
@@ -3717,7 +3717,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    void testAdoptStudent_successful_withOptionalProgram() {
+    void testAdoptStudent_successful_withOptionalProgram() throws JsonProcessingException {
         // Given
         GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
 
@@ -3739,7 +3739,8 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.restService.get(String.format(constants.getGradOptionalProgramDetailsUrl(), ProgramCodes.PF2023.getCode(), OptionalProgramCodes.DD.getCode()), OptionalProgram.class, webClient)).thenReturn(optionalProgram);
 
         // When
-        GraduationStudentRecord result = graduationStatusService.adoptStudent(UUID.fromString(request.getStudentID()), null);
+        var pair = graduationStatusService.adoptStudent(UUID.fromString(request.getStudentID()), null);
+        var result = pair.getLeft();
 
         // Then
         assertThat(result).isNotNull();

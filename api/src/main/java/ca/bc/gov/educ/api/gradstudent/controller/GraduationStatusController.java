@@ -6,7 +6,10 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
-import ca.bc.gov.educ.api.gradstudent.util.*;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
+import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,7 +38,6 @@ public class GraduationStatusController {
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusController.class);
     private static final String BEARER = "Bearer ";
-
     GraduationStatusService gradStatusService;
     HistoryService historyService;
     Publisher publisher;
@@ -432,8 +434,12 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Adopt a Student", description = "Adopt a Student", tags = {"Student Demographics"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public GraduationStudentRecord adoptStudent(@PathVariable String studentID) {
-        return gradStatusService.adoptStudent(UUID.fromString(studentID), null);
+    public GraduationStudentRecord adoptStudent(@PathVariable String studentID) throws JsonProcessingException {
+        var pair = gradStatusService.adoptStudent(UUID.fromString(studentID), null);
+        if (pair.getRight() != null) {
+            publishToJetStream(pair.getRight());
+        }
+        return pair.getLeft();
     }
 
 

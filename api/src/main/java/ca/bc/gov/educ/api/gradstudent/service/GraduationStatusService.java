@@ -48,8 +48,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.SCHOOL_OF_RECORD_UPDATED;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_SCHOOL_OF_RECORD;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.*;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.*;
 
 @Service
 public class GraduationStatusService extends GradBaseService {
@@ -286,6 +286,8 @@ public class GraduationStatusService extends GradBaseService {
                     gradEntity.setRecalculateProjectedGrad(sourceObject.getRecalculateProjectedGrad());
                 }
             }
+            
+            boolean isCitizenshipChanged = StringUtils.isNotBlank(sourceObject.getStudentCitizenship()) && StringUtils.isNotBlank(gradEntity.getStudentCitizenship()) && !sourceObject.getStudentCitizenship().equalsIgnoreCase(gradEntity.getStudentCitizenship());
 
             BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
@@ -305,6 +307,13 @@ public class GraduationStatusService extends GradBaseService {
             if(isSchoolOfRecordUpdated) {
                 GradStatusEvent gradStatusEventForSchoolOfRecordUpdate = createEventForSchoolOfRecordUpdate(studentID, sourceObject);
                 events.add(gradStatusEventForSchoolOfRecordUpdate);
+            }
+
+            if(isCitizenshipChanged) {
+                var studentRecord = graduationStatusTransformer.transformToDTO(gradEntity);
+                var citzEvent = EventUtil.createEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentRecord), UPDATE_GRAD_STUDENT_CITIZENSHIP, GRAD_STUDENT_CITIZENSHIP_UPDATED);
+                gradStatusEventRepository.save(citzEvent);
+                events.add(citzEvent);
             }
 
             GraduationStudentRecord gradStatus = graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
@@ -1500,7 +1509,7 @@ public class GraduationStatusService extends GradBaseService {
     }
 
     @Transactional
-    public GraduationStudentRecord adoptStudent(UUID studentID, String updateUser) {
+    public Pair<GraduationStudentRecord, GradStatusEvent> adoptStudent(UUID studentID, String updateUser) throws JsonProcessingException {
         logger.info("Attempting to adopt student with ID: {}", studentID);
         if (graduationStatusRepository.existsByStudentID(studentID)) {
             throw new EntityAlreadyExistsException("Graduation student record already exists for student ID: " + studentID);
@@ -1524,7 +1533,14 @@ public class GraduationStatusService extends GradBaseService {
         }
 
         historyService.createStudentHistory(savedRecord, HistoryActivityCodes.USERADOPT.getCode());
-        return graduationStatusTransformer.transformToDTO(savedRecord);
+
+        var studentRecord = graduationStatusTransformer.transformToDTO(savedRecord);
+        
+        var gradStatusEvent = EventUtil.createEvent(studentRecord.getCreateUser(),
+                studentRecord.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentRecord), ADOPT_GRAD_STUDENT, GRAD_STUDENT_ADOPTED);
+        gradStatusEventRepository.save(gradStatusEvent);
+        
+        return Pair.of(studentRecord, gradStatusEvent);
     }
 
     private GraduationStudentRecordEntity buildNewGraduationStudentRecord(GradSearchStudent student) {
