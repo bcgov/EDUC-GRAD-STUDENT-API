@@ -410,6 +410,10 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         assertThat(student).isPresent();
         assertThat(student.get().getRecalculateGradStatus()).isEqualTo("Y");
         assertThat(student.get().getRecalculateProjectedGrad()).isEqualTo("Y");
+
+        var events = gradStatusEventRepository.findAll();
+        assertThat(events).isNotEmpty();
+        assertThat(events.size()).isEqualTo(2);
     }
 
     @Test
