@@ -1,7 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
-import ca.bc.gov.educ.api.gradstudent.model.entity.EdwSnapshotID;
 import ca.bc.gov.educ.api.gradstudent.model.entity.EdwGraduationSnapshotEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.EdwSnapshotID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

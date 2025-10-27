@@ -2,7 +2,6 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-
 import ca.bc.gov.educ.api.gradstudent.util.JsonTransformer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;

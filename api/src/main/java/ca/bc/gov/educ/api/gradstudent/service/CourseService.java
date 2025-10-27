@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Course;
+import ca.bc.gov.educ.api.gradstudent.model.dto.CourseSearchRequest;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonTransformer;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @Slf4j

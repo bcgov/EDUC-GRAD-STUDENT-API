@@ -1,6 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.EdwGraduationSnapshot;
 import ca.bc.gov.educ.api.gradstudent.model.entity.EdwGraduationSnapshotEntity;
 import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Component
 public class EDWGraduationStatusTransformer {

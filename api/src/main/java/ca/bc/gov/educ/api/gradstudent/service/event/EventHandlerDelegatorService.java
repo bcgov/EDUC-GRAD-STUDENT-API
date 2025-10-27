@@ -107,9 +107,12 @@ public class EventHandlerDelegatorService {
         case PROCESS_STUDENT_COURSE_DATA:
           log.info("Received PROCESS_STUDENT_COURSE_DATA event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
-          response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
+          var pairCourseResponse = eventHandlerService.handleProcessStudentCourseDataEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-          publishToNATS(event, message, isSynchronous, response);
+          publishToNATS(event, message, isSynchronous, pairCourseResponse.getLeft());
+          if(pairCourseResponse.getRight() != null) {
+            publishToJetStream(pairCourseResponse.getRight());
+          }
           break;
         case GET_STUDENT_COURSES:
           log.info("Received GET_STUDENT_COURSES event :: {}", event);

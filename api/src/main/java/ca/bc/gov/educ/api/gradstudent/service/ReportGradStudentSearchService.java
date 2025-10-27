@@ -1,13 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
-import ca.bc.gov.educ.api.gradstudent.filter.BaseFilterSpecs;
 import ca.bc.gov.educ.api.gradstudent.filter.ReportGradStudentFilterSpecs;
-import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.Search;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentPaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.util.RequestUtil;
-import ca.bc.gov.educ.api.gradstudent.util.TransformUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.InvalidParameterException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

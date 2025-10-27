@@ -1,9 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
 
+import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventStatus;
-import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
-import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 
 import java.time.LocalDateTime;

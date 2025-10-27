@@ -1,10 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.controller.BaseIntegrationTest;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
-import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
-import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Course;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
@@ -272,8 +272,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .eventPayload(JsonUtil.getJsonStringFromObject(course))
                 .build();
         var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
-        assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
     }
@@ -297,8 +297,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .eventPayload(JsonUtil.getJsonStringFromObject(course))
                 .build();
         var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
-        assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
     }
@@ -320,8 +320,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .eventPayload(JsonUtil.getJsonStringFromObject(course))
                 .build();
         var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
-        assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
     }
@@ -344,8 +344,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .eventPayload(JsonUtil.getJsonStringFromObject(course))
                 .build();
         var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
-        assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
     }
@@ -434,8 +434,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .eventPayload(JsonUtil.getJsonStringFromObject(course))
                 .build();
         var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
-        assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
     }
@@ -458,8 +458,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .eventPayload(JsonUtil.getJsonStringFromObject(course))
                 .build();
         var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
-        assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
     }
@@ -485,8 +485,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .eventPayload(JsonUtil.getJsonStringFromObject(course))
                 .build();
         var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
-        assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
     }
@@ -839,8 +839,8 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
 
         var response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
 
-        assertThat(response).isNotEmpty();
-        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
 

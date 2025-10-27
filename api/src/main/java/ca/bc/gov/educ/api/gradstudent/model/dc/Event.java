@@ -1,5 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.model.dc;
 
+import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
