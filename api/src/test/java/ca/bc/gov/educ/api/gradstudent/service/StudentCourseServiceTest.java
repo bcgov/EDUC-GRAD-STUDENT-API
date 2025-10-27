@@ -9,7 +9,6 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStudentCourse
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseExamEntity;

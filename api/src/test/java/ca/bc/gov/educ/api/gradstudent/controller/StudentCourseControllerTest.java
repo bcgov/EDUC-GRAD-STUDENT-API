@@ -2,7 +2,6 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import com.fasterxml.jackson.core.JsonProcessingException;
