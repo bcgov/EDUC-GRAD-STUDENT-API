@@ -3,7 +3,9 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
-import ca.bc.gov.educ.api.gradstudent.util.*;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
+import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.ValidationGroups;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -24,9 +26,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.STUDENT_COURSES_UPDATED;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_STUDENT_COURSES;
 
 @RestController
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)

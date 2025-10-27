@@ -48,8 +48,6 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.*;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.*;
 
 @Service
 public class GraduationStatusService extends GradBaseService {
@@ -311,7 +309,7 @@ public class GraduationStatusService extends GradBaseService {
 
             if(isCitizenshipChanged) {
                 var studentRecord = graduationStatusTransformer.transformToDTO(gradEntity);
-                var citzEvent = EventUtil.createEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentRecord), UPDATE_GRAD_STUDENT_CITIZENSHIP, GRAD_STUDENT_CITIZENSHIP_UPDATED);
+                var citzEvent = EventUtil.createEvent(gradEntity.getCreateUser(), gradEntity.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentRecord), EventType.UPDATE_GRAD_STUDENT_CITIZENSHIP, EventOutcome.GRAD_STUDENT_CITIZENSHIP_UPDATED);
                 gradStatusEventRepository.save(citzEvent);
                 events.add(citzEvent);
             }
@@ -1537,7 +1535,7 @@ public class GraduationStatusService extends GradBaseService {
         var studentRecord = graduationStatusTransformer.transformToDTO(savedRecord);
         
         var gradStatusEvent = EventUtil.createEvent(studentRecord.getCreateUser(),
-                studentRecord.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentRecord), ADOPT_GRAD_STUDENT, GRAD_STUDENT_ADOPTED);
+                studentRecord.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentRecord), EventType.ADOPT_GRAD_STUDENT, EventOutcome.GRAD_STUDENT_ADOPTED);
         gradStatusEventRepository.save(gradStatusEvent);
         
         return Pair.of(studentRecord, gradStatusEvent);
@@ -1579,7 +1577,7 @@ public class GraduationStatusService extends GradBaseService {
                 .build();
 
         GradStatusEvent gradStatusEvent = EventUtil.createEvent(sourceObject.getCreateUser(),
-                sourceObject.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, SCHOOL_OF_RECORD_UPDATED);
+                sourceObject.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), EventType.UPDATE_SCHOOL_OF_RECORD, EventOutcome.SCHOOL_OF_RECORD_UPDATED);
         gradStatusEventRepository.save(gradStatusEvent);
         return gradStatusEvent;
     }

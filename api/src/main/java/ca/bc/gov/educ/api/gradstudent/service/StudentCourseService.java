@@ -1,10 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseExamEntity;
@@ -12,8 +13,8 @@ import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseMapper;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
-import ca.bc.gov.educ.api.gradstudent.validator.rules.UpsertStudentCourseRulesProcessor;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.DeleteStudentCourseRulesProcessor;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.UpsertStudentCourseRulesProcessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.util.Pair;
 import lombok.AllArgsConstructor;
@@ -26,14 +27,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import java.math.BigInteger;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.STUDENT_COURSES_UPDATED;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_STUDENT_COURSES;
 
 @Service
 @Slf4j
@@ -119,7 +117,7 @@ public class StudentCourseService {
             courseList.forEach(course -> {
                 finalCourseList.add(mapper.toStructure(course));
             });
-            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseList), UPDATE_STUDENT_COURSES, STUDENT_COURSES_UPDATED);
+            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseList), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
         }
         
         return Pair.of(studentCourseResponse, gradStatusEvent);
@@ -227,7 +225,7 @@ public class StudentCourseService {
             courseList.forEach(course -> {
                 finalCourseList.add(mapper.toStructure(course));
             });
-            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseList), UPDATE_STUDENT_COURSES, STUDENT_COURSES_UPDATED);
+            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseList), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
         }
         return Pair.of(courseValidationIssueMap.values().stream().toList(), gradStatusEvent);
     }
@@ -275,14 +273,14 @@ public class StudentCourseService {
             courseListSource.forEach(course -> {
                 finalCourseListSource.add(mapper.toStructure(course));
             });
-            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseListSource), UPDATE_STUDENT_COURSES, STUDENT_COURSES_UPDATED));
+            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseListSource), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED));
 
             var courseListTarget = studentCourseRepository.findByStudentID(request.getSourceStudentId());
             List<StudentCourse> finalCourseListTarget =  new ArrayList<>();
             courseListTarget.forEach(course -> {
                 finalCourseListTarget.add(mapper.toStructure(course));
             });
-            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseListTarget), UPDATE_STUDENT_COURSES, STUDENT_COURSES_UPDATED));
+            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseListTarget), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED));
         }
 
         return Pair.of(validationIssues, gradStatusEvents);

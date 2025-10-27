@@ -2,7 +2,10 @@ package ca.bc.gov.educ.api.gradstudent.model.dto;
 
 import ca.bc.gov.educ.api.gradstudent.util.GradLocalDateSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import org.springframework.stereotype.Component;
 

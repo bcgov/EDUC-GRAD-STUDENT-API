@@ -2,7 +2,8 @@ package ca.bc.gov.educ.api.gradstudent.model.dto;
 
 import ca.bc.gov.educ.api.gradstudent.validator.rules.ValidationGroups;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
