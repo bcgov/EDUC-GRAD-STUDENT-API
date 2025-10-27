@@ -117,7 +117,7 @@ public class StudentCourseService {
             courseList.forEach(course -> {
                 finalCourseList.add(mapper.toStructure(course));
             });
-            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseList), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
+            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(getStudentCourseUpdate(studentID.toString(), finalCourseList)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
         }
         
         return Pair.of(studentCourseResponse, gradStatusEvent);
@@ -225,7 +225,7 @@ public class StudentCourseService {
             courseList.forEach(course -> {
                 finalCourseList.add(mapper.toStructure(course));
             });
-            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseList), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
+            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(getStudentCourseUpdate(studentID.toString(), finalCourseList)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
         }
         return Pair.of(courseValidationIssueMap.values().stream().toList(), gradStatusEvent);
     }
@@ -273,17 +273,24 @@ public class StudentCourseService {
             courseListSource.forEach(course -> {
                 finalCourseListSource.add(mapper.toStructure(course));
             });
-            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseListSource), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED));
+            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(getStudentCourseUpdate(request.getSourceStudentId().toString(), finalCourseListSource)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED));
 
-            var courseListTarget = studentCourseRepository.findByStudentID(request.getSourceStudentId());
+            var courseListTarget = studentCourseRepository.findByStudentID(request.getTargetStudentId());
             List<StudentCourse> finalCourseListTarget =  new ArrayList<>();
             courseListTarget.forEach(course -> {
                 finalCourseListTarget.add(mapper.toStructure(course));
             });
-            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(finalCourseListTarget), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED));
+            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(getStudentCourseUpdate(request.getTargetStudentId().toString(), finalCourseListTarget)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED));
         }
 
         return Pair.of(validationIssues, gradStatusEvents);
+    }
+    
+    private StudentCourseUpdate getStudentCourseUpdate(String studentID, List<StudentCourse> courses){
+        StudentCourseUpdate studentCourseUpdate = new StudentCourseUpdate();
+        studentCourseUpdate.setStudentID(studentID);
+        studentCourseUpdate.setStudentCourses(courses);
+        return studentCourseUpdate;
     }
 
     private List<ValidationIssue> validateCourseForTransfer(
