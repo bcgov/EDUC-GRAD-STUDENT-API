@@ -8,6 +8,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Course;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUpdateResult;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.algorithm.v1.StudentCourseAlgorithmData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.assessment.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
@@ -16,6 +17,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.student.v1.StudentUpdat
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseAlgorithmDataMapper;
+import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseMapper;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
@@ -42,10 +44,8 @@ import java.util.stream.Stream;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.MESSAGE_PUBLISHED;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.ASSESSMENT_STUDENT_UPDATE;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.UPDATE_STUDENT;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.GRAD_STUDENT_CITIZENSHIP_UPDATED;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.SCHOOL_OF_RECORD_UPDATED;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_GRAD_STUDENT_CITIZENSHIP;
-import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.UPDATE_SCHOOL_OF_RECORD;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome.*;
+import static ca.bc.gov.educ.api.gradstudent.model.dc.EventType.*;
 
 /**
  * The type Event handler service.
@@ -63,6 +63,7 @@ public class EventHandlerService {
     private final GradStatusEventRepository gradStatusEventRepository;
     private final StudentCourseRepository studentCourseRepository;
     private final GraduationStatusTransformer graduationStatusTransformer;
+    private final StudentCourseMapper courseMapper = StudentCourseMapper.mapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -112,7 +113,7 @@ public class EventHandlerService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public byte[] handleProcessStudentCourseDataEvent(Event event) throws JsonProcessingException {
+    public Pair<byte[], GradStatusEvent> handleProcessStudentCourseDataEvent(Event event) throws JsonProcessingException {
         CourseStudent courseStudent = objectMapper.readValue(event.getEventPayload(), new TypeReference<>() {
         });
         var studentFromApi = graduationStudentRecordService.getStudentByPenFromStudentAPI(courseStudent.getPen());
@@ -122,7 +123,15 @@ public class EventHandlerService {
         graduationStudentRecordService.handleStudentCourseRecord(student.get(), courseStudent, studentFromApi);
         event.setEventOutcome(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
         val studentEvent = createEventRecord(event);
-        return createResponseEvent(studentEvent);
+        var courses = studentCourseRepository.findByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        List<StudentCourse> courseList =  new ArrayList<>();
+        courses.forEach(course -> {
+            courseList.add(courseMapper.toStructure(course)); 
+        });
+        var gradStatusEvent = EventUtil.createEvent(courseStudent.getCreateUser(),
+                courseStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(courseList), UPDATE_STUDENT_COURSES, STUDENT_COURSES_UPDATED);
+        gradStatusEventRepository.save(gradStatusEvent);
+        return Pair.of(createResponseEvent(studentEvent), gradStatusEvent);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

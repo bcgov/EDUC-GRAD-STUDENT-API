@@ -15,6 +15,7 @@ import lombok.experimental.SuperBuilder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StudentCourse extends BaseModel {
 
+    private String studentID;
     @NotBlank(message = "id is required and cannot be blank", groups = ValidationGroups.Update.class)
     private String id; //The property id is used only for update & rendering back on read.
     @NotBlank(message = "Course ID is required and cannot be blank")
