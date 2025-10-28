@@ -120,7 +120,7 @@ cron:
           threshold: ${CRON_SCHEDULED_PROCESS_EVENTS_STAN_THRESHOLD}
       purge-old-records:
         run: ${CRON_SCHEDULED_PURGE_OLD_RECORDS}
-        staleInDays: ${RECORDS_STALE_IN_DAYS}
+        staleInDays: ${EVENT_RECORDS_STALE_IN_DAYS}
       refresh-non-grad-status:
         run: ${CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS}
       refresh-course-details:
