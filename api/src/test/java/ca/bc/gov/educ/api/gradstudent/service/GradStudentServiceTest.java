@@ -1161,6 +1161,111 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         verify(graduationStatusRepository, times(1)).countCurrentGraduatesAndNonGraduatesBySchoolOfRecordIn(schoolIds);
     }
 
+    @Test
+    public void testGetStudentIDsBySearchCriteriaOrAll_WithMultipleCriteriaIncludingProgramGradeSchool_ShouldCombineResults() {
+        // Given
+        UUID schoolId = UUID.randomUUID();
+        UUID studentId1 = UUID.randomUUID();
+        UUID studentId2 = UUID.randomUUID();
+        UUID studentId3 = UUID.randomUUID();
+
+        List<String> programs = List.of("1950");
+        List<String> grades = List.of("12");
+        List<UUID> schoolIds = List.of(schoolId);
+        List<UUID> providedStudentIds = List.of(studentId1);
+
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .studentIDs(providedStudentIds)
+                .programs(programs)
+                .grades(grades)
+                .schoolIds(schoolIds)
+                .build();
+
+        // When
+        when(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds))
+                .thenReturn(List.of(studentId2));
+        when(graduationStatusRepository.findBySchoolOfRecordIdIn(schoolIds))
+                .thenReturn(List.of(studentId3));
+
+        List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
+
+        // Then
+        verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds);
+        verify(graduationStatusRepository).findBySchoolOfRecordIdIn(schoolIds);
+        assertThat(results).hasSize(3);
+        assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2, studentId3);
+    }
+
+    @Test
+    public void testGetStudentIDsBySearchCriteriaOrAll_WithEmptyLists_ShouldNotCallProgramGradeSchoolMethod() {
+        // Given
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .programs(List.of())
+                .grades(List.of())
+                .schoolIds(List.of())
+                .build();
+
+        // When
+        List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
+
+        // Then
+        verify(graduationStatusRepository, never()).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(any(), any(), any());
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentIDsBySearchCriteriaOrAll_WithProgramsAndGradesButNoSchoolIds_ShouldNotCallProgramGradeSchoolMethod() {
+        // Given
+        List<String> programs = List.of("1950", "SCCP");
+        List<String> grades = List.of("12", "AD");
+
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .programs(programs)
+                .grades(grades)
+                .build();
+
+        // When
+        List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
+
+        // Then
+        verify(graduationStatusRepository, never()).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(any(), any(), any());
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentIDsBySearchCriteriaOrAll_WithProgramsGradesAndSchoolIds_ShouldCallCorrectRepositoryMethod() {
+        // Given
+        UUID schoolId1 = UUID.randomUUID();
+        UUID schoolId2 = UUID.randomUUID();
+        UUID studentId1 = UUID.randomUUID();
+        UUID studentId2 = UUID.randomUUID();
+
+        List<String> programs = List.of("1950", "SCCP", "2018");
+        List<String> grades = List.of("12", "AD");
+        List<UUID> schoolIds = List.of(schoolId1, schoolId2);
+        List<UUID> expectedStudentIds = List.of(studentId1, studentId2);
+
+        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+                .programs(programs)
+                .grades(grades)
+                .schoolIds(schoolIds)
+                .build();
+
+        // When
+        when(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds))
+                .thenReturn(expectedStudentIds);
+        when(graduationStatusRepository.findBySchoolOfRecordIdIn(schoolIds))
+                .thenReturn(List.of());
+
+        List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
+
+        // Then
+        verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds);
+        verify(graduationStatusRepository).findBySchoolOfRecordIdIn(schoolIds);
+        assertThat(results).hasSize(2);
+        assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2);
+    }
+
     @SneakyThrows
     protected Object createDataObjectFromJson(String jsonPath, Class<?> clazz) {
         String json = readFile(jsonPath);

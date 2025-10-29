@@ -1,6 +1,8 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,10 @@ public class GraduationStudentRecord extends BaseModel {
     private String pen;
     private String program;
     private String programName;
+    @Pattern(
+            regexp = "^\\d{4}/(0[1-9]|1[0-2])$",
+            message = "programCompletionDate must be in format YYYY/MM."
+    )
     private String programCompletionDate;
     private String gpa;
     private String honoursStanding;
@@ -29,6 +35,7 @@ public class GraduationStudentRecord extends BaseModel {
     private String studentGrade;
     private String studentStatus;
     private String studentStatusName;
+    @NotNull(message = "Student ID is required.")
     private UUID studentID;
     private UUID schoolAtGradId;
     private String schoolAtGradName;

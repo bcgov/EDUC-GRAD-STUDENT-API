@@ -78,6 +78,7 @@ public class HistoryService {
         studentOptionalProgramHistoryEntity.setStudentOptionalProgramID(curStudentOptionalProgramEntity.getId());
         studentOptionalProgramHistoryEntity.setActivityCode(historyActivityCode);
         studentOptionalProgramHistoryEntity.setStudentOptionalProgramData("{ EMPTY CLOB }");
+
         studentOptionalProgramHistoryRepository.save(studentOptionalProgramHistoryEntity);
     }
 

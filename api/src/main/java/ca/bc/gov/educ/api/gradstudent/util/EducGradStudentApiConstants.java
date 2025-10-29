@@ -23,6 +23,7 @@ public class EducGradStudentApiConstants {
     public static final String API_ROOT_MAPPING = "";
     public static final String API_VERSION = "v1";
     public static final String GRAD_STUDENT_API_ROOT_MAPPING = "/api/" + API_VERSION + "/student" ;
+    public static final String BASE_URL_REPORT = GRAD_STUDENT_API_ROOT_MAPPING + "/report";
     public static final String STUDENT_COUNT = "/count";
     public static final String STUDENT_ARCHIVE = "/archive";
     public static final String GRAD_STUDENT_BY_PEN = "/{pen}";
@@ -135,6 +136,7 @@ public class EducGradStudentApiConstants {
     public static final String STUDENT_COURSE_MAPPING = "/courses/{studentID}";
     public static final String STUDENT_COURSE_HISTORY_MAPPING = "/courses/{studentID}/history";
     public static final String STUDENT_COURSE_TRANSFER_MAPPING = "/courses/transfer";
+    public static final String HISTORIC_STUDENT_ACTIVITY_MAPPING = "/historic-activity/{studentID}";
 
     //Default Date format constants
     public static final String DEFAULT_CREATED_BY = "API_GRAD_STUDENT";
@@ -259,4 +261,7 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.keycloak.token-uri}")
     private String tokenUrl;
+
+    @Value("${endpoint.institute.url}")
+    private String instituteApiURL;
 }

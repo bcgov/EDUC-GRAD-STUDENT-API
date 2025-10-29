@@ -1,11 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.ValidationGroups;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -34,6 +36,7 @@ public class StudentCourseController {
     private static final Logger logger = LoggerFactory.getLogger(StudentCourseController.class);
 
     private final StudentCourseService studentCourseService;
+    private final Publisher publisher;
 
     private final ResponseHelper response;
 
@@ -57,10 +60,13 @@ public class StudentCourseController {
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
     })
-    public ResponseEntity<List<StudentCourseValidationIssue>> createStudentCourses(@PathVariable UUID studentID, @NotNull @RequestBody List<StudentCourse> studentCourses) {
+    public ResponseEntity<List<StudentCourseValidationIssue>> createStudentCourses(@PathVariable UUID studentID, @NotNull @RequestBody List<StudentCourse> studentCourses) throws JsonProcessingException {
         logger.debug("createStudentCourses: studentID = {}", studentID);
-        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, studentCourses,false);
-        return response.GET(results);
+        var pairResults = studentCourseService.saveStudentCourses(studentID, studentCourses,false);
+        if(pairResults.getRight() != null) {
+            publisher.dispatchChoreographyEvent(pairResults.getRight());
+        }
+        return response.GET(pairResults.getLeft());
     }
 
     @PutMapping(EducGradStudentApiConstants.STUDENT_COURSE_MAPPING)
@@ -70,10 +76,13 @@ public class StudentCourseController {
             @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
             @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT")
     })
-    public ResponseEntity<StudentCourseValidationIssue> updateStudentCourses(@PathVariable UUID studentID, @NotNull @RequestBody @Validated(ValidationGroups.Update.class)  StudentCourse studentCourse) {
+    public ResponseEntity<StudentCourseValidationIssue> updateStudentCourses(@PathVariable UUID studentID, @NotNull @RequestBody @Validated(ValidationGroups.Update.class)  StudentCourse studentCourse) throws JsonProcessingException {
         logger.debug("updateStudentCourses: studentID = {}", studentID);
-        List<StudentCourseValidationIssue> results = studentCourseService.saveStudentCourses(studentID, List.of(studentCourse),true);
-        return response.GET(results.get(0));
+        var pairResults = studentCourseService.saveStudentCourses(studentID, List.of(studentCourse),true);
+        if(pairResults.getRight() != null) {
+            publisher.dispatchChoreographyEvent(pairResults.getRight());
+        }
+        return response.GET(pairResults.getLeft().get(0));
     }
 
 
@@ -82,10 +91,13 @@ public class StudentCourseController {
     @Operation(summary = "Delete Student Courses", description = "Delete Student Courses by studentID", tags = { "Student courses" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
-    public ResponseEntity<List<StudentCourseValidationIssue>> deleteStudentCourses(@PathVariable UUID studentID, @NotNull @RequestBody List<UUID> studentCourses) {
+    public ResponseEntity<List<StudentCourseValidationIssue>> deleteStudentCourses(@PathVariable UUID studentID, @NotNull @RequestBody List<UUID> studentCourses) throws JsonProcessingException {
         logger.debug("deleteStudentCourses: studentID = {}", studentID);
-        List<StudentCourseValidationIssue> results = studentCourseService.deleteStudentCourses(studentID, studentCourses);
-        return response.GET(results);
+        var pairResults = studentCourseService.deleteStudentCourses(studentID, studentCourses);
+        if(pairResults.getRight() != null) {
+            publisher.dispatchChoreographyEvent(pairResults.getRight());
+        }
+        return response.GET(pairResults.getLeft());
     }
 
     @GetMapping(EducGradStudentApiConstants.STUDENT_COURSE_HISTORY_MAPPING)
@@ -109,12 +121,15 @@ public class StudentCourseController {
         @ApiResponse(responseCode = "204", description = "Transfer successful, no validation issues"),
         @ApiResponse(responseCode = "200", description = "Validation issues found during transfer")
     })
-    public ResponseEntity<List<ValidationIssue>> transferStudentCourses(@NotNull @Valid @RequestBody StudentCoursesTransferReq studentCoursesRequest) {
+    public ResponseEntity<List<ValidationIssue>> transferStudentCourses(@NotNull @Valid @RequestBody StudentCoursesTransferReq studentCoursesRequest) throws JsonProcessingException {
         logger.debug("transfer student courses from: studentId = {} to: studentId = {}", studentCoursesRequest.getSourceStudentId(), studentCoursesRequest.getTargetStudentId());
-        var results = studentCourseService.transferStudentCourse(studentCoursesRequest);
-        if (results.isEmpty()) {
+        var pairResults = studentCourseService.transferStudentCourse(studentCoursesRequest);
+        if(pairResults.getRight() != null) {
+            pairResults.getRight().forEach(publisher::dispatchChoreographyEvent);
+        }
+        if (pairResults.getLeft().isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(pairResults.getLeft());
     }
 }

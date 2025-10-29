@@ -1,9 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.HistoryActivity;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentStatus;
 import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

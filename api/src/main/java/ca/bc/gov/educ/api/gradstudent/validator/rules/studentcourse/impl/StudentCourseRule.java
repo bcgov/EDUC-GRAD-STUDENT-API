@@ -68,7 +68,7 @@ public class StudentCourseRule implements UpsertStudentCourseValidationBaseRule 
         if (course.getCompletionEndDate() != null && sessionDatePlusOne.isAfter(course.getCompletionEndDate())) {
             validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_END_VALID));
         }
-        if (!isSessionDateInCurrentReportingPeriod(sessionDate) || sessionDate.isBefore(COURSE_SESSION_MIN_DATE)) {
+        if (isAfterCurrentReportingPeriodEndDate(sessionDate) || sessionDate.isBefore(COURSE_SESSION_MIN_DATE)) {
             validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_SESSION_VALID));
         }
         if (course.getCourseCode().startsWith("Q")) {
@@ -77,9 +77,9 @@ public class StudentCourseRule implements UpsertStudentCourseValidationBaseRule 
         return validationIssues;
     }
 
-    private boolean isSessionDateInCurrentReportingPeriod(LocalDate sessionDate) {
-        Pair<LocalDate, LocalDate> sessionPeriod = getCurrentSessionPeriod(sessionDate);
-        return isDateWithinRange(sessionDate, sessionPeriod.getLeft(), sessionPeriod.getRight());
+    private boolean isAfterCurrentReportingPeriodEndDate(LocalDate sessionDate) {
+        Pair<LocalDate, LocalDate> sessionPeriod = getCurrentSessionPeriod();
+        return sessionDate.isAfter(sessionPeriod.getRight());
     }
 
     private boolean isValidSessionMonth(String dateValue) {

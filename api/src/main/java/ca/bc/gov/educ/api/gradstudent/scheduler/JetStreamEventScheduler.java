@@ -43,10 +43,7 @@ public class JetStreamEventScheduler {
     this.eventHandlerService = eventHandlerService;
     this.constants = constants;
   }
-
-  /**
-   * Find and publish grad status events to stan.
-   */
+   
   @Scheduled(cron = "${cron.scheduled.process.events.stan.run}")
   @SchedulerLock(name = "PUBLISH_GRAD_STATUS_EVENTS_TO_JET_STREAM", lockAtLeastFor = "${cron.scheduled.process.events.stan.lockAtLeastFor}", lockAtMostFor = "${cron.scheduled.process.events.stan.lockAtMostFor}")
   public void findAndPublishGradStatusEventsToJetStream() {
@@ -70,7 +67,21 @@ public class JetStreamEventScheduler {
     final var resultsForIncoming = this.gradStatusEventRepository.findAllByEventStatusAndCreateDateBeforeAndEventTypeNotInOrderByCreateDate(DB_COMMITTED.toString(), LocalDateTime.now().minusMinutes(1), 500, gradSchoolEventTypes);
     if (!resultsForIncoming.isEmpty()) {
       log.info("Found {} choreographed events which needs to be processed.", resultsForIncoming.size());
-      resultsForIncoming.forEach(this.eventHandlerService::handleAssessmentUpdatedDataEvent);
+
+      resultsForIncoming.forEach(event -> {
+        switch (event.getEventType()) {
+          case "ASSESSMENT_STUDENT_UPDATE":
+            var gradStatusEvent = this.eventHandlerService.handleAssessmentUpdatedDataEvent(event);
+            if(gradStatusEvent != null) {
+              publisher.dispatchChoreographyEvent(gradStatusEvent);
+            }
+            break;
+          case "UPDATE_STUDENT":
+            this.eventHandlerService.handleStudentUpdatedDataEvent(event);
+            break;
+        }
+      });
+      
     }
   }
 }

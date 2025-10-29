@@ -1,10 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.model.transformer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Optional;
-import java.util.UUID;
-
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -15,8 +12,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCareerProgram;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 @ExtendWith(MockitoExtension.class)

@@ -6,7 +6,10 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
-import ca.bc.gov.educ.api.gradstudent.util.*;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
+import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +17,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,21 +38,20 @@ public class GraduationStatusController {
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusController.class);
     private static final String BEARER = "Bearer ";
-
-    @Autowired
     GraduationStatusService gradStatusService;
-
-    @Autowired
     HistoryService historyService;
-
-    @Autowired
     Publisher publisher;
-
-    @Autowired
     GradValidation validation;
+    ResponseHelper response;
 
     @Autowired
-    ResponseHelper response;
+    public GraduationStatusController(GraduationStatusService gradStatusService, HistoryService historyService, Publisher publisher, GradValidation validation, ResponseHelper response) {
+        this.gradStatusService = gradStatusService;
+        this.historyService = historyService;
+        this.publisher = publisher;
+        this.validation = validation;
+        this.response = response;
+    }
 
     @GetMapping (EducGradStudentApiConstants.GRADUATION_STATUS_BY_STUDENT_ID)
     @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
@@ -100,14 +103,9 @@ public class GraduationStatusController {
     @Operation(summary = "Update Student Grad Status by Student ID", description = "Update Student Grad Status by Student ID", tags = { "Student Graduation Status" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<GraduationStudentRecord> updateStudentGradStatus(@PathVariable String studentID,
-                                                                           @RequestBody GraduationStudentRecord graduationStatus,
+                                                                           @RequestBody @Valid GraduationStudentRecord graduationStatus,
                                                                            @RequestHeader(name="Authorization") String accessToken) throws JsonProcessingException {
-        logger.debug("update student Grad Status for Student ID");
-        validation.requiredField(graduationStatus.getStudentID(), "Student ID");
-        if(validation.hasErrors()) {
-            validation.stopOnErrors();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        logger.debug("update student Grad Status by Student ID");
         var result = gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken.replace(BEARER, ""));
         var events = result.getRight();
         if(!events.isEmpty()) {
@@ -436,8 +434,12 @@ public class GraduationStatusController {
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
     @Operation(summary = "Adopt a Student", description = "Adopt a Student", tags = {"Student Demographics"})
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-    public GraduationStudentRecord adoptStudent(@PathVariable String studentID) {
-        return gradStatusService.adoptStudent(UUID.fromString(studentID), null);
+    public GraduationStudentRecord adoptStudent(@PathVariable String studentID) throws JsonProcessingException {
+        var pair = gradStatusService.adoptStudent(UUID.fromString(studentID), null);
+        if (pair.getRight() != null) {
+            publishToJetStream(pair.getRight());
+        }
+        return pair.getLeft();
     }
 
 

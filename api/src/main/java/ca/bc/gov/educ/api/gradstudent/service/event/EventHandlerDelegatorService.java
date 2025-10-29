@@ -14,6 +14,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+
 import static ca.bc.gov.educ.api.gradstudent.service.event.EventHandlerService.PAYLOAD_LOG;
 
 
@@ -49,18 +50,37 @@ public class EventHandlerDelegatorService {
   }
 
   public void handleChoreographyEvent(@NonNull final ChoreographedEvent choreographedEvent, final Message message) throws IOException {
-      if(!this.graduationStatusService.eventExistsInDB(choreographedEvent).isPresent()) {
+    try {
+      log.info("Prior to processing Choreographed event {}", choreographedEvent);
+      if (this.graduationStatusService.eventExistsInDB(choreographedEvent).isEmpty()) {
+        log.info("Inside processing Choreographed event {}", choreographedEvent);
         final var persistedEvent = this.graduationStatusService.persistEventToDB(choreographedEvent);
-        if(persistedEvent != null) {
+        if (persistedEvent != null) {
           message.ack(); // acknowledge to Jet Stream that api got the message and it is now in DB.
           log.info("acknowledged to Jet Stream...");
-          this.eventHandlerService.handleAssessmentUpdatedDataEvent(persistedEvent);
-        }
-      }
-      else {
+
+          switch (choreographedEvent.getEventType()) {
+            case ASSESSMENT_STUDENT_UPDATE:
+              var adoptEvent = this.eventHandlerService.handleAssessmentUpdatedDataEvent(persistedEvent);
+              if(adoptEvent != null) {
+                publisher.dispatchChoreographyEvent(adoptEvent);
+              }
+              break;
+            case UPDATE_STUDENT:
+              this.eventHandlerService.handleStudentUpdatedDataEvent(persistedEvent);
+              break;
+            default:
+              log.info("Silently ignoring other events :: {}", choreographedEvent);
+              break;
+          }
+        } 
+      } else {
         message.ack(); // acknowledge to Jet Stream that api got the message and it is already in DB.
-        log.debug("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
+        log.info("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
       }
+    }catch (final Exception e) {
+      log.error("Exception occurred processing choreographed event: {}", e.getMessage());
+    }
   }
 
   /**
@@ -81,15 +101,18 @@ public class EventHandlerDelegatorService {
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, pairResponse.getLeft());
           if(pairResponse.getRight() != null) {
-            publishToJetStream(pairResponse.getRight());
+            pairResponse.getRight().forEach(this::publishToJetStream);
           }
           break;
         case PROCESS_STUDENT_COURSE_DATA:
           log.info("Received PROCESS_STUDENT_COURSE_DATA event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
-          response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
+          var pairCourseResponse = eventHandlerService.handleProcessStudentCourseDataEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-          publishToNATS(event, message, isSynchronous, response);
+          publishToNATS(event, message, isSynchronous, pairCourseResponse.getLeft());
+          if(pairCourseResponse.getRight() != null) {
+            publishToJetStream(pairCourseResponse.getRight());
+          }
           break;
         case GET_STUDENT_COURSES:
           log.info("Received GET_STUDENT_COURSES event :: {}", event);
@@ -103,7 +126,7 @@ public class EventHandlerDelegatorService {
           break;
       }
     } catch (final Exception e) {
-      log.error("Exception", e);
+      log.error("Exception occurred processing event message: ", e);
     }
   }
 

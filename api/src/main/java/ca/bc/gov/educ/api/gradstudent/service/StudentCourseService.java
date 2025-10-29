@@ -1,16 +1,22 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseExamEntity;
 import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseMapper;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
-import ca.bc.gov.educ.api.gradstudent.validator.rules.UpsertStudentCourseRulesProcessor;
+import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
+import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import ca.bc.gov.educ.api.gradstudent.validator.rules.DeleteStudentCourseRulesProcessor;
+import ca.bc.gov.educ.api.gradstudent.validator.rules.UpsertStudentCourseRulesProcessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nimbusds.jose.util.Pair;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,8 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import java.math.BigInteger;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,7 +63,7 @@ public class StudentCourseService {
         return Collections.emptyList();
     }
 
-    public List<StudentCourseValidationIssue> saveStudentCourses(UUID studentID, List<StudentCourse> studentCourses, boolean isUpdate) {
+    public Pair<List<StudentCourseValidationIssue>,GradStatusEvent> saveStudentCourses(UUID studentID, List<StudentCourse> studentCourses, boolean isUpdate) throws JsonProcessingException {
         List<StudentCourseValidationIssue> studentCourseResponse = new ArrayList<>();
         Map<String, StudentCourseValidationIssue> courseValidationIssues = new HashMap<>();
         List<StudentCourseEntity> tobePersisted = new ArrayList<>();
@@ -103,7 +109,18 @@ public class StudentCourseService {
         //Persist the student courses if there are no validation issues
         persistAndCreateHistory(tobePersisted, studentID, isUpdate, courseValidationIssues);
         studentCourseResponse.addAll(courseValidationIssues.values().stream().toList());
-        return studentCourseResponse;
+
+        GradStatusEvent gradStatusEvent = null;
+        if(!tobePersisted.isEmpty()) {
+            var courseList = studentCourseRepository.findByStudentID(studentID);
+            List<StudentCourse> finalCourseList =  new ArrayList<>();
+            courseList.forEach(course -> {
+                finalCourseList.add(mapper.toStructure(course));
+            });
+            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(getStudentCourseUpdate(studentID.toString(), finalCourseList)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
+        }
+        
+        return Pair.of(studentCourseResponse, gradStatusEvent);
     }
 
     private boolean isUpsertAllowed(List<StudentCourse> studentCourses, List<StudentCourse> existingStudentCourses, StudentCourse studentCourse, boolean isUpdate) {
@@ -166,8 +183,10 @@ public class StudentCourseService {
 
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<StudentCourseValidationIssue> deleteStudentCourses(UUID studentID, List<UUID> studentCourseIDs) {
-        if (CollectionUtils.isEmpty(studentCourseIDs)) return Collections.emptyList();
+    public Pair<List<StudentCourseValidationIssue>, GradStatusEvent> deleteStudentCourses(UUID studentID, List<UUID> studentCourseIDs) throws JsonProcessingException {
+        if (CollectionUtils.isEmpty(studentCourseIDs)) {
+            return Pair.of(Collections.emptyList(), null);
+        }
         Map<UUID, StudentCourseValidationIssue> courseValidationIssueMap = new HashMap<>();
         List<StudentCourseEntity> tobeDeleted = new ArrayList<>();
         List<StudentCourseEntity> existingStudentCourses = studentCourseRepository.findAllById(studentCourseIDs);
@@ -199,11 +218,20 @@ public class StudentCourseService {
             }
         });
         deleteAndCreateHistory(tobeDeleted, studentID, courseValidationIssueMap);
-        return courseValidationIssueMap.values().stream().toList();
+        GradStatusEvent gradStatusEvent = null;
+        if(!tobeDeleted.isEmpty()){
+            var courseList = studentCourseRepository.findByStudentID(studentID);
+            List<StudentCourse> finalCourseList =  new ArrayList<>();
+            courseList.forEach(course -> {
+                finalCourseList.add(mapper.toStructure(course));
+            });
+            gradStatusEvent = EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(getStudentCourseUpdate(studentID.toString(), finalCourseList)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
+        }
+        return Pair.of(courseValidationIssueMap.values().stream().toList(), gradStatusEvent);
     }
 
     @Transactional
-    public List<ValidationIssue> transferStudentCourse(StudentCoursesTransferReq request) {
+    public Pair<List<ValidationIssue>, List<GradStatusEvent>> transferStudentCourse(StudentCoursesTransferReq request) throws JsonProcessingException {
         List<ValidationIssue> validationIssues = new ArrayList<>();
         List<StudentCourseEntity> validEntities = new ArrayList<>();
         List<StudentCourseEntity> originalEntitiesForHistory = new ArrayList<>();
@@ -234,13 +262,35 @@ public class StudentCourseService {
                 validationIssues.addAll(courseIssues);
             }
         }
+
+        List<GradStatusEvent> gradStatusEvents = new ArrayList<>();
         if(!validEntities.isEmpty()) {
             studentCourseRepository.saveAll(validEntities);
             createStudentCourseHistory(request.getTargetStudentId(), validEntities, StudentCourseActivityType.USERCOURSEADD);
             createStudentCourseHistory(request.getSourceStudentId(), originalEntitiesForHistory, StudentCourseActivityType.USERCOURSEDEL);
+            var courseListSource = studentCourseRepository.findByStudentID(request.getSourceStudentId());
+            List<StudentCourse> finalCourseListSource =  new ArrayList<>();
+            courseListSource.forEach(course -> {
+                finalCourseListSource.add(mapper.toStructure(course));
+            });
+            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(getStudentCourseUpdate(request.getSourceStudentId().toString(), finalCourseListSource)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED));
+
+            var courseListTarget = studentCourseRepository.findByStudentID(request.getTargetStudentId());
+            List<StudentCourse> finalCourseListTarget =  new ArrayList<>();
+            courseListTarget.forEach(course -> {
+                finalCourseListTarget.add(mapper.toStructure(course));
+            });
+            gradStatusEvents.add(EventUtil.createEvent("GRAD-STUDENT-API", "GRAD-STUDENT-API", JsonUtil.getJsonStringFromObject(getStudentCourseUpdate(request.getTargetStudentId().toString(), finalCourseListTarget)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED));
         }
 
-        return validationIssues;
+        return Pair.of(validationIssues, gradStatusEvents);
+    }
+    
+    private StudentCourseUpdate getStudentCourseUpdate(String studentID, List<StudentCourse> courses){
+        StudentCourseUpdate studentCourseUpdate = new StudentCourseUpdate();
+        studentCourseUpdate.setStudentID(studentID);
+        studentCourseUpdate.setStudentCourses(courses);
+        return studentCourseUpdate;
     }
 
     private List<ValidationIssue> validateCourseForTransfer(
