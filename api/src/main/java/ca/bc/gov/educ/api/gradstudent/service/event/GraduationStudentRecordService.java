@@ -476,10 +476,12 @@ public class GraduationStudentRecordService {
         int statusChangeCount = 0;
         boolean hasAdultChange = false;
         if(demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
-            if(newStudentRecordEntity.getSchoolOfRecordId() != null && newStudentRecordEntity.getSchoolOfRecordId() != UUID.fromString(demStudent.getSchoolID()) && (demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T"))) {
+            if(newStudentRecordEntity.getSchoolOfRecordId() != null && !Objects.equals(newStudentRecordEntity.getSchoolOfRecordId(), UUID.fromString(demStudent.getSchoolID()))) {
                 newStudentRecordEntity.setSchoolOfRecordId(UUID.fromString(demStudent.getSchoolID()));
-                projectedChangeCount++;
-                statusChangeCount++;
+                if(demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T")) {
+                    projectedChangeCount++;
+                    statusChangeCount++;
+                }
             }
             if(!newStudentRecordEntity.getStudentGrade().equalsIgnoreCase(demStudent.getGrade()) && demStudent.getStudentStatus().equalsIgnoreCase("A") && newStudentRecordEntity.getProgramCompletionDate() == null) {
                 newStudentRecordEntity.setStudentGrade(demStudent.getGrade());
@@ -639,7 +641,8 @@ public class GraduationStudentRecordService {
     }
 
     private boolean checkIfSchoolOfRecordIsUpdated(DemographicStudent demStudent, GraduationStudentRecordEntity existingStudentRecordEntity) {
-        return existingStudentRecordEntity.getSchoolOfRecordId() != null && existingStudentRecordEntity.getSchoolOfRecordId() != UUID.fromString(demStudent.getSchoolID()) && (demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T"));
+        return existingStudentRecordEntity.getSchoolOfRecordId() != null
+                && !Objects.equals(existingStudentRecordEntity.getSchoolOfRecordId(), UUID.fromString(demStudent.getSchoolID()));
     }
 
     private boolean deriveIfGraduated(GraduationStudentRecordEntity studentRecord) {
