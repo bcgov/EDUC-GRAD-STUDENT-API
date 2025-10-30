@@ -1565,7 +1565,7 @@ public class GraduationStatusService extends GradBaseService {
     private boolean checkIfSchoolOfRecordIsUpdated(GraduationStudentRecordEntity updatedEntity, GraduationStudentRecordEntity existingEntity) {
         return existingEntity.getSchoolOfRecordId() != null
                 && updatedEntity.getSchoolOfRecordId() != null
-                && existingEntity.getSchoolOfRecordId() != updatedEntity.getSchoolOfRecordId()
+                && !Objects.equals(existingEntity.getSchoolOfRecordId(), updatedEntity.getSchoolOfRecordId())
                 && (updatedEntity.getStudentStatus().equalsIgnoreCase("A") || updatedEntity.getStudentStatus().equalsIgnoreCase("T"));
     }
 
