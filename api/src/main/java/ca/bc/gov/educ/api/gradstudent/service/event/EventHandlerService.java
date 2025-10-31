@@ -126,7 +126,7 @@ public class EventHandlerService {
             courseList.add(courseMapper.toStructure(course)); 
         });
         var gradStatusEvent = EventUtil.createEvent(courseStudent.getCreateUser(),
-                courseStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(courseList), UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
+                courseStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(EventUtil.getStudentCourseUpdate(studentFromApi.getStudentID(), courseList)), UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
         gradStatusEventRepository.save(gradStatusEvent);
         return Pair.of(createResponseEvent(studentEvent), gradStatusEvent);
     }
