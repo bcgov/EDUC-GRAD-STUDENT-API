@@ -38,5 +38,17 @@ public enum EventOutcome {
   ADDITIONAL_STUDENT_ATTRIBUTES_CALCULATED,
   COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API,
   GRAD_STUDENT_ADOPTED,
-  STUDENT_COURSES_UPDATED
+  STUDENT_COURSES_UPDATED;
+
+  public static boolean isValid(String value) {
+    if (value == null) {
+      return false;
+    }
+    try {
+      EventOutcome.valueOf(value);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+  }
 }

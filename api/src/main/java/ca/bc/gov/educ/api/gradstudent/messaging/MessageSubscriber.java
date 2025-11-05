@@ -1,9 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.messaging;
 
-import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
+import ca.bc.gov.educ.api.gradstudent.exception.IgnoreEventException;
 import ca.bc.gov.educ.api.gradstudent.service.event.EventHandlerDelegatorService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
+import ca.bc.gov.educ.api.gradstudent.util.EventUtils;
 import ca.bc.gov.educ.api.gradstudent.util.LogHelper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.nats.client.Connection;
@@ -64,9 +64,12 @@ public class MessageSubscriber {
         try {
           var eventString = new String(message.getData());
           LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());
-          var event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+          var event = EventUtils.getEventIfValid(eventString);
           log.debug("message sub handling: {}, {}", event, message);
           messageProcessingThreads.execute(() -> eventHandlerDelegatorServiceV1.handleEvent(event, message));
+        } catch (final IgnoreEventException ex) {
+          log.warn("Ignoring event with type :: {} :: and event outcome :: {}", ex.getEventType(), ex.getEventOutcome());
+          message.ack();
         } catch (final Exception e) {
           log.debug("on message error: {}", e.getMessage());
           log.error("Exception ", e);

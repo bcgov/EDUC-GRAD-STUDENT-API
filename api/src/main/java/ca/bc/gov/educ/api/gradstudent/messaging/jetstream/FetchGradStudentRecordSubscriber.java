@@ -2,12 +2,13 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
+import ca.bc.gov.educ.api.gradstudent.exception.IgnoreEventException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
+import ca.bc.gov.educ.api.gradstudent.util.EventUtils;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.Connection;
@@ -53,13 +54,16 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
         String response;
 
         try {
-            Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+            var event = EventUtils.getEventIfValid(eventString);
             log.info("received GET_STUDENT event :: {}", event.getSagaId());
             log.trace(PAYLOAD_LOG, event.getEventPayload());
             UUID studentId = UUID.fromString(event.getEventPayload());
             GradStudentRecord studentRecord = gradStudentService.getGraduationStudentRecord(studentId);
             response = getResponse(studentRecord);
             log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+        } catch (final IgnoreEventException ex) {
+            log.warn("Ignoring event with type :: {} :: and event outcome :: {}", ex.getEventType(), ex.getEventOutcome());
+            response = getErrorResponse(ex);
         } catch (Exception e) {
             response = getErrorResponse(e);
             if(!(e instanceof EntityNotFoundException)) {

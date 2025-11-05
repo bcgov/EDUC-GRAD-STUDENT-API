@@ -2,12 +2,13 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
+import ca.bc.gov.educ.api.gradstudent.exception.IgnoreEventException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStatusPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GraduationStudentRecordGradStatus;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
+import ca.bc.gov.educ.api.gradstudent.util.EventUtils;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.Connection;
@@ -52,10 +53,13 @@ public class FetchGradStatusSubscriber implements MessageHandler {
         log.debug(eventString);
         String response;
         try {
-            Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+            var event = EventUtils.getEventIfValid(eventString);
             UUID stdId = JsonUtil.getJsonObjectFromString(UUID.class, event.getEventPayload());
             GraduationStudentRecordGradStatus graduationStatus = graduationStatusService.getGraduationStatusProjection(stdId);
             response = getResponse(graduationStatus);
+        } catch (final IgnoreEventException ex) {
+            log.warn("Ignoring event with type :: {} :: and event outcome :: {}", ex.getEventType(), ex.getEventOutcome());
+            response = getErrorResponse(ex);
         } catch (Exception e) {
             response = getErrorResponse(e);
             if(!(e instanceof EntityNotFoundException)){

@@ -2,11 +2,12 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
+import ca.bc.gov.educ.api.gradstudent.exception.IgnoreEventException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentCourseRecordsPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCourseService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EventUtils;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.nats.client.Connection;
@@ -53,13 +54,16 @@ public class FetchGradStudentCoursesSubscriber implements MessageHandler {
         String response;
 
         try {
-            Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+            var event = EventUtils.getEventIfValid(eventString);
             log.info("received GET_STUDENT_COURSES event :: {}", event.getSagaId());
             log.trace(PAYLOAD_LOG, event.getEventPayload());
             UUID studentId = UUID.fromString(event.getEventPayload());
             List<StudentCourse> studentCourseRecords = gradStudentCourseService.getStudentCourses(studentId);
             response = getResponse(studentCourseRecords);
             log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+        } catch (final IgnoreEventException ex) {
+            log.warn("Ignoring event with type :: {} :: and event outcome :: {}", ex.getEventType(), ex.getEventOutcome());
+            response = getErrorResponse(ex);
         } catch (Exception e) {
             response = getErrorResponse(e);
             log.error("Error while processing GET_STUDENT_COURSES event", e);
