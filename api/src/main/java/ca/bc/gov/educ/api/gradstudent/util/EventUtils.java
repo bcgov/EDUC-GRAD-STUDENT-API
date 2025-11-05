@@ -19,7 +19,7 @@ public final class EventUtils {
     final ChoreographedEventValidation event = JsonUtil.getJsonObjectFromString(ChoreographedEventValidation.class, eventString);
     if(StringUtils.isNotBlank(event.getEventOutcome()) && !EventOutcome.isValid(event.getEventOutcome())) {
       throw new IgnoreEventException("Invalid event outcome", event.getEventType(), event.getEventOutcome());
-    }else if(StringUtils.isNotBlank(event.getEventType()) && !EventType.isValid(event.getEventType())) {
+    } else if(StringUtils.isNotBlank(event.getEventType()) && !EventType.isValid(event.getEventType())) {
       throw new IgnoreEventException("Invalid event type", event.getEventType(), event.getEventOutcome());
     }
     return JsonUtil.getJsonObjectFromString(ChoreographedEvent.class, eventString);
@@ -29,6 +29,8 @@ public final class EventUtils {
     final EventValidation event = JsonUtil.getJsonObjectFromString(EventValidation.class, eventString);
     if(StringUtils.isNotBlank(event.getEventType()) && !EventType.isValid(event.getEventType())) {
       throw new IgnoreEventException("Invalid event type", event.getEventType(), event.getEventOutcome());
+    } else if(StringUtils.isNotBlank(event.getEventOutcome()) && !EventType.isValid(event.getEventOutcome())) {
+      throw new IgnoreEventException("Invalid event outcome", event.getEventType(), event.getEventOutcome());
     }
     return JsonUtil.getJsonObjectFromString(Event.class, eventString);
   }
