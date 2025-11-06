@@ -387,8 +387,9 @@ public class GradStudentService {
 		}
         if (searchRequest.getPrograms() != null && !searchRequest.getPrograms().isEmpty()
                 && searchRequest.getGrades() != null && !searchRequest.getGrades().isEmpty()
-                && searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
-            result.addAll(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(searchRequest.getPrograms(), searchRequest.getGrades(), searchRequest.getSchoolIds()));
+                && searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()
+				&& searchRequest.getStatuses() != null && !searchRequest.getStatuses().isEmpty()) {
+            result.addAll(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(searchRequest.getPrograms(), searchRequest.getGrades(), searchRequest.getSchoolIds(), searchRequest.getStatuses()));
         }
 		if(searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));

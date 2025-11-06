@@ -1172,17 +1172,19 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         List<String> programs = List.of("1950");
         List<String> grades = List.of("12");
         List<UUID> schoolIds = List.of(schoolId);
+        List<String> statuses = List.of("CUR");
         List<UUID> providedStudentIds = List.of(studentId1);
 
         StudentSearchRequest searchRequest = StudentSearchRequest.builder()
                 .studentIDs(providedStudentIds)
                 .programs(programs)
                 .grades(grades)
+                .statuses(statuses)
                 .schoolIds(schoolIds)
                 .build();
 
         // When
-        when(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds))
+        when(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses))
                 .thenReturn(List.of(studentId2));
         when(graduationStatusRepository.findBySchoolOfRecordIdIn(schoolIds))
                 .thenReturn(List.of(studentId3));
@@ -1190,7 +1192,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
 
         // Then
-        verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds);
+        verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses);
         verify(graduationStatusRepository).findBySchoolOfRecordIdIn(schoolIds);
         assertThat(results).hasSize(3);
         assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2, studentId3);
@@ -1209,7 +1211,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
 
         // Then
-        verify(graduationStatusRepository, never()).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(any(), any(), any());
+        verify(graduationStatusRepository, never()).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(any(), any(), any(), any());
         assertThat(results).isEmpty();
     }
 
@@ -1228,7 +1230,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
 
         // Then
-        verify(graduationStatusRepository, never()).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(any(), any(), any());
+        verify(graduationStatusRepository, never()).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(any(), any(), any(), any());
         assertThat(results).isEmpty();
     }
 
@@ -1242,6 +1244,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         List<String> programs = List.of("1950", "SCCP", "2018");
         List<String> grades = List.of("12", "AD");
+        List<String> statuses = List.of("CUR");
         List<UUID> schoolIds = List.of(schoolId1, schoolId2);
         List<UUID> expectedStudentIds = List.of(studentId1, studentId2);
 
@@ -1249,10 +1252,11 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
                 .programs(programs)
                 .grades(grades)
                 .schoolIds(schoolIds)
+                .statuses(statuses)
                 .build();
 
         // When
-        when(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds))
+        when(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses))
                 .thenReturn(expectedStudentIds);
         when(graduationStatusRepository.findBySchoolOfRecordIdIn(schoolIds))
                 .thenReturn(List.of());
@@ -1260,7 +1264,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         List<UUID> results = gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest);
 
         // Then
-        verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds);
+        verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses);
         verify(graduationStatusRepository).findBySchoolOfRecordIdIn(schoolIds);
         assertThat(results).hasSize(2);
         assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2);
