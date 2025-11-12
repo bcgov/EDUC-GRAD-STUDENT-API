@@ -137,7 +137,7 @@ public class GraduationStudentRecordService {
         updatedEntity.setUpdateUser(demStudent.getUpdateUser());
         updatedEntity.setUpdateDate(LocalDateTime.now());
         var savedStudentRecord = graduationStudentRecordRepository.save(updatedEntity);
-        if(studentWasUpdated) {
+        if(Boolean.TRUE.equals(studentWasUpdated)) {
             historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
         }
 
