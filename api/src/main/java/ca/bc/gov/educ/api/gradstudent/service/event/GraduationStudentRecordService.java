@@ -192,7 +192,11 @@ public class GraduationStudentRecordService {
             if(!existingStudentCourses.isEmpty()) {
                 studentCourseRepository.deleteAllInBatch(existingStudentCourses);
             }
-            courseStudent.getStudentDetails().forEach(student -> handleReplaceCourseRecord(existingStudentRecordEntity, student,  studentFromApi.getStudentID()));
+            courseStudent.getStudentDetails().forEach(student -> {
+                if(!student.getCourseStatus().equalsIgnoreCase("W")) {
+                    handleReplaceCourseRecord(existingStudentRecordEntity, student, studentFromApi.getStudentID());
+                }
+            });
         }
     }
 
@@ -221,7 +225,7 @@ public class GraduationStudentRecordService {
             updatedEntity.setCreateDate(LocalDateTime.now());
             updatedEntity.setUpdateDate(LocalDateTime.now());
             studentCourseRepository.save(updatedEntity);
-        } else {
+        } else if(!courseStudent.getCourseStatus().equalsIgnoreCase("W")) {
             createNewStudentCourseEntity(courseStudent, studentID, coursesRecord, existingStudentRecordEntity);
         }
 
