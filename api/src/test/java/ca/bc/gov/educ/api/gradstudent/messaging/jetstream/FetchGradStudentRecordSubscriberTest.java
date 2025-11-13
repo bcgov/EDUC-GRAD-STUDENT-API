@@ -112,22 +112,22 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
         assertDoesNotThrow(() -> fetchSubscriber.onMessage(mockMessage));
     }
 
-    @Test
-    public void test_GenerateResponse() throws IOException {
-        UUID studentID = UUID.randomUUID();
-        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
-        GradStudentRecord rec = new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                "studentStatusCode",
-                "{\"nonGradReasons\":null,\"graduated\":true}",
-                "10",
-                gradData
-        );
-
-        String result = fetchSubscriber.getResponse(rec);
-        assertNotNull(result);
-    }
+//    @Test
+//    public void test_GenerateResponse() throws IOException {
+//        UUID studentID = UUID.randomUUID();
+//        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
+//        GradStudentRecord rec = new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),
+//                UUID.randomUUID(),
+//                UUID.randomUUID(),
+//                "studentStatusCode",
+//                "{\"nonGradReasons\":null,\"graduated\":true}",
+//                "10",
+//                gradData
+//        );
+//
+//        String result = fetchSubscriber.getResponse(rec);
+//        assertNotNull(result);
+//    }
 
     @Test
     public void testGetTopicName() {

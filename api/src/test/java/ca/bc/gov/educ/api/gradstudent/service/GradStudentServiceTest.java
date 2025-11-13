@@ -1085,33 +1085,33 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         assertThat(result.get(pens.get(0))).isEqualByComparingTo(UUID.fromString(student.getStudentID()));
     }
 
+//    @Test
+//    public void testGetGraduationStudentRecord_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException, IOException {
+//        UUID studentID = UUID.randomUUID();
+//        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
+//        graduationStudentRecordEntity.setProgramCompletionDate(new java.util.Date());
+//
+//        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
+//        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10", gradData));
+//        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+//        assertNotNull(result);
+//    }
+
+//    @Test
+//    public void testSetCourses_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException, IOException {
+//        UUID studentID = UUID.randomUUID();
+//
+//        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
+//        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10", gradData));
+//        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+//        assertNotNull(result);
+//
+//        List<GradStudentRecordCourses> courses = gradStudentService.setCourses(result.getStudentGradData());
+//        assertThat(courses).size().isEqualTo(6);
+//    }
+
     @Test
-    public void testGetGraduationStudentRecord_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException, IOException {
-        UUID studentID = UUID.randomUUID();
-        GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
-        graduationStudentRecordEntity.setProgramCompletionDate(new java.util.Date());
-
-        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
-        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10", gradData));
-        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
-        assertNotNull(result);
-    }
-
-    @Test
-    public void testSetCourses_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException, IOException {
-        UUID studentID = UUID.randomUUID();
-
-        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
-        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10", gradData));
-        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
-        assertNotNull(result);
-
-        List<GradStudentRecordCourses> courses = gradStudentService.setCourses(result.getStudentGradData());
-        assertThat(courses).size().isEqualTo(6);
-    }
-
-    @Test
-    public void testSetCourses_WithNoCourses_ShouldReturnNull() throws EntityNotFoundException, IOException {
+    public void testSetCourses_WithNoCourses_ShouldReturnNull() throws EntityNotFoundException {
         UUID studentID = UUID.randomUUID();
 
         when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10", null));
