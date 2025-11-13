@@ -1111,6 +1111,18 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testSetCourses_WithNoCourses_ShouldReturnNull() throws EntityNotFoundException, IOException {
+        UUID studentID = UUID.randomUUID();
+
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10", null));
+        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+        assertNotNull(result);
+
+        List<GradStudentRecordCourses> courses = gradStudentService.setCourses(result.getStudentGradData());
+        assertThat(courses).isNull();
+    }
+
+    @Test
     public void testGetGraduationStudentRecord_givenNotFound_ExpectEntityNotFoundExcetpion() {
         UUID studentID = UUID.randomUUID();
         when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(null);
