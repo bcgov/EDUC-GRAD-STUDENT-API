@@ -467,6 +467,6 @@ public class GradStudentService {
 		}
 		return gradStudentCoursePayload != null && gradStudentCoursePayload.getStudentCourses() != null
 				? gradStudentCoursePayload.getStudentCourses().getStudentCourseList()
-				: Collections.emptyList();
+				: null;
 	}
 }
