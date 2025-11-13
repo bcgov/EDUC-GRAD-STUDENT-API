@@ -6,6 +6,7 @@ import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.messaging.NatsConnection;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -27,11 +28,14 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Date;
 import java.util.Objects;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -106,6 +110,23 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
                 .thenThrow(new EntityNotFoundException());
 
         assertDoesNotThrow(() -> fetchSubscriber.onMessage(mockMessage));
+    }
+
+    @Test
+    public void test_GenerateResponse() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
+        GradStudentRecord rec = new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "studentStatusCode",
+                "{\"nonGradReasons\":null,\"graduated\":true}",
+                "10",
+                gradData
+        );
+
+        String result = fetchSubscriber.getResponse(rec);
+        assertNotNull(result);
     }
 
     @Test

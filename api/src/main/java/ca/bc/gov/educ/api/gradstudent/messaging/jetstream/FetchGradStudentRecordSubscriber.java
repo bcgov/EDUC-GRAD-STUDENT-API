@@ -69,7 +69,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
         this.natsConnection.publish(message.getReplyTo(), response.getBytes());
     }
 
-    private String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {
+    public String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {
         GradStudentRecordPayload gradStudentRecordPayload = GradStudentRecordPayload.builder()
                 .studentID(String.valueOf(studentRecord.getStudentID()))
                 .program(studentRecord.getProgram())
