@@ -7,6 +7,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStudentRecordSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordCourses;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -34,10 +35,10 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
@@ -1085,13 +1086,28 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void testGetGraduationStudentRecord_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+    public void testGetGraduationStudentRecord_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException, IOException {
         UUID studentID = UUID.randomUUID();
         GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
         graduationStudentRecordEntity.setProgramCompletionDate(new java.util.Date());
-        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10"));
+
+        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10", gradData));
         GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
         assertNotNull(result);
+    }
+
+    @Test
+    public void testSetCourses_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException, IOException {
+        UUID studentID = UUID.randomUUID();
+
+        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10", gradData));
+        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+        assertNotNull(result);
+
+        List<GradStudentRecordCourses> courses = gradStudentService.setCourses(result.getStudentGradData());
+        assertThat(courses).size().isEqualTo(6);
     }
 
     @Test

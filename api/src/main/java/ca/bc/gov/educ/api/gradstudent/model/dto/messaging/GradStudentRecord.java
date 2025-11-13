@@ -20,5 +20,5 @@ public class GradStudentRecord {
     private String studentStatus;
     private String studentProjectedGradData;
     private String studentGrade;
-
+    private String studentGradData;
 }

@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Connection;
 import io.nats.client.Message;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,8 +23,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,7 +86,8 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
 
         GradStudentRecord rec = new GradStudentRecord(
                 studentID, "Prog", Date.valueOf("2023-01-01"),
-                UUID.randomUUID(), UUID.randomUUID(), "Y", "12", "10"
+                UUID.randomUUID(), UUID.randomUUID(), "Y", "12", "10",
+                "11"
         );
         when(gradStudentService.getGraduationStudentRecord(studentID)).thenReturn(rec);
         when(gradStudentService.parseGraduationStatus(anyString())).thenReturn(true);
