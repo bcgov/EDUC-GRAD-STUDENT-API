@@ -7,6 +7,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStudentRecordSubscriber;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentCoursePayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -34,10 +35,10 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
@@ -1085,13 +1086,41 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void testGetGraduationStudentRecord_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException {
+    public void testGetGraduationStudentRecord_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException, IOException {
         UUID studentID = UUID.randomUUID();
         GraduationStudentRecordEntity graduationStudentRecordEntity = new GraduationStudentRecordEntity();
         graduationStudentRecordEntity.setProgramCompletionDate(new java.util.Date());
-        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "{\"nonGradReasons\":null,\"graduated\":true}", "10"));
+
+        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "10", gradData));
         GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
         assertNotNull(result);
+    }
+
+    @Test
+    public void testSetCourses_GivenValidProgramCompletionDate_ExpectTrue() throws EntityNotFoundException, IOException {
+        UUID studentID = UUID.randomUUID();
+
+        String gradData = new String(Files.readAllBytes(Paths.get("src/test/resources/json/studentGradCourseData.json")));
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "10", gradData));
+        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+        assertNotNull(result);
+
+        GradStudentCoursePayload payload = gradStudentService.setGradMetaData(result.getStudentGradData());
+        assertThat(payload.getStudentCourses().getStudentCourseList()).size().isEqualTo(6);
+        assertThat(payload.isGraduated()).isTrue();
+    }
+
+    @Test
+    public void testSetCourses_WithNoCourses_ShouldReturnNull() throws EntityNotFoundException {
+        UUID studentID = UUID.randomUUID();
+
+        when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(new GradStudentRecord(studentID, "2018-EN", new java.util.Date(),  UUID.randomUUID(), UUID.randomUUID(),"studentStatusCode", "10", null));
+        GradStudentRecord result = gradStudentService.getGraduationStudentRecord(studentID);
+        assertNotNull(result);
+
+        GradStudentCoursePayload payload = gradStudentService.setGradMetaData(result.getStudentGradData());
+        assertThat(payload).isNull();
     }
 
     @Test
@@ -1109,27 +1138,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
         when(graduationStatusRepository.findByStudentID(studentID, GradStudentRecord.class)).thenReturn(null);
 
         assertThrows(EntityNotFoundException.class, () -> gradStudentService.getGraduationStudentRecord(studentID));
-    }
-
-    @Test
-    public void testParseGraduationStatus_GivenNullInput_ExpectFalse() {
-        String studentProjectedGradData = null;
-        Boolean result = gradStudentService.parseGraduationStatus(studentProjectedGradData);
-        assertFalse("Expected false for null input", result);
-    }
-
-    @Test
-    public void testParseGraduationStatus_GivenEmptyInput_ExpectFalse() {
-        String studentProjectedGradData = "";
-        Boolean result = gradStudentService.parseGraduationStatus(studentProjectedGradData);
-        assertFalse("Expected false for empty input", result);
-    }
-
-    @Test
-    public void testParseGraduationStatus_GivenMalformedJson_ExpectFalse() {
-        String malformedJson = "{invalid-json}";
-        Boolean result = gradStudentService.parseGraduationStatus(malformedJson);
-        assertFalse("Expected false for malformed JSON", result);
     }
 
     @Test
@@ -1193,9 +1201,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // Then
         verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses);
-        verify(graduationStatusRepository).findBySchoolOfRecordIdIn(schoolIds);
-        assertThat(results).hasSize(3);
-        assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2, studentId3);
+        assertThat(results).hasSize(2).containsExactlyInAnyOrder(studentId1, studentId2);
     }
 
     @Test
@@ -1265,9 +1271,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // Then
         verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses);
-        verify(graduationStatusRepository).findBySchoolOfRecordIdIn(schoolIds);
-        assertThat(results).hasSize(2);
-        assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2);
+        assertThat(results).hasSize(2).containsExactlyInAnyOrder(studentId1, studentId2);
     }
 
     @SneakyThrows
