@@ -392,9 +392,8 @@ public class GradStudentService {
                 && searchRequest.getGrades() != null && !searchRequest.getGrades().isEmpty()
                 && searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()
 				&& searchRequest.getStatuses() != null && !searchRequest.getStatuses().isEmpty()) {
-			logger.info("Pulling students findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn");
             result.addAll(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(searchRequest.getPrograms(), searchRequest.getGrades(), searchRequest.getSchoolIds(), searchRequest.getStatuses()));
-			logger.info("Total students pulled: {}", result.size());
+			return result;
         }
 		if(searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));
