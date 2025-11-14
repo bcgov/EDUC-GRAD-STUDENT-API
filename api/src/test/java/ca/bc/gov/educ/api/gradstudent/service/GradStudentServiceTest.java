@@ -8,7 +8,6 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStudentRecord
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentCoursePayload;
-import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordCourses;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -1202,8 +1201,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // Then
         verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses);
-        assertThat(results).hasSize(2);
-        assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2);
+        assertThat(results).hasSize(2).containsExactlyInAnyOrder(studentId1, studentId2);
     }
 
     @Test
@@ -1273,8 +1271,7 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // Then
         verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses);
-        assertThat(results).hasSize(2);
-        assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2);
+        assertThat(results).hasSize(2).containsExactlyInAnyOrder(studentId1, studentId2);
     }
 
     @SneakyThrows
