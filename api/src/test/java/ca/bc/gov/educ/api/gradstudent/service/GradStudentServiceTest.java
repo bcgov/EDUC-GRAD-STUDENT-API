@@ -1221,7 +1221,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // Then
         verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses);
-        verify(graduationStatusRepository).findBySchoolOfRecordIdIn(schoolIds);
         assertThat(results).hasSize(3);
         assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2, studentId3);
     }
@@ -1293,7 +1292,6 @@ public class GradStudentServiceTest extends BaseIntegrationTest {
 
         // Then
         verify(graduationStatusRepository).findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(programs, grades, schoolIds, statuses);
-        verify(graduationStatusRepository).findBySchoolOfRecordIdIn(schoolIds);
         assertThat(results).hasSize(2);
         assertThat(results).containsExactlyInAnyOrder(studentId1, studentId2);
     }
