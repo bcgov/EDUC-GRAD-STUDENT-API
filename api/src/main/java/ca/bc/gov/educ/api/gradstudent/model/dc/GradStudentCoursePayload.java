@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GradStudentCoursePayload {
     private StudentCourseCLOB studentCourses;
+    private boolean isGraduated;
 }

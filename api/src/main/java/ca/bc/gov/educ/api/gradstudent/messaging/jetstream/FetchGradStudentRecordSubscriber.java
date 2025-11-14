@@ -70,6 +70,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
     }
 
     public String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {
+        var gradStudentCoursePayload = gradStudentService.setGradMetaData(studentRecord.getStudentGradData());
         GradStudentRecordPayload gradStudentRecordPayload = GradStudentRecordPayload.builder()
                 .studentID(String.valueOf(studentRecord.getStudentID()))
                 .program(studentRecord.getProgram())
@@ -77,8 +78,10 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
                 .schoolOfRecordId(String.valueOf(studentRecord.getSchoolOfRecordId()))
                 .studentStatusCode(studentRecord.getStudentStatus())
                 .schoolAtGradId(studentRecord.getSchoolAtGradId() != null ? studentRecord.getSchoolAtGradId().toString() : null)
-                .graduated(gradStudentService.parseGraduationStatus(studentRecord.getStudentProjectedGradData()).toString())
-                .courseList(gradStudentService.setCourses(studentRecord.getStudentGradData()))
+                .graduated(String.valueOf(gradStudentCoursePayload != null && gradStudentCoursePayload.isGraduated()))
+                .courseList(gradStudentCoursePayload != null && gradStudentCoursePayload.getStudentCourses() != null
+                                ? gradStudentCoursePayload.getStudentCourses().getStudentCourseList()
+                                : null)
                 .studentGrade(studentRecord.getStudentGrade())
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);

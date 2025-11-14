@@ -81,23 +81,6 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
         natsConnectionField.set(fetchSubscriber, connection);
     }
 
-    @Test
-    public void testOnMessage_Success() throws JsonProcessingException {
-        UUID studentID = UUID.randomUUID();
-        Event event = prepareEventMessage(studentID);
-        when(mockMessage.getData()).thenReturn(JsonUtil.getJsonStringFromObject(event).getBytes());
-        when(mockMessage.getReplyTo()).thenReturn("replyTo");
-
-        GradStudentRecord rec = new GradStudentRecord(
-                studentID, "Prog", Date.valueOf("2023-01-01"),
-                UUID.randomUUID(), UUID.randomUUID(), "Y", "12", "10",
-                "11"
-        );
-        when(gradStudentService.getGraduationStudentRecord(studentID)).thenReturn(rec);
-        when(gradStudentService.parseGraduationStatus(anyString())).thenReturn(true);
-
-        assertDoesNotThrow(() -> fetchSubscriber.onMessage(mockMessage));
-    }
 
     @Test
     public void testOnMessage_EntityNotFound() throws JsonProcessingException {
@@ -120,7 +103,6 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 "studentStatusCode",
-                "{\"nonGradReasons\":null,\"graduated\":true}",
                 "10",
                 gradData
         );

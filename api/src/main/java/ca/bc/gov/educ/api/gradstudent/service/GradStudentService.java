@@ -444,28 +444,13 @@ public class GradStudentService {
 		throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
 	}
 
-	public Boolean parseGraduationStatus(String studentProjectedGradData) {
-		if (studentProjectedGradData == null || studentProjectedGradData.isEmpty()) {
-			return false;
-		}
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode jsonNode = mapper.readTree(studentProjectedGradData);
-			return jsonNode.get("graduated").asBoolean();
-		} catch (JsonProcessingException e) {
-			return false;
-		}
-	}
-
-	public List<GradStudentRecordCourses> setCourses(String studentGradData) {
+	public GradStudentCoursePayload setGradMetaData(String studentGradData) {
 		GradStudentCoursePayload gradStudentCoursePayload = null;
 		try {
 			gradStudentCoursePayload = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(studentGradData, GradStudentCoursePayload.class);
 		} catch (Exception e) {
 			logger.debug("Parsing Graduation Data Error {}", e.getMessage());
 		}
-		return gradStudentCoursePayload != null && gradStudentCoursePayload.getStudentCourses() != null
-				? gradStudentCoursePayload.getStudentCourses().getStudentCourseList()
-				: null;
+		return gradStudentCoursePayload;
 	}
 }
