@@ -398,6 +398,8 @@ public class GradStudentService {
 		return result;
 	}
 
+	
+	
 	public List<UUID> getStudentIDsByPens(List<String> pens) {
 		return (pens == null || pens.isEmpty()) ? new ArrayList<>() : resolveStudentPENsToUUIDs(pens).values().stream().toList();
 	}
@@ -444,7 +446,9 @@ public class GradStudentService {
 	public GradStudentCoursePayload setGradMetaData(String studentGradData) {
 		GradStudentCoursePayload gradStudentCoursePayload = null;
 		try {
+			logger.info("setGradMetaData - studentGradData: {}", studentGradData);
 			gradStudentCoursePayload = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(studentGradData, GradStudentCoursePayload.class);
+			logger.info("setGradMetaData - gradStudentCoursePayload: {}", gradStudentCoursePayload);
 		} catch (Exception e) {
 			logger.debug("Parsing Graduation Data Error {}", e.getMessage());
 		}
