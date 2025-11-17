@@ -941,9 +941,9 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
         var pair = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
-        
+
         var result = pair.getLeft();
-        
+
         assertNotNull(result);
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -1315,7 +1315,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         request.setTargetStudentId(targetId);
         request.setStudentCourseIdsToMove(List.of(missingCourseId));
 
-        Mockito.when(studentCourseRepository.findById(missingCourseId)).thenReturn(Optional.empty());
+        Mockito.when(studentCourseRepository.findAllById(List.of(missingCourseId))).thenReturn(Collections.emptyList());
         Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(Collections.emptyList());
 
         GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
@@ -1326,7 +1326,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         var result = pairResult.getLeft();
 
         assertThat(result).isNotEmpty();
-        assertThat(result.get(0).getValidationFieldName()).isEqualTo(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_NOT_FOUND.getCode());
+        assertThat(result.get(0).getValidationIssues().get(0).getValidationFieldName()).isEqualTo(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_NOT_FOUND.getCode());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1368,15 +1368,17 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         Mockito.doReturn(new GraduationStudentRecord())
             .when(graduationStatusService)
             .getGraduationStatus(targetId);
-        Mockito.when(studentCourseRepository.findById(courseId)).thenReturn(Optional.of(courseToMove));
+        Mockito.when(studentCourseRepository.findAllById(List.of(courseId))).thenReturn(List.of(courseToMove));
         Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(List.of(existingCourse));
 
         var pairResult = studentCourseService.transferStudentCourse(request);
         var result = pairResult.getLeft();
 
         assertThat(result).isNotEmpty();
-        assertThat(result.stream().anyMatch(issue ->
-            issue.getValidationFieldName().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE.getCode())
-        )).isTrue();
+        assertThat(result.stream()
+            .flatMap(issue -> issue.getValidationIssues().stream())
+            .anyMatch(validation ->
+                validation.getValidationFieldName().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE.getCode())
+            )).isTrue();
     }
 }

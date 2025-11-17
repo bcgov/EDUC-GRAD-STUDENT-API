@@ -138,12 +138,15 @@ public class StudentCourseControllerTest {
             .validationIssueSeverityCode("ERROR")
             .build();
 
-        List<ValidationIssue> issues = List.of(issue);
-        ResponseEntity<List<ValidationIssue>> expectedResponse = ResponseEntity.ok(issues);
+        StudentCourseValidationIssue validationIssue = new StudentCourseValidationIssue();
+        validationIssue.setValidationIssues(List.of(issue));
+
+        List<StudentCourseValidationIssue> issues = List.of(validationIssue);
+        ResponseEntity<List<StudentCourseValidationIssue>> expectedResponse = ResponseEntity.ok(issues);
 
         when(studentCourseService.transferStudentCourse(request)).thenReturn(Pair.of(issues, null));
 
-        ResponseEntity<List<ValidationIssue>> actual = studentCourseController.transferStudentCourses(request);
+        ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.transferStudentCourses(request);
 
         assertThat(actual).isEqualTo(expectedResponse);
         verify(studentCourseService).transferStudentCourse(request);
@@ -159,7 +162,7 @@ public class StudentCourseControllerTest {
 
         when(studentCourseService.transferStudentCourse(request)).thenReturn(Pair.of(Collections.emptyList(), null));
 
-        ResponseEntity<List<ValidationIssue>> actual = studentCourseController.transferStudentCourses(request);
+        ResponseEntity<List<StudentCourseValidationIssue>> actual = studentCourseController.transferStudentCourses(request);
 
         assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(actual.getBody()).isNull();
