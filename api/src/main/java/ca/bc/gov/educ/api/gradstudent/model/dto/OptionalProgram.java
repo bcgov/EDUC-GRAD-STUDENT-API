@@ -1,12 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
-import java.util.Date;
-import java.util.UUID;
-
-import org.springframework.stereotype.Component;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper=false)

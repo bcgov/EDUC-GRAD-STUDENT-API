@@ -14,6 +14,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+
 import static ca.bc.gov.educ.api.gradstudent.service.event.EventHandlerService.PAYLOAD_LOG;
 
 
@@ -60,7 +61,10 @@ public class EventHandlerDelegatorService {
 
           switch (choreographedEvent.getEventType()) {
             case ASSESSMENT_STUDENT_UPDATE:
-              this.eventHandlerService.handleAssessmentUpdatedDataEvent(persistedEvent);
+              var adoptEvent = this.eventHandlerService.handleAssessmentUpdatedDataEvent(persistedEvent);
+              if(adoptEvent != null) {
+                publisher.dispatchChoreographyEvent(adoptEvent);
+              }
               break;
             case UPDATE_STUDENT:
               this.eventHandlerService.handleStudentUpdatedDataEvent(persistedEvent);
@@ -97,15 +101,18 @@ public class EventHandlerDelegatorService {
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, pairResponse.getLeft());
           if(pairResponse.getRight() != null) {
-            publishToJetStream(pairResponse.getRight());
+            pairResponse.getRight().forEach(this::publishToJetStream);
           }
           break;
         case PROCESS_STUDENT_COURSE_DATA:
           log.info("Received PROCESS_STUDENT_COURSE_DATA event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
-          response = eventHandlerService.handleProcessStudentCourseDataEvent(event);
+          var pairCourseResponse = eventHandlerService.handleProcessStudentCourseDataEvent(event);
           log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-          publishToNATS(event, message, isSynchronous, response);
+          publishToNATS(event, message, isSynchronous, pairCourseResponse.getLeft());
+          if(pairCourseResponse.getRight() != null) {
+            publishToJetStream(pairCourseResponse.getRight());
+          }
           break;
         case GET_STUDENT_COURSES:
           log.info("Received GET_STUDENT_COURSES event :: {}", event);

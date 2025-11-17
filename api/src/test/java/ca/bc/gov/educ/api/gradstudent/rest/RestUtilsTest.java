@@ -2,7 +2,6 @@ package ca.bc.gov.educ.api.gradstudent.rest;
 
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
 import ca.bc.gov.educ.api.gradstudent.messaging.MessagePublisher;
-import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseAllowableCreditRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCharacteristicsRecord;
@@ -18,7 +17,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;

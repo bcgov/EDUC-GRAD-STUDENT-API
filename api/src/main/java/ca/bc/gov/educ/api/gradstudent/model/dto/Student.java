@@ -1,12 +1,11 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import jakarta.validation.constraints.*;
 
 @Data
 @SuperBuilder

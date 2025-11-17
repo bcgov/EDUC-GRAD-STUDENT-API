@@ -3,6 +3,8 @@ package ca.bc.gov.educ.api.gradstudent.model.dc;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class GradStudentRecordPayload {
@@ -16,5 +18,6 @@ public class GradStudentRecordPayload {
     private String graduated;
     private String schoolAtGradId;
     private String studentGrade;
+    private List<GradStudentRecordCourses> courseList;
 
 }

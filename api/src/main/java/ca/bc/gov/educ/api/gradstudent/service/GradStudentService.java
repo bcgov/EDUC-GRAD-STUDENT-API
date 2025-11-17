@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentCoursePayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -8,8 +9,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
@@ -387,8 +387,10 @@ public class GradStudentService {
 		}
         if (searchRequest.getPrograms() != null && !searchRequest.getPrograms().isEmpty()
                 && searchRequest.getGrades() != null && !searchRequest.getGrades().isEmpty()
-                && searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
-            result.addAll(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(searchRequest.getPrograms(), searchRequest.getGrades(), searchRequest.getSchoolIds()));
+                && searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()
+				&& searchRequest.getStatuses() != null && !searchRequest.getStatuses().isEmpty()) {
+            result.addAll(graduationStatusRepository.findCurrentStudentUUIDsByProgramInAndSchoolOfRecordInAndGradeIn(searchRequest.getPrograms(), searchRequest.getGrades(), searchRequest.getSchoolIds(), searchRequest.getStatuses()));
+			return result;
         }
 		if(searchRequest.getSchoolIds() != null && !searchRequest.getSchoolIds().isEmpty()) {
 			result.addAll(graduationStatusRepository.findBySchoolOfRecordIdIn(searchRequest.getSchoolIds()));
@@ -439,16 +441,13 @@ public class GradStudentService {
 		throw new EntityNotFoundException(String.format(STD_NOT_FOUND_MSG, studentID));
 	}
 
-	public Boolean parseGraduationStatus(String studentProjectedGradData) {
-		if (studentProjectedGradData == null || studentProjectedGradData.isEmpty()) {
-			return false;
-		}
+	public GradStudentCoursePayload setGradMetaData(String studentGradData) {
+		GradStudentCoursePayload gradStudentCoursePayload = null;
 		try {
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode jsonNode = mapper.readTree(studentProjectedGradData);
-			return jsonNode.get("graduated").asBoolean();
-		} catch (JsonProcessingException e) {
-			return false;
+			gradStudentCoursePayload = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(studentGradData, GradStudentCoursePayload.class);
+		} catch (Exception e) {
+			logger.debug("Parsing Graduation Data Error {}", e.getMessage());
 		}
+		return gradStudentCoursePayload;
 	}
 }

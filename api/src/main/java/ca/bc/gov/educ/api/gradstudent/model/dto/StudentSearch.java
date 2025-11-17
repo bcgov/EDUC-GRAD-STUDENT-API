@@ -1,11 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.model.dto;
 
-import java.util.List;
-
+import lombok.Data;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import lombok.Data;
+import java.util.List;
 
 @Data
 public class StudentSearch {

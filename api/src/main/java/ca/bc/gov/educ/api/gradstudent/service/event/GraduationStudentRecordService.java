@@ -3,6 +3,8 @@ package ca.bc.gov.educ.api.gradstudent.service.event;
 import ca.bc.gov.educ.api.gradstudent.constant.GradRequirementYearCodes;
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
+import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
+import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUpdateResult;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
@@ -18,18 +20,19 @@ import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Pair;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.sql.Date;
@@ -50,6 +53,7 @@ public class GraduationStudentRecordService {
     private final StudentCourseRepository studentCourseRepository;
     private final FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
     private final EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
+    private final Publisher publisher;
     private static final String DATA_CONVERSION_HISTORY_ACTIVITY_CODE = "DATACONVERT"; // confirm,
     private static final String GDC_ADD = "GDCADD";// confirm,
     private static final String GDC_UPDATE = "GDCUPATE";
@@ -86,12 +90,12 @@ public class GraduationStudentRecordService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void handleAssessmentAdoptEvent(String studentID, final GradStatusEvent event) {
-        graduationStatusService.adoptStudent(UUID.fromString(studentID), event.getUpdateUser());
+    public GradStatusEvent handleAssessmentAdoptEvent(String studentID, final GradStatusEvent event) throws JsonProcessingException {
+        return graduationStatusService.adoptStudent(UUID.fromString(studentID), event.getUpdateUser()).getRight();
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void createNewStudentRecord(DemographicStudent demStudent, Student studentFromApi) {
+    public GraduationStudentRecordEntity createNewStudentRecord(DemographicStudent demStudent, Student studentFromApi) {
         List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         GraduationStudentRecordEntity entity = createGraduationStudentRecordEntity(demStudent, studentFromApi);
@@ -117,21 +121,23 @@ public class GraduationStudentRecordService {
         }
         var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
         savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
+        return savedStudentRecord;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public boolean updateStudentRecord(DemographicStudent demStudent, Student studentFromApi, GraduationStudentRecordEntity existingStudentRecordEntity) {
+    public Pair<GradStudentUpdateResult, GraduationStudentRecordEntity> updateStudentRecord(DemographicStudent demStudent, Student studentFromApi, GraduationStudentRecordEntity existingStudentRecordEntity) {
         var newStudentRecordEntity = new GraduationStudentRecordEntity();
-        boolean isSchoolOfRecordUpdated = checkIfSchoolOfRecordIsUpdated(demStudent, existingStudentRecordEntity);
+        var gradStudentUpdateResult = new GradStudentUpdateResult();
+        gradStudentUpdateResult.setSchoolOfRecordUpdated(checkIfSchoolOfRecordIsUpdated(demStudent, existingStudentRecordEntity));
         BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, CREATE_USER, CREATE_DATE);
-        Pair<Boolean,GraduationStudentRecordEntity> studentUpdate = compareAndUpdateGraduationStudentRecordEntity(demStudent, newStudentRecordEntity);
+        Pair<Boolean,GraduationStudentRecordEntity> studentUpdate = compareAndUpdateGraduationStudentRecordEntity(demStudent, newStudentRecordEntity, gradStudentUpdateResult);
         
         var studentWasUpdated = studentUpdate.getLeft();
         var updatedEntity = studentUpdate.getRight();
         updatedEntity.setUpdateUser(demStudent.getUpdateUser());
         updatedEntity.setUpdateDate(LocalDateTime.now());
         var savedStudentRecord = graduationStudentRecordRepository.save(updatedEntity);
-        if(studentWasUpdated) {
+        if(Boolean.TRUE.equals(studentWasUpdated)) {
             historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
         }
 
@@ -170,7 +176,7 @@ public class GraduationStudentRecordService {
             }
         }
 
-        return isSchoolOfRecordUpdated;
+        return Pair.of(gradStudentUpdateResult, savedStudentRecord);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -186,7 +192,11 @@ public class GraduationStudentRecordService {
             if(!existingStudentCourses.isEmpty()) {
                 studentCourseRepository.deleteAllInBatch(existingStudentCourses);
             }
-            courseStudent.getStudentDetails().forEach(student -> handleReplaceCourseRecord(existingStudentRecordEntity, student,  studentFromApi.getStudentID()));
+            courseStudent.getStudentDetails().forEach(student -> {
+                if(!student.getCourseStatus().equalsIgnoreCase("W")) {
+                    handleReplaceCourseRecord(existingStudentRecordEntity, student, studentFromApi.getStudentID());
+                }
+            });
         }
     }
 
@@ -215,7 +225,7 @@ public class GraduationStudentRecordService {
             updatedEntity.setCreateDate(LocalDateTime.now());
             updatedEntity.setUpdateDate(LocalDateTime.now());
             studentCourseRepository.save(updatedEntity);
-        } else {
+        } else if(!courseStudent.getCourseStatus().equalsIgnoreCase("W")) {
             createNewStudentCourseEntity(courseStudent, studentID, coursesRecord, existingStudentRecordEntity);
         }
 
@@ -465,15 +475,17 @@ public class GraduationStudentRecordService {
         return optionalProgramIDs;
     }
 
-    private Pair<Boolean, GraduationStudentRecordEntity> compareAndUpdateGraduationStudentRecordEntity(DemographicStudent demStudent, GraduationStudentRecordEntity newStudentRecordEntity) {
+    private Pair<Boolean, GraduationStudentRecordEntity> compareAndUpdateGraduationStudentRecordEntity(DemographicStudent demStudent, GraduationStudentRecordEntity newStudentRecordEntity, GradStudentUpdateResult gradStudentUpdateResult) {
         int projectedChangeCount = 0;
         int statusChangeCount = 0;
         boolean hasAdultChange = false;
         if(demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
-            if(newStudentRecordEntity.getSchoolOfRecordId() != null && newStudentRecordEntity.getSchoolOfRecordId() != UUID.fromString(demStudent.getSchoolID()) && (demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T"))) {
+            if(newStudentRecordEntity.getSchoolOfRecordId() != null && !Objects.equals(newStudentRecordEntity.getSchoolOfRecordId(), UUID.fromString(demStudent.getSchoolID()))) {
                 newStudentRecordEntity.setSchoolOfRecordId(UUID.fromString(demStudent.getSchoolID()));
-                projectedChangeCount++;
-                statusChangeCount++;
+                if(demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T")) {
+                    projectedChangeCount++;
+                    statusChangeCount++;
+                }
             }
             if(!newStudentRecordEntity.getStudentGrade().equalsIgnoreCase(demStudent.getGrade()) && demStudent.getStudentStatus().equalsIgnoreCase("A") && newStudentRecordEntity.getProgramCompletionDate() == null) {
                 newStudentRecordEntity.setStudentGrade(demStudent.getGrade());
@@ -498,6 +510,7 @@ public class GraduationStudentRecordService {
                 newStudentRecordEntity.setStudentCitizenship(demStudent.getCitizenship());
                 projectedChangeCount++;
                 statusChangeCount++;
+                gradStudentUpdateResult.setCitizenshipUpdated(true);
             }
         }
 
@@ -632,7 +645,8 @@ public class GraduationStudentRecordService {
     }
 
     private boolean checkIfSchoolOfRecordIsUpdated(DemographicStudent demStudent, GraduationStudentRecordEntity existingStudentRecordEntity) {
-        return existingStudentRecordEntity.getSchoolOfRecordId() != null && existingStudentRecordEntity.getSchoolOfRecordId() != UUID.fromString(demStudent.getSchoolID()) && (demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T"));
+        return existingStudentRecordEntity.getSchoolOfRecordId() != null
+                && !Objects.equals(existingStudentRecordEntity.getSchoolOfRecordId(), UUID.fromString(demStudent.getSchoolID()));
     }
 
     private boolean deriveIfGraduated(GraduationStudentRecordEntity studentRecord) {

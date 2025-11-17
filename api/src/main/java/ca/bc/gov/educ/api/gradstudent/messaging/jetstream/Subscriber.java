@@ -2,12 +2,13 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 
 import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
+import ca.bc.gov.educ.api.gradstudent.exception.IgnoreEventException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
 import ca.bc.gov.educ.api.gradstudent.service.JetStreamEventHandlerService;
 import ca.bc.gov.educ.api.gradstudent.service.event.EventHandlerDelegatorService;
 import ca.bc.gov.educ.api.gradstudent.service.event.PenServicesEventHandlerDelegatorService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
+import ca.bc.gov.educ.api.gradstudent.util.EventUtils;
 import ca.bc.gov.educ.api.gradstudent.util.LogHelper;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.nats.client.Connection;
@@ -16,6 +17,7 @@ import io.nats.client.Message;
 import io.nats.client.PushSubscribeOptions;
 import io.nats.client.api.ConsumerConfiguration;
 import io.nats.client.api.DeliverPolicy;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jboss.threads.EnhancedQueueExecutor;
@@ -23,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -117,7 +118,7 @@ public class Subscriber {
     try {
       val eventString = new String(message.getData());
       LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());
-      ChoreographedEvent event = JsonUtil.getJsonObjectFromString(ChoreographedEvent.class, eventString);
+      final ChoreographedEvent event = EventUtils.getChoreographedEventIfValid(eventString);
       this.subscriberExecutor.execute(() -> {
         try {
           if(event.getEventType().equals(EventType.ASSESSMENT_STUDENT_UPDATE)) {
@@ -135,6 +136,9 @@ public class Subscriber {
           log.error("IOException ", e);
         }
       });
+    } catch (final IgnoreEventException ex) {
+      log.warn("Ignoring event with type :: {} :: and event outcome :: {}", ex.getEventType(), ex.getEventOutcome());
+      message.ack();
     } catch (final Exception ex) {
       log.error("Exception occurred processing incoming message: ", ex);
     }

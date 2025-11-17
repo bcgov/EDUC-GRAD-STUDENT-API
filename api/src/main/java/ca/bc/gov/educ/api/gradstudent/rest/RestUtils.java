@@ -1,13 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.rest;
 
+import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
 import ca.bc.gov.educ.api.gradstudent.exception.SagaRuntimeException;
 import ca.bc.gov.educ.api.gradstudent.messaging.MessagePublisher;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
-import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
-import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;

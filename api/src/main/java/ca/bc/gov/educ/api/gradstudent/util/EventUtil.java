@@ -1,12 +1,15 @@
 package ca.bc.gov.educ.api.gradstudent.util;
 
 
+import ca.bc.gov.educ.api.gradstudent.constant.EventOutcome;
 import ca.bc.gov.educ.api.gradstudent.constant.EventStatus;
-import ca.bc.gov.educ.api.gradstudent.model.dc.EventOutcome;
-import ca.bc.gov.educ.api.gradstudent.model.dc.EventType;
+import ca.bc.gov.educ.api.gradstudent.constant.EventType;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
+import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourseUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 public class EventUtil {
@@ -24,5 +27,12 @@ public class EventUtil {
       .eventStatus(EventStatus.DB_COMMITTED.toString())
       .eventOutcome(eventOutcome.toString())
       .build();
+  }
+
+  public static StudentCourseUpdate getStudentCourseUpdate(String studentID, List<StudentCourse> courses){
+    StudentCourseUpdate studentCourseUpdate = new StudentCourseUpdate();
+    studentCourseUpdate.setStudentID(studentID);
+    studentCourseUpdate.setStudentCourses(courses);
+    return studentCourseUpdate;
   }
 }

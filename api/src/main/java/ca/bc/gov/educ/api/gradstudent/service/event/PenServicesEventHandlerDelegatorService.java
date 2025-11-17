@@ -4,7 +4,6 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.ChoreographedEvent;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.event.choreographer.StudentMergeChoreographer;
 import io.nats.client.Message;
-import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

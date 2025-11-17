@@ -7,17 +7,15 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @Component
 @SuperBuilder
-public class Course extends BaseCourse {
+public class GradStudentUpdateResult {
 
-    private CourseCharacteristics courseCategory;
-    private List<CourseAllowableCredits> courseAllowableCredit;
+    private boolean schoolOfRecordUpdated;
+    private boolean citizenshipUpdated;
 
 }

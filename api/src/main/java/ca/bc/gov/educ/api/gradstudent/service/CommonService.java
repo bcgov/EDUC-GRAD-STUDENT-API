@@ -1,7 +1,10 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.HistoryActivityCodeEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCareerProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentRecordNoteEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentStatusEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;

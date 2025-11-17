@@ -9,13 +9,13 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStudentCourse
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
-import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseExamEntity;
 import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseMapper;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -117,7 +117,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testCreateStudentCourses_CUR() {
+    public void testCreateStudentCourses_CUR() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
@@ -131,7 +131,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(3);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
@@ -142,7 +143,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testUpdateStudentCourses_CUR() {
+    public void testUpdateStudentCourses_CUR() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
@@ -165,7 +166,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var result = pairResult.getLeft();
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(3);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
@@ -176,7 +178,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testUpdateStudentCourses_CUR_ExaminableToNonExaminable_Error() {
+    public void testUpdateStudentCourses_CUR_ExaminableToNonExaminable_Error() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
@@ -200,7 +202,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var result = pairResult.getLeft();
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(3);
 
@@ -216,7 +219,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testCreateStudentCourses_CUR_Duplicate() {
+    public void testCreateStudentCourses_CUR_Duplicate() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
@@ -233,7 +236,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DUPLICATE.getMessage())).findFirst().isPresent());
@@ -241,7 +245,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testCreateStudentCourses_MER() {
+    public void testCreateStudentCourses_MER() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
@@ -254,7 +258,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(3);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -264,7 +269,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testCreateStudentCourses_TER_1996() {
+    public void testCreateStudentCourses_TER_1996() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -278,7 +283,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
         assertNotNull(result);
 
         Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
@@ -319,7 +325,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testCreateStudentCourses_ARC_1996() {
+    public void testCreateStudentCourses_ARC_1996() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -333,7 +339,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
         assertNotNull(result);
 
         Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
@@ -375,7 +382,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testCreateStudentCourses_DEC_1996() {
+    public void testCreateStudentCourses_DEC_1996() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -389,7 +396,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
         assertNotNull(result);
 
         Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
@@ -431,7 +439,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testCreateStudentCourses_TER_2004() {
+    public void testCreateStudentCourses_TER_2004() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -442,13 +450,14 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
         assertNotNull(result);
 
     }
 
     @Test
-    public void testCreateStudentCourses_ARC_2004() {
+    public void testCreateStudentCourses_ARC_2004() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -461,13 +470,14 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
         assertNotNull(result);
         
     }
 
     @Test
-    public void testCreateStudentCourses_DEC_2004() {
+    public void testCreateStudentCourses_DEC_2004() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -480,7 +490,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
@@ -488,7 +499,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testUpdateStudentCourses_MER() {
+    public void testUpdateStudentCourses_MER() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
@@ -512,7 +523,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var result = pairResult.getLeft();
         assertNotNull(result);
         assertThat(result).isNotEmpty().hasSize(3);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -522,7 +534,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testUpdateStudentCourses_TER_1996() {
+    public void testUpdateStudentCourses_TER_1996() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -548,7 +560,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var result = pairResult.getLeft();
         assertNotNull(result);
 
        Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
@@ -590,7 +603,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testUpdateStudentCourses_ARC_1996() {
+    public void testUpdateStudentCourses_ARC_1996() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -616,7 +629,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var result = pairResult.getLeft();
         assertNotNull(result);
 
         Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
@@ -659,7 +673,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testUpdateStudentCourses_DEC_1996() {
+    public void testUpdateStudentCourses_DEC_1996() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -685,7 +699,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var result = pairResult.getLeft();
         assertNotNull(result);
 
         Map<String, List<Pair<String,Boolean>>> expectedValidationMessages = new HashMap<>();
@@ -729,7 +744,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testUpdateStudentCourses_TER_2004() {
+    public void testUpdateStudentCourses_TER_2004() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -754,13 +769,14 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var result = pairResult.getLeft();
         assertNotNull(result);
 
     }
 
     @Test
-    public void testUpdateStudentCourses_ARC_2004() {
+    public void testUpdateStudentCourses_ARC_2004() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -785,13 +801,14 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var result = pairResult.getLeft();
         assertNotNull(result);
 
     }
 
     @Test
-    public void testUpdateStudentCourses_DEC_2004() {
+    public void testUpdateStudentCourses_DEC_2004() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_WithValidationIssues();
@@ -816,14 +833,15 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), true);
+        var result = pairResult.getLeft();
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_STATUS_DEC.getMessage())).findFirst().isPresent());
     }
 
     @Test
-    public void testDeleteStudentCourses_WithNoWarnings() {
+    public void testDeleteStudentCourses_WithNoWarnings() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
         Map<String, StudentCourse> studentCourses = getStudentCoursesTestData_NoValidationIssues();
@@ -847,8 +865,9 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
         when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
-        List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
+        var pair = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+        var result = pair.getLeft();
 
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get().getValidationIssues().isEmpty());
@@ -880,7 +899,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
+        var pair = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
+        var result = pair.getLeft();
         assertNotNull(result);
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
                 .getValidationIssues().stream().filter(y -> y.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_GRADUATION_VALID.getMessage())).findFirst().isPresent());
@@ -920,7 +940,10 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
         when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
 
-        List<StudentCourseValidationIssue> result = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
+        var pair = studentCourseService.deleteStudentCourses(studentID, tobeDeleted);
+
+        var result = pair.getLeft();
+
         assertNotNull(result);
 
         assertTrue(result.stream().filter(x -> x.getCourseID().equals(studentCourses.get("studentCourse1").getCourseID()) && x.getCourseSession().equals(studentCourses.get("studentCourse1").getCourseSession())).findFirst().get()
@@ -1238,7 +1261,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testTransferStudentCourse_SuccessfulTransfer() {
+    public void testTransferStudentCourse_SuccessfulTransfer() throws JsonProcessingException {
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
         UUID courseId = UUID.randomUUID();
@@ -1260,7 +1283,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
         Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
 
-        List<StudentCourseValidationIssue> result = studentCourseService.transferStudentCourse(request);
+        var pairResult = studentCourseService.transferStudentCourse(request);
+        var result = pairResult.getLeft();
 
         assertThat(result).isEmpty();
 
@@ -1281,7 +1305,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testTransferStudentCourse_CourseNotFound() {
+    public void testTransferStudentCourse_CourseNotFound() throws JsonProcessingException {
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
         UUID missingCourseId = UUID.randomUUID();
@@ -1298,14 +1322,15 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
         Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
 
-        List<StudentCourseValidationIssue> result = studentCourseService.transferStudentCourse(request);
+        var pairResult = studentCourseService.transferStudentCourse(request);
+        var result = pairResult.getLeft();
 
         assertThat(result).isNotEmpty();
         assertThat(result.get(0).getValidationIssues().get(0).getValidationFieldName()).isEqualTo(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_NOT_FOUND.getCode());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testTransferStudentCourse_SourceStudentNotFound() {
+    public void testTransferStudentCourse_SourceStudentNotFound() throws JsonProcessingException {
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
 
@@ -1322,7 +1347,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
-    public void testTransferStudentCourse_DuplicateCourseInTarget() {
+    public void testTransferStudentCourse_DuplicateCourseInTarget() throws JsonProcessingException {
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
         UUID courseId = UUID.randomUUID();
@@ -1346,7 +1371,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         Mockito.when(studentCourseRepository.findAllById(List.of(courseId))).thenReturn(List.of(courseToMove));
         Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(List.of(existingCourse));
 
-        List<StudentCourseValidationIssue> result = studentCourseService.transferStudentCourse(request);
+        var pairResult = studentCourseService.transferStudentCourse(request);
+        var result = pairResult.getLeft();
 
         assertThat(result).isNotEmpty();
         assertThat(result.stream()
