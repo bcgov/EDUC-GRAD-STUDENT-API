@@ -203,8 +203,8 @@ public class StudentCourseService {
     }
 
     @Transactional
-    public List<ValidationIssue> transferStudentCourse(StudentCoursesTransferReq request) {
-        List<ValidationIssue> validationIssues = new ArrayList<>();
+    public List<StudentCourseValidationIssue> transferStudentCourse(StudentCoursesTransferReq request) {
+        List<StudentCourseValidationIssue> validationIssues = new ArrayList<>();
         List<StudentCourseEntity> validEntities = new ArrayList<>();
         List<StudentCourseEntity> originalEntitiesForHistory = new ArrayList<>();
 
@@ -219,7 +219,13 @@ public class StudentCourseService {
         for (UUID courseId : courseIdsToMove) {
             StudentCourseEntity studentCourse = studentCourseEntityMap.get(courseId);
             if (studentCourse == null) {
-                validationIssues.add(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_NOT_FOUND));
+                validationIssues.add(createCourseValidationIssue(
+                    courseId.toString(),
+                    null,
+                    null,
+                    null,
+                    List.of(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_NOT_FOUND))
+                ));
                 continue;
             }
             List<ValidationIssue> courseIssues = validateCourseForTransfer(request, studentCourse, existingStudentCourses);
@@ -231,7 +237,13 @@ public class StudentCourseService {
                 studentCourse.setStudentID(request.getTargetStudentId());
                 validEntities.add(studentCourse);
             } else {
-                validationIssues.addAll(courseIssues);
+                validationIssues.add(createCourseValidationIssue(
+                    studentCourse.getId().toString(),
+                    studentCourse.getCourseID().toString(),
+                    studentCourse.getCourseSession(),
+                    null,
+                    courseIssues
+                ));
             }
         }
         if(!validEntities.isEmpty()) {
