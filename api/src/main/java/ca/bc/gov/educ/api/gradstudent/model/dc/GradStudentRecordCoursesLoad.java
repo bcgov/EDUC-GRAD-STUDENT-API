@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GradStudentRecordCourses {
+public class GradStudentRecordCoursesLoad {
 
     private String courseCode;
     private String courseLevel;
-    private String courseSession;
+    private String sessionDate;
     private String gradReqMet;
 }

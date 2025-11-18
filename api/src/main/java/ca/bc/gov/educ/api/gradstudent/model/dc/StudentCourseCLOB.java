@@ -12,5 +12,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StudentCourseCLOB {
-    private List<GradStudentRecordCourses> studentCourseList;
+    private List<GradStudentRecordCoursesLoad> studentCourseList;
 }
