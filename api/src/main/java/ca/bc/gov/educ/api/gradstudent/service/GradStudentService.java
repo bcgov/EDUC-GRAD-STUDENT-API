@@ -446,9 +446,7 @@ public class GradStudentService {
 	public GradStudentCoursePayload setGradMetaData(String studentGradData) {
 		GradStudentCoursePayload gradStudentCoursePayload = null;
 		try {
-			logger.info("setGradMetaData - studentGradData: {}", studentGradData);
 			gradStudentCoursePayload = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(studentGradData, GradStudentCoursePayload.class);
-			logger.info("setGradMetaData - gradStudentCoursePayload: {}", gradStudentCoursePayload);
 		} catch (Exception e) {
 			logger.debug("Parsing Graduation Data Error {}", e.getMessage());
 		}
