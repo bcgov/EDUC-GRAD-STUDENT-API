@@ -450,6 +450,7 @@ public class GradStudentService {
 		} catch (Exception e) {
 			logger.debug("Parsing Graduation Data Error {}", e.getMessage());
 		}
+		logger.info("setGradMetaData - studentGradData: {}", gradStudentCoursePayload);
 		return gradStudentCoursePayload;
 	}
 }
