@@ -372,7 +372,9 @@ public class GraduationStudentRecordService {
 
     private String mapLetterGrade(String letterGrade, String percent) {
         List<LetterGrade> letterGradeList = courseCacheService.getLetterGradesFromCache();
-        if(StringUtils.isBlank(letterGrade) && StringUtils.isNotBlank(percent)) {
+        var doublePercent = percent != null ? Double.parseDouble(percent) : null;
+        var percentageScrub = getPercentage(letterGrade, doublePercent);
+        if(StringUtils.isBlank(letterGrade) && percentageScrub != null) {
             var letterEntity =  letterGradeList.stream().filter(grade -> grade.getPercentRangeHigh() != null &&
                     grade.getPercentRangeHigh() >= Integer.parseInt(percent)
                     && grade.getPercentRangeLow() != null && grade.getPercentRangeLow() <= Integer.parseInt(percent)).findFirst();
@@ -390,10 +392,17 @@ public class GraduationStudentRecordService {
                     .filter(grade -> grade.getGrade().equalsIgnoreCase(letterGrade)
                             && grade.getPercentRangeHigh() != null && grade.getPercentRangeLow() != null)
                     .findFirst();
-            return letterEntity.isPresent() ? doublePercent : null;
+            return letterEntity.isPresent() ? getPercentage(letterGrade, doublePercent) : null;
         } else {
             return doublePercent;
         }
+    }
+    
+    private Double getPercentage(String letterGrade, Double percent) {
+        if(percent != null && percent == 0 && StringUtils.isNotBlank(letterGrade) && !letterGrade.equalsIgnoreCase("F")) {
+            return null;
+        }
+        return percent;
     }
 
     private CoregCoursesRecord getCoregCoursesRecord(String courseCode, String courseLevel) {
