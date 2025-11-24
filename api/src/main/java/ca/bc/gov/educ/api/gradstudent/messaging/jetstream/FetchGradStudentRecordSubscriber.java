@@ -103,6 +103,8 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
            newCourse.setCourseLevel(student.getCourseLevel());
            newCourse.setCourseSession(student.getSessionDate());
            newCourse.setGradReqMet(StringUtils.isNotBlank(student.getGradReqMet()) ? student.getGradReqMet() : null);
+
+           newCourseList.add(newCourse);
         });
         return newCourseList;
     }
