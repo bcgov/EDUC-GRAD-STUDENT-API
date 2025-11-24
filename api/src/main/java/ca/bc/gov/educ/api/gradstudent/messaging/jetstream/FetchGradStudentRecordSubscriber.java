@@ -75,6 +75,7 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
     }
 
     public String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {
+        log.info("incoming studentRecord : {}", studentRecord);
         var gradStudentCoursePayload = gradStudentService.setGradMetaData(studentRecord.getStudentGradData());
         log.info("graduated flag : {}", gradStudentCoursePayload != null && gradStudentCoursePayload.isGraduated());
         GradStudentRecordPayload gradStudentRecordPayload = GradStudentRecordPayload.builder()
