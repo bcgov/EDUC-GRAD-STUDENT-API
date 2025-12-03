@@ -128,7 +128,7 @@ public class StudentCourseControllerTest {
     public void testTransferStudentCourses_withValidationIssues_returnsOk() throws JsonProcessingException {
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
-        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
         request.setSourceStudentId(sourceId);
         request.setTargetStudentId(targetId);
 
@@ -156,7 +156,7 @@ public class StudentCourseControllerTest {
     public void testTransferStudentCourses_noIssues_returnsNoContent() throws JsonProcessingException {
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
-        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
         request.setSourceStudentId(sourceId);
         request.setTargetStudentId(targetId);
 

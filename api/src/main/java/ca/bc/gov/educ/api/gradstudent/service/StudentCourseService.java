@@ -57,6 +57,21 @@ public class StudentCourseService {
         return Collections.emptyList();
     }
 
+    private Map<String, StudentCourse> getStudentCoursesAsMap(UUID studentID) {
+        if (studentID != null) {
+            log.debug("getStudentCoursesAsMap: studentID = {}", studentID);
+            List<StudentCourseEntity> studentCourseEntities = studentCourseRepository.findByStudentID(studentID);
+            log.debug("Retrieved {} student courses for studentID = {}", studentCourseEntities.size(), studentID);
+            return studentCourseEntities.stream()
+                    .map(mapper::toStructure)
+                    .collect(Collectors.toMap(
+                        course -> course.getCourseID() + course.getCourseSession(),
+                        course -> course
+                    ));
+        }
+        return Collections.emptyMap();
+    }
+
     public List<StudentCourseHistory> getStudentCourseHistory(UUID studentID) {
         if (studentID != null) {
             return historyService.getStudentCourseHistory(studentID);
@@ -228,14 +243,14 @@ public class StudentCourseService {
     }
 
     @Transactional
-    public Pair<List<StudentCourseValidationIssue>, List<GradStatusEvent>> transferStudentCourse(StudentCoursesTransferReq request) throws JsonProcessingException {
+    public Pair<List<StudentCourseValidationIssue>, List<GradStatusEvent>> transferStudentCourse(StudentCoursesMoveReq request) throws JsonProcessingException {
         List<StudentCourseValidationIssue> validationIssues = new ArrayList<>();
         List<StudentCourseEntity> validEntities = new ArrayList<>();
         List<StudentCourseEntity> originalEntitiesForHistory = new ArrayList<>();
 
-        List<StudentCourseEntity> existingStudentCourses = studentCourseRepository.findByStudentID(request.getTargetStudentId());
         assertStudentExists(request.getSourceStudentId(), "Source");
         assertStudentExists(request.getTargetStudentId(), "Target");
+        List<StudentCourseEntity> existingStudentCourses = studentCourseRepository.findByStudentID(request.getTargetStudentId());
 
         List<UUID> courseIdsToMove = request.getStudentCourseIdsToMove();
         Map<UUID, StudentCourseEntity> studentCourseEntityMap = studentCourseRepository.findAllById(courseIdsToMove)
@@ -291,8 +306,104 @@ public class StudentCourseService {
         return Pair.of(validationIssues, gradStatusEvents);
     }
 
+    @Transactional
+    public Pair<List<StudentCourseValidationIssue>, GradStatusEvent> mergeStudentCourse(StudentCoursesMoveReq request) throws JsonProcessingException {
+        List<StudentCourseValidationIssue> validationIssues = new ArrayList<>();
+        var targetStudentId = request.getTargetStudentId();
+        var sourceStudentId = request.getSourceStudentId();
+
+        assertStudentExists(targetStudentId, "Source");
+        assertStudentExists(sourceStudentId, "Target");
+
+        Map<String, StudentCourse> studentCoursesToMerge = getStudentCoursesToMove(request.getStudentCourseIdsToMove(), sourceStudentId);
+        Map<String, StudentCourse> existingStudentCourses = getStudentCoursesAsMap(request.getTargetStudentId());
+
+        Set<String> coursesWithValidationIssues = new HashSet<>();
+        existingStudentCourses.entrySet().stream()
+            .filter(entry -> studentCoursesToMerge.containsKey(entry.getKey()))
+            .forEach(entry -> {
+                StudentCourse existingCourse = entry.getValue();
+                // Check if existing course has an exam with a score - prevent overwrite if so
+                if (existingCourse.getCourseExam() != null && existingCourse.getCourseExam().getExamPercentage() != null) {
+                    coursesWithValidationIssues.add(entry.getKey());
+                    validationIssues.add(createCourseValidationIssue(
+                        existingCourse.getId(),
+                        existingCourse.getCourseID(),
+                        existingCourse.getCourseSession(),
+                        null,
+                        List.of(buildValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_MERGE_EXAM_WRITTEN))
+                    ));
+                }
+            });
+        
+        // Create merged courses, excluding those with validation issues
+        List<StudentCourse> coursesToOverwrite = existingStudentCourses.entrySet().stream()
+            .filter(entry -> studentCoursesToMerge.containsKey(entry.getKey()) && !coursesWithValidationIssues.contains(entry.getKey()))
+            .map(entry -> {
+                StudentCourse existingCourse = entry.getValue();
+                StudentCourse incomingCourse = studentCoursesToMerge.get(entry.getKey());
+                StudentCourse mergedCourse = new StudentCourse();
+                BeanUtils.copyProperties(incomingCourse, mergedCourse);
+                mergedCourse.setId(existingCourse.getId());
+                return mergedCourse;
+            })
+            .toList();
+        List<StudentCourse> coursesToAdd = studentCoursesToMerge.entrySet().stream()
+                .filter(entry -> !existingStudentCourses.containsKey(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .toList();
+        validationIssues.addAll(saveStudentCourses(targetStudentId, coursesToOverwrite, true).getLeft());
+        validationIssues.addAll(saveStudentCourses(targetStudentId, coursesToAdd, false).getLeft());
+
+        // Only return early if there are errors (warnings are acceptable)
+        boolean hasErrors = validationIssues.stream()
+                .flatMap(issue -> issue.getValidationIssues().stream())
+                .anyMatch(validation -> "ERROR".equals(validation.getValidationIssueSeverityCode()));
+        if (hasErrors) {
+            return Pair.of(validationIssues, null);
+        }
+        List<StudentCourse> courses = new ArrayList<>(coursesToAdd);
+        courses.addAll(coursesToOverwrite);
+        var gradStatusEvent = EventUtil.createEvent(GRAD_STUDENT_API, GRAD_STUDENT_API, JsonUtil.getJsonStringFromObject(EventUtil.getStudentCourseUpdate(targetStudentId.toString(), courses)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
+        return Pair.of(validationIssues, gradStatusEvent);
+    }
+
+    private Map<String, StudentCourse> getStudentCoursesToMove(List<UUID> courseIds, UUID sourceStudentId) {
+        List<StudentCourseEntity> studentCourseEntities = studentCourseRepository.findAllById(courseIds);
+        if (studentCourseEntities.size() != courseIds.size()) {
+            Set<UUID> foundIds = studentCourseEntities.stream()
+                    .map(StudentCourseEntity::getId)
+                    .collect(Collectors.toSet());
+            List<UUID> missingIds = courseIds.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .toList();
+            throw new EntityNotFoundException(
+                    String.format("Student courses not found for IDs: %s", missingIds)
+            );
+        }
+        List<StudentCourse> studentCourses = studentCourseEntities.stream()
+                .map(mapper::toStructure)
+                .toList();
+        List<StudentCourse> mismatchedCourses = studentCourses.stream()
+                .filter(course -> !sourceStudentId.toString().equals(course.getStudentID()))
+                .toList();
+        if (!mismatchedCourses.isEmpty()) {
+            List<UUID> mismatchedIds = mismatchedCourses.stream()
+                    .map(course -> UUID.fromString(course.getId()))
+                    .toList();
+            throw new IllegalArgumentException(
+                    String.format("Student courses do not belong to source student. Mismatched course IDs: %s", mismatchedIds)
+            );
+        }
+        return studentCourses.stream()
+                .collect(Collectors.toMap(
+                    course -> course.getCourseID() + course.getCourseSession(),
+                    course -> course
+                ));
+    }
+
     private List<ValidationIssue> validateCourseForTransfer(
-        StudentCoursesTransferReq request,
+        StudentCoursesMoveReq request,
         StudentCourseEntity course,
         List<StudentCourseEntity> existingCourses
     ) {

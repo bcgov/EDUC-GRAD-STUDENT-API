@@ -14,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StudentCoursesTransferReq {
+public class StudentCoursesMoveReq {
   @NotNull
   private UUID sourceStudentId;
 
