@@ -1269,7 +1269,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         StudentCourseEntity course = createStudentCourseEntity(sourceId, "123", "202201");
         course.setId(courseId);
 
-        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
         request.setSourceStudentId(sourceId);
         request.setTargetStudentId(targetId);
         request.setStudentCourseIdsToMove(List.of(courseId));
@@ -1310,7 +1310,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         UUID targetId = UUID.randomUUID();
         UUID missingCourseId = UUID.randomUUID();
 
-        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
         request.setSourceStudentId(sourceId);
         request.setTargetStudentId(targetId);
         request.setStudentCourseIdsToMove(List.of(missingCourseId));
@@ -1334,7 +1334,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
 
-        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
         request.setSourceStudentId(sourceId);
         request.setTargetStudentId(targetId);
         request.setStudentCourseIdsToMove(List.of(UUID.randomUUID()));
@@ -1357,7 +1357,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
 
         StudentCourseEntity existingCourse = createStudentCourseEntity(targetId, "123", "2021S1");
 
-        StudentCoursesTransferReq request = new StudentCoursesTransferReq();
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
         request.setSourceStudentId(sourceId);
         request.setTargetStudentId(targetId);
         request.setStudentCourseIdsToMove(List.of(courseId));
@@ -1380,5 +1380,417 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
             .anyMatch(validation ->
                 validation.getValidationFieldName().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE.getCode())
             )).isTrue();
+    }
+
+    @Test
+    public void testMergeStudentCourse_SuccessfulMerge_AddNewCourses() throws JsonProcessingException {
+        setSecurityContext();
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID courseId1 = UUID.randomUUID();
+        UUID courseId2 = UUID.randomUUID();
+
+        // Source student courses
+        StudentCourseEntity sourceCourse1 = createStudentCourseEntity(sourceId, "1", "202504");
+        sourceCourse1.setId(courseId1);
+        StudentCourseEntity sourceCourse2 = createStudentCourseEntity(sourceId, "2", "202504");
+        sourceCourse2.setId(courseId2);
+
+        // Target student has no courses initially
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(courseId1, courseId2));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setStudentStatus("CUR");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        Mockito.when(studentCourseRepository.findAllById(List.of(courseId1, courseId2)))
+            .thenReturn(List.of(sourceCourse1, sourceCourse2));
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(Collections.emptyList());
+        Mockito.when(studentCourseRepository.findByStudentID(sourceId)).thenReturn(List.of(sourceCourse1, sourceCourse2));
+        Mockito.when(studentCourseRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.mergeStudentCourse(request);
+        var validationIssues = pairResult.getLeft();
+        var gradStatusEvent = pairResult.getRight();
+
+        assertThat(validationIssues.stream()
+            .flatMap(issue -> issue.getValidationIssues().stream())
+            .noneMatch(validation -> "ERROR".equals(validation.getValidationIssueSeverityCode()))
+        ).isTrue();
+        assertThat(gradStatusEvent).isNotNull();
+        Mockito.verify(studentCourseRepository, atLeastOnce()).saveAll(anyList());
+    }
+
+    @Test
+    public void testMergeStudentCourse_SuccessfulMerge_OverwriteExistingCourses() throws JsonProcessingException {
+        setSecurityContext();
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID sourceCourseId = UUID.randomUUID();
+        UUID targetCourseId = UUID.randomUUID();
+
+        // Source student course
+        StudentCourseEntity sourceCourse = createStudentCourseEntity(sourceId, "1", "202504");
+        sourceCourse.setId(sourceCourseId);
+        sourceCourse.setInterimPercent(85.0);
+        sourceCourse.setCompletedCoursePercentage(90.0);
+
+        // Target student has existing course (same courseID and session, but different data)
+        StudentCourseEntity targetCourse = createStudentCourseEntity(targetId, "1", "202504");
+        targetCourse.setId(targetCourseId);
+        targetCourse.setInterimPercent(70.0);
+        targetCourse.setCompletedCoursePercentage(75.0);
+        // No exam with score - should allow overwrite
+
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(sourceCourseId));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setStudentStatus("CUR");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        Mockito.when(studentCourseRepository.findAllById(List.of(sourceCourseId)))
+            .thenReturn(List.of(sourceCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(List.of(targetCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(sourceId)).thenReturn(List.of(sourceCourse));
+        Mockito.when(studentCourseRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.mergeStudentCourse(request);
+        var validationIssues = pairResult.getLeft();
+        var gradStatusEvent = pairResult.getRight();
+
+        assertThat(validationIssues.stream()
+            .flatMap(issue -> issue.getValidationIssues().stream())
+            .noneMatch(validation -> "ERROR".equals(validation.getValidationIssueSeverityCode()))
+        ).isTrue();
+        assertThat(gradStatusEvent).isNotNull();
+        Mockito.verify(studentCourseRepository, atLeastOnce()).saveAll(anyList());
+    }
+
+    @Test
+    public void testMergeStudentCourse_IncomingCourseWithExamScore_ExistingWithout_ShouldSucceed() throws JsonProcessingException {
+        setSecurityContext();
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID sourceCourseId = UUID.randomUUID();
+        UUID targetCourseId = UUID.randomUUID();
+
+        // Source student course with exam score
+        StudentCourseEntity sourceCourse = createStudentCourseEntity(sourceId, "1", "202504");
+        sourceCourse.setId(sourceCourseId);
+        StudentCourseExam examWithScore = createStudentCourseExam(null, null, 80, null);
+        sourceCourse.setCourseExam(createStudentCourseExamEntity(examWithScore));
+
+        // Target student has existing course WITHOUT exam score - should allow overwrite
+        StudentCourseEntity targetCourse = createStudentCourseEntity(targetId, "1", "202504");
+        targetCourse.setId(targetCourseId);
+
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(sourceCourseId));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setStudentStatus("CUR");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        Mockito.when(studentCourseRepository.findAllById(List.of(sourceCourseId)))
+            .thenReturn(List.of(sourceCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(List.of(targetCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(sourceId)).thenReturn(List.of(sourceCourse));
+        Mockito.when(studentCourseRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.mergeStudentCourse(request);
+        var validationIssues = pairResult.getLeft();
+        var gradStatusEvent = pairResult.getRight();
+
+        // Should succeed because existing course has no exam score
+        assertThat(validationIssues.stream()
+            .flatMap(issue -> issue.getValidationIssues().stream())
+            .noneMatch(validation -> "ERROR".equals(validation.getValidationIssueSeverityCode()))
+        ).isTrue();
+        assertThat(gradStatusEvent).isNotNull();
+    }
+
+    @Test
+    public void testMergeStudentCourse_ExistingCourseWithExamScoreButIncomingWithout_ShouldFail() throws JsonProcessingException {
+        setSecurityContext();
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID sourceCourseId = UUID.randomUUID();
+        UUID targetCourseId = UUID.randomUUID();
+
+        // Source student course without exam
+        StudentCourseEntity sourceCourse = createStudentCourseEntity(sourceId, "1", "202504");
+        sourceCourse.setId(sourceCourseId);
+
+        // Target student has existing course with exam score - should NOT allow overwrite per requirement
+        StudentCourseEntity targetCourse = createStudentCourseEntity(targetId, "1", "202504");
+        targetCourse.setId(targetCourseId);
+        StudentCourseExam examWithScore = createStudentCourseExam(null, null, 80, null);
+        targetCourse.setCourseExam(createStudentCourseExamEntity(examWithScore));
+
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(sourceCourseId));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setStudentStatus("CUR");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        Mockito.when(studentCourseRepository.findAllById(List.of(sourceCourseId)))
+            .thenReturn(List.of(sourceCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(List.of(targetCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(sourceId)).thenReturn(List.of(sourceCourse));
+
+        // Implementation now correctly checks existing course's exam, not incoming course's exam
+        var pairResult = studentCourseService.mergeStudentCourse(request);
+        var validationIssues = pairResult.getLeft();
+        var gradStatusEvent = pairResult.getRight();
+
+        // Should fail because existing course has exam with score
+        assertThat(validationIssues).isNotEmpty();
+        assertThat(validationIssues.stream()
+            .flatMap(issue -> issue.getValidationIssues().stream())
+            .anyMatch(validation ->
+                validation.getValidationFieldName().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_MERGE_EXAM_WRITTEN.getCode())
+            )).isTrue();
+        assertThat(gradStatusEvent).isNull();
+    }
+
+    @Test
+    public void testMergeStudentCourse_ExistingCourseWithoutExamScore_OverwriteAllowed() throws JsonProcessingException {
+        setSecurityContext();
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID sourceCourseId = UUID.randomUUID();
+        UUID targetCourseId = UUID.randomUUID();
+
+        // Source student course
+        StudentCourseEntity sourceCourse = createStudentCourseEntity(sourceId, "1", "202504");
+        sourceCourse.setId(sourceCourseId);
+        sourceCourse.setCompletedCoursePercentage(85.0);
+        sourceCourse.setCompletedCourseLetterGrade("B");
+        StudentCourseExam examWithoutScore = createStudentCourseExam(null, null, null, null);
+        sourceCourse.setCourseExam(createStudentCourseExamEntity(examWithoutScore));
+
+        // Target student has existing course with exam but NO score - should allow overwrite
+        StudentCourseEntity targetCourse = createStudentCourseEntity(targetId, "1", "202504");
+        targetCourse.setId(targetCourseId);
+        StudentCourseExam exam = createStudentCourseExam(null, 60, null, null);
+        targetCourse.setCourseExam(createStudentCourseExamEntity(exam));
+
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(sourceCourseId));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setStudentStatus("CUR");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        Mockito.when(studentCourseRepository.findAllById(List.of(sourceCourseId)))
+            .thenReturn(List.of(sourceCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(List.of(targetCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(sourceId)).thenReturn(List.of(sourceCourse));
+        Mockito.when(studentCourseRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.mergeStudentCourse(request);
+        var validationIssues = pairResult.getLeft();
+        var gradStatusEvent = pairResult.getRight();
+
+        assertThat(validationIssues.stream()
+            .flatMap(issue -> issue.getValidationIssues().stream())
+            .noneMatch(validation -> "ERROR".equals(validation.getValidationIssueSeverityCode()))
+        ).isTrue();
+        assertThat(gradStatusEvent).isNotNull();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMergeStudentCourse_SourceStudentNotFound() throws JsonProcessingException {
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(UUID.randomUUID()));
+
+        Mockito.doThrow(new EntityNotFoundException("Not found"))
+            .when(graduationStatusService)
+            .getGraduationStatus(sourceId);
+
+        studentCourseService.mergeStudentCourse(request);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMergeStudentCourse_TargetStudentNotFound() throws JsonProcessingException {
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(UUID.randomUUID()));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setStudentStatus("CUR");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doThrow(new EntityNotFoundException("Not found"))
+            .when(graduationStatusService)
+            .getGraduationStatus(targetId);
+
+        studentCourseService.mergeStudentCourse(request);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void testMergeStudentCourse_CourseNotFoundOnSource() throws JsonProcessingException {
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID missingCourseId = UUID.randomUUID();
+
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(missingCourseId));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setStudentStatus("CUR");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        Mockito.when(studentCourseRepository.findAllById(List.of(missingCourseId)))
+            .thenReturn(Collections.emptyList());
+
+        studentCourseService.mergeStudentCourse(request);
+    }
+
+    @Test
+    public void testMergeStudentCourse_ValidationIssuesFromSave_ReturnsIssues() throws JsonProcessingException {
+        setSecurityContext();
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+
+        StudentCourseEntity sourceCourse = createStudentCourseEntity(sourceId, "999", "202201"); // Invalid course ID
+        sourceCourse.setId(courseId);
+
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(courseId));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setStudentStatus("CUR");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        Mockito.when(studentCourseRepository.findAllById(List.of(courseId)))
+            .thenReturn(List.of(sourceCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(Collections.emptyList());
+        Mockito.when(studentCourseRepository.findByStudentID(sourceId)).thenReturn(List.of(sourceCourse));
+
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.mergeStudentCourse(request);
+        var validationIssues = pairResult.getLeft();
+        var gradStatusEvent = pairResult.getRight();
+
+        // Should have validation issues from saveStudentCourses
+        assertThat(validationIssues).isNotEmpty();
+        assertThat(gradStatusEvent).isNull();
+    }
+
+    @Test
+    public void testMergeStudentCourse_MixedAddAndOverwrite() throws JsonProcessingException {
+        setSecurityContext();
+        UUID sourceId = UUID.randomUUID();
+        UUID targetId = UUID.randomUUID();
+        UUID sourceCourseId1 = UUID.randomUUID();
+        UUID sourceCourseId2 = UUID.randomUUID();
+        UUID targetCourseId = UUID.randomUUID();
+
+        // Source student courses
+        StudentCourseEntity sourceCourse1 = createStudentCourseEntity(sourceId, "1", "202504");
+        sourceCourse1.setId(sourceCourseId1);
+        StudentCourseEntity sourceCourse2 = createStudentCourseEntity(sourceId, "2", "202504");
+        sourceCourse2.setId(sourceCourseId2);
+
+        // Target student has one existing course (matches sourceCourse1)
+        StudentCourseEntity targetCourse = createStudentCourseEntity(targetId, "1", "202504");
+        targetCourse.setId(targetCourseId);
+        // No exam with score - should allow overwrite
+
+        StudentCoursesMoveReq request = new StudentCoursesMoveReq();
+        request.setSourceStudentId(sourceId);
+        request.setTargetStudentId(targetId);
+        request.setStudentCourseIdsToMove(List.of(sourceCourseId1, sourceCourseId2));
+
+        GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
+        dummyGradStatus.setStudentStatus("CUR");
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
+        Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
+
+        Mockito.when(studentCourseRepository.findAllById(List.of(sourceCourseId1, sourceCourseId2)))
+            .thenReturn(List.of(sourceCourse1, sourceCourse2));
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(List.of(targetCourse));
+        Mockito.when(studentCourseRepository.findByStudentID(sourceId)).thenReturn(List.of(sourceCourse1, sourceCourse2));
+        Mockito.when(studentCourseRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.mergeStudentCourse(request);
+        var validationIssues = pairResult.getLeft();
+        var gradStatusEvent = pairResult.getRight();
+
+        assertThat(validationIssues.stream()
+            .flatMap(issue -> issue.getValidationIssues().stream())
+            .noneMatch(validation -> "ERROR".equals(validation.getValidationIssueSeverityCode()))
+        ).isTrue();
+        assertThat(gradStatusEvent).isNotNull();
+        Mockito.verify(studentCourseRepository, atLeastOnce()).saveAll(anyList());
     }
 }

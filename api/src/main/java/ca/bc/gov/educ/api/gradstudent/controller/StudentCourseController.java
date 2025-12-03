@@ -121,11 +121,32 @@ public class StudentCourseController {
         @ApiResponse(responseCode = "204", description = "Transfer successful, no validation issues"),
         @ApiResponse(responseCode = "200", description = "Validation issues found during transfer")
     })
-    public ResponseEntity<List<StudentCourseValidationIssue>> transferStudentCourses(@NotNull @Valid @RequestBody StudentCoursesTransferReq studentCoursesRequest) throws JsonProcessingException {
+    public ResponseEntity<List<StudentCourseValidationIssue>> transferStudentCourses(@NotNull @Valid @RequestBody StudentCoursesMoveReq studentCoursesRequest) throws JsonProcessingException {
         logger.debug("transfer student courses from: studentId = {} to: studentId = {}", studentCoursesRequest.getSourceStudentId(), studentCoursesRequest.getTargetStudentId());
         var pairResults = studentCourseService.transferStudentCourse(studentCoursesRequest);
         if(pairResults.getRight() != null) {
             pairResults.getRight().forEach(publisher::dispatchChoreographyEvent);
+        }
+        if (pairResults.getLeft().isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(pairResults.getLeft());
+    }
+
+    @PostMapping(EducGradStudentApiConstants.STUDENT_COURSE_MERGE_MAPPING)
+    @PreAuthorize(PermissionsConstants.UPDATE_GRAD_STUDENT_COURSE)
+    @Operation(summary = "Merge student courses", description = "Merge student courses from one student to another", tags = { "Student courses" })
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+        @ApiResponse(responseCode = "422", description = "UNPROCESSABLE CONTENT"),
+        @ApiResponse(responseCode = "204", description = "Merge successful, no validation issues"),
+        @ApiResponse(responseCode = "200", description = "Validation issues found during merge")
+    })
+    public ResponseEntity<List<StudentCourseValidationIssue>> mergeStudentCourses(@NotNull @Valid @RequestBody StudentCoursesMoveReq studentCoursesRequest) throws JsonProcessingException {
+        logger.debug("merge student courses from: studentId = {} to: studentId = {}", studentCoursesRequest.getSourceStudentId(), studentCoursesRequest.getTargetStudentId());
+        var pairResults = studentCourseService.mergeStudentCourse(studentCoursesRequest);
+        if(pairResults.getRight() != null) {
+            publisher.dispatchChoreographyEvent(pairResults.getRight());
         }
         if (pairResults.getLeft().isEmpty()) {
             return ResponseEntity.noContent().build();

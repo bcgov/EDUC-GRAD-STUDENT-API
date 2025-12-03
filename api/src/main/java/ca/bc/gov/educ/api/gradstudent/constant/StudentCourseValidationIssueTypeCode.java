@@ -56,7 +56,8 @@ public enum StudentCourseValidationIssueTypeCode {
     STUDENT_COURSE_TRANSFER_SAME_STUDENT("targetStudentId", "Source student and target student are the same", ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_TRANSFER_STUDENT_COURSE_MISMATCH("studentCourseIdsToMove", "Course does not belong to source student", ValidationIssueSeverityCode.ERROR),
     STUDENT_COURSE_NOT_FOUND("studentCourseIdsToMove", "Student Course not found", ValidationIssueSeverityCode.ERROR),
-    STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE("studentCourseIdsToMove", "The course session is a duplicate of an existing course session for the target student", ValidationIssueSeverityCode.ERROR),;
+    STUDENT_COURSE_TRANSFER_COURSE_DUPLICATE("studentCourseIdsToMove", "The course session is a duplicate of an existing course session for the target student", ValidationIssueSeverityCode.ERROR),
+    STUDENT_COURSE_MERGE_EXAM_WRITTEN("course", "This course has an exam with a proficiency score and cannot be overwritten", ValidationIssueSeverityCode.ERROR);
 
 
 
