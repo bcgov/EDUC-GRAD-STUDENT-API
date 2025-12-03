@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public class StudentCourseService {
 
+    public static final String ERROR = "ERROR";
     private static final StudentCourseMapper mapper = StudentCourseMapper.mapper;
     public static final String GRAD_STUDENT_API = "GRAD-STUDENT-API";
     private final StudentCourseRepository studentCourseRepository;
@@ -107,7 +108,7 @@ public class StudentCourseService {
                 //Perform validation checks
                 StudentCourseRuleData studentCourseRuleData = prepareStudentCourseRuleData(studentCourse, graduationStudentRecord, course, relatedCourse, activityCode);
                 List<ValidationIssue> validationIssues = upsertStudentCourseRulesProcessor.processRules(studentCourseRuleData);
-                boolean hasError = validationIssues.stream().anyMatch(issue -> "ERROR".equals(issue.getValidationIssueSeverityCode()));
+                boolean hasError = validationIssues.stream().anyMatch(issue -> ERROR.equals(issue.getValidationIssueSeverityCode()));
                 if (!hasError) {
                     StudentCourseEntity studentCourseEntity = mapper.toEntity(studentCourse);
                     if (isUpdate && studentCourse.getId() != null && existingStudentCourse != null) {
@@ -226,7 +227,7 @@ public class StudentCourseService {
                 studentCourseValidationIssue.getValidationIssues().add(ValidationIssue.builder().validationIssueMessage(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getMessage()).validationIssueSeverityCode(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getSeverityCode().getCode()).validationFieldName(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_DELETE_EXAM_VALID.getCode()).build());
             }
             courseValidationIssueMap.putIfAbsent(studentCourse.getId(), studentCourseValidationIssue);
-            boolean hasError = studentCourseValidationIssue.getValidationIssues().stream().anyMatch(issue -> "ERROR".equals(issue.getValidationIssueSeverityCode()));
+            boolean hasError = studentCourseValidationIssue.getValidationIssues().stream().anyMatch(issue -> ERROR.equals(issue.getValidationIssueSeverityCode()));
             if (!hasError) {
                 tobeDeleted.add(studentCourse);
             }
@@ -358,7 +359,7 @@ public class StudentCourseService {
         // Only return early if there are errors (warnings are acceptable)
         boolean hasErrors = validationIssues.stream()
                 .flatMap(issue -> issue.getValidationIssues().stream())
-                .anyMatch(validation -> "ERROR".equals(validation.getValidationIssueSeverityCode()));
+                .anyMatch(validation -> ERROR.equals(validation.getValidationIssueSeverityCode()));
         if (hasErrors) {
             return Pair.of(validationIssues, null);
         }
