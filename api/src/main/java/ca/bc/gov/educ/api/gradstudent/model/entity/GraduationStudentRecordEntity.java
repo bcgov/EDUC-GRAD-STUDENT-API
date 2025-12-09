@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -24,9 +25,6 @@ public class GraduationStudentRecordEntity extends BaseEntity {
 
 	public GraduationStudentRecordEntity() {
 	}
-
-	@Transient
-    private String pen;
 
     @Lob
     @Column(name = "STUDENT_GRAD_DATA", columnDefinition="CLOB")
@@ -82,12 +80,21 @@ public class GraduationStudentRecordEntity extends BaseEntity {
     @Column(name = "SCHOOL_AT_GRADUATION_ID", nullable = true)
     private UUID schoolAtGradId;
 
-    @Transient
+    @Column(name = "PEN", nullable = true)
+    private String pen;
+
+    @Column(name = "LEGAL_FIRST_NAME",  nullable = true)
     private String legalFirstName;
 
-    @Transient
+    @Column(name = "LEGAL_MIDDLE_NAMES", nullable = true)
     private String legalMiddleNames;
 
-    @Transient
+    @Column(name = "LEGAL_LAST_NAME",   nullable = true)
     private String legalLastName;
+
+    @Column(name = "DOB",  nullable = true)
+    private LocalDateTime dob;
+
+    @Column(name = "GENDER_CODE", nullable = true)
+    private String genderCode;
 }
