@@ -528,14 +528,11 @@ public class GraduationStudentRecordService {
             boolean isGraduated = deriveIfGraduated(newStudentRecordEntity);
             boolean hasProgramCompletionDate = newStudentRecordEntity.getProgramCompletionDate() != null;
             boolean completedSCCP = hasProgramCompletionDate && "SCCP".equalsIgnoreCase(newStudentRecordEntity.getProgram());
-            log.info("Mapped program {}", mappedProgram);
             if (!isGraduated || completedSCCP) {
                 newStudentRecordEntity.setProgram(mappedProgram);
-                log.info("Inside if - program {}", newStudentRecordEntity.getProgram());
                 projectedChangeCount++;
                 statusChangeCount++;
             }
-            log.info("Outside if - program {}", newStudentRecordEntity.getProgram());
         }
         
         if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getGradRequirementYear().equalsIgnoreCase("SCCP")) {
