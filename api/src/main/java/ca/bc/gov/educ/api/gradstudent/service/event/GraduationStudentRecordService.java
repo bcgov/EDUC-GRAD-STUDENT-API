@@ -14,12 +14,14 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDet
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.student.v1.StudentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
+import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -78,6 +80,31 @@ public class GraduationStudentRecordService {
     @Transactional
     public Optional<GraduationStudentRecordEntity> getStudentByStudentID(String studentID) {
         return graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentID));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void handleStudentUpdated(StudentUpdate studentUpdate, GraduationStudentRecordEntity existingStudentRecordEntity, final GradStatusEvent event){
+        String dob = studentUpdate.getDob();
+        if(!dob.isEmpty()){
+            try {
+                existingStudentRecordEntity.setDob(
+                        DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), dob)
+                );
+            } catch(Exception e) {
+                logger.error("Error replicating DOB from upstream: {}", e.getMessage());
+                existingStudentRecordEntity.setDob(null);
+            }
+        }
+        existingStudentRecordEntity.setPen(studentUpdate.getPen());
+        existingStudentRecordEntity.setGenderCode(studentUpdate.getGenderCode());
+        existingStudentRecordEntity.setLegalFirstName(studentUpdate.getLegalFirstName());
+        existingStudentRecordEntity.setLegalLastName(studentUpdate.getLegalLastName());
+        existingStudentRecordEntity.setLegalMiddleNames(studentUpdate.getLegalMiddleNames());
+        existingStudentRecordEntity.setUpdateUser(event.getUpdateUser());
+        existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
+        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
+        existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        graduationStudentRecordRepository.save(existingStudentRecordEntity);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
