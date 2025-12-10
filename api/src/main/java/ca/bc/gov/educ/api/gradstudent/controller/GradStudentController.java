@@ -3,13 +3,15 @@ package ca.bc.gov.educ.api.gradstudent.controller;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStudentSearchDataEntity;
+import ca.bc.gov.educ.api.gradstudent.model.mapper.GradStudentSearchMapper;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.ReportGradStudentTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentCoursePaginationTransformer;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.service.ReportGradStudentSearchService;
 import ca.bc.gov.educ.api.gradstudent.service.StudentCoursePaginationService;
+import ca.bc.gov.educ.api.gradstudent.service.GradStudentSearchService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +34,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static ca.bc.gov.educ.api.gradstudent.util.JsonUtil.mapper;
+
 @RestController
 @CrossOrigin
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
@@ -46,15 +50,43 @@ public class GradStudentController {
 	private final StudentCoursePaginationService studentCoursePaginationService;
 	private final ReportGradStudentTransformer reportGradStudentTransformer;
 	private final StudentCoursePaginationTransformer gradStudentPaginationTransformer;
+    private final GradStudentSearchService gradStudentSearchService;
+    private static final GradStudentSearchMapper GRAD_STUDENT_SEARCH_MAPPER = GradStudentSearchMapper.mapper;
 
-    public GradStudentController(GradStudentService gradStudentService, ReportGradStudentSearchService reportGradStudentSearchService, StudentCoursePaginationService studentCoursePaginationService, ReportGradStudentTransformer reportGradStudentTransformer, StudentCoursePaginationTransformer gradStudentPaginationTransformer) {
+    public GradStudentController(GradStudentService gradStudentService, ReportGradStudentSearchService reportGradStudentSearchService, StudentCoursePaginationService studentCoursePaginationService, ReportGradStudentTransformer reportGradStudentTransformer, StudentCoursePaginationTransformer gradStudentPaginationTransformer, GradStudentSearchService gradStudentSearchService) {
     	this.gradStudentService = gradStudentService;
         this.reportGradStudentSearchService = reportGradStudentSearchService;
         this.studentCoursePaginationService = studentCoursePaginationService;
         this.reportGradStudentTransformer = reportGradStudentTransformer;
         this.gradStudentPaginationTransformer = gradStudentPaginationTransformer;
+        this.gradStudentSearchService = gradStudentSearchService;
     }
-	
+
+    @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_PAGINATION)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Search For Students using a search criteria list", description = "Paginated search for students")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR.")})
+    public CompletableFuture<Page<GradStudentSearchData>> findStudents(@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
+                                                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                                       @RequestParam(name = "sort", defaultValue = "") String sortCriteriaJson,
+                                                                       @RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson){
+        final List<Sort.Order> sorts = new ArrayList<>();
+        Specification<GradStudentSearchDataEntity> studentSpecs = gradStudentSearchService
+                .setSpecificationAndSortCriteria(
+                        sortCriteriaJson,
+                        searchCriteriaListJson,
+                        mapper,
+                        sorts
+                );
+        return this.gradStudentSearchService
+                .findAll(studentSpecs, pageNumber, pageSize, sorts)
+                .thenApplyAsync(studentSearchDataEntities -> studentSearchDataEntities.map(GRAD_STUDENT_SEARCH_MAPPER::toStructure));
+    }
+
+    /**
+     * Deprecation notice. This endpoint will be discontinued in GRAD v1.24.0 Use
+     * api/v1/student/search/pagination instead
+     */
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_ANY_NAME_ONLY)
     @PreAuthorize("hasAuthority('SCOPE_READ_GRAD_STUDENT_DATA')")
 	@Operation(summary = "Search For Students", description = "Advanced Search for Student Demographics", tags = { "Student Demographics" })
@@ -173,7 +205,7 @@ public class GradStudentController {
 				.setSpecificationAndSortCriteria(
 						sortCriteriaJson,
 						searchCriteriaListJson,
-						JsonUtil.mapper,
+						mapper,
 						sorts
 				);
 		return this.reportGradStudentSearchService
@@ -194,7 +226,7 @@ public class GradStudentController {
 				.setSpecificationAndSortCriteria(
 						sortCriteriaJson,
 						searchCriteriaListJson,
-						JsonUtil.mapper,
+						mapper,
 						sorts
 				);
 		return this.studentCoursePaginationService
