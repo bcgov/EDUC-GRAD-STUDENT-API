@@ -1,14 +1,17 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStudentSearchDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordPaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentPaginationRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSearchRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +57,9 @@ public class GradStudentControllerTest {
 
     @Autowired
     ReportGradStudentDataRepository reportGradStudentDataRepository;
+
+    @Autowired
+    private GradStudentSearchRepository gradStudentSearchRepository;
 
     @Autowired
     GradStudentPaginationRepository gradStudentPaginationRepository;
@@ -199,23 +205,42 @@ public class GradStudentControllerTest {
     }
 
     @Test
+    public void testSearchForStudentByCriteria_shouldReturnStudentRecords() throws Exception {
+        GradStudentSearchDataEntity gsd = new GradStudentSearchDataEntity();
+        gsd.setStudentID(UUID.randomUUID());
+        gsd.setPen("123456789");
+        gsd.setStudentStatus("CUR");
+        gsd.setLegalFirstName("FirstName");
+        gradStudentSearchRepository.save(gsd);
+        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("legalFirstName").operation(FilterOperation.EQUAL).value(gsd.getLegalFirstName()).valueType(ValueType.STRING).build();
+        final String criteriaJSON = searchCriteriaToString(criteria);
+        final MvcResult result = this.mockMvc
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_PAGINATION)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .param("searchCriteriaList", criteriaJSON)
+                        .contentType(APPLICATION_JSON))
+                .andReturn();
+        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+    }
+
+    private static String searchCriteriaToString(SearchCriteria criteria) throws JsonProcessingException {
+        final List<SearchCriteria> criteriaList = new ArrayList<>();
+        criteriaList.add(criteria);
+        final List<Search> searches = new LinkedList<>();
+        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+        final var objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(searches);
+    }
+
+    @Test
     public void testReadReportGradStudentPaginated_Always_ShouldReturnStatusOk() throws Exception {
         var schoolID = UUID.randomUUID();
-
         ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
         entity.setGraduationStudentRecordId(UUID.randomUUID());
         entity.setSchoolOfRecordId(schoolID);
         reportGradStudentDataRepository.save(entity);
         final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new LinkedList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
+        final String criteriaJSON = searchCriteriaToString(criteria);
         final MvcResult result = this.mockMvc
                 .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)
                         .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
