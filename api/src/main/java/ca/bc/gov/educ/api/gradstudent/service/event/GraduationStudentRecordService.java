@@ -85,7 +85,7 @@ public class GraduationStudentRecordService {
     @Transactional(propagation = Propagation.MANDATORY)
     public void handleStudentUpdated(StudentUpdate studentUpdate, GraduationStudentRecordEntity existingStudentRecordEntity, final GradStatusEvent event){
         String dob = studentUpdate.getDob();
-        if(!dob.isEmpty()){
+        if(StringUtils.isNotBlank(dob)){
             try {
                 existingStudentRecordEntity.setDob(
                         DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), dob)
