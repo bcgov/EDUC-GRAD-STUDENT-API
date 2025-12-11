@@ -67,6 +67,8 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
     GraduationStudentRecordHistoryRepository graduationStatusHistoryRepository;
     @MockBean
     StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository;
+    @MockBean
+    GradStudentService gradStudentService;
 
     @MockBean
     GradValidation validation;
@@ -111,9 +113,14 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         BeanUtils.copyProperties(graduationStatus, graduationStatusEntity);
         graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
 
+        GradSearchStudent gradSearchStudent = GradSearchStudent.builder()
+                        .genderCode("F")
+                        .legalFirstName("Danielle")
+                        .build();
+
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
         when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class))).thenReturn(graduationStatusEntity);
-
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString())).thenReturn(gradSearchStudent);
         var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, false);
 
         assertThat(result).isNotNull();
