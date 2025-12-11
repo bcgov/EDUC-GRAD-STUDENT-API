@@ -67,15 +67,20 @@ public class FilterCriteria<T extends Comparable<T>> {
 
     String[] operationValues;
 
-    if (filterOperation == FilterOperation.BETWEEN || filterOperation == FilterOperation.IN || filterOperation == FilterOperation.NOT_IN || filterOperation == FilterOperation.IN_LEFT_JOIN || filterOperation == FilterOperation.NONE_IN || filterOperation == FilterOperation.IN_NOT_DISTINCT) {
+    if (filterOperation == FilterOperation.BETWEEN || filterOperation == FilterOperation.IN || filterOperation == FilterOperation.NOT_IN || filterOperation == FilterOperation.IN_LEFT_JOIN || filterOperation == FilterOperation.NONE_IN || filterOperation == FilterOperation.IN_NOT_DISTINCT || filterOperation == FilterOperation.DATE_RANGE) {
       if (fieldValue != null) {
         // Split the fieldValue value as comma separated.
-        operationValues = StringUtils.split(fieldValue, ",");
+        // For DATE_RANGE, we need to preserve empty strings (e.g., "2023-01-01," becomes ["2023-01-01", ""])
+        if (filterOperation == FilterOperation.DATE_RANGE) {
+          operationValues = fieldValue.split(",", -1); // -1 preserves trailing empty strings
+        } else {
+          operationValues = StringUtils.split(fieldValue, ",");
+        }
       } else {
         operationValues = new String[]{null};
       }
       if (operationValues.length < 1) {
-        throw new IllegalArgumentException("multiple values expected(comma separated) for IN, NOT IN and BETWEEN operations.");
+        throw new IllegalArgumentException("multiple values expected(comma separated) for IN, NOT IN, BETWEEN and DATE_RANGE operations.");
       }
     } else {
       operationValues = new String[]{fieldValue};
@@ -109,6 +114,36 @@ public class FilterCriteria<T extends Comparable<T>> {
           this.minValue = value1;
           this.maxValue = value2;
         }
+      }
+
+      //For 'date_range' operation - allows optional start and/or end date
+    } else if (FilterOperation.DATE_RANGE == operation) {
+      if (operationValues.length != 2) {
+        throw new IllegalArgumentException("For 'date_range' operation two values are expected (startDate,endDate), either can be empty");
+      } else {
+        // Convert non-empty values, allow null for empty strings
+        String startDateStr = operationValues[0];
+        String endDateStr = operationValues[1];
+
+        T startDate = (startDateStr != null && !startDateStr.trim().isEmpty())
+                      ? this.converterFunction.apply(startDateStr)
+                      : null;
+        T endDate = (endDateStr != null && !endDateStr.trim().isEmpty())
+                    ? this.converterFunction.apply(endDateStr)
+                    : null;
+
+        // At least one date must be provided
+        if (startDate == null && endDate == null) {
+          throw new IllegalArgumentException("For 'date_range' operation at least one date (start or end) must be provided");
+        }
+
+        // If both are provided, validate that start <= end
+        if (startDate != null && endDate != null && startDate.compareTo(endDate) > 0) {
+          throw new IllegalArgumentException("For 'date_range' operation start date must be less than or equal to end date");
+        }
+
+        this.minValue = startDate;
+        this.maxValue = endDate;
       }
 
       //For 'in' or 'nin' operation
