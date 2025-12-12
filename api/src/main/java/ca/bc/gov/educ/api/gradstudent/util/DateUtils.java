@@ -3,11 +3,17 @@ package ca.bc.gov.educ.api.gradstudent.util;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class DateUtils {
 
     private DateUtils(){}
+
+
+    public static LocalDateTime stringToLocalDateTime(DateTimeFormatter formatter, String date){
+        return LocalDate.parse(date, formatter).atStartOfDay();
+    }
 
     // Date
     public static LocalDate toLocalDate(Date date) {
