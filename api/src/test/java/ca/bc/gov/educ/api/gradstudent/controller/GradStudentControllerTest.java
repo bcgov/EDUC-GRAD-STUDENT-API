@@ -13,6 +13,7 @@ import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -294,6 +295,236 @@ public class GradStudentControllerTest {
                         .contentType(APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testStudentCoursePagination_WithDateRangeFilter_BothDates() {
+        final Date completionDate = new Date();
+        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+        graduationStudentRecordEntity.setProgram("1950");
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+        entity.setStudentCourseID(UUID.randomUUID());
+        entity.setCourseID(BigInteger.valueOf(86784));
+        entity.setCourseSession("202509");
+        entity.setCredits(4);
+        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+        studentcoursePaginationRepository.save(entity);
+
+        final SearchCriteria criteria = SearchCriteria.builder()
+                .key("graduationStudentRecordEntity.programCompletionDate")
+                .operation(FilterOperation.DATE_RANGE)
+                .value("2025-01-01,2025-12-31")
+                .valueType(ValueType.DATE)
+                .condition(AND)
+                .build();
+
+        final List<SearchCriteria> criteriaList = new ArrayList<>();
+        criteriaList.add(criteria);
+
+        final List<Search> searches = new ArrayList<>();
+        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+        final var objectMapper = new ObjectMapper();
+        final String criteriaJSON = objectMapper.writeValueAsString(searches);
+        final MvcResult result = this.mockMvc
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .param("searchCriteriaList", criteriaJSON)
+                        .contentType(APPLICATION_JSON))
+                .andReturn();
+        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testStudentCoursePagination_WithDateRangeFilter_OnlyStartDate() {
+        final Date completionDate = new Date();
+        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+        graduationStudentRecordEntity.setProgram("1950");
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+        entity.setStudentCourseID(UUID.randomUUID());
+        entity.setCourseID(BigInteger.valueOf(86784));
+        entity.setCourseSession("202509");
+        entity.setCredits(4);
+        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+        studentcoursePaginationRepository.save(entity);
+
+        final SearchCriteria criteria = SearchCriteria.builder()
+                .key("graduationStudentRecordEntity.programCompletionDate")
+                .operation(FilterOperation.DATE_RANGE)
+                .value("2025-01-01,")
+                .valueType(ValueType.DATE)
+                .condition(AND)
+                .build();
+
+        final List<SearchCriteria> criteriaList = new ArrayList<>();
+        criteriaList.add(criteria);
+
+        final List<Search> searches = new ArrayList<>();
+        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+        final var objectMapper = new ObjectMapper();
+        final String criteriaJSON = objectMapper.writeValueAsString(searches);
+        final MvcResult result = this.mockMvc
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .param("searchCriteriaList", criteriaJSON)
+                        .contentType(APPLICATION_JSON))
+                .andReturn();
+        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testStudentCoursePagination_WithDateRangeFilter_OnlyEndDate() {
+        final Date completionDate = new Date();
+        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+        graduationStudentRecordEntity.setProgram("1950");
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+        entity.setStudentCourseID(UUID.randomUUID());
+        entity.setCourseID(BigInteger.valueOf(86784));
+        entity.setCourseSession("202509");
+        entity.setCredits(4);
+        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+        studentcoursePaginationRepository.save(entity);
+
+        final SearchCriteria criteria = SearchCriteria.builder()
+                .key("graduationStudentRecordEntity.programCompletionDate")
+                .operation(FilterOperation.DATE_RANGE)
+                .value(",2025-12-31")
+                .valueType(ValueType.DATE)
+                .condition(AND)
+                .build();
+
+        final List<SearchCriteria> criteriaList = new ArrayList<>();
+        criteriaList.add(criteria);
+
+        final List<Search> searches = new ArrayList<>();
+        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+        final var objectMapper = new ObjectMapper();
+        final String criteriaJSON = objectMapper.writeValueAsString(searches);
+        final MvcResult result = this.mockMvc
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .param("searchCriteriaList", criteriaJSON)
+                        .contentType(APPLICATION_JSON))
+                .andReturn();
+        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testStudentCoursePagination_WithDateRangeFilter_DateTimeValueType() {
+        final Date completionDate = new Date();
+        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+        graduationStudentRecordEntity.setProgram("1950");
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+        entity.setStudentCourseID(UUID.randomUUID());
+        entity.setCourseID(BigInteger.valueOf(86784));
+        entity.setCourseSession("202509");
+        entity.setCredits(4);
+        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+        studentcoursePaginationRepository.save(entity);
+
+        final SearchCriteria criteria = SearchCriteria.builder()
+                .key("graduationStudentRecordEntity.programCompletionDate")
+                .operation(FilterOperation.DATE_RANGE)
+                .value("2025-01-01,2025-12-31")
+                .valueType(ValueType.DATE_TIME)
+                .condition(AND)
+                .build();
+
+        final List<SearchCriteria> criteriaList = new ArrayList<>();
+        criteriaList.add(criteria);
+
+        final List<Search> searches = new ArrayList<>();
+        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+        final var objectMapper = new ObjectMapper();
+        final String criteriaJSON = objectMapper.writeValueAsString(searches);
+        final MvcResult result = this.mockMvc
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .param("searchCriteriaList", criteriaJSON)
+                        .contentType(APPLICATION_JSON))
+                .andReturn();
+        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testStudentCoursePagination_WithDateRangeFilter_DateTimeStrings() {
+        final Date completionDate = new Date();
+        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+        graduationStudentRecordEntity.setProgram("1950");
+        graduationStudentRecordEntity.setStudentStatus("CUR");
+
+        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+        entity.setStudentCourseID(UUID.randomUUID());
+        entity.setCourseID(BigInteger.valueOf(86784));
+        entity.setCourseSession("202509");
+        entity.setCredits(4);
+        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+        studentcoursePaginationRepository.save(entity);
+
+        final SearchCriteria criteria = SearchCriteria.builder()
+                .key("graduationStudentRecordEntity.programCompletionDate")
+                .operation(FilterOperation.DATE_RANGE)
+                .value("2025-01-01T00:00:00,2025-12-31T23:59:59")
+                .valueType(ValueType.DATE_TIME)
+                .condition(AND)
+                .build();
+
+        final List<SearchCriteria> criteriaList = new ArrayList<>();
+        criteriaList.add(criteria);
+
+        final List<Search> searches = new ArrayList<>();
+        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+        final var objectMapper = new ObjectMapper();
+        final String criteriaJSON = objectMapper.writeValueAsString(searches);
+        final MvcResult result = this.mockMvc
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .param("searchCriteriaList", criteriaJSON)
+                        .contentType(APPLICATION_JSON))
+                .andReturn();
+        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
     }
 
 }
