@@ -1,11 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
+import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentCourseSearchReportHeader;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.YukonReportHeader;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.DownloadableReportResponse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
@@ -19,6 +21,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
@@ -152,14 +155,14 @@ public class CSVReportService {
      * @param response HTTP response to stream CSV to
      * @throws IOException if writing to response fails
      */
-    public void generateCourseStudentSearchReportStream(String searchCriteriaListJson, jakarta.servlet.http.HttpServletResponse response) throws IOException {
+    public void generateCourseStudentSearchReportStream(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
         List<Sort.Order> sorts = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
         Specification<StudentCoursePaginationEntity> specs =
                 studentCoursePaginationService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
 
-        List<String> headers = Arrays.stream(ca.bc.gov.educ.api.gradstudent.constant.v1.StudentCourseSearchReportHeader.values())
-                .map(ca.bc.gov.educ.api.gradstudent.constant.v1.StudentCourseSearchReportHeader::getCode)
+        List<String> headers = Arrays.stream(StudentCourseSearchReportHeader.values())
+                .map(StudentCourseSearchReportHeader::getCode)
                 .toList();
 
         response.setContentType("text/csv");
@@ -208,9 +211,20 @@ public class CSVReportService {
             schoolOfGraduationName = school.map(School::getDisplayName).orElse("");
         }
 
-        // todo Get course info - just use courseID for now - need to get coreg course cache
-        String courseCode = studentCourse.getCourseID() != null ? studentCourse.getCourseID().toString() : "";
+        // Get course info from coreg39 course cache
+        String courseCode = "";
         String courseLevel = "";
+        if (studentCourse.getCourseID() != null) {
+            Optional<CourseCodeRecord> courseRecord = restUtils.getCoreg39CourseByID(studentCourse.getCourseID().toString());
+            if (courseRecord.isPresent() && StringUtils.isNotBlank(courseRecord.get().getExternalCode())) {
+                String externalCode = courseRecord.get().getExternalCode();
+                int codeLength = Math.min(5, externalCode.length());
+                courseCode = externalCode.substring(0, codeLength).trim();
+                if (externalCode.length() > 5) {
+                    courseLevel = externalCode.substring(5).trim();
+                }
+            }
+        }
 
         // Format birthdate as yyyy-MM-dd
         String birthdate = "";

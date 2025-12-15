@@ -267,4 +267,7 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.institute.url}")
     private String instituteApiURL;
+
+    @Value("${endpoint.coreg.url}")
+    private String coregApiURL;
 }

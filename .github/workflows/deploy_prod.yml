@@ -9,6 +9,7 @@ env:
   OPENSHIFT_NAMESPACE: ${{ vars.GRAD_NAMESPACE }}-prod
   COMMON_NAMESPACE: ${{ vars.COMMON_NAMESPACE }}
   BUSINESS_NAMESPACE: ${{ vars.GRAD_BUSINESS_NAMESPACE }}
+  COREG_NAMESPACE: ${{ vars.COREG_NAMESPACE }}
   KEYCLOAK_URL: ${{ secrets.KEYCLOAK_URL }}
   KEYCLOAK_REALM: ${{ secrets.KEYCLOAK_REALM }}
   TARGET_ENV: prod
@@ -99,6 +100,7 @@ jobs:
           ${{ env.GRAD_NAMESPACE }} \
           ${{ env.COMMON_NAMESPACE }} \
           ${{ env.BUSINESS_NAMESPACE }} \
+          ${{ env.COREG_NAMESPACE }} \
           ${{ secrets.SPLUNK_TOKEN }} \
           ${{ vars.APP_LOG_LEVEL }}
 
