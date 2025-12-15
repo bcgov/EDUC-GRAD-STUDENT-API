@@ -99,19 +99,20 @@ public class DataConversionService extends GradBaseService {
     public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
+        GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString());
+        if(gradSearchStudent != null) {
+            sourceObject.setPen(gradSearchStudent.getPen());
+            sourceObject.setDob((StringUtils.isNotBlank(gradSearchStudent.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), gradSearchStudent.getDob()) : null));
+            sourceObject.setGenderCode(gradSearchStudent.getGenderCode());
+            sourceObject.setLegalFirstName(gradSearchStudent.getLegalFirstName());
+            sourceObject.setLegalLastName(gradSearchStudent.getLegalLastName());
+            sourceObject.setLegalMiddleNames(gradSearchStudent.getLegalMiddleNames());
+        }
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
             gradEntity = handleExistingGraduationStatus(sourceObject, gradEntity, graduationStatus.getPen(), ongoingUpdate);
             return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(gradEntity);
         } else {
-            GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString());
-            if(gradSearchStudent != null) {
-                sourceObject.setDob((StringUtils.isNotBlank(gradSearchStudent.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), gradSearchStudent.getDob()) : null));
-                sourceObject.setGenderCode(gradSearchStudent.getGenderCode());
-                sourceObject.setLegalFirstName(gradSearchStudent.getLegalFirstName());
-                sourceObject.setLegalLastName(gradSearchStudent.getLegalLastName());
-                sourceObject.setLegalMiddleNames(gradSearchStudent.getLegalMiddleNames());
-            }
             sourceObject = handleNewGraduationStatus(sourceObject, graduationStatus.getPen(), ongoingUpdate);
             return graduationStatusTransformer.transformToDTOWithModifiedProgramCompletionDate(sourceObject);
         }
