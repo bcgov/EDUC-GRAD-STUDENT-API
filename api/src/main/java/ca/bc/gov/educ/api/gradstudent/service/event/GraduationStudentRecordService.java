@@ -14,12 +14,14 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDet
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.student.v1.StudentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
+import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -78,6 +80,31 @@ public class GraduationStudentRecordService {
     @Transactional
     public Optional<GraduationStudentRecordEntity> getStudentByStudentID(String studentID) {
         return graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentID));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void handleStudentUpdated(StudentUpdate studentUpdate, GraduationStudentRecordEntity existingStudentRecordEntity, final GradStatusEvent event){
+        String dob = studentUpdate.getDob();
+        if(StringUtils.isNotBlank(dob)){
+            try {
+                existingStudentRecordEntity.setDob(
+                        DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), dob)
+                );
+            } catch(Exception e) {
+                logger.error("Error replicating DOB from upstream: {}", e.getMessage());
+                existingStudentRecordEntity.setDob(null);
+            }
+        }
+        existingStudentRecordEntity.setPen(studentUpdate.getPen());
+        existingStudentRecordEntity.setGenderCode(studentUpdate.getGenderCode());
+        existingStudentRecordEntity.setLegalFirstName(studentUpdate.getLegalFirstName());
+        existingStudentRecordEntity.setLegalLastName(studentUpdate.getLegalLastName());
+        existingStudentRecordEntity.setLegalMiddleNames(studentUpdate.getLegalMiddleNames());
+        existingStudentRecordEntity.setUpdateUser(event.getUpdateUser());
+        existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
+        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
+        existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        graduationStudentRecordRepository.save(existingStudentRecordEntity);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -372,7 +399,9 @@ public class GraduationStudentRecordService {
 
     private String mapLetterGrade(String letterGrade, String percent) {
         List<LetterGrade> letterGradeList = courseCacheService.getLetterGradesFromCache();
-        if(StringUtils.isBlank(letterGrade) && StringUtils.isNotBlank(percent)) {
+        var doublePercent = percent != null ? Double.parseDouble(percent) : null;
+        var percentageScrub = getPercentage(letterGrade, doublePercent);
+        if(StringUtils.isBlank(letterGrade) && percentageScrub != null) {
             var letterEntity =  letterGradeList.stream().filter(grade -> grade.getPercentRangeHigh() != null &&
                     grade.getPercentRangeHigh() >= Integer.parseInt(percent)
                     && grade.getPercentRangeLow() != null && grade.getPercentRangeLow() <= Integer.parseInt(percent)).findFirst();
@@ -390,10 +419,17 @@ public class GraduationStudentRecordService {
                     .filter(grade -> grade.getGrade().equalsIgnoreCase(letterGrade)
                             && grade.getPercentRangeHigh() != null && grade.getPercentRangeLow() != null)
                     .findFirst();
-            return letterEntity.isPresent() ? doublePercent : null;
+            return letterEntity.isPresent() ? getPercentage(letterGrade, doublePercent) : null;
         } else {
             return doublePercent;
         }
+    }
+    
+    private Double getPercentage(String letterGrade, Double percent) {
+        if(percent != null && percent == 0 && StringUtils.isNotBlank(letterGrade) && !letterGrade.equalsIgnoreCase("F")) {
+            return null;
+        }
+        return percent;
     }
 
     private CoregCoursesRecord getCoregCoursesRecord(String courseCode, String courseLevel) {
@@ -594,6 +630,11 @@ public class GraduationStudentRecordService {
                 .studentCitizenship(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? demStudent.getCitizenship() : null)
                 .schoolOfRecordId(UUID.fromString(demStudent.getSchoolID()))
                 .studentID(UUID.fromString(studentFromApi.getStudentID()))
+                .dob((StringUtils.isNotBlank(studentFromApi.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), studentFromApi.getDob()) : null))
+                .genderCode(studentFromApi.getGenderCode())
+                .legalFirstName(studentFromApi.getLegalFirstName())
+                .legalMiddleNames(studentFromApi.getLegalMiddleNames())
+                .legalLastName(studentFromApi.getLegalLastName())
                 .recalculateGradStatus("Y")
                 .recalculateProjectedGrad("Y")
                 .adultStartDate(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapAdultStartDate(demStudent.getBirthdate(), demStudent.getGradRequirementYear()): null)

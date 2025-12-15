@@ -22,6 +22,7 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransfor
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import ca.bc.gov.educ.api.gradstudent.service.CourseService;
+import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -62,6 +63,7 @@ public class EventHandlerService {
     private final GraduationStatusTransformer graduationStatusTransformer;
     private final StudentCourseMapper courseMapper = StudentCourseMapper.mapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final GradStudentService gradStudentService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<byte[], List<GradStatusEvent>> handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
@@ -174,9 +176,7 @@ public class EventHandlerService {
                     if (event.getEventType().equals(UPDATE_STUDENT.toString())) {
                         final StudentUpdate studentUpdate = JsonUtil.getJsonObjectFromString(StudentUpdate.class, event.getEventPayload());
                         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentUpdate.getStudentID());
-                        if (student.isPresent()) {
-                            graduationStudentRecordService.handleSetFlagsForGradStudent(student.get(), event);
-                        }
+                        student.ifPresent(graduationStudentRecordEntity -> graduationStudentRecordService.handleStudentUpdated(studentUpdate, graduationStudentRecordEntity, event));
                         updateEvent(event);
                     } else {
                         log.warn("Silently ignoring event: {}", event);

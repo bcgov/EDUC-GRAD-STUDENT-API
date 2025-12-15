@@ -3,6 +3,8 @@ package ca.bc.gov.educ.api.gradstudent.messaging.jetstream;
 import ca.bc.gov.educ.api.gradstudent.constant.Topics;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordCourses;
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordCoursesLoad;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordPayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
@@ -15,12 +17,15 @@ import io.nats.client.Dispatcher;
 import io.nats.client.Message;
 import io.nats.client.MessageHandler;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -80,11 +85,26 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
                 .schoolAtGradId(studentRecord.getSchoolAtGradId() != null ? studentRecord.getSchoolAtGradId().toString() : null)
                 .graduated(String.valueOf(gradStudentCoursePayload != null && gradStudentCoursePayload.isGraduated()))
                 .courseList(gradStudentCoursePayload != null && gradStudentCoursePayload.getStudentCourses() != null
-                                ? gradStudentCoursePayload.getStudentCourses().getStudentCourseList()
+                                ? translateStudentCourseList(gradStudentCoursePayload.getStudentCourses().getStudentCourseList())
                                 : null)
                 .studentGrade(studentRecord.getStudentGrade())
                 .build();
         return JsonUtil.getJsonStringFromObject(gradStudentRecordPayload);
+    }
+    
+    private List<GradStudentRecordCourses> translateStudentCourseList(List<GradStudentRecordCoursesLoad> studentCourseList) {
+        var newCourseList = new ArrayList<GradStudentRecordCourses>();
+        
+        studentCourseList.forEach(student -> {
+           GradStudentRecordCourses newCourse = new GradStudentRecordCourses();
+           newCourse.setCourseCode(student.getCourseCode());
+           newCourse.setCourseLevel(student.getCourseLevel());
+           newCourse.setCourseSession(student.getSessionDate());
+           newCourse.setGradReqMet(StringUtils.isNotBlank(student.getGradReqMet()) ? student.getGradReqMet() : null);
+
+           newCourseList.add(newCourse);
+        });
+        return newCourseList;
     }
 
     private String getErrorResponse(Exception e) {

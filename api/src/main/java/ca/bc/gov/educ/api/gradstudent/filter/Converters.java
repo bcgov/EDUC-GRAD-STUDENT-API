@@ -5,8 +5,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.ChronoLocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,8 +29,13 @@ public class Converters {
 		map.put(Integer.class, Integer::valueOf);
 		map.put(ChronoLocalDate.class, LocalDate::parse);
 		map.put(ChronoLocalDateTime.class, LocalDateTime::parse);
-    map.put(UUID.class, UUID::fromString);
+        map.put(UUID.class, UUID::fromString);
 		map.put(Boolean.class, Boolean::valueOf);
+		map.put(Date.class, s -> {
+			String dateString = s.contains("T") ? s.split("T")[0] : s;
+			LocalDate localDate = LocalDate.parse(dateString);
+			return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		});
 	}
 
 	@SuppressWarnings("unchecked")
