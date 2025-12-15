@@ -46,6 +46,7 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.DB_COMMITTED;
 
@@ -239,7 +240,7 @@ public class GraduationStatusService extends GradBaseService {
 
     @Transactional
     @Retry(name = "generalpostcall")
-    public Pair<GraduationStudentRecord, List<GradStatusEvent>> updateGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, String accessToken) throws JsonProcessingException {
+    public Pair<GraduationStudentRecord, List<GradStatusEvent>> updateGraduationStatus(UUID studentID, GraduationStudentRecord graduationStatus, String accessToken, boolean updatePrograms) throws JsonProcessingException {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
@@ -250,6 +251,16 @@ public class GraduationStatusService extends GradBaseService {
                 validation.stopOnErrors();
                 return Pair.of(new GraduationStudentRecord(), null);
             }
+
+            // Validate programs if updatePrograms flag is set and programs are provided
+            if (updatePrograms && (graduationStatus.getOptionalPrograms() != null || graduationStatus.getCareerPrograms() != null)) {
+                validateStudentProgramsForMerge(graduationStatus, accessToken);
+                if (validation.hasErrors()) {
+                    validation.stopOnErrors();
+                    return Pair.of(new GraduationStudentRecord(), null);
+                }
+            }
+
             if(hasDataChanged.hasDataChanged() && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
                 deleteStudentCareerPrograms(sourceObject.getStudentID());
@@ -291,6 +302,11 @@ public class GraduationStatusService extends GradBaseService {
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity.setUpdateUser(null);
             validateStudentStatusAndResetBatchFlags(gradEntity);
+
+            if (updatePrograms && (graduationStatus.getOptionalPrograms() != null || graduationStatus.getCareerPrograms() != null)) {
+                updateStudentPrograms(studentID, graduationStatus);
+            }
+
             gradEntity = graduationStatusRepository.saveAndFlush(gradEntity);
             historyService.createStudentHistory(gradEntity, USER_EDIT);
             final GradStatusEvent gradStatusEvent = createGradStatusEvent(gradEntity.getUpdateUser(), gradEntity,
@@ -326,6 +342,73 @@ public class GraduationStatusService extends GradBaseService {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
             return Pair.of(graduationStatus, new ArrayList<>());
         }
+    }
+
+    private void validateStudentProgramsForMerge(GraduationStudentRecord graduationStatus, String accessToken) {
+        // Validate optional programs against the INCOMING program
+        if (graduationStatus.getOptionalPrograms() != null) {
+            for (StudentOptionalProgram op : graduationStatus.getOptionalPrograms()) {
+                if (op.getOptionalProgramID() != null) {
+                    validateOptionalProgram(op.getOptionalProgramID(), graduationStatus, accessToken);
+                }
+            }
+        }
+
+        // Validate career programs
+        if (graduationStatus.getCareerPrograms() != null) {
+            for (StudentCareerProgram cp : graduationStatus.getCareerPrograms()) {
+                if (StringUtils.isNotBlank(cp.getCareerProgramCode())) {
+                    CareerProgram found = getCareerProgram(cp.getCareerProgramCode(), accessToken);
+                    if (found == null || isPrimaryKeyNull(found)) {
+                        validation.addError(String.format("Career Program with Code: [%s] not found", cp.getCareerProgramCode()));
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateStudentPrograms(UUID studentID, GraduationStudentRecord graduationStatus) {
+        // Process optional programs - complete replace
+        if (graduationStatus.getOptionalPrograms() != null) {
+            // Remove all existing
+            gradStudentOptionalProgramRepository.findByStudentID(studentID)
+                    .forEach(entity -> removeStudentOptionalProgramWithAuditHistory(studentID, entity.getOptionalProgramID()));
+
+            // Add all incoming
+            graduationStatus.getOptionalPrograms().stream()
+                    .filter(op -> op.getOptionalProgramID() != null)
+                    .forEach(op -> persistStudentOptionalProgramWithAuditHistory(studentID, op.getOptionalProgramID()));
+        }
+
+        // Process career programs - complete replace
+        if (graduationStatus.getCareerPrograms() != null) {
+            List<StudentCareerProgramEntity> existingEntities = gradStudentCareerProgramRepository.findByStudentID(studentID);
+            boolean hadCareerPrograms = !existingEntities.isEmpty();
+
+            // Remove all existing
+            existingEntities.forEach(entity -> removeStudentCareerProgram(studentID, entity.getCareerProgramCode()));
+
+            // Add all incoming
+            Set<String> incoming = graduationStatus.getCareerPrograms().stream()
+                    .filter(cp -> StringUtils.isNotBlank(cp.getCareerProgramCode()))
+                    .map(StudentCareerProgram::getCareerProgramCode)
+                    .collect(Collectors.toSet());
+
+            incoming.forEach(code -> persistStudentCareerProgram(studentID, code));
+
+            // Handle CP optional program (auto-created/removed with career programs)
+            OptionalProgram cp = getOptionalProgram(graduationStatus.getProgram(), "CP");
+            if (cp != null) {
+                boolean hasCareerProgramsNow = !incoming.isEmpty();
+                if (hasCareerProgramsNow && !hadCareerPrograms) {
+                    persistStudentOptionalProgramWithAuditHistory(studentID, cp.getOptionalProgramID());
+                } else if (!hasCareerProgramsNow && hadCareerPrograms) {
+                    removeStudentOptionalProgramWithAuditHistory(studentID, cp.getOptionalProgramID());
+                }
+            }
+        }
+
+        handleBatchFlags(studentID, graduationStatus.getStudentStatus());
     }
 
     @Transactional
