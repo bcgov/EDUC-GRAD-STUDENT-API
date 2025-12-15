@@ -251,16 +251,6 @@ public class GraduationStatusService extends GradBaseService {
                 validation.stopOnErrors();
                 return Pair.of(new GraduationStudentRecord(), null);
             }
-
-            // Validate programs if updatePrograms flag is set and programs are provided
-            if (updatePrograms && (graduationStatus.getOptionalPrograms() != null || graduationStatus.getCareerPrograms() != null)) {
-                validateStudentProgramsForMerge(graduationStatus, accessToken);
-                if (validation.hasErrors()) {
-                    validation.stopOnErrors();
-                    return Pair.of(new GraduationStudentRecord(), null);
-                }
-            }
-
             if(hasDataChanged.hasDataChanged() && !sourceObject.getProgram().equalsIgnoreCase(gradEntity.getProgram())) {
                 deleteStudentOptionalPrograms(sourceObject.getStudentID());
                 deleteStudentCareerPrograms(sourceObject.getStudentID());
@@ -341,29 +331,6 @@ public class GraduationStatusService extends GradBaseService {
         } else {
             validation.addErrorAndStop(String.format("Student ID [%s] does not exists", studentID));
             return Pair.of(graduationStatus, new ArrayList<>());
-        }
-    }
-
-    private void validateStudentProgramsForMerge(GraduationStudentRecord graduationStatus, String accessToken) {
-        // Validate optional programs against the INCOMING program
-        if (graduationStatus.getOptionalPrograms() != null) {
-            for (StudentOptionalProgram op : graduationStatus.getOptionalPrograms()) {
-                if (op.getOptionalProgramID() != null) {
-                    validateOptionalProgram(op.getOptionalProgramID(), graduationStatus, accessToken);
-                }
-            }
-        }
-
-        // Validate career programs
-        if (graduationStatus.getCareerPrograms() != null) {
-            for (StudentCareerProgram cp : graduationStatus.getCareerPrograms()) {
-                if (StringUtils.isNotBlank(cp.getCareerProgramCode())) {
-                    CareerProgram found = getCareerProgram(cp.getCareerProgramCode(), accessToken);
-                    if (found == null || isPrimaryKeyNull(found)) {
-                        validation.addError(String.format("Career Program with Code: [%s] not found", cp.getCareerProgramCode()));
-                    }
-                }
-            }
         }
     }
 
