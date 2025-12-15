@@ -34,6 +34,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_SEARCH_CRITERIAS = "/gradstudentbysearchcriteria";
     public static final String GRADUATION_COUNTS = "/graduation-counts";
     public static final String GRAD_STUDENT_REPORT_PAGINATION = "/grad/student/search";
+    public static final String GRAD_STUDENT_SEARCH_PAGINATION = "/search/pagination";
     public static final String GRAD_STUDENT_COURSE_PAGINATION = "/grad/student/course/search/pagination";
     public static final String GRAD_STUDENT_BY_LAST_NAME = "/gradstudent";
     public static final String GRAD_STUDENT_BY_FIRST_NAME = "/studentsearchfirstname";
@@ -150,6 +151,7 @@ public class EducGradStudentApiConstants {
     public static final String TRAX_DATE_FORMAT = "yyyyMM";
     public static final String PROGRAM_COMPLETION_DATE_FORMAT = "yyyy/MM";
     public static final String DATE_FORMAT = "yyyy/MM/dd";
+    public static final String YUKON_DATE_FORMAT = "yyyy-MM";
 
     //NATS
     @Value("${nats.url}")

@@ -78,7 +78,11 @@ public enum FilterOperation {
 
   // Filter operations for GDC
   CUSTOM_CHILD_JOIN("custom_child_join"),
-  EQUAL_WITH_LEFT_JOIN("eq_lj");
+  EQUAL_WITH_LEFT_JOIN("eq_lj"),
+  /**
+   * Date range filter operation - supports optional start and/or end dates.
+   */
+  DATE_RANGE("date_range");
 
   ;
   /**

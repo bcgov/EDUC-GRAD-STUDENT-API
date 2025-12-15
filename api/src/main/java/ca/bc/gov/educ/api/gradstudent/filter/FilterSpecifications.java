@@ -34,6 +34,15 @@ public class FilterSpecifications<E, T extends Comparable<T>> {
             if (filterCriteria.getFieldName().contains(".")) {
                 String[] splits = filterCriteria.getFieldName().split("\\.");
 
+                if(filterCriteria.getConvertedSingleValue() == null) {
+                    // Handle null check for nested properties
+                    if(splits.length == 2) {
+                        return criteriaBuilder.isNull(root.join(splits[0]).get(splits[1]));
+                    } else {
+                        return criteriaBuilder.isNull(root.join(splits[0]).get(splits[1]).get(splits[2]));
+                    }
+                }
+
                 if(splits.length == 2) {
                     return criteriaBuilder.equal(root.join(splits[0]).get(splits[1]), filterCriteria.getConvertedSingleValue());
                 } else {
@@ -77,7 +86,21 @@ public class FilterSpecifications<E, T extends Comparable<T>> {
         map.put(FilterOperation.NOT_EQUAL, filterCriteria -> (root, criteriaQuery, criteriaBuilder) -> {
             if (filterCriteria.getFieldName().contains(".")) {
                 String[] splits = filterCriteria.getFieldName().split("\\.");
-                return criteriaBuilder.notEqual(root.join(splits[0]).get(splits[1]), filterCriteria.getConvertedSingleValue());
+
+                if(filterCriteria.getConvertedSingleValue() == null) {
+                    // Handle null check for nested properties
+                    if(splits.length == 2) {
+                        return criteriaBuilder.isNotNull(root.join(splits[0]).get(splits[1]));
+                    } else {
+                        return criteriaBuilder.isNotNull(root.join(splits[0]).get(splits[1]).get(splits[2]));
+                    }
+                }
+
+                if(splits.length == 2) {
+                    return criteriaBuilder.notEqual(root.join(splits[0]).get(splits[1]), filterCriteria.getConvertedSingleValue());
+                } else {
+                    return criteriaBuilder.notEqual(root.join(splits[0]).get(splits[1]).get(splits[2]), filterCriteria.getConvertedSingleValue());
+                }
             } else if(filterCriteria.getConvertedSingleValue() == null) {
                 return criteriaBuilder.isNotNull(root.get(filterCriteria.getFieldName()));
             }
@@ -185,6 +208,54 @@ public class FilterSpecifications<E, T extends Comparable<T>> {
                 }
             }
             throw new GradStudentAPIRuntimeException("Invalid search criteria provided");
+        });
+
+        map.put(FilterOperation.DATE_RANGE, filterCriteria -> (root, criteriaQuery, criteriaBuilder) -> {
+            T minValue = filterCriteria.getMinValue();
+            T maxValue = filterCriteria.getMaxValue();
+
+            if (filterCriteria.getFieldName().contains(".")) {
+                String[] splits = filterCriteria.getFieldName().split("\\.");
+
+                if(splits.length == 2) {
+                    // Both start and end dates provided
+                    if (minValue != null && maxValue != null) {
+                        return criteriaBuilder.between(root.join(splits[0]).get(splits[1]), minValue, maxValue);
+                    }
+                    // Only start date provided (>= start)
+                    else if (minValue != null) {
+                        return criteriaBuilder.greaterThanOrEqualTo(root.join(splits[0]).get(splits[1]), minValue);
+                    }
+                    // Only end date provided (<= end)
+                    else if (maxValue != null) {
+                        return criteriaBuilder.lessThanOrEqualTo(root.join(splits[0]).get(splits[1]), maxValue);
+                    }
+                } else {
+                    // 3-level nested property
+                    if (minValue != null && maxValue != null) {
+                        return criteriaBuilder.between(root.join(splits[0]).get(splits[1]).get(splits[2]), minValue, maxValue);
+                    }
+                    else if (minValue != null) {
+                        return criteriaBuilder.greaterThanOrEqualTo(root.join(splits[0]).get(splits[1]).get(splits[2]), minValue);
+                    }
+                    else if (maxValue != null) {
+                        return criteriaBuilder.lessThanOrEqualTo(root.join(splits[0]).get(splits[1]).get(splits[2]), maxValue);
+                    }
+                }
+            } else {
+                // Direct property (no nested join)
+                if (minValue != null && maxValue != null) {
+                    return criteriaBuilder.between(root.get(filterCriteria.getFieldName()), minValue, maxValue);
+                }
+                else if (minValue != null) {
+                    return criteriaBuilder.greaterThanOrEqualTo(root.get(filterCriteria.getFieldName()), minValue);
+                }
+                else if (maxValue != null) {
+                    return criteriaBuilder.lessThanOrEqualTo(root.get(filterCriteria.getFieldName()), maxValue);
+                }
+            }
+
+            throw new GradStudentAPIRuntimeException("DATE_RANGE operation requires at least one date value");
         });
     }
 }

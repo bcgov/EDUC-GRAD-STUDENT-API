@@ -13,6 +13,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,7 +93,7 @@ public class CSVReportService {
                 studentData != null &&  studentData.getGradStudent() != null ? studentData.getGradStudent().getLegalMiddleNames() : "",
                 student.getProgram(),
                 getOptionalProgram(student.getStudentID(), student.getProgram(), optionalProgramCodes),
-                student.getProgramCompletionDate() != null ? EducGradStudentApiUtils.formatDate(student.getProgramCompletionDate()) : ""
+                student.getProgramCompletionDate() != null ? EducGradStudentApiUtils.formatDate(student.getProgramCompletionDate(), EducGradStudentApiConstants.YUKON_DATE_FORMAT) : ""
         ));
     }
 

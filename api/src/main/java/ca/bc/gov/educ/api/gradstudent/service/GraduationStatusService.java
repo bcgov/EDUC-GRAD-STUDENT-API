@@ -1642,6 +1642,13 @@ public class GraduationStatusService extends GradBaseService {
         studentEntity.setRecalculateGradStatus(activeStatus.equals(student.getStatusCode()) ? "Y" : null);
         studentEntity.setRecalculateProjectedGrad(activeStatus.equals(student.getStatusCode()) ? "Y" : null);
 
+        studentEntity.setPen(student.getPen());
+        studentEntity.setLegalMiddleNames(student.getLegalMiddleNames());
+        studentEntity.setLegalFirstName(student.getLegalFirstName());
+        studentEntity.setLegalLastName(student.getLegalLastName());
+        studentEntity.setGenderCode(student.getGenderCode());
+        studentEntity.setDob((StringUtils.isNotBlank(student.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), student.getDob()) : null));
+
         return studentEntity;
     }
 
