@@ -23,5 +23,9 @@ public class GradStudentSearchData {
     String program;
     String programCompletionDate;
     String schoolOfRecordId;
+    String schoolAtGraduationId;
     String studentStatus;
+    String adultStartDate;
+    String recalculateGradStatus;
+    String recalculateProjectedGrad;
 }

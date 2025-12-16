@@ -5,7 +5,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GradStudentSearchDataEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, StringMapper.class})
+@Mapper(uses = {UUIDMapper.class, LocalDateTimeMapper.class, StringMapper.class, DateMapper.class})
 public interface GradStudentSearchMapper {
 
     GradStudentSearchMapper mapper = Mappers.getMapper(GradStudentSearchMapper.class);
