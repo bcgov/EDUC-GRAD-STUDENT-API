@@ -104,9 +104,10 @@ public class GraduationStatusController {
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     public ResponseEntity<GraduationStudentRecord> updateStudentGradStatus(@PathVariable String studentID,
                                                                            @RequestBody @Valid GraduationStudentRecord graduationStatus,
+                                                                           @RequestParam(value = "updatePrograms", required = false, defaultValue = "false") boolean updatePrograms,
                                                                            @RequestHeader(name="Authorization") String accessToken) throws JsonProcessingException {
-        logger.debug("update student Grad Status by Student ID");
-        var result = gradStatusService.updateGraduationStatus(UUID.fromString(studentID),graduationStatus,accessToken.replace(BEARER, ""));
+        logger.debug("update student Grad Status by Student ID, updatePrograms: {}", updatePrograms);
+        var result = gradStatusService.updateGraduationStatus(UUID.fromString(studentID), graduationStatus, accessToken.replace(BEARER, ""), updatePrograms);
         var events = result.getRight();
         if(!events.isEmpty()) {
             events.forEach(this::publishToJetStream);

@@ -467,7 +467,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -541,7 +541,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -624,7 +624,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -700,7 +700,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -831,7 +831,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -892,7 +892,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(GradProgram.class)).thenReturn(Mono.just(program));
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -966,7 +966,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -1039,7 +1039,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(SchoolClob.class)).thenReturn(Mono.just(schoolClob));
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -1099,7 +1099,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
         when(graduationStatusRepository.saveAndFlush(graduationStatusEntity)).thenReturn(savedGraduationStatus);
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();
@@ -1181,7 +1181,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
         when(this.requestHeadersMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(School.class)).thenReturn(Mono.just(school));
 
-        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken");
+        var response = graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
         assertThat(response).isNotNull();
 
         var result = response.getLeft();

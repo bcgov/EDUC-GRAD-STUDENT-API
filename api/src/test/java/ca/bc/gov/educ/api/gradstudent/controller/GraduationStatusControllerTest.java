@@ -153,10 +153,10 @@ public class GraduationStatusControllerTest {
         graduationStatus.setGpa("4");
         graduationStatus.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(new Date(System.currentTimeMillis()), "yyyy/MM"));
 
-        Mockito.when(graduationStatusService.updateGraduationStatus(studentID, graduationStatus, "accessToken")).thenReturn(Pair.of(graduationStatus, new ArrayList<>()));
+        Mockito.when(graduationStatusService.updateGraduationStatus(studentID, graduationStatus, "accessToken", false)).thenReturn(Pair.of(graduationStatus, new ArrayList<>()));
         Mockito.when(responseHelper.GET(graduationStatus)).thenReturn(ResponseEntity.ok().body(graduationStatus));
-        var result = graduationStatusController.updateStudentGradStatus(studentID.toString(), graduationStatus, "accessToken");
-        Mockito.verify(graduationStatusService).updateGraduationStatus(studentID, graduationStatus, "accessToken");
+        var result = graduationStatusController.updateStudentGradStatus(studentID.toString(), graduationStatus, false, "accessToken");
+        Mockito.verify(graduationStatusService).updateGraduationStatus(studentID, graduationStatus, "accessToken", false);
         assertThat(result).isNotNull();
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
