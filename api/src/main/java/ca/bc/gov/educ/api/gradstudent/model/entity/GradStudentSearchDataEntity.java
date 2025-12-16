@@ -49,8 +49,20 @@ public class GradStudentSearchDataEntity extends BaseEntity {
 
     @Column(name = "SCHOOL_OF_RECORD_ID", nullable = true)
     private UUID schoolOfRecordId;
+
+    @Column(name = "SCHOOL_AT_GRADUATION_ID", nullable = true)
+    private UUID schoolAtGraduationId;
     
     @Column(name = "STUDENT_STATUS_CODE", nullable = false)
     private String studentStatus;
+
+    @Column(name = "ADULT_START_DATE", nullable = true)
+    private Date adultStartDate;
+
+    @Column(name = "RECALCULATE_GRAD_STATUS", nullable = true)
+    private String recalculateGradStatus;
+
+    @Column(name = "RECALCULATE_PROJECTED_GRAD", nullable = true)
+    private String recalculateProjectedGrad;
 
 }
