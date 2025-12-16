@@ -5,7 +5,11 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.GradSearchStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordPaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeRecord;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
@@ -23,6 +27,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigInteger;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -49,11 +54,17 @@ class ReportsControllerTest extends BaseIntegrationTest {
     private GraduationStudentRecordRepository graduationStudentRecordRepository;
     @Autowired
     private StudentOptionalProgramRepository studentOptionalProgramRepository;
+    @Autowired
+    private StudentCoursePaginationRepository studentCoursePaginationRepository;
+    @Autowired
+    private ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordPaginationRepository graduationStudentRecordPaginationRepository;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         studentOptionalProgramRepository.deleteAll();
+        studentCoursePaginationRepository.deleteAll();
+        graduationStudentRecordPaginationRepository.deleteAll();
         graduationStudentRecordRepository.deleteAll();
     }
 
@@ -273,6 +284,158 @@ class ReportsControllerTest extends BaseIntegrationTest {
         assertThat(summary).isNotNull();
         assertThat(summary.getReportType()).isEqualTo("yukon-report");
         assertThat(summary.getDocumentData()).isNotBlank();
+    }
+
+    @Test
+    void testGetCourseStudentSearchReport_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID = UUID.randomUUID();
+
+        var gradStudent = new GraduationStudentRecordPaginationEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("123456789");
+        gradStudent.setLegalFirstName("John");
+        gradStudent.setLegalLastName("Doe");
+        gradStudent.setLegalMiddleNames("M");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2018-EN");
+        gradStudent.setStudentGrade("12");
+        gradStudent.setSchoolOfRecord("12345678");
+        gradStudent.setSchoolAtGraduation("12345678");
+        gradStudent.setSchoolOfRecordId(schoolID);
+        gradStudent.setSchoolAtGraduationId(schoolID);
+        gradStudent.setDob(Date.valueOf(LocalDate.of(2005, 5, 15)));
+        gradStudent.setProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+        gradStudent = graduationStudentRecordPaginationRepository.save(gradStudent);
+
+        StudentCoursePaginationEntity course = new StudentCoursePaginationEntity();
+        course.setStudentCourseID(UUID.randomUUID());
+        course.setGraduationStudentRecordEntity(gradStudent);
+        course.setCourseID(BigInteger.valueOf(872087L));
+        course.setCourseSession("202309");
+        course.setInterimPercent(85.5);
+        course.setInterimLetterGrade("A");
+        course.setCompletedCoursePercentage(88.0);
+        course.setFinalLetterGrade("A");
+        course.setCredits(4);
+        course.setEquivOrChallenge("E");
+        course.setFineArtsAppliedSkillsCode("F");
+        studentCoursePaginationRepository.save(course);
+
+        var school = createMockSchoolTombstone();
+        school.setSchoolId(String.valueOf(schoolID));
+        school.setMincode("12345678");
+        school.setDisplayName("Test High School");
+
+        var courseCodeRecord = new CourseCodeRecord();
+        courseCodeRecord.setCourseID("872087");
+        courseCodeRecord.setExternalCode("FRAN  11");
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+        when(restUtils.getCoreg39CourseByID("872087")).thenReturn(Optional.of(courseCodeRecord));
+
+        var searchCriteria = "[{\"condition\":\"AND\",\"searchCriteriaList\":[{\"key\":\"graduationStudentRecordEntity.program\",\"operation\":\"eq\",\"value\":\"2018-EN\",\"valueType\":\"STRING\"}]}]";
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/course-students/search/download")
+                                .param("searchCriteriaList", searchCriteria)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("PEN");
+        assertThat(csvContent).contains("123456789");
+        assertThat(csvContent).contains("Doe");
+        assertThat(csvContent).contains("FRAN");
+        assertThat(csvContent).contains("11");
+        assertThat(csvContent).contains("E");
+        assertThat(csvContent).contains("F");
+        assertThat(csvContent).contains("No");
+    }
+
+    @Test
+    void testGetCourseStudentSearchReport_WithNoSearchCriteria_ShouldReturnAllRecords() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID = UUID.randomUUID();
+
+        var gradStudent = new GraduationStudentRecordPaginationEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("987654321");
+        gradStudent.setLegalLastName("Smith");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2023-EN");
+        gradStudent.setStudentGrade("11");
+        gradStudent.setSchoolOfRecord("87654321");
+        gradStudent.setSchoolOfRecordId(schoolID);
+        gradStudent = graduationStudentRecordPaginationRepository.save(gradStudent);
+
+        StudentCoursePaginationEntity course = new StudentCoursePaginationEntity();
+        course.setStudentCourseID(UUID.randomUUID());
+        course.setGraduationStudentRecordEntity(gradStudent);
+        course.setCourseID(BigInteger.valueOf(872066L));
+        course.setCourseSession("202401");
+        course.setCredits(4);
+        studentCoursePaginationRepository.save(course);
+
+        var school = createMockSchoolTombstone();
+        school.setSchoolId(String.valueOf(schoolID));
+        school.setDisplayName("Another School");
+
+        var courseCodeRecord = new CourseCodeRecord();
+        courseCodeRecord.setCourseID("872066");
+        courseCodeRecord.setExternalCode("INDT 10D");
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+        when(restUtils.getCoreg39CourseByID("872066")).thenReturn(Optional.of(courseCodeRecord));
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/course-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("987654321");
+        assertThat(csvContent).contains("Smith");
+    }
+
+    @Test
+    void testGetCourseStudentSearchReport_WithMissingCourseInCache_ShouldHandleGracefully() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var gradStudent = new GraduationStudentRecordPaginationEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("111222333");
+        gradStudent.setLegalLastName("Test");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2018-EN");
+        gradStudent = graduationStudentRecordPaginationRepository.save(gradStudent);
+
+        StudentCoursePaginationEntity course = new StudentCoursePaginationEntity();
+        course.setStudentCourseID(UUID.randomUUID());
+        course.setGraduationStudentRecordEntity(gradStudent);
+        course.setCourseID(BigInteger.valueOf(999999L));
+        course.setCourseSession("202309");
+        course.setCredits(4);
+        studentCoursePaginationRepository.save(course);
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.empty());
+        when(restUtils.getCoreg39CourseByID("999999")).thenReturn(Optional.empty());
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/course-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("111222333");
     }
 
 }

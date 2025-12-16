@@ -10,6 +10,7 @@ import ca.bc.gov.educ.api.gradstudent.messaging.MessagePublisher;
 import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
@@ -64,9 +65,11 @@ public class RestUtils {
   private final Map<String, GraduationProgramCode> gradProgramCodeMap = new ConcurrentHashMap<>();
   private final Map<String, District> districtMap = new ConcurrentHashMap<>();
   private final Map<String, School> schoolMap = new ConcurrentHashMap<>();
+  private final Map<String, CourseCodeRecord> coreg39Map = new ConcurrentHashMap<>();
   final EducGradStudentApiConstants constants;
   private final ReadWriteLock districtLock = new ReentrantReadWriteLock();
   private final ReadWriteLock schoolLock = new ReentrantReadWriteLock();
+  private final ReadWriteLock coreg39Lock = new ReentrantReadWriteLock();
 
   public static final Executor bgTask = new EnhancedQueueExecutor.Builder()
           .setThreadFactory(new ThreadFactoryBuilder().setNameFormat("bg-task-executor-%d").build())
@@ -94,6 +97,7 @@ public class RestUtils {
     this.populateOptionalProgramsMap();
     this.populateDistrictMap();
     this.populateSchoolMap();
+    this.populateCoreg39Map();
   }
 
   @Scheduled(cron = "${cron.scheduled.process.cache-cron.run}")
@@ -306,6 +310,48 @@ public class RestUtils {
       Thread.currentThread().interrupt();
       throw new GradStudentAPIRuntimeException(NATS_TIMEOUT + correlationID);
     }
+  }
+
+  public void populateCoreg39Map() {
+    val writeLock = this.coreg39Lock.writeLock();
+    try {
+      writeLock.lock();
+      if (this.coreg39Map.isEmpty()) {
+        log.info("Calling COREG API to load coreg39 courses to memory");
+        this.coreg39Map.clear();
+        var coreg39Courses = this.getCoreg39Courses();
+        for (val courseCode : coreg39Courses) {
+          this.coreg39Map.put(courseCode.getCourseID(), courseCode);
+        }
+        log.info("Loaded  {} coreg39 courses to memory", coreg39Courses.size());
+      } else {
+        log.debug("Coreg39 map already populated by another thread, skipping reload");
+      }
+    } catch (Exception ex) {
+      log.error("Unable to load coreg39 courses to map cache ", ex);
+      throw new GradStudentAPIRuntimeException("Unable to load coreg39 courses to map cache: " + ex.getMessage());
+    } finally {
+      writeLock.unlock();
+    }
+  }
+
+  public List<CourseCodeRecord> getCoreg39Courses() {
+    log.info("Calling COREG API to load courses to memory");
+    return this.webClient.get()
+            .uri(constants.getCoregApiURL() + "/course/information/all/39")
+            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .retrieve()
+            .bodyToFlux(CourseCodeRecord.class)
+            .collectList()
+            .block();
+  }
+
+  public Optional<CourseCodeRecord> getCoreg39CourseByID(final String courseID) {
+    if (this.coreg39Map.isEmpty()) {
+      log.info("Coreg 39 course map is empty reloading courses");
+      this.populateCoreg39Map();
+    }
+    return Optional.ofNullable(this.coreg39Map.get(courseID));
   }
 
   public Optional<District> getDistrictByDistrictID(final String districtID) {

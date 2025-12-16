@@ -1,27 +1,34 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
+import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentCourseSearchReportHeader;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.YukonReportHeader;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.DownloadableReportResponse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedWriter;
@@ -30,7 +37,10 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -40,6 +50,8 @@ public class CSVReportService {
     private final RestUtils restUtils;
     private final GraduationStudentRecordRepository graduationStudentRecordRepository;
     private final StudentOptionalProgramRepository studentOptionalProgramRepository;
+    private final StudentCoursePaginationService studentCoursePaginationService;
+    private final StudentCoursePaginationRepository studentCoursePaginationRepository;
 
     public DownloadableReportResponse generateYukonReport(UUID districtID, String fromDate, String toDate) {
         var district = restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", districtID.toString()));
@@ -134,5 +146,138 @@ public class CSVReportService {
                         && StringUtils.isNotBlank(gradProgram)
                         && StringUtils.isNotBlank(program.getGraduationProgramCode())
                         && program.getGraduationProgramCode().equalsIgnoreCase(gradProgram)).findFirst();
+    }
+
+    /**
+     * Generate course student search report and stream directly to HTTP response.
+     *
+     * @param searchCriteriaListJson JSON string with search criteria
+     * @param response HTTP response to stream CSV to
+     * @throws IOException if writing to response fails
+     */
+    public void generateCourseStudentSearchReportStream(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
+        List<Sort.Order> sorts = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Specification<StudentCoursePaginationEntity> specs =
+                studentCoursePaginationService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
+
+        List<String> headers = Arrays.stream(StudentCourseSearchReportHeader.values())
+                .map(StudentCourseSearchReportHeader::getCode)
+                .toList();
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"StudentCourseSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+             Stream<StudentCoursePaginationEntity> studentCourseStream = studentCoursePaginationRepository.streamAll(specs)) {
+
+            csvPrinter.printRecord(headers);
+
+            studentCourseStream
+                    .map(this::prepareCourseStudentSearchDataForCsv)
+                    .forEach(csvRowData -> {
+                        try {
+                            csvPrinter.printRecord(csvRowData);
+                            csvPrinter.flush();
+                        } catch (IOException e) {
+                            throw new GradStudentAPIRuntimeException(e);
+                        }
+                    });
+
+            csvPrinter.flush();
+        }
+    }
+
+    private List<String> prepareCourseStudentSearchDataForCsv(StudentCoursePaginationEntity studentCourse) {
+        var gradStudentRecord = studentCourse.getGraduationStudentRecordEntity();
+
+        String schoolOfRecordCode = gradStudentRecord != null && gradStudentRecord.getSchoolOfRecord() != null
+                ? gradStudentRecord.getSchoolOfRecord() : "";
+        String schoolOfGraduationCode = gradStudentRecord != null && gradStudentRecord.getSchoolAtGraduation() != null
+                ? gradStudentRecord.getSchoolAtGraduation() : "";
+
+        String schoolOfRecordName = "";
+        if (gradStudentRecord != null && gradStudentRecord.getSchoolOfRecordId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudentRecord.getSchoolOfRecordId().toString());
+            schoolOfRecordName = school.map(School::getDisplayName).orElse("");
+        }
+
+        String schoolOfGraduationName = "";
+        if (gradStudentRecord != null && gradStudentRecord.getSchoolAtGraduationId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudentRecord.getSchoolAtGraduationId().toString());
+            schoolOfGraduationName = school.map(School::getDisplayName).orElse("");
+        }
+
+        // Get course info from coreg39 course cache
+        String courseCode = "";
+        String courseLevel = "";
+        if (studentCourse.getCourseID() != null) {
+            Optional<CourseCodeRecord> courseRecord = restUtils.getCoreg39CourseByID(studentCourse.getCourseID().toString());
+            if (courseRecord.isPresent() && StringUtils.isNotBlank(courseRecord.get().getExternalCode())) {
+                String externalCode = courseRecord.get().getExternalCode();
+                int codeLength = Math.min(5, externalCode.length());
+                courseCode = externalCode.substring(0, codeLength).trim();
+                if (externalCode.length() > 5) {
+                    courseLevel = externalCode.substring(5).trim();
+                }
+            }
+        }
+
+        // Format birthdate as yyyy-MM-dd
+        String birthdate = "";
+        if (gradStudentRecord != null && gradStudentRecord.getDob() != null) {
+            birthdate = EducGradStudentApiUtils.formatDate(gradStudentRecord.getDob(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        }
+
+        // Format completion date as yyyy-MM-dd
+        String completionDate = "";
+        if (gradStudentRecord != null && gradStudentRecord.getProgramCompletionDate() != null) {
+            completionDate = EducGradStudentApiUtils.formatDate(gradStudentRecord.getProgramCompletionDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        }
+
+        // Equiv. Chall. - E for Equivalency, C for Challenge
+        String equivChall = "";
+        if (StringUtils.isNotBlank(studentCourse.getEquivOrChallenge())) {
+            if (studentCourse.getEquivOrChallenge().startsWith("E")) {
+                equivChall = "E";
+            } else if (studentCourse.getEquivOrChallenge().startsWith("C")) {
+                equivChall = "C";
+            }
+        }
+
+        String fineArtsAppSkill = StringUtils.isNotBlank(studentCourse.getFineArtsAppliedSkillsCode())
+                ? studentCourse.getFineArtsAppliedSkillsCode()
+                : "";
+
+        // Has Exam? - Yes if there's a student exam ID, No otherwise
+        String hasExam = studentCourse.getStudentExamId() != null ? "Yes" : "No";
+
+        return Arrays.asList(
+                gradStudentRecord != null && gradStudentRecord.getPen() != null ? gradStudentRecord.getPen() : "",
+                gradStudentRecord != null && gradStudentRecord.getStudentStatus() != null ? gradStudentRecord.getStudentStatus() : "",
+                gradStudentRecord != null && gradStudentRecord.getLegalLastName() != null ? gradStudentRecord.getLegalLastName() : "",
+                birthdate,
+                gradStudentRecord != null && gradStudentRecord.getStudentGrade() != null ? gradStudentRecord.getStudentGrade() : "",
+                gradStudentRecord != null && gradStudentRecord.getProgram() != null ? gradStudentRecord.getProgram() : "",
+                completionDate,
+                schoolOfRecordCode,
+                schoolOfRecordName,
+                schoolOfGraduationCode,
+                schoolOfGraduationName,
+                courseCode,
+                courseLevel,
+                studentCourse.getCourseSession() != null ? studentCourse.getCourseSession() : "",
+                studentCourse.getInterimPercent() != null ? studentCourse.getInterimPercent().toString() : "",
+                studentCourse.getInterimLetterGrade() != null ? studentCourse.getInterimLetterGrade() : "",
+                studentCourse.getCompletedCoursePercentage() != null ? studentCourse.getCompletedCoursePercentage().toString() : "",
+                studentCourse.getFinalLetterGrade() != null ? studentCourse.getFinalLetterGrade() : "",
+                studentCourse.getCredits() != null ? studentCourse.getCredits().toString() : "",
+                equivChall,
+                fineArtsAppSkill,
+                hasExam
+        );
     }
 }

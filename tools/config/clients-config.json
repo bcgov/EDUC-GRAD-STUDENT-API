@@ -41,7 +41,8 @@
       "READ_STUDENT",
       "READ_GRAD_STUDENT_REPORT",
       "READ_DISTRICT",
-      "READ_SCHOOL"],
+      "READ_SCHOOL",
+      "COREG_READ_COURSE"],
     "settings": {
       "enabled": true,
       "protocol": "openid-connect",

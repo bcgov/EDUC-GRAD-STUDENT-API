@@ -232,6 +232,8 @@ endpoint:
       url: ${GRAD_COURSE_API}api/v1/course/examinablecourses
   institute:
     url: ${INSTITUTE_URL}
+  coreg:
+    url: ${COREG_URL}
 
 
 #Splunk LogHelper

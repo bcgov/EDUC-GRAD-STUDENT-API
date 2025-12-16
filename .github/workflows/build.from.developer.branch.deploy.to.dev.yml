@@ -10,6 +10,7 @@ env:
   COMMON_NAMESPACE: ${{ secrets.COMMON_NAMESPACE }}
   NAMESPACE: ${{ secrets.GRAD_NAMESPACE }}
   BUSINESS_NAMESPACE: ${{ secrets.GRAD_BUSINESS_NAMESPACE }}
+  COREG_NAMESPACE: ${{ secrets.COREG_NAMESPACE }}
   KEYCLOAK_URL: ${{ secrets.KEYCLOAK_URL }}
   KEYCLOAK_REALM: ${{ secrets.KEYCLOAK_REALM }}
   TARGET_ENV: dev
@@ -152,6 +153,7 @@ jobs:
           ${{ env.NAMESPACE }} \
           ${{ env.COMMON_NAMESPACE }} \
           ${{ env.BUSINESS_NAMESPACE }} \
+          ${{ env.COREG_NAMESPACE }} \
           ${{ secrets.SPLUNK_TOKEN }} \
           ${{ vars.APP_LOG_LEVEL }}
           
@@ -163,6 +165,7 @@ jobs:
           ${{ env.NAMESPACE }} \
           ${{ env.COMMON_NAMESPACE }} \
           ${{ env.BUSINESS_NAMESPACE }} \
+          ${{ env.COREG_NAMESPACE }} \
           ${{ secrets.SPLUNK_TOKEN }} \
           ${{ vars.APP_LOG_LEVEL }}
 
