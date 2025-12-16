@@ -233,7 +233,7 @@ endpoint:
   institute:
     url: ${INSTITUTE_URL}
   coreg:
-    url: ${COREG_URL}
+    url: ${COREG_API_URL}
 
 
 #Splunk LogHelper
