@@ -3,7 +3,6 @@ package ca.bc.gov.educ.api.gradstudent.service.event;
 import ca.bc.gov.educ.api.gradstudent.constant.GradRequirementYearCodes;
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUpdateResult;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
@@ -55,7 +54,6 @@ public class GraduationStudentRecordService {
     private final StudentCourseRepository studentCourseRepository;
     private final FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
     private final EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
-    private final Publisher publisher;
     private static final String DATA_CONVERSION_HISTORY_ACTIVITY_CODE = "DATACONVERT"; // confirm,
     private static final String GDC_ADD = "GDCADD";// confirm,
     private static final String GDC_UPDATE = "GDCUPATE";
@@ -535,7 +533,7 @@ public class GraduationStudentRecordService {
                 statusChangeCount++;
             }
 
-            var mappedStudentStatus = mapStudentStatus(demStudent.getStudentStatus());
+            var mappedStudentStatus = mapStudentStatusForUpdate(demStudent, newStudentRecordEntity);
             if(!newStudentRecordEntity.getStudentStatus().equalsIgnoreCase(mappedStudentStatus)) {
                 newStudentRecordEntity.setStudentStatus(mappedStudentStatus);
                 projectedChangeCount++;
@@ -660,6 +658,23 @@ public class GraduationStudentRecordService {
             return TERMINATED;
         } else if(demStudentStatus.equalsIgnoreCase("D")) {
             return DECEASED;
+        } else {
+            return null;
+        }
+    }
+
+    private String mapStudentStatusForUpdate(DemographicStudent demStudent, GraduationStudentRecordEntity graduationStudentRecordEntity) {
+        String demStudentStatus = demStudent.getStudentStatus();
+        if(demStudentStatus.equalsIgnoreCase("A")) {
+            return CURRENT;
+        } else if(demStudentStatus.equalsIgnoreCase("D")) {
+            return DECEASED;
+        } else if(demStudentStatus.equalsIgnoreCase("T")
+            && (
+                (graduationStudentRecordEntity.getStudentStatus().equalsIgnoreCase(TERMINATED))
+                        || (graduationStudentRecordEntity.getStudentStatus().equalsIgnoreCase(CURRENT) && Objects.equals(UUID.fromString(demStudent.getSchoolID()), graduationStudentRecordEntity.getSchoolOfRecordId()))
+                )) {
+                return TERMINATED;
         } else {
             return null;
         }
