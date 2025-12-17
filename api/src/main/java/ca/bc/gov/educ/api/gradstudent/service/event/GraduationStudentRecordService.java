@@ -223,6 +223,11 @@ public class GraduationStudentRecordService {
                 }
             });
         }
+
+        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
+        existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        var savedStudentRecord = graduationStudentRecordRepository.save(existingStudentRecordEntity);
+        historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
     }
 
     private void handleReplaceCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudentDetail courseStudent, String studentID) {
@@ -230,9 +235,6 @@ public class GraduationStudentRecordService {
         log.debug("Creating new student course record for course: {}, level: {}, courseID: {}",
                 courseStudent.getCourseCode(), courseStudent.getCourseLevel(), coursesRecord != null ? coursesRecord.getCourseID() : "N/A");
         createNewStudentCourseEntity(courseStudent, studentID, coursesRecord, existingStudentRecordEntity);
-        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
-        existingStudentRecordEntity.setRecalculateGradStatus("Y");
-        graduationStudentRecordRepository.save(existingStudentRecordEntity);
     }
 
     private void handleAppendCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudentDetail courseStudent, String studentID) {
@@ -253,10 +255,6 @@ public class GraduationStudentRecordService {
         } else if(!courseStudent.getCourseStatus().equalsIgnoreCase("W")) {
             createNewStudentCourseEntity(courseStudent, studentID, coursesRecord, existingStudentRecordEntity);
         }
-
-        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
-        existingStudentRecordEntity.setRecalculateGradStatus("Y");
-        graduationStudentRecordRepository.save(existingStudentRecordEntity);
     }
 
     private void createNewStudentCourseEntity(CourseStudentDetail courseStudent, String studentID, CoregCoursesRecord coursesRecord, GraduationStudentRecordEntity existingStudentRecordEntity) {
