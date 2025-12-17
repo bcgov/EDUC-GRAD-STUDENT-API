@@ -438,4 +438,283 @@ class ReportsControllerTest extends BaseIntegrationTest {
         assertThat(csvContent).contains("111222333");
     }
 
+    @Test
+    void testGetProgramStudentSearchReport_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID = UUID.randomUUID();
+
+        var gradStudent = new GraduationStudentRecordEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("123456789");
+        gradStudent.setLegalFirstName("Jane");
+        gradStudent.setLegalLastName("Smith");
+        gradStudent.setLegalMiddleNames("Anne");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2018-EN");
+        gradStudent.setStudentGrade("12");
+        gradStudent.setSchoolOfRecordId(schoolID);
+        gradStudent.setSchoolAtGradId(schoolID);
+        gradStudent.setDob(LocalDateTime.of(2005, 3, 20, 0, 0));
+        gradStudent.setProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(5)));
+        gradStudent.setAdultStartDate(Date.valueOf(LocalDate.of(2023, 9, 1)));
+        gradStudent.setRecalculateGradStatus("Y");
+        gradStudent.setRecalculateProjectedGrad("N");
+        graduationStudentRecordRepository.save(gradStudent);
+
+        var school = createMockSchoolTombstone();
+        school.setSchoolId(String.valueOf(schoolID));
+        school.setMincode("12345678");
+        school.setDisplayName("Test High School");
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+
+        var searchCriteria = "[{\"condition\":\"AND\",\"searchCriteriaList\":[{\"key\":\"program\",\"operation\":\"eq\",\"value\":\"2018-EN\",\"valueType\":\"STRING\"}]}]";
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/program-students/search/download")
+                                .param("searchCriteriaList", searchCriteria)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("PEN");
+        assertThat(csvContent).contains("Student Status");
+        assertThat(csvContent).contains("Surname");
+        assertThat(csvContent).contains("Given Name");
+        assertThat(csvContent).contains("Middle Name");
+        assertThat(csvContent).contains("123456789");
+        assertThat(csvContent).contains("Current");
+        assertThat(csvContent).contains("Smith");
+        assertThat(csvContent).contains("Jane");
+        assertThat(csvContent).contains("Anne");
+        assertThat(csvContent).contains("2018-EN");
+        assertThat(csvContent).contains("12345678");
+        assertThat(csvContent).contains("Test High School");
+        assertThat(csvContent).contains("Yes");
+        assertThat(csvContent).contains("No");
+    }
+
+    @Test
+    void testGetProgramStudentSearchReport_WithNoSearchCriteria_ShouldReturnAllRecords() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID = UUID.randomUUID();
+
+        var gradStudent = new GraduationStudentRecordEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("987654321");
+        gradStudent.setLegalFirstName("Bob");
+        gradStudent.setLegalLastName("Johnson");
+        gradStudent.setStudentStatus("ARC");
+        gradStudent.setProgram("2023-EN");
+        gradStudent.setStudentGrade("11");
+        gradStudent.setSchoolOfRecordId(schoolID);
+        gradStudent.setDob(LocalDateTime.of(2006, 7, 15, 0, 0));
+        gradStudent.setRecalculateGradStatus("N");
+        gradStudent.setRecalculateProjectedGrad("Y");
+        graduationStudentRecordRepository.save(gradStudent);
+
+        var school = createMockSchoolTombstone();
+        school.setSchoolId(String.valueOf(schoolID));
+        school.setMincode("87654321");
+        school.setDisplayName("Another School");
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/program-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("987654321");
+        assertThat(csvContent).contains("Archived");
+        assertThat(csvContent).contains("Johnson");
+        assertThat(csvContent).contains("Bob");
+        assertThat(csvContent).contains("87654321");
+    }
+
+    @Test
+    void testGetProgramStudentSearchReport_WithMultipleStudents_ShouldReturnAll() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID1 = UUID.randomUUID();
+        var schoolID2 = UUID.randomUUID();
+
+        var gradStudent1 = new GraduationStudentRecordEntity();
+        gradStudent1.setStudentID(UUID.randomUUID());
+        gradStudent1.setPen("111111111");
+        gradStudent1.setLegalFirstName("Alice");
+        gradStudent1.setLegalLastName("Williams");
+        gradStudent1.setStudentStatus("CUR");
+        gradStudent1.setProgram("2018-EN");
+        gradStudent1.setStudentGrade("12");
+        gradStudent1.setSchoolOfRecordId(schoolID1);
+        gradStudent1.setSchoolAtGradId(schoolID1);
+        gradStudent1.setDob(LocalDateTime.of(2005, 1, 10, 0, 0));
+        gradStudent1.setRecalculateGradStatus("Y");
+        gradStudent1.setRecalculateProjectedGrad("Y");
+
+        var gradStudent2 = new GraduationStudentRecordEntity();
+        gradStudent2.setStudentID(UUID.randomUUID());
+        gradStudent2.setPen("222222222");
+        gradStudent2.setLegalFirstName("Charlie");
+        gradStudent2.setLegalLastName("Brown");
+        gradStudent2.setStudentStatus("TER");
+        gradStudent2.setProgram("2018-PF");
+        gradStudent2.setStudentGrade("10");
+        gradStudent2.setSchoolOfRecordId(schoolID2);
+        gradStudent2.setDob(LocalDateTime.of(2007, 11, 25, 0, 0));
+        gradStudent2.setRecalculateGradStatus("N");
+        gradStudent2.setRecalculateProjectedGrad("N");
+
+        graduationStudentRecordRepository.saveAll(List.of(gradStudent1, gradStudent2));
+
+        var school1 = createMockSchoolTombstone();
+        school1.setSchoolId(String.valueOf(schoolID1));
+        school1.setMincode("11111111");
+        school1.setDisplayName("School One");
+
+        var school2 = createMockSchoolTombstone();
+        school2.setSchoolId(String.valueOf(schoolID2));
+        school2.setMincode("22222222");
+        school2.setDisplayName("School Two");
+
+        when(restUtils.getSchoolBySchoolID(schoolID1.toString())).thenReturn(Optional.of(school1));
+        when(restUtils.getSchoolBySchoolID(schoolID2.toString())).thenReturn(Optional.of(school2));
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/program-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("111111111");
+        assertThat(csvContent).contains("222222222");
+        assertThat(csvContent).contains("Williams");
+        assertThat(csvContent).contains("Brown");
+        assertThat(csvContent).contains("Current");
+        assertThat(csvContent).contains("Terminated");
+        assertThat(csvContent).contains("11111111");
+        assertThat(csvContent).contains("22222222");
+    }
+
+    @Test
+    void testGetProgramStudentSearchReport_WithNullFields_ShouldHandleGracefully() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var gradStudent = new GraduationStudentRecordEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("333333333");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2018-EN");
+
+        graduationStudentRecordRepository.save(gradStudent);
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/program-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("333333333");
+        assertThat(csvContent).contains("Current");
+    }
+
+    @Test
+    void testGetProgramStudentSearchReport_WithMissingSchoolInCache_ShouldHandleGracefully() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID = UUID.randomUUID();
+
+        var gradStudent = new GraduationStudentRecordEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("444444444");
+        gradStudent.setLegalLastName("NoSchool");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2018-EN");
+        gradStudent.setSchoolOfRecordId(schoolID);
+        gradStudent.setSchoolAtGradId(schoolID);
+        gradStudent.setDob(LocalDateTime.of(2005, 6, 10, 0, 0));
+        graduationStudentRecordRepository.save(gradStudent);
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.empty());
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/program-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("444444444");
+        assertThat(csvContent).contains("NoSchool");
+    }
+
+    @Test
+    void testGetProgramStudentSearchReport_WithAllStudentStatusTypes_ShouldMapCorrectly() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var gradStudent1 = new GraduationStudentRecordEntity();
+        gradStudent1.setStudentID(UUID.randomUUID());
+        gradStudent1.setPen("555555551");
+        gradStudent1.setLegalLastName("Current");
+        gradStudent1.setStudentStatus("CUR");
+        gradStudent1.setProgram("2018-EN");
+
+        var gradStudent2 = new GraduationStudentRecordEntity();
+        gradStudent2.setStudentID(UUID.randomUUID());
+        gradStudent2.setPen("555555552");
+        gradStudent2.setLegalLastName("Archived");
+        gradStudent2.setStudentStatus("ARC");
+        gradStudent2.setProgram("2018-EN");
+
+        var gradStudent3 = new GraduationStudentRecordEntity();
+        gradStudent3.setStudentID(UUID.randomUUID());
+        gradStudent3.setPen("555555553");
+        gradStudent3.setLegalLastName("Deceased");
+        gradStudent3.setStudentStatus("DEC");
+        gradStudent3.setProgram("2018-EN");
+
+        var gradStudent4 = new GraduationStudentRecordEntity();
+        gradStudent4.setStudentID(UUID.randomUUID());
+        gradStudent4.setPen("555555554");
+        gradStudent4.setLegalLastName("Merged");
+        gradStudent4.setStudentStatus("MER");
+        gradStudent4.setProgram("2018-EN");
+
+        var gradStudent5 = new GraduationStudentRecordEntity();
+        gradStudent5.setStudentID(UUID.randomUUID());
+        gradStudent5.setPen("555555555");
+        gradStudent5.setLegalLastName("Terminated");
+        gradStudent5.setStudentStatus("TER");
+        gradStudent5.setProgram("2018-EN");
+
+        graduationStudentRecordRepository.saveAll(List.of(gradStudent1, gradStudent2, gradStudent3, gradStudent4, gradStudent5));
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/program-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("Current");
+        assertThat(csvContent).contains("Archived");
+        assertThat(csvContent).contains("Deceased");
+        assertThat(csvContent).contains("Merged");
+        assertThat(csvContent).contains("Terminated");
+    }
+
 }
