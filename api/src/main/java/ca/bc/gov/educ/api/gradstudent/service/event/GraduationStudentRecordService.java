@@ -127,7 +127,7 @@ public class GraduationStudentRecordService {
         if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
             entity.setProgram(mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()));
         } else {
-            entity.setProgram(createProgram());
+            entity.setProgram(createProgram(demStudent.getSchoolReportingRequirementCode()));
         }
 
         entity.setCreateUser(demStudent.getCreateUser());
@@ -692,12 +692,13 @@ public class GraduationStudentRecordService {
         }
     }
 
-    private String createProgram() {
+    private String createProgram(String schoolReportingRequirementCode) {
         List<GraduationProgramCode> codes =  restUtils.getGraduationProgramCodeList(true);
         var filteredCodes = codes.stream().filter(code -> !code.getProgramCode().equalsIgnoreCase("1950") && !code.getProgramCode().equalsIgnoreCase("SCCP") && !code.getProgramCode().equalsIgnoreCase("NOPROG")).findFirst();
         var code = filteredCodes.orElseThrow(() ->new EntityNotFoundException(GraduationProgramCode.class, "Program Code", "Program Code not found"));
         var splitProgramCode = code.getProgramCode().split("-");
-        return splitProgramCode.length == 2 ? splitProgramCode[0] + "-" + "EN" : code.getProgramCode();
+        var appendCode = schoolReportingRequirementCode.equalsIgnoreCase("CSF") ? "PF" : "EN";
+        return splitProgramCode.length == 2 ? splitProgramCode[0] + "-" + appendCode : code.getProgramCode();
     }
 
     private boolean checkIfSchoolOfRecordIsUpdated(DemographicStudent demStudent, GraduationStudentRecordEntity existingStudentRecordEntity) {
