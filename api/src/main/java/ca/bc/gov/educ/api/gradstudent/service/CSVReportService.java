@@ -262,7 +262,7 @@ public class CSVReportService {
 
         return Arrays.asList(
                 gradStudentRecord != null && gradStudentRecord.getPen() != null ? gradStudentRecord.getPen() : "",
-                gradStudentRecord != null && gradStudentRecord.getStudentStatus() != null ? gradStudentRecord.getStudentStatus() : "",
+                gradStudentRecord != null && gradStudentRecord.getStudentStatus() != null ? getHumanReadableStudentStatus(gradStudentRecord.getStudentStatus()) : "",
                 gradStudentRecord != null && gradStudentRecord.getLegalLastName() != null ? gradStudentRecord.getLegalLastName() : "",
                 birthdate,
                 gradStudentRecord != null && gradStudentRecord.getStudentGrade() != null ? gradStudentRecord.getStudentGrade() : "",
@@ -363,7 +363,7 @@ public class CSVReportService {
 
         return Arrays.asList(
                 gradStudent.getPen() != null ? gradStudent.getPen() : "",
-                gradStudent.getStudentStatus() != null ? gradStudent.getStudentStatus() : "",
+                gradStudent.getStudentStatus() != null ? getHumanReadableStudentStatus(gradStudent.getStudentStatus()) : "",
                 gradStudent.getLegalLastName() != null ? gradStudent.getLegalLastName() : "",
                 gradStudent.getLegalFirstName() != null ? gradStudent.getLegalFirstName() : "",
                 gradStudent.getLegalMiddleNames() != null ? gradStudent.getLegalMiddleNames() : "",
@@ -379,5 +379,19 @@ public class CSVReportService {
                 recalculateGradStatus,
                 recalculateProjectedGrad
         );
+    }
+
+    private String getHumanReadableStudentStatus(String statusCode) {
+        if (statusCode == null) {
+            return "";
+        }
+        return switch (statusCode.toUpperCase()) {
+            case "CUR" -> "Current";
+            case "ARC" -> "Archived";
+            case "DEC" -> "Deceased";
+            case "MER" -> "Merged";
+            case "TER" -> "Terminated";
+            default -> statusCode;
+        };
     }
 }
