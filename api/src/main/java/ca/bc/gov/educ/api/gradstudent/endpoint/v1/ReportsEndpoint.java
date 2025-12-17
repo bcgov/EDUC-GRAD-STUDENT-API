@@ -30,4 +30,10 @@ public interface ReportsEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     void getCourseStudentSearchReport(@RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson, HttpServletResponse response) throws IOException;
+
+    @GetMapping("/program-students/search/download")
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Transactional(readOnly = true)
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    void getProgramStudentSearchReport(@RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson, HttpServletResponse response) throws IOException;
 }

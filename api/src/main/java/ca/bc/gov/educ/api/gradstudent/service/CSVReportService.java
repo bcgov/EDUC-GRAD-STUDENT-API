@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentCourseSearchReportHeader;
+import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentProgramSearchReportHeader;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.YukonReportHeader;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
@@ -11,8 +12,10 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeReco
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GradStudentSearchDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
+import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSearchRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
@@ -52,6 +55,8 @@ public class CSVReportService {
     private final StudentOptionalProgramRepository studentOptionalProgramRepository;
     private final StudentCoursePaginationService studentCoursePaginationService;
     private final StudentCoursePaginationRepository studentCoursePaginationRepository;
+    private final GradStudentSearchService gradStudentSearchService;
+    private final GradStudentSearchRepository gradStudentSearchRepository;
 
     public DownloadableReportResponse generateYukonReport(UUID districtID, String fromDate, String toDate) {
         var district = restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", districtID.toString()));
@@ -278,6 +283,101 @@ public class CSVReportService {
                 equivChall,
                 fineArtsAppSkill,
                 hasExam
+        );
+    }
+
+    public void generateProgramStudentSearchReportStream(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
+        List<Sort.Order> sorts = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Specification<GradStudentSearchDataEntity> specs =
+                gradStudentSearchService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
+
+        List<String> headers = Arrays.stream(StudentProgramSearchReportHeader.values())
+                .map(StudentProgramSearchReportHeader::getCode)
+                .toList();
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"StudentProgramSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+             Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
+
+            csvPrinter.printRecord(headers);
+
+            gradStudentStream
+                    .map(this::prepareProgramStudentSearchDataForCsv)
+                    .forEach(csvRowData -> {
+                        try {
+                            csvPrinter.printRecord(csvRowData);
+                            csvPrinter.flush();
+                        } catch (IOException e) {
+                            throw new GradStudentAPIRuntimeException(e);
+                        }
+                    });
+
+            csvPrinter.flush();
+        }
+    }
+
+    private List<String> prepareProgramStudentSearchDataForCsv(GradStudentSearchDataEntity gradStudent) {
+        String schoolOfRecordCode = "";
+        String schoolOfRecordName = "";
+        if (gradStudent.getSchoolOfRecordId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudent.getSchoolOfRecordId().toString());
+            if (school.isPresent()) {
+                schoolOfRecordCode = school.get().getMincode() != null ? school.get().getMincode() : "";
+                schoolOfRecordName = school.get().getDisplayName() != null ? school.get().getDisplayName() : "";
+            }
+        }
+
+        String schoolOfGraduationCode = "";
+        String schoolOfGraduationName = "";
+        if (gradStudent.getSchoolAtGraduationId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudent.getSchoolAtGraduationId().toString());
+            if (school.isPresent()) {
+                schoolOfGraduationCode = school.get().getMincode() != null ? school.get().getMincode() : "";
+                schoolOfGraduationName = school.get().getDisplayName() != null ? school.get().getDisplayName() : "";
+            }
+        }
+
+        String birthdate = "";
+        if (gradStudent.getDob() != null) {
+            birthdate = gradStudent.getDob().format(DateTimeFormatter.ofPattern(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT));
+        }
+
+        String completionDate = "";
+        if (gradStudent.getProgramCompletionDate() != null) {
+            completionDate = EducGradStudentApiUtils.formatDate(gradStudent.getProgramCompletionDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        }
+
+        String adultStartDate = "";
+        if (gradStudent.getAdultStartDate() != null) {
+            adultStartDate = EducGradStudentApiUtils.formatDate(gradStudent.getAdultStartDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        }
+
+        String recalculateGradStatus = "Y".equalsIgnoreCase(gradStudent.getRecalculateGradStatus()) ? "Yes" : "No";
+        String recalculateProjectedGrad = "Y".equalsIgnoreCase(gradStudent.getRecalculateProjectedGrad()) ? "Yes" : "No";
+
+        return Arrays.asList(
+                gradStudent.getPen() != null ? gradStudent.getPen() : "",
+                gradStudent.getStudentStatus() != null ? gradStudent.getStudentStatus() : "",
+                gradStudent.getLegalLastName() != null ? gradStudent.getLegalLastName() : "",
+                gradStudent.getLegalFirstName() != null ? gradStudent.getLegalFirstName() : "",
+                gradStudent.getLegalMiddleNames() != null ? gradStudent.getLegalMiddleNames() : "",
+                birthdate,
+                gradStudent.getStudentGrade() != null ? gradStudent.getStudentGrade() : "",
+                gradStudent.getProgram() != null ? gradStudent.getProgram() : "",
+                completionDate,
+                schoolOfRecordCode,
+                schoolOfRecordName,
+                schoolOfGraduationCode,
+                schoolOfGraduationName,
+                adultStartDate,
+                recalculateGradStatus,
+                recalculateProjectedGrad
         );
     }
 }
