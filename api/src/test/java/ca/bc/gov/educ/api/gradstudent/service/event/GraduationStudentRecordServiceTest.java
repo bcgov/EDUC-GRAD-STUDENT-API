@@ -41,6 +41,7 @@ class GraduationStudentRecordServiceTest {
                 .build();
         GraduationStudentRecordEntity graduationStudentRecordEntity = GraduationStudentRecordEntity.builder()
                 .studentID(studentID)
+                .studentStatus("CUR")
                 .build();
         GradStatusEvent event = GradStatusEvent.builder()
                 .updateUser("Test")
