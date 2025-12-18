@@ -54,7 +54,6 @@ public class GraduationStudentRecordService {
     private final StudentCourseRepository studentCourseRepository;
     private final FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
     private final EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
-    private static final String DATA_CONVERSION_HISTORY_ACTIVITY_CODE = "DATACONVERT"; // confirm,
     private static final String GDC_ADD = "GDCADD";// confirm,
     private static final String GDC_UPDATE = "GDCUPATE";
     private final HistoryService historyService;
@@ -102,7 +101,8 @@ public class GraduationStudentRecordService {
         existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
         existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
         existingStudentRecordEntity.setRecalculateGradStatus("Y");
-        graduationStudentRecordRepository.save(existingStudentRecordEntity);
+        var savedStudentRecord = graduationStudentRecordRepository.save(existingStudentRecordEntity);
+        historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -145,7 +145,7 @@ public class GraduationStudentRecordService {
             frProgram.ifPresent(optionalProgramCode -> optionalProgramEntities.add(createStudentOptionalProgramEntity(optionalProgramCode.getOptionalProgramID(), savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         }
         var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
-        savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
+        savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, GDC_ADD));
         return savedStudentRecord;
     }
 
@@ -189,7 +189,7 @@ public class GraduationStudentRecordService {
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
-        savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
+        savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, GDC_UPDATE));
 
         if (!optionalProgramsToRemove.isEmpty() || !programIDsToAdd.isEmpty()) {
             boolean projAlreadyY = "Y".equalsIgnoreCase(savedStudentRecord.getRecalculateProjectedGrad());
@@ -198,6 +198,7 @@ public class GraduationStudentRecordService {
                 savedStudentRecord.setRecalculateProjectedGrad("Y");
                 savedStudentRecord.setRecalculateGradStatus("Y");
                 graduationStudentRecordRepository.save(savedStudentRecord);
+                historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
             }
         }
 
@@ -283,7 +284,7 @@ public class GraduationStudentRecordService {
                 var entity = createStudentOptionalProgramEntity(frProgram.get().getOptionalProgramID(), existingStudentRecordEntity.getStudentID(), courseStudent.getCreateUser(), courseStudent.getUpdateUser());
                 var savedEntity = studentOptionalProgramRepository.save(entity);
                 log.debug("Added French optional program for studentID: {}, optionalProgramID: {}", existingStudentRecordEntity.getStudentID(), frProgram.get().getOptionalProgramID());
-                historyService.createStudentOptionalProgramHistory(savedEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
+                historyService.createStudentOptionalProgramHistory(savedEntity, GDC_UPDATE);
             }
         }
     }
