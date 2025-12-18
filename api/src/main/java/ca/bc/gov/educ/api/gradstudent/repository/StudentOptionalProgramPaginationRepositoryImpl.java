@@ -1,4 +1,4 @@
-﻿package ca.bc.gov.educ.api.gradstudent.repository;
+package ca.bc.gov.educ.api.gradstudent.repository;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramPaginationEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
