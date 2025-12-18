@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +48,8 @@ public class StudentMergeService {
         this.checkIfExistsAndOnboard(trueStudentID);
         //Update the grad status for Source Student
         graduationStudentRecordEntity.setStudentStatus(MERGED_STATUS_CODE);
+        graduationStudentRecordEntity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
+        graduationStudentRecordEntity.setUpdateDate(LocalDateTime.now());
         graduationStatusRepository.save(graduationStudentRecordEntity);
         // update history
         historyService.createStudentHistory(graduationStudentRecordEntity, HistoryActivityCodes.USERMERGE.getCode());
