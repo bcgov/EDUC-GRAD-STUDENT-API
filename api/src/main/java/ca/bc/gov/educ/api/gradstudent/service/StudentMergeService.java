@@ -1,7 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
+import ca.bc.gov.educ.api.gradstudent.constant.HistoryActivityCodes;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,8 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -27,6 +29,7 @@ public class StudentMergeService {
     private final CommonService commonService;
     private final GraduationStudentRecordRepository graduationStatusRepository;
     private final Publisher publisher;
+    private final HistoryService historyService;
 
     private static final String MERGED_STATUS_CODE = "MER";
     private static final Logger logger = LoggerFactory.getLogger(StudentMergeService.class);
@@ -34,14 +37,19 @@ public class StudentMergeService {
     @Transactional(propagation = Propagation.REQUIRED)
     public Boolean mergeStudentProcess(UUID studentID, UUID trueStudentID) throws JsonProcessingException {
         //Check the student present in Grad System
-        if (!isStudentPresentInGrad(studentID)) {
+        Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findOptionalByStudentID(studentID);
+        if (graduationStudentRecordEntityOptional.isEmpty()) {
             log.warn("Student merge request for student with ID {} does not exist.", studentID);
             return true;
         }
+        GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
         //Check the merged student present in Grad system; if not onboard.
         this.checkIfExistsAndOnboard(trueStudentID);
         //Update the grad status for Source Student
-        graduationStatusRepository.updateStudentStatus(studentID, MERGED_STATUS_CODE, ThreadLocalStateUtil.getCurrentUser(), LocalDateTime.now());
+        graduationStudentRecordEntity.setStudentStatus(MERGED_STATUS_CODE);
+        graduationStatusRepository.save(graduationStudentRecordEntity);
+        // update history
+        historyService.createStudentHistory(graduationStudentRecordEntity, HistoryActivityCodes.USERMERGE.getCode());
         //Copy Notes : If exists in Source Student, copy to Target Student
         List<StudentNote> studentNoteList = this.commonService.getAllStudentNotes(studentID);
         if (CollectionUtils.isNotEmpty(studentNoteList)) {
