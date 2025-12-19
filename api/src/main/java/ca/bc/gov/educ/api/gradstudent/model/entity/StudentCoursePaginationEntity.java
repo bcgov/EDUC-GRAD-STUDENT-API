@@ -41,7 +41,7 @@ public class StudentCoursePaginationEntity extends BaseEntity {
     private String interimLetterGrade;
 
     @Column(name = "FINAL_PERCENT")
-    private Double completedCoursePercentage;
+    private Double finalPercent;
 
     @Column(name = "FINAL_LETTER_GRADE")
     private String finalLetterGrade;

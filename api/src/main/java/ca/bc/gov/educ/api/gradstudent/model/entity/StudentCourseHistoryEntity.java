@@ -45,10 +45,10 @@ public class StudentCourseHistoryEntity extends BaseEntity {
     private String interimLetterGrade;
 
     @Column(name = "FINAL_PERCENT")
-    private Double completedCoursePercentage;
+    private Double finalPercent;
 
     @Column(name = "FINAL_LETTER_GRADE")
-    private String completedCourseLetterGrade;
+    private String finalLetterGrade;
 
     @Column(name = "NUMBER_CREDITS")
     private Integer credits;
