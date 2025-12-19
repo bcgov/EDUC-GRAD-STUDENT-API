@@ -4,6 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationStudentPaginationRecor
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentOptionalProgramPagination;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramPaginationEntity;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,10 @@ public class StudentOptionalProgramPaginationTransformer {
     ModelMapper modelMapper;
 
     public StudentOptionalProgramPagination transformToDTO (StudentOptionalProgramPaginationEntity entity) {
-        var studentOptionalProgram = modelMapper.map(entity, StudentOptionalProgramPagination.class);
+        ModelMapper strictMapper = new ModelMapper();
+        strictMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+
+        var studentOptionalProgram = strictMapper.map(entity, StudentOptionalProgramPagination.class);
 
         var student = modelMapper.map(entity.getGraduationStudentRecordEntity(), GraduationStudentPaginationRecord.class);
         studentOptionalProgram.setGradStudent(student);
