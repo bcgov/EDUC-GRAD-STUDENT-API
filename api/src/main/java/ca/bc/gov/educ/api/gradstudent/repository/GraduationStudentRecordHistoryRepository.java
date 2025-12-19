@@ -20,6 +20,9 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
     Page<GraduationStudentRecordHistoryEntity> findByBatchId(Long batchId, Pageable paging);
     void deleteByStudentID(UUID studentID);
 
+    @Query("SELECT h FROM GraduationStudentRecordHistoryEntity h WHERE h.studentID = :studentID ORDER BY h.updateDate DESC")
+    List<GraduationStudentRecordHistoryEntity> findAllHistoryDescByStudentId(@Param("studentID") UUID studentID);
+    
     @Modifying
     @Query(value="update GRADUATION_STUDENT_RECORD_HISTORY set UPDATE_USER = :updateUser, UPDATE_DATE = SYSDATE where BATCH_ID = :batchId", nativeQuery=true)
     Integer updateGradStudentUpdateUser(@Param(value = "batchId") Long batchId, @Param(value = "updateUser") String updateUser);
