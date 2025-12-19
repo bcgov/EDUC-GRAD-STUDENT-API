@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentCourseSearchReportHeader;
+import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentOptionalProgramSearchReportHeader;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentProgramSearchReportHeader;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.YukonReportHeader;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
@@ -15,9 +16,11 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStudentSearchDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramPaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSearchRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramPaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -55,6 +58,8 @@ public class CSVReportService {
     private final StudentOptionalProgramRepository studentOptionalProgramRepository;
     private final StudentCoursePaginationService studentCoursePaginationService;
     private final StudentCoursePaginationRepository studentCoursePaginationRepository;
+    private final StudentOptionalProgramPaginationService studentOptionalProgramPaginationService;
+    private final StudentOptionalProgramPaginationRepository studentOptionalProgramPaginationRepository;
     private final GradStudentSearchService gradStudentSearchService;
     private final GradStudentSearchRepository gradStudentSearchRepository;
 
@@ -378,6 +383,136 @@ public class CSVReportService {
                 adultStartDate,
                 recalculateGradStatus,
                 recalculateProjectedGrad
+        );
+    }
+
+    /**
+     * Generate CSV report for student optional program search
+     *
+     * @param searchCriteriaListJson search criteria in JSON format
+     * @param response HTTP response to write CSV to
+     * @throws IOException if writing to response fails
+     */
+    public void generateOptionalProgramStudentSearchReportStream(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
+        List<Sort.Order> sorts = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Specification<StudentOptionalProgramPaginationEntity> specs =
+                studentOptionalProgramPaginationService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
+
+        List<String> headers = Arrays.stream(StudentOptionalProgramSearchReportHeader.values())
+                .map(StudentOptionalProgramSearchReportHeader::getCode)
+                .toList();
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"StudentOptionalProgramSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+             Stream<StudentOptionalProgramPaginationEntity> studentOptionalProgramStream = studentOptionalProgramPaginationRepository.streamAll(specs)) {
+
+            csvPrinter.printRecord(headers);
+
+            studentOptionalProgramStream
+                    .map(this::prepareOptionalProgramStudentSearchDataForCsv)
+                    .forEach(csvRowData -> {
+                        try {
+                            csvPrinter.printRecord(csvRowData);
+                            csvPrinter.flush();
+                        } catch (IOException e) {
+                            throw new GradStudentAPIRuntimeException(e);
+                        }
+                    });
+
+            csvPrinter.flush();
+        }
+    }
+
+    private List<String> prepareOptionalProgramStudentSearchDataForCsv(StudentOptionalProgramPaginationEntity studentOptionalProgram) {
+        var gradStudentRecord = studentOptionalProgram.getGraduationStudentRecordEntity();
+
+        String pen = gradStudentRecord != null && gradStudentRecord.getPen() != null
+                ? gradStudentRecord.getPen() : "";
+
+        String studentStatus = gradStudentRecord != null
+                ? getHumanReadableStudentStatus(gradStudentRecord.getStudentStatus()) : "";
+
+        String surname = gradStudentRecord != null && gradStudentRecord.getLegalLastName() != null
+                ? gradStudentRecord.getLegalLastName() : "";
+
+        String givenName = gradStudentRecord != null && gradStudentRecord.getLegalFirstName() != null
+                ? gradStudentRecord.getLegalFirstName() : "";
+
+        String middleName = gradStudentRecord != null && gradStudentRecord.getLegalMiddleNames() != null
+                ? gradStudentRecord.getLegalMiddleNames() : "";
+
+        String birthdate = "";
+        if (gradStudentRecord != null && gradStudentRecord.getDob() != null) {
+            birthdate = EducGradStudentApiUtils.formatDate(gradStudentRecord.getDob(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        }
+
+        String grade = gradStudentRecord != null && gradStudentRecord.getStudentGrade() != null
+                ? gradStudentRecord.getStudentGrade() : "";
+
+        String program = gradStudentRecord != null && gradStudentRecord.getProgram() != null
+                ? gradStudentRecord.getProgram() : "";
+
+        String completionDate = "";
+        if (gradStudentRecord != null && gradStudentRecord.getProgramCompletionDate() != null) {
+            completionDate = EducGradStudentApiUtils.formatDate(gradStudentRecord.getProgramCompletionDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        }
+
+        String schoolOfRecordCode = gradStudentRecord != null && gradStudentRecord.getSchoolOfRecord() != null
+                ? gradStudentRecord.getSchoolOfRecord() : "";
+
+        String schoolOfGraduationCode = gradStudentRecord != null && gradStudentRecord.getSchoolAtGraduation() != null
+                ? gradStudentRecord.getSchoolAtGraduation() : "";
+
+        String schoolOfRecordName = "";
+        if (gradStudentRecord != null && gradStudentRecord.getSchoolOfRecordId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudentRecord.getSchoolOfRecordId().toString());
+            schoolOfRecordName = school.map(School::getDisplayName).orElse("");
+        }
+
+        String schoolOfGraduationName = "";
+        if (gradStudentRecord != null && gradStudentRecord.getSchoolAtGraduationId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudentRecord.getSchoolAtGraduationId().toString());
+            schoolOfGraduationName = school.map(School::getDisplayName).orElse("");
+        }
+
+        // Get optional program name
+        String optionalProgramName = "";
+        if (studentOptionalProgram.getOptionalProgramID() != null) {
+            List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
+            optionalProgramName = optionalProgramCodes.stream()
+                    .filter(op -> op.getOptionalProgramID().equals(studentOptionalProgram.getOptionalProgramID()))
+                    .findFirst()
+                    .map(OptionalProgramCode::getOptionalProgramName)
+                    .orElse("");
+        }
+
+        String optionalProgramCompletionDate = "";
+        if (studentOptionalProgram.getCompletionDate() != null) {
+            optionalProgramCompletionDate = EducGradStudentApiUtils.formatDate(studentOptionalProgram.getCompletionDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+        }
+
+        return Arrays.asList(
+                pen,
+                studentStatus,
+                surname,
+                givenName,
+                middleName,
+                birthdate,
+                grade,
+                program,
+                completionDate,
+                schoolOfRecordCode,
+                schoolOfRecordName,
+                schoolOfGraduationCode,
+                schoolOfGraduationName,
+                optionalProgramName,
+                optionalProgramCompletionDate
         );
     }
 
