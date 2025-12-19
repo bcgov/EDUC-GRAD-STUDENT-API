@@ -8,10 +8,12 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordPaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramPaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeRecord;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramPaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -57,12 +59,15 @@ class ReportsControllerTest extends BaseIntegrationTest {
     @Autowired
     private StudentCoursePaginationRepository studentCoursePaginationRepository;
     @Autowired
+    private StudentOptionalProgramPaginationRepository studentOptionalProgramPaginationRepository;
+    @Autowired
     private ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordPaginationRepository graduationStudentRecordPaginationRepository;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         studentOptionalProgramRepository.deleteAll();
+        studentOptionalProgramPaginationRepository.deleteAll();
         studentCoursePaginationRepository.deleteAll();
         graduationStudentRecordPaginationRepository.deleteAll();
         graduationStudentRecordRepository.deleteAll();
@@ -715,6 +720,229 @@ class ReportsControllerTest extends BaseIntegrationTest {
         assertThat(csvContent).contains("Deceased");
         assertThat(csvContent).contains("Merged");
         assertThat(csvContent).contains("Terminated");
+    }
+
+    @Test
+    void testGetOptionalProgramStudentSearchReport_ShouldReturnCSVFile() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID = UUID.randomUUID();
+        var optionalProgramID = UUID.randomUUID();
+
+        var gradStudent = new GraduationStudentRecordPaginationEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("123456789");
+        gradStudent.setLegalFirstName("John");
+        gradStudent.setLegalLastName("Doe");
+        gradStudent.setLegalMiddleNames("Michael");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2018-EN");
+        gradStudent.setStudentGrade("12");
+        gradStudent.setSchoolOfRecord("12345678");
+        gradStudent.setSchoolAtGraduation("12345678");
+        gradStudent.setSchoolOfRecordId(schoolID);
+        gradStudent.setSchoolAtGraduationId(schoolID);
+        gradStudent.setDob(Date.valueOf(LocalDate.of(2005, 5, 15)));
+        gradStudent.setProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(10)));
+        gradStudent = graduationStudentRecordPaginationRepository.save(gradStudent);
+
+        StudentOptionalProgramPaginationEntity optionalProgram = new StudentOptionalProgramPaginationEntity();
+        optionalProgram.setStudentOptionalProgramID(UUID.randomUUID());
+        optionalProgram.setGraduationStudentRecordEntity(gradStudent);
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setCompletionDate(Date.valueOf(LocalDate.now().minusDays(5)));
+        studentOptionalProgramPaginationRepository.save(optionalProgram);
+
+        var school = createMockSchoolTombstone();
+        school.setSchoolId(String.valueOf(schoolID));
+        school.setMincode("12345678");
+        school.setDisplayName("Test High School");
+
+        var optionalProgramCode = new OptionalProgramCode();
+        optionalProgramCode.setOptionalProgramID(optionalProgramID);
+        optionalProgramCode.setOptProgramCode("FI");
+        optionalProgramCode.setOptionalProgramName("French Immersion");
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+        when(restUtils.getOptionalProgramCodeList()).thenReturn(List.of(optionalProgramCode));
+
+        var searchCriteria = "[{\"condition\":\"AND\",\"searchCriteriaList\":[{\"key\":\"graduationStudentRecordEntity.program\",\"operation\":\"eq\",\"value\":\"2018-EN\",\"valueType\":\"STRING\"}]}]";
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/optional-program-students/search/download")
+                                .param("searchCriteriaList", searchCriteria)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("PEN");
+        assertThat(csvContent).contains("Optional Program");
+        assertThat(csvContent).contains("123456789");
+        assertThat(csvContent).contains("Doe");
+        assertThat(csvContent).contains("John");
+        assertThat(csvContent).contains("Michael");
+        assertThat(csvContent).contains("Current");
+        assertThat(csvContent).contains("French Immersion");
+        assertThat(csvContent).contains("2005-05-15");
+    }
+
+    @Test
+    void testGetOptionalProgramStudentSearchReport_WithNoSearchCriteria_ShouldReturnAllRecords() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID = UUID.randomUUID();
+        var optionalProgramID = UUID.randomUUID();
+
+        var gradStudent = new GraduationStudentRecordPaginationEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("987654321");
+        gradStudent.setLegalFirstName("Jane");
+        gradStudent.setLegalLastName("Smith");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2023-EN");
+        gradStudent.setStudentGrade("11");
+        gradStudent.setSchoolOfRecord("87654321");
+        gradStudent.setSchoolOfRecordId(schoolID);
+        gradStudent = graduationStudentRecordPaginationRepository.save(gradStudent);
+
+        StudentOptionalProgramPaginationEntity optionalProgram = new StudentOptionalProgramPaginationEntity();
+        optionalProgram.setStudentOptionalProgramID(UUID.randomUUID());
+        optionalProgram.setGraduationStudentRecordEntity(gradStudent);
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        optionalProgram.setCompletionDate(Date.valueOf(LocalDate.now()));
+        studentOptionalProgramPaginationRepository.save(optionalProgram);
+
+        var school = createMockSchoolTombstone();
+        school.setSchoolId(String.valueOf(schoolID));
+        school.setDisplayName("Another School");
+
+        var optionalProgramCode = new OptionalProgramCode();
+        optionalProgramCode.setOptionalProgramID(optionalProgramID);
+        optionalProgramCode.setOptProgramCode("CP");
+        optionalProgramCode.setOptionalProgramName("Career Program");
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+        when(restUtils.getOptionalProgramCodeList()).thenReturn(List.of(optionalProgramCode));
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/optional-program-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("987654321");
+        assertThat(csvContent).contains("Smith");
+        assertThat(csvContent).contains("Jane");
+        assertThat(csvContent).contains("Career Program");
+    }
+
+    @Test
+    void testGetOptionalProgramStudentSearchReport_WithMissingOptionalProgramInCache_ShouldHandleGracefully() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var optionalProgramID = UUID.randomUUID();
+
+        var gradStudent = new GraduationStudentRecordPaginationEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("111222333");
+        gradStudent.setLegalLastName("Test");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2018-EN");
+        gradStudent = graduationStudentRecordPaginationRepository.save(gradStudent);
+
+        StudentOptionalProgramPaginationEntity optionalProgram = new StudentOptionalProgramPaginationEntity();
+        optionalProgram.setStudentOptionalProgramID(UUID.randomUUID());
+        optionalProgram.setGraduationStudentRecordEntity(gradStudent);
+        optionalProgram.setOptionalProgramID(optionalProgramID);
+        studentOptionalProgramPaginationRepository.save(optionalProgram);
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.empty());
+        when(restUtils.getOptionalProgramCodeList()).thenReturn(List.of());
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/optional-program-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("111222333");
+        assertThat(csvContent).contains("Test");
+    }
+
+    @Test
+    void testGetOptionalProgramStudentSearchReport_WithMultipleStudents_ShouldReturnAllMatching() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var optionalProgramID1 = UUID.randomUUID();
+        var optionalProgramID2 = UUID.randomUUID();
+
+        var gradStudent1 = new GraduationStudentRecordPaginationEntity();
+        gradStudent1.setStudentID(UUID.randomUUID());
+        gradStudent1.setPen("111111111");
+        gradStudent1.setLegalFirstName("Alice");
+        gradStudent1.setLegalLastName("Anderson");
+        gradStudent1.setStudentStatus("CUR");
+        gradStudent1.setProgram("2018-EN");
+        gradStudent1 = graduationStudentRecordPaginationRepository.save(gradStudent1);
+
+        var gradStudent2 = new GraduationStudentRecordPaginationEntity();
+        gradStudent2.setStudentID(UUID.randomUUID());
+        gradStudent2.setPen("222222222");
+        gradStudent2.setLegalFirstName("Bob");
+        gradStudent2.setLegalLastName("Brown");
+        gradStudent2.setStudentStatus("ARC");
+        gradStudent2.setProgram("2018-EN");
+        gradStudent2 = graduationStudentRecordPaginationRepository.save(gradStudent2);
+
+        StudentOptionalProgramPaginationEntity optProgram1 = new StudentOptionalProgramPaginationEntity();
+        optProgram1.setStudentOptionalProgramID(UUID.randomUUID());
+        optProgram1.setGraduationStudentRecordEntity(gradStudent1);
+        optProgram1.setOptionalProgramID(optionalProgramID1);
+        optProgram1.setCompletionDate(Date.valueOf(LocalDate.now()));
+        studentOptionalProgramPaginationRepository.save(optProgram1);
+
+        StudentOptionalProgramPaginationEntity optProgram2 = new StudentOptionalProgramPaginationEntity();
+        optProgram2.setStudentOptionalProgramID(UUID.randomUUID());
+        optProgram2.setGraduationStudentRecordEntity(gradStudent2);
+        optProgram2.setOptionalProgramID(optionalProgramID2);
+        optProgram2.setCompletionDate(Date.valueOf(LocalDate.now().minusDays(30)));
+        studentOptionalProgramPaginationRepository.save(optProgram2);
+
+        var optionalProgramCode1 = new OptionalProgramCode();
+        optionalProgramCode1.setOptionalProgramID(optionalProgramID1);
+        optionalProgramCode1.setOptProgramCode("FI");
+        optionalProgramCode1.setOptionalProgramName("French Immersion");
+
+        var optionalProgramCode2 = new OptionalProgramCode();
+        optionalProgramCode2.setOptionalProgramID(optionalProgramID2);
+        optionalProgramCode2.setOptProgramCode("CP");
+        optionalProgramCode2.setOptionalProgramName("Career Program");
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.empty());
+        when(restUtils.getOptionalProgramCodeList()).thenReturn(List.of(optionalProgramCode1, optionalProgramCode2));
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/optional-program-students/search/download")
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("111111111");
+        assertThat(csvContent).contains("Anderson");
+        assertThat(csvContent).contains("French Immersion");
+        assertThat(csvContent).contains("222222222");
+        assertThat(csvContent).contains("Brown");
+        assertThat(csvContent).contains("Career Program");
+        assertThat(csvContent).contains("Current");
+        assertThat(csvContent).contains("Archived");
     }
 
 }
