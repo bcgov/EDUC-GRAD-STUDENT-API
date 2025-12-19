@@ -52,7 +52,8 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
     GradStatusEventRepository gradStatusEventRepository;
     @Autowired
     GraduationStudentRecordRepository graduationStatusRepository;
-
+    @Autowired
+    HistoryService historyService;
 
     @Autowired
     StudentNoteRepository studentNoteRepository;
@@ -211,6 +212,34 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
                 .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
                 .build();
         Boolean mergeResult = studentMergeEventHandlerService.processMergeEvent(event);
+        assertTrue(mergeResult);
+    }
+
+    @Test
+    void testHandleEvent_givenEventType_DE_MERGE_studentID_doesExist_trueStudentID_doesExist() throws IOException {
+        UUID studentID = UUID.randomUUID();
+        //Create Record in Grad
+        GraduationStudentRecord graduationStudentRecord = createGraduationStudentRecord(studentID);
+        graduationStudentRecord.setStudentStatus("CUR");
+        GraduationStudentRecordEntity graduationStudentRecordEntity = createGraduationStudentRecordEntity(graduationStudentRecord);
+        var savedStud = graduationStatusRepository.save(graduationStudentRecordEntity);
+        historyService.createStudentHistory(savedStud, "USERADD");
+        savedStud.setStudentStatus("MER");
+        savedStud.setUpdateDate(LocalDateTime.now().plusDays(1));
+        historyService.createStudentHistory(savedStud, "USERDEMERGE");
+        //Create Record in Grad
+        UUID trueStudentID = UUID.randomUUID();
+        GraduationStudentRecord graduationTrueStudentRecord = createGraduationStudentRecord(trueStudentID);
+        GraduationStudentRecordEntity graduationTrueStudentRecordEntity = createGraduationStudentRecordEntity(graduationTrueStudentRecord);
+        graduationStatusRepository.save(graduationTrueStudentRecordEntity);
+        //Merge Process
+        var mergeStudentPayload = createStudentMergePayload(studentID, trueStudentID);
+        final GradStatusEvent event = GradStatusEvent
+                .builder()
+                .eventType(EventType.DELETE_MERGE.name())
+                .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
+                .build();
+        Boolean mergeResult = studentMergeEventHandlerService.processDeMergeEvent(event);
         assertTrue(mergeResult);
     }
 
