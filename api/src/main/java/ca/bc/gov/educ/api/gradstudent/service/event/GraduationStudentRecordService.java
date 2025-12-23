@@ -61,6 +61,7 @@ public class GraduationStudentRecordService {
     public static final String CURRENT = "CUR";
     public static final String TERMINATED = "TER";
     public static final String DECEASED = "DEC";
+    public static final String ARC = "ARC";
     public static final String CREATE_USER = "createUser";
     public static final String CREATE_DATE = "createDate";
     public static final String YYYY_MM_DD = "uuuuMMdd";
@@ -675,8 +676,8 @@ public class GraduationStudentRecordService {
             if (currentGradStatus.equalsIgnoreCase(TERMINATED)) {
                 return TERMINATED;
             }
-            if (currentGradStatus.equalsIgnoreCase("ARC")) {
-                return "ARC";
+            if (currentGradStatus.equalsIgnoreCase(ARC)) {
+                return ARC;
             }
             if (currentGradStatus.equalsIgnoreCase(CURRENT)) {
                 boolean isSchoolOfRecord = Objects.equals(UUID.fromString(demStudent.getSchoolID()), graduationStudentRecordEntity.getSchoolOfRecordId());
