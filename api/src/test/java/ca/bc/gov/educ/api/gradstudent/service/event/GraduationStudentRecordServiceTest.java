@@ -7,6 +7,9 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -54,111 +58,62 @@ class GraduationStudentRecordServiceTest {
         savedEntity.ifPresent(studentRecordEntity -> assertEquals(graduationStudentRecordEntity.getStudentID(), studentRecordEntity.getStudentID()));
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("provideStatusMappingTestCases")
     @Transactional
-    void testMapStudentStatusForUpdate_ReportedT_CurrentStatusTER_ShouldReturnTER() {
-        // Given: Reported "T" and GRAD Status = "TER" → Store as TER
+    void testMapStudentStatusForUpdate_ReportedT_ShouldReturnExpectedStatus(
+            String currentStatus, UUID schoolOfRecordId, UUID reportingSchoolId, String expectedStatus, String description) {
+        // Given
         UUID studentID = UUID.randomUUID();
-        UUID schoolID = UUID.randomUUID();
         
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", schoolID.toString());
+        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", reportingSchoolId.toString());
         Student studentFromApi = createMockStudent(studentID.toString());
-        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "TER");
+        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolOfRecordId, currentStatus);
         
         // When
         var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity);
         
         // Then
         assertNotNull(result);
-        assertEquals("TER", result.getRight().getStudentStatus());
+        assertEquals(expectedStatus, result.getRight().getStudentStatus(), description);
     }
 
-    @Test
-    @Transactional
-    void testMapStudentStatusForUpdate_ReportedT_CurrentStatusARC_ShouldReturnARC() {
-        // Given: Reported "T" and GRAD Status = "ARC" → No update, keep status as ARC
-        UUID studentID = UUID.randomUUID();
+    private static Stream<Arguments> provideStatusMappingTestCases() {
         UUID schoolID = UUID.randomUUID();
-        
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", schoolID.toString());
-        Student studentFromApi = createMockStudent(studentID.toString());
-        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "ARC");
-        
-        // When
-        var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity);
-        
-        // Then
-        assertNotNull(result);
-        assertEquals("ARC", result.getRight().getStudentStatus());
-    }
-
-    @Test
-    @Transactional
-    void testMapStudentStatusForUpdate_ReportedT_CurrentStatusCUR_SchoolOfRecordMatches_ShouldReturnTER() {
-        // Given: Reported "T" and GRAD Status = "CUR" and SoR = Reporting School → Store as TER
-        UUID studentID = UUID.randomUUID();
-        UUID schoolID = UUID.randomUUID();
-        
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", schoolID.toString());
-        Student studentFromApi = createMockStudent(studentID.toString());
-        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "CUR");
-        
-        // When
-        var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity);
-        
-        // Then
-        assertNotNull(result);
-        assertEquals("TER", result.getRight().getStudentStatus());
-    }
-
-    @Test
-    @Transactional
-    void testMapStudentStatusForUpdate_ReportedT_CurrentStatusCUR_SchoolOfRecordDoesNotMatch_ShouldReturnCUR() {
-        // Given: Reported "T" and GRAD Status = "CUR" and SoR not = Reporting School → No update, keep status as CUR
-        UUID studentID = UUID.randomUUID();
         UUID reportingSchoolID = UUID.randomUUID();
         UUID differentSchoolID = UUID.randomUUID();
         
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", reportingSchoolID.toString());
-        Student studentFromApi = createMockStudent(studentID.toString());
-        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, differentSchoolID, "CUR");
-        
-        // When
-        var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity);
-        
-        // Then
-        assertNotNull(result);
-        assertEquals("CUR", result.getRight().getStudentStatus());
+        return Stream.of(
+            Arguments.of("TER", schoolID, schoolID, "TER", "Reported 'T' and GRAD Status = 'TER' → Store as TER"),
+            Arguments.of("ARC", schoolID, schoolID, "ARC", "Reported 'T' and GRAD Status = 'ARC' → No update, keep status as ARC"),
+            Arguments.of("CUR", schoolID, schoolID, "TER", "Reported 'T' and GRAD Status = 'CUR' and SoR = Reporting School → Store as TER"),
+            Arguments.of("CUR", differentSchoolID, reportingSchoolID, "CUR", "Reported 'T' and GRAD Status = 'CUR' and SoR not = Reporting School → No update, keep status as CUR")
+        );
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("provideUnexpectedStatusTestCases")
     @Transactional
-    void testMapStudentStatusForUpdate_ReportedT_CurrentStatusMER_ShouldThrowException() {
-        // Given: Reported "T" with unexpected GRAD status (MER) → Should throw IllegalArgumentException
+    void testMapStudentStatusForUpdate_ReportedT_UnexpectedStatus_ShouldThrowException(String unexpectedStatus, String description) {
+        // Given: Reported "T" with unexpected GRAD status → Should throw IllegalArgumentException
         UUID studentID = UUID.randomUUID();
         UUID schoolID = UUID.randomUUID();
         
         DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", schoolID.toString());
         Student studentFromApi = createMockStudent(studentID.toString());
-        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "MER");
+        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, unexpectedStatus);
         
         // When/Then
-        assertThrows(IllegalArgumentException.class, () -> graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity));
+        assertThrows(IllegalArgumentException.class, 
+            () -> graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity),
+            description);
     }
 
-    @Test
-    @Transactional
-    void testMapStudentStatusForUpdate_ReportedT_CurrentStatusDEC_ShouldThrowException() {
-        // Given: Reported "T" with unexpected GRAD status (DEC) → Should throw IllegalArgumentException
-        UUID studentID = UUID.randomUUID();
-        UUID schoolID = UUID.randomUUID();
-        
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", schoolID.toString());
-        Student studentFromApi = createMockStudent(studentID.toString());
-        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "DEC");
-        
-        // When/Then
-        assertThrows(IllegalArgumentException.class, () -> graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity));
+    private static Stream<Arguments> provideUnexpectedStatusTestCases() {
+        return Stream.of(
+            Arguments.of("MER", "Reported 'T' with unexpected GRAD status (MER) → Should throw IllegalArgumentException"),
+            Arguments.of("DEC", "Reported 'T' with unexpected GRAD status (DEC) → Should throw IllegalArgumentException")
+        );
     }
 
     @Test
