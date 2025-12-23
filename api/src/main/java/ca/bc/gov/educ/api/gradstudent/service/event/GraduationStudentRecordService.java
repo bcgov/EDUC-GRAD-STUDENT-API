@@ -659,7 +659,7 @@ public class GraduationStudentRecordService {
             return DECEASED;
         } else {
             log.error("Invalid student status: {}", demStudentStatus);
-            return null;
+            throw new IllegalArgumentException("Invalid student status: " + demStudentStatus);
         }
     }
 
@@ -669,14 +669,28 @@ public class GraduationStudentRecordService {
             return CURRENT;
         } else if(demStudentStatus.equalsIgnoreCase("D")) {
             return DECEASED;
-        } else if(demStudentStatus.equalsIgnoreCase("T")
-            && (
-                (graduationStudentRecordEntity.getStudentStatus().equalsIgnoreCase(TERMINATED))
-                        || (graduationStudentRecordEntity.getStudentStatus().equalsIgnoreCase(CURRENT) && Objects.equals(UUID.fromString(demStudent.getSchoolID()), graduationStudentRecordEntity.getSchoolOfRecordId()))
-                )) {
+        } else if(demStudentStatus.equalsIgnoreCase("T")) {
+            String currentGradStatus = graduationStudentRecordEntity.getStudentStatus();
+
+            if (currentGradStatus.equalsIgnoreCase(TERMINATED)) {
                 return TERMINATED;
+            }
+            if (currentGradStatus.equalsIgnoreCase("ARC")) {
+                return "ARC";
+            }
+            if (currentGradStatus.equalsIgnoreCase(CURRENT)) {
+                boolean isSchoolOfRecord = Objects.equals(UUID.fromString(demStudent.getSchoolID()), graduationStudentRecordEntity.getSchoolOfRecordId());
+                if (isSchoolOfRecord) {
+                    return TERMINATED;
+                } else {
+                    return CURRENT;
+                }
+            }
+            log.error("Unable to map student status for update. Reported status: {}, Current GRAD status: {}", demStudentStatus, currentGradStatus);
+            throw new IllegalArgumentException("Unable to map student status for update. Reported status: " + demStudentStatus + ", Current GRAD status: " + currentGradStatus);
         } else {
-            return null;
+            log.error("Invalid student status: {}", demStudentStatus);
+            throw new IllegalArgumentException("Invalid student status: " + demStudentStatus);
         }
     }
 
