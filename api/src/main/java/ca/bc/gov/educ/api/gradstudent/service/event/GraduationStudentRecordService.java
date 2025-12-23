@@ -658,6 +658,7 @@ public class GraduationStudentRecordService {
         } else if(demStudentStatus.equalsIgnoreCase("D")) {
             return DECEASED;
         } else {
+            log.error("Invalid student status: {}", demStudentStatus);
             return null;
         }
     }
