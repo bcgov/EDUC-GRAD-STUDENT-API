@@ -514,6 +514,7 @@ public class GraduationStudentRecordService {
         int statusChangeCount = 0;
         boolean hasAdultChange = false;
         if(demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
+            UUID originalSchoolOfRecordId = newStudentRecordEntity.getSchoolOfRecordId();
             if(newStudentRecordEntity.getSchoolOfRecordId() != null && !Objects.equals(newStudentRecordEntity.getSchoolOfRecordId(), UUID.fromString(demStudent.getSchoolID()))) {
                 newStudentRecordEntity.setSchoolOfRecordId(UUID.fromString(demStudent.getSchoolID()));
                 if(demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T")) {
@@ -533,7 +534,7 @@ public class GraduationStudentRecordService {
                 statusChangeCount++;
             }
 
-            var mappedStudentStatus = mapStudentStatusForUpdate(demStudent, newStudentRecordEntity);
+            var mappedStudentStatus = mapStudentStatusForUpdate(demStudent, newStudentRecordEntity, originalSchoolOfRecordId);
             if(!newStudentRecordEntity.getStudentStatus().equalsIgnoreCase(mappedStudentStatus)) {
                 newStudentRecordEntity.setStudentStatus(mappedStudentStatus);
                 projectedChangeCount++;
@@ -664,7 +665,7 @@ public class GraduationStudentRecordService {
         }
     }
 
-    private String mapStudentStatusForUpdate(DemographicStudent demStudent, GraduationStudentRecordEntity graduationStudentRecordEntity) {
+    private String mapStudentStatusForUpdate(DemographicStudent demStudent, GraduationStudentRecordEntity graduationStudentRecordEntity, UUID originalSchoolOfRecordId) {
         String demStudentStatus = demStudent.getStudentStatus();
         if(demStudentStatus.equalsIgnoreCase("A")) {
             return CURRENT;
@@ -680,7 +681,7 @@ public class GraduationStudentRecordService {
                 return ARC;
             }
             if (currentGradStatus.equalsIgnoreCase(CURRENT)) {
-                boolean isSchoolOfRecord = Objects.equals(UUID.fromString(demStudent.getSchoolID()), graduationStudentRecordEntity.getSchoolOfRecordId());
+                boolean isSchoolOfRecord = Objects.equals(UUID.fromString(demStudent.getSchoolID()), originalSchoolOfRecordId);
                 if (isSchoolOfRecord) {
                     return TERMINATED;
                 } else {
