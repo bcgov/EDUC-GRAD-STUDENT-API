@@ -22,5 +22,7 @@ public interface StudentCourseAlgorithmDataMapper {
   @Mapping(target = "examPercent", source = "entity.courseExam.examPercentage")
   @Mapping(target = "toWriteFlag", source = "entity.courseExam.toWriteFlag")
   @Mapping(target = "sessionDate", ignore = true)
+  @Mapping(target = "completedCoursePercentage", source = "finalPercent")
+  @Mapping(target = "completedCourseLetterGrade", source = "finalLetterGrade")
   StudentCourseAlgorithmData toStructure(StudentCourseEntity entity);
 }
