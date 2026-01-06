@@ -23,8 +23,8 @@ public class StudentCourseAlgorithmData extends BaseModel {
   private String sessionDate;
   private Double interimPercent;
   private String interimLetterGrade;
-  private Double finalPercent;
-  private String finalLetterGrade;
+  private Double completedCoursePercentage;
+  private String completedCourseLetterGrade;
   private Integer credits;
   private String equivOrChallenge;
   private String fineArtsAppliedSkills;
