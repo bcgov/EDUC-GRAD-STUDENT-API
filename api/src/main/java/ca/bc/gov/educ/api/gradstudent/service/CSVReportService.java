@@ -127,6 +127,7 @@ public class CSVReportService {
     }
 
     private String getOptionalProgram(List<StudentOptionalProgramPaginationEntity> studentOptionalPrograms, String gradProgram, List<OptionalProgramCode> optionalProgramCodes) {
+        log.debug("Student optional programs are: " + studentOptionalPrograms);
         if(studentOptionalPrograms == null){
             studentOptionalPrograms = new ArrayList<>();
         }
