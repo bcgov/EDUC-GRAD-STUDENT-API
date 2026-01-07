@@ -81,7 +81,7 @@ public class CSVReportService {
         List<GraduationStudentRecordEntity> results = graduationStudentRecordRepository.findByProgramCompletionDateIsGreaterThanEqualAndProgramCompletionDateIsLessThanEqualAndSchoolAtGradIdIn(from, to, schoolsInDistrict);
         //Get all optional programs for the same student set
         var gradStudentIDs = results.stream().map(GraduationStudentRecordEntity::getStudentID).toList();
-        var studentOptionalProgramMap = studentOptionalProgramPaginationRepository.findAllById(gradStudentIDs)
+        var studentOptionalProgramMap = studentOptionalProgramPaginationRepository.findAllByGraduationStudentRecordEntity_StudentIDIn(gradStudentIDs)
                 .stream().collect(Collectors.groupingBy(stud -> stud.getGraduationStudentRecordEntity().getStudentID()));
         
         List<String> headers = Arrays.stream(YukonReportHeader.values()).map(YukonReportHeader::getCode).toList();
@@ -127,7 +127,6 @@ public class CSVReportService {
     }
 
     private String getOptionalProgram(List<StudentOptionalProgramPaginationEntity> studentOptionalPrograms, String gradProgram, List<OptionalProgramCode> optionalProgramCodes) {
-        log.debug("Student optional programs are: " + studentOptionalPrograms);
         if(studentOptionalPrograms == null){
             studentOptionalPrograms = new ArrayList<>();
         }
