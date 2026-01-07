@@ -127,6 +127,9 @@ public class CSVReportService {
     }
 
     private String getOptionalProgram(List<StudentOptionalProgramPaginationEntity> studentOptionalPrograms, String gradProgram, List<OptionalProgramCode> optionalProgramCodes) {
+        if(studentOptionalPrograms == null){
+            studentOptionalPrograms = new ArrayList<>();
+        }
         var fiProgram = optionalProgramCalc(studentOptionalPrograms, gradProgram, optionalProgramCodes, OptionalProgramCodes.FI.getCode());
         var ddProgram = optionalProgramCalc(studentOptionalPrograms, gradProgram, optionalProgramCodes, OptionalProgramCodes.DD.getCode());
         var prog = StringUtils.isBlank(fiProgram) ? ddProgram : fiProgram;
