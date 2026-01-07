@@ -13,15 +13,8 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeReco
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GradStudentSearchDataEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramPaginationEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSearchRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramPaginationRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
@@ -61,6 +54,7 @@ public class CSVReportService {
     private final StudentCoursePaginationRepository studentCoursePaginationRepository;
     private final StudentOptionalProgramPaginationService studentOptionalProgramPaginationService;
     private final StudentOptionalProgramPaginationRepository studentOptionalProgramPaginationRepository;
+    private final StudentOptionalProgramPaginationLeanRepository studentOptionalProgramPaginationLeanRepository;
     private final GradStudentSearchService gradStudentSearchService;
     private final GradStudentSearchRepository gradStudentSearchRepository;
 
@@ -81,8 +75,17 @@ public class CSVReportService {
         List<GraduationStudentRecordEntity> results = graduationStudentRecordRepository.findByProgramCompletionDateIsGreaterThanEqualAndProgramCompletionDateIsLessThanEqualAndSchoolAtGradIdIn(from, to, schoolsInDistrict);
         //Get all optional programs for the same student set
         var gradStudentIDs = results.stream().map(GraduationStudentRecordEntity::getStudentID).toList();
-        var studentOptionalProgramMap = studentOptionalProgramPaginationRepository.findAllByGraduationStudentRecordEntity_StudentIDIn(gradStudentIDs)
-                .stream().collect(Collectors.groupingBy(stud -> stud.getGraduationStudentRecordEntity().getStudentID()));
+        Map<UUID, List<StudentOptionalProgramPaginationLeanEntity>> studentOptionalProgramMap = new HashMap<>();
+
+        for (int i = 0; i < gradStudentIDs.size(); i += 1000) {
+            List<UUID> chunk = gradStudentIDs.subList(i, Math.min(i + 1000, gradStudentIDs.size()));
+            var returnedOptionalProgs = studentOptionalProgramPaginationLeanRepository
+                    .findAllByGraduationStudentRecordIDIn(chunk)
+                    .stream()
+                    .collect(Collectors.groupingBy(StudentOptionalProgramPaginationLeanEntity::getGraduationStudentRecordID));
+
+            studentOptionalProgramMap.putAll(returnedOptionalProgs);
+        }
         
         List<String> headers = Arrays.stream(YukonReportHeader.values()).map(YukonReportHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
@@ -111,7 +114,7 @@ public class CSVReportService {
         }
     }
 
-    private List<String> prepareDataForCsv(GraduationStudentRecordEntity student, School school, List<OptionalProgramCode> optionalProgramCodes, List<StudentOptionalProgramPaginationEntity> studentOptionalPrograms) {
+    private List<String> prepareDataForCsv(GraduationStudentRecordEntity student, School school, List<OptionalProgramCode> optionalProgramCodes, List<StudentOptionalProgramPaginationLeanEntity> studentOptionalPrograms) {
         var studentData = StringUtils.isNotBlank(student.getStudentGradData()) ? deriveStudentData(student) : null;
         return new ArrayList<>(Arrays.asList(
                 school.getMincode(),
@@ -126,7 +129,7 @@ public class CSVReportService {
         ));
     }
 
-    private String getOptionalProgram(List<StudentOptionalProgramPaginationEntity> studentOptionalPrograms, String gradProgram, List<OptionalProgramCode> optionalProgramCodes) {
+    private String getOptionalProgram(List<StudentOptionalProgramPaginationLeanEntity> studentOptionalPrograms, String gradProgram, List<OptionalProgramCode> optionalProgramCodes) {
         if(studentOptionalPrograms == null){
             studentOptionalPrograms = new ArrayList<>();
         }
@@ -146,7 +149,7 @@ public class CSVReportService {
         return graduationData;
     }
 
-    private String optionalProgramCalc(List<StudentOptionalProgramPaginationEntity> studentOptionalPrograms, String gradProgram, List<OptionalProgramCode> optionalProgramCodes, String programCode) {
+    private String optionalProgramCalc(List<StudentOptionalProgramPaginationLeanEntity> studentOptionalPrograms, String gradProgram, List<OptionalProgramCode> optionalProgramCodes, String programCode) {
         var optProgram = getOptionalProgramCode(optionalProgramCodes, programCode,  gradProgram);
 
         if(optProgram.isPresent()) {
