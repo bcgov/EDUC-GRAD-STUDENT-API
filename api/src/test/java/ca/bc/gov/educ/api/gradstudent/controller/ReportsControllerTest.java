@@ -322,7 +322,7 @@ class ReportsControllerTest extends BaseIntegrationTest {
         course.setCourseSession("202309");
         course.setInterimPercent(85.5);
         course.setInterimLetterGrade("A");
-        course.setFinalPercent(88.0);
+        course.setCompletedCoursePercentage(88.0);
         course.setFinalLetterGrade("A");
         course.setCredits(4);
         course.setEquivOrChallenge("E");

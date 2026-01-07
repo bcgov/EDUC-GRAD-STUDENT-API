@@ -294,7 +294,7 @@ public class CSVReportService {
                 studentCourse.getCourseSession() != null ? studentCourse.getCourseSession() : "",
                 studentCourse.getInterimPercent() != null ? studentCourse.getInterimPercent().toString() : "",
                 studentCourse.getInterimLetterGrade() != null ? studentCourse.getInterimLetterGrade() : "",
-                studentCourse.getFinalPercent() != null ? studentCourse.getFinalPercent().toString() : "",
+                studentCourse.getCompletedCoursePercentage() != null ? studentCourse.getCompletedCoursePercentage().toString() : "",
                 studentCourse.getFinalLetterGrade() != null ? studentCourse.getFinalLetterGrade() : "",
                 studentCourse.getCredits() != null ? studentCourse.getCredits().toString() : "",
                 equivChall,

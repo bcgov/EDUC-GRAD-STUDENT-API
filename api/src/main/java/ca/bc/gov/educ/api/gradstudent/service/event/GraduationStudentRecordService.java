@@ -311,12 +311,12 @@ public class GraduationStudentRecordService {
             newStudentCourseEntity.setInterimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()));
         }
 
-        if(StringUtils.isNotBlank(newStudentCourseEntity.getFinalLetterGrade())
-                && StringUtils.isNotBlank(newStudentCourseEntity.getFinalLetterGrade())
-                && !newStudentCourseEntity.getFinalLetterGrade().equalsIgnoreCase(courseStudent.getFinalLetterGrade())) {
-            newStudentCourseEntity.setFinalLetterGrade(courseStudent.getFinalLetterGrade());
-        } else if(StringUtils.isBlank(newStudentCourseEntity.getFinalLetterGrade())) {
-            newStudentCourseEntity.setFinalLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
+        if(StringUtils.isNotBlank(newStudentCourseEntity.getCompletedCourseLetterGrade())
+                && StringUtils.isNotBlank(newStudentCourseEntity.getCompletedCourseLetterGrade())
+                && !newStudentCourseEntity.getCompletedCourseLetterGrade().equalsIgnoreCase(courseStudent.getFinalLetterGrade())) {
+            newStudentCourseEntity.setCompletedCourseLetterGrade(courseStudent.getFinalLetterGrade());
+        } else if(StringUtils.isBlank(newStudentCourseEntity.getCompletedCourseLetterGrade())) {
+            newStudentCourseEntity.setCompletedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
         }
 
         if(relatedCourseRecord != null && newStudentCourseEntity.getRelatedCourseId() != null
@@ -330,7 +330,7 @@ public class GraduationStudentRecordService {
 
 
         newStudentCourseEntity.setInterimPercent(mapPercentage(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()));
-        newStudentCourseEntity.setFinalPercent(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
+        newStudentCourseEntity.setCompletedCoursePercentage(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
         newStudentCourseEntity.setCredits(StringUtils.isNotBlank(courseStudent.getNumberOfCredits()) ? Integer.parseInt(courseStudent.getNumberOfCredits()) : 0);
         newStudentCourseEntity.setFineArtsAppliedSkills(fineArtsSkillsCode);
         newStudentCourseEntity.setEquivOrChallenge(equivalentOrChallengeCode);
@@ -361,8 +361,8 @@ public class GraduationStudentRecordService {
                 .courseSession(courseStudent.getCourseYear() + courseStudent.getCourseMonth())
                 .interimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
                 .interimPercent(mapPercentage(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
-                .finalLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
-                .finalPercent(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
+                .completedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
+                .completedCoursePercentage(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
                 .relatedCourseId(relatedCourseRecord != null ? new BigInteger(relatedCourseRecord.getCourseID()) : null)
                 .customizedCourseName(StringUtils.isNotBlank(coregCoursesRecord.getGenericCourseType()) && coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G") ? courseStudent.getCourseDescription() : null)
                 .fineArtsAppliedSkills(fineArtsSkillsCode)
@@ -419,12 +419,12 @@ public class GraduationStudentRecordService {
                     .findFirst();
             return letterEntity.isPresent() ? getPercentage(letterGrade, doublePercent) : null;
         } else {
-            return getPercentage(letterGrade, doublePercent);
+            return doublePercent;
         }
     }
     
     private Double getPercentage(String letterGrade, Double percent) {
-        if(percent != null && percent.compareTo(0.0) == 0 && (StringUtils.isBlank(letterGrade) || !letterGrade.equalsIgnoreCase("F"))) {
+        if(percent != null && percent == 0 && StringUtils.isNotBlank(letterGrade) && !letterGrade.equalsIgnoreCase("F")) {
             return null;
         }
         return percent;

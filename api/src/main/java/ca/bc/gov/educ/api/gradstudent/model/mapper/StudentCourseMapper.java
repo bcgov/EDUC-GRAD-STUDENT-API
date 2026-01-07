@@ -12,11 +12,11 @@ public interface StudentCourseMapper {
 
     StudentCourseMapper mapper = Mappers.getMapper(StudentCourseMapper.class);
 
-    @Mapping(target = "finalPercent", source = "finalPercent")
-    @Mapping(target = "finalLetterGrade", source = "finalLetterGrade")
+    @Mapping(target = "finalPercent", source = "completedCoursePercentage")
+    @Mapping(target = "finalLetterGrade", source = "completedCourseLetterGrade")
     StudentCourse toStructure(StudentCourseEntity entity);
 
-    @Mapping(target = "finalPercent", source = "finalPercent")
-    @Mapping(target = "finalLetterGrade", source = "finalLetterGrade")
+    @Mapping(target = "completedCoursePercentage", source = "finalPercent")
+    @Mapping(target = "completedCourseLetterGrade", source = "finalLetterGrade")
     StudentCourseEntity toEntity(StudentCourse studentCourse);
 }
