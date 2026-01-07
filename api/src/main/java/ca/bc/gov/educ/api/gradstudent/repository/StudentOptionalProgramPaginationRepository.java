@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 @Repository
 public interface StudentOptionalProgramPaginationRepository extends JpaRepository<StudentOptionalProgramPaginationEntity, UUID>, JpaSpecificationExecutor<StudentOptionalProgramPaginationEntity>, StudentOptionalProgramPaginationRepositoryCustom {
-
+    
 }
 
 interface StudentOptionalProgramPaginationRepositoryCustom {

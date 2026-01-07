@@ -46,6 +46,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -55,7 +57,6 @@ public class CSVReportService {
 
     private final RestUtils restUtils;
     private final GraduationStudentRecordRepository graduationStudentRecordRepository;
-    private final StudentOptionalProgramRepository studentOptionalProgramRepository;
     private final StudentCoursePaginationService studentCoursePaginationService;
     private final StudentCoursePaginationRepository studentCoursePaginationRepository;
     private final StudentOptionalProgramPaginationService studentOptionalProgramPaginationService;
@@ -78,6 +79,11 @@ public class CSVReportService {
         Date to = Date.valueOf(LocalDate.parse(toDate));
 
         List<GraduationStudentRecordEntity> results = graduationStudentRecordRepository.findByProgramCompletionDateIsGreaterThanEqualAndProgramCompletionDateIsLessThanEqualAndSchoolAtGradIdIn(from, to, schoolsInDistrict);
+        //Get all optional programs for the same student set
+        var gradStudentIDs = results.stream().map(GraduationStudentRecordEntity::getStudentID).toList();
+        var studentOptionalProgramMap = studentOptionalProgramPaginationRepository.findAllById(gradStudentIDs)
+                .stream().collect(Collectors.groupingBy(stud -> stud.getGraduationStudentRecordEntity().getStudentID()));
+        
         List<String> headers = Arrays.stream(YukonReportHeader.values()).map(YukonReportHeader::getCode).toList();
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                 .build();
@@ -88,8 +94,9 @@ public class CSVReportService {
 
             csvPrinter.printRecord(headers);
             for (GraduationStudentRecordEntity result : results) {
+                var studentOptionalProgram = studentOptionalProgramMap.get(result.getStudentID()); 
                 var school = restUtils.getSchoolBySchoolID(result.getSchoolAtGradId().toString()).orElseThrow(() -> new EntityNotFoundException(School.class, "schoolAtGradID", result.getSchoolAtGradId().toString()));
-                List<String> csvRowData = prepareDataForCsv(result, school, optionalProgramCodes);
+                List<String> csvRowData = prepareDataForCsv(result, school, optionalProgramCodes, studentOptionalProgram);
                 csvPrinter.printRecord(csvRowData);
             }
             csvPrinter.flush();
@@ -104,7 +111,7 @@ public class CSVReportService {
         }
     }
 
-    private List<String> prepareDataForCsv(GraduationStudentRecordEntity student, School school, List<OptionalProgramCode> optionalProgramCodes) {
+    private List<String> prepareDataForCsv(GraduationStudentRecordEntity student, School school, List<OptionalProgramCode> optionalProgramCodes, List<StudentOptionalProgramPaginationEntity> studentOptionalPrograms) {
         var studentData = StringUtils.isNotBlank(student.getStudentGradData()) ? deriveStudentData(student) : null;
         return new ArrayList<>(Arrays.asList(
                 school.getMincode(),
@@ -114,14 +121,14 @@ public class CSVReportService {
                 studentData != null &&  studentData.getGradStudent() != null ? studentData.getGradStudent().getLegalFirstName() : "",
                 studentData != null &&  studentData.getGradStudent() != null ? studentData.getGradStudent().getLegalMiddleNames() : "",
                 student.getProgram(),
-                getOptionalProgram(student.getStudentID(), student.getProgram(), optionalProgramCodes),
+                getOptionalProgram(studentOptionalPrograms, student.getProgram(), optionalProgramCodes),
                 student.getProgramCompletionDate() != null ? EducGradStudentApiUtils.formatDate(student.getProgramCompletionDate(), EducGradStudentApiConstants.YUKON_DATE_FORMAT) : ""
         ));
     }
 
-    private String getOptionalProgram(UUID studentID, String gradProgram, List<OptionalProgramCode> optionalProgramCodes) {
-        var fiProgram = optionalProgramCalc(studentID, gradProgram, optionalProgramCodes, OptionalProgramCodes.FI.getCode());
-        var ddProgram = optionalProgramCalc(studentID, gradProgram, optionalProgramCodes, OptionalProgramCodes.DD.getCode());
+    private String getOptionalProgram(List<StudentOptionalProgramPaginationEntity> studentOptionalPrograms, String gradProgram, List<OptionalProgramCode> optionalProgramCodes) {
+        var fiProgram = optionalProgramCalc(studentOptionalPrograms, gradProgram, optionalProgramCodes, OptionalProgramCodes.FI.getCode());
+        var ddProgram = optionalProgramCalc(studentOptionalPrograms, gradProgram, optionalProgramCodes, OptionalProgramCodes.DD.getCode());
         var prog = StringUtils.isBlank(fiProgram) ? ddProgram : fiProgram;
         return  StringUtils.isNotBlank(fiProgram) && StringUtils.isNotBlank(ddProgram) ? fiProgram + "," + ddProgram : prog;
     }
@@ -136,12 +143,11 @@ public class CSVReportService {
         return graduationData;
     }
 
-    private String optionalProgramCalc(UUID studentID, String gradProgram, List<OptionalProgramCode> optionalProgramCodes, String programCode) {
-        var studentOptionalProgram = studentOptionalProgramRepository.findByStudentID(studentID);
+    private String optionalProgramCalc(List<StudentOptionalProgramPaginationEntity> studentOptionalPrograms, String gradProgram, List<OptionalProgramCode> optionalProgramCodes, String programCode) {
         var optProgram = getOptionalProgramCode(optionalProgramCodes, programCode,  gradProgram);
 
         if(optProgram.isPresent()) {
-            var hasProgram = studentOptionalProgram.stream()
+            var hasProgram = studentOptionalPrograms.stream()
                     .anyMatch(optProg -> Objects.equals(optProg.getOptionalProgramID(), optProgram.get().getOptionalProgramID()));
 
             return hasProgram ? optProgram.get().getOptionalProgramName() : "";
