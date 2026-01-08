@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.HistoryActivityCodes;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
@@ -25,11 +24,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class StudentMergeService {
 
-    private final GraduationStatusService graduationStatusService;
     private final CommonService commonService;
     private final GraduationStudentRecordRepository graduationStatusRepository;
     private final GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
-    private final Publisher publisher;
     private final HistoryService historyService;
 
     private static final String MERGED_STATUS_CODE = "MER";
