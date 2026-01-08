@@ -38,6 +38,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.StreamSupport;
 
@@ -77,6 +79,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     Subscriber subscriber;
 
     private static final StudentCourseMapper mapper = StudentCourseMapper.mapper;
+    private static final DateTimeFormatter COURSE_SESSION_FMT = DateTimeFormatter.ofPattern("yyyyMM");
 
     @Before
     public void setUp() {
@@ -1012,7 +1015,7 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         //STUDENT_COURSE_INTERIM_GRADE_VALID, STUDENT_COURSE_FINAL_GRADE_VALID
         StudentCourse studentCourse2 = createStudentCourse("2","200004", 40,"C", 100, "C-", null, null, null);
         //STUDENT_COURSE_Q_VALID, STUDENT_COURSE_FINAL_PERCENT_GRADE_VALID
-        StudentCourse studentCourse3 = createStudentCourse("3",LocalDate.now().getYear()+""+String.format("%02d", LocalDate.now().minusMonths(1).getMonthValue()), null, null,null,null, null, null, null);
+        StudentCourse studentCourse3 = createStudentCourse("3", YearMonth.now().minusMonths(1).format(COURSE_SESSION_FMT), null, null,null,null, null, null, null);
         //STUDENT_COURSE_SESSION_START_VALID
         StudentCourse studentCourse4 = createStudentCourse("4",LocalDate.now().minusYears(2).getYear()+"04", null, null,null,null, null, null, null);
         //STUDENT_COURSE_SESSION_END_VALID
