@@ -9,6 +9,8 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +24,8 @@ public class StudentCourseRuleTest {
 
     @InjectMocks
     private StudentCourseRule studentCourseRule;
+
+    private static final DateTimeFormatter COURSE_SESSION_FMT = DateTimeFormatter.ofPattern("yyyyMM");
 
     private StudentCourseRuleData studentCourseRuleData;
     private StudentCourse studentCourse;
@@ -170,7 +174,7 @@ public class StudentCourseRuleTest {
         LocalDate currentDate = LocalDate.now();
         LocalDate courseStartDate = currentDate.minusMonths(3);
         LocalDate courseCompletionDate = currentDate.minusMonths(1);
-        String sessionDate = String.format("%04d%02d", courseCompletionDate.getYear(), courseCompletionDate.getMonthValue() + 1);
+        String sessionDate = YearMonth.from(courseCompletionDate).plusMonths(1).format(COURSE_SESSION_FMT);
         studentCourse.setCourseSession(sessionDate);
         course.setStartDate(courseStartDate);
         course.setCompletionEndDate(courseCompletionDate);
@@ -245,7 +249,7 @@ public class StudentCourseRuleTest {
         LocalDate currentDate = LocalDate.now();
         LocalDate courseStartDate = currentDate.minusMonths(3);
         LocalDate courseCompletionDate = currentDate.minusMonths(1);
-        String sessionDate = String.format("%04d%02d", courseCompletionDate.getYear(), courseCompletionDate.getMonthValue() + 1);
+        String sessionDate = YearMonth.from(courseCompletionDate).plusMonths(1).format(COURSE_SESSION_FMT);
         studentCourse.setCourseSession(sessionDate); // After completion date
         course.setCourseCode("QMATH10"); // Q code
         course.setStartDate(courseStartDate);
