@@ -1,19 +1,15 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.HistoryActivityCodes;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentNote;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,18 +24,15 @@ import java.util.UUID;
 @AllArgsConstructor
 public class StudentMergeService {
 
-    private final GraduationStatusService graduationStatusService;
     private final CommonService commonService;
     private final GraduationStudentRecordRepository graduationStatusRepository;
     private final GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
-    private final Publisher publisher;
     private final HistoryService historyService;
 
     private static final String MERGED_STATUS_CODE = "MER";
-    private static final Logger logger = LoggerFactory.getLogger(StudentMergeService.class);
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Boolean mergeStudentProcess(UUID studentID, UUID trueStudentID) throws JsonProcessingException {
+    public boolean mergeStudentProcess(UUID studentID, UUID trueStudentID) {
         //Check the student present in Grad System
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findOptionalByStudentID(studentID);
         if (graduationStudentRecordEntityOptional.isEmpty()) {
@@ -47,8 +40,6 @@ public class StudentMergeService {
             return true;
         }
         GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
-        //Check the merged student present in Grad system; if not onboard.
-        this.checkIfExistsAndOnboard(trueStudentID);
         //Update the grad status for Source Student
         graduationStudentRecordEntity.setStudentStatus(MERGED_STATUS_CODE);
         graduationStudentRecordEntity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
@@ -86,12 +77,12 @@ public class StudentMergeService {
             historyService.createStudentHistory(graduationStudentRecordEntity, HistoryActivityCodes.USERDEMERGE.getCode());
         }
     }
-    
+
     public String findMERRecordWithPrevious(UUID studentID) {
         List<GraduationStudentRecordHistoryEntity> allRecords = graduationStudentRecordHistoryRepository.findAllHistoryDescByStudentId(studentID);
 
         GraduationStudentRecordHistoryEntity result = null;
-        
+
         for (int i = 0; i < allRecords.size(); i++) {
             if ("MER".equals(allRecords.get(i).getStudentStatus())) {
                 if (i + 1 < allRecords.size()) {
@@ -104,23 +95,10 @@ public class StudentMergeService {
         if(result != null){
             return result.getStudentStatus();
         }
-        
+
         return "CUR";
     }
 
-    private void checkIfExistsAndOnboard(UUID studentID) throws JsonProcessingException {
-        boolean isExists = isStudentPresentInGrad(studentID);
-        if (!isExists) {
-            logger.info("Student with ID {} does not exist in Grad System. Adopting student", studentID);
-            var pair = this.graduationStatusService.adoptStudent(studentID, ThreadLocalStateUtil.getCurrentUser());
-            if (pair.getRight() != null) {
-                publisher.dispatchChoreographyEvent(pair.getRight());
-            }
-        }
-    }
 
-    private boolean isStudentPresentInGrad(UUID studentID) {
-        return graduationStatusRepository.existsByStudentID(studentID);
-    }
 
 }

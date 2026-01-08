@@ -160,39 +160,6 @@ class StudentMergeEventHandlerServiceTest extends BaseIntegrationTest {
     }
 
     @Test
-    void testHandleEvent_givenEventType_CREATE_MERGE_studentID_doesExist_trueStudentID_doesNotExist_adoptFailed() throws IOException {
-        UUID studentID = UUID.randomUUID();
-        //Create Record in Grad
-        GraduationStudentRecord graduationStudentRecord = createGraduationStudentRecord(studentID);
-        GraduationStudentRecordEntity graduationStudentRecordEntity = createGraduationStudentRecordEntity(graduationStudentRecord);
-        graduationStatusRepository.save(graduationStudentRecordEntity);
-        //Create Record in Grad
-        UUID trueStudentID = UUID.randomUUID();
-        GradSearchStudent gradSearchStudent = createMockGradSearchStudent();
-        gradSearchStudent.setStudentID(trueStudentID.toString());
-        Student request = Student.builder().studentID(trueStudentID.toString()).build();
-        School school = School.builder()
-                .schoolId(UUID.randomUUID().toString())
-                .mincode(gradSearchStudent.getMincode())
-                .schoolCategoryCode("PUB")
-                .schoolReportingRequirementCode("STANDARD")
-                .build();
-        when(gradStudentService.getStudentByStudentIDFromStudentAPI(request.getStudentID()))
-                .thenReturn(null);
-        when(schoolService.getSchoolByMincode(any())).thenReturn(school);
-        //Merge Process
-        var mergeStudentPayload = createStudentMergePayload(studentID, trueStudentID);
-        final GradStatusEvent event = GradStatusEvent
-                .builder()
-                .eventType(EventType.CREATE_MERGE.name())
-                .eventPayload(JsonUtil.getJsonStringFromObject(mergeStudentPayload))
-                .build();
-        assertThrows(RuntimeException.class, () -> {
-            studentMergeEventHandlerService.processMergeEvent(event);
-        });
-    }
-
-    @Test
     void testHandleEvent_givenEventType_CREATE_MERGE_studentID_doesExist_trueStudentID_doesExist() throws IOException {
         UUID studentID = UUID.randomUUID();
         //Create Record in Grad
