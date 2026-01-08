@@ -11,8 +11,8 @@ public interface StudentCourseHistoryMapper {
 
     StudentCourseHistoryMapper mapper = Mappers.getMapper(StudentCourseHistoryMapper.class);
 
-    @Mapping(target = "finalPercent", source = "completedCoursePercentage")
-    @Mapping(target = "finalLetterGrade", source = "completedCourseLetterGrade")
+    @Mapping(target = "finalPercent", source = "finalPercent")
+    @Mapping(target = "finalLetterGrade", source = "finalLetterGrade")
     @Mapping(target = "id", source = "historyId")
     StudentCourseHistory toStructure(StudentCourseHistoryEntity entity);
 

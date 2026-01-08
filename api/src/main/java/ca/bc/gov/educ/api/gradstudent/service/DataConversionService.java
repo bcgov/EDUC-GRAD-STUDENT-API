@@ -11,6 +11,7 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentCareerProgram
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GradStudentOptionalProgramTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
+import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -62,6 +64,7 @@ public class DataConversionService extends GradBaseService {
     final GraduationStatusService graduationStatusService;
     final GradValidation validation;
     final EducGradStudentApiConstants constants;
+    private final GradStudentService gradStudentService;
 
     @Autowired
     public DataConversionService(@Qualifier("studentApiClient") WebClient studentApiClient,
@@ -71,7 +74,7 @@ public class DataConversionService extends GradBaseService {
                                  StudentCareerProgramRepository gradStudentCareerProgramRepository, GradStudentCareerProgramTransformer gradStudentCareerProgramTransformer,
                                  StudentOptionalProgramHistoryRepository gradStudentOptionalProgramHistoryRepository,
                                  GraduationStudentRecordHistoryRepository gradStudentRecordHistoryRepository,
-                                 HistoryService historyService, StudentNoteRepository studentNoteRepository, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants) {
+                                 HistoryService historyService, StudentNoteRepository studentNoteRepository, GraduationStatusService graduationStatusService, GradValidation validation, EducGradStudentApiConstants constants, GradStudentService gradStudentService) {
         this.studentApiClient = studentApiClient;
         this.graduationStatusRepository = graduationStatusRepository;
         this.graduationStatusTransformer = graduationStatusTransformer;
@@ -86,6 +89,7 @@ public class DataConversionService extends GradBaseService {
         this.graduationStatusService = graduationStatusService;
         this.validation = validation;
         this.constants = constants;
+        this.gradStudentService = gradStudentService;
     }
 
     /**
@@ -95,6 +99,15 @@ public class DataConversionService extends GradBaseService {
     public GraduationStudentRecord saveGraduationStudentRecord(UUID studentID, GraduationStudentRecord graduationStatus, boolean ongoingUpdate) {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
+        GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString());
+        if(gradSearchStudent != null) {
+            sourceObject.setPen(gradSearchStudent.getPen());
+            sourceObject.setDob((StringUtils.isNotBlank(gradSearchStudent.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), gradSearchStudent.getDob()) : null));
+            sourceObject.setGenderCode(gradSearchStudent.getGenderCode());
+            sourceObject.setLegalFirstName(gradSearchStudent.getLegalFirstName());
+            sourceObject.setLegalLastName(gradSearchStudent.getLegalLastName());
+            sourceObject.setLegalMiddleNames(gradSearchStudent.getLegalMiddleNames());
+        }
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
             gradEntity = handleExistingGraduationStatus(sourceObject, gradEntity, graduationStatus.getPen(), ongoingUpdate);

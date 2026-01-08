@@ -170,4 +170,90 @@ class RestUtilsTest {
         assertEquals(2, restUtils.getGraduationProgramCodeList(false).size());
         assertEquals("Adult Graduation Program", restUtils.getGraduationProgramCodeList(false).get(0).getProgramName());
     }
+
+    @Test
+    void testPopulateCoreg39Map() {
+        List<CourseCodeRecord> mockCoreg39Courses = List.of(
+                new CourseCodeRecord("872087", "FRAN  11", "39"),
+                new CourseCodeRecord("872066", "INDT 10D", "39"),
+                new CourseCodeRecord("872079", "TEST 04", "39")
+        );
+
+        doReturn(mockCoreg39Courses).when(restUtils).getCoreg39Courses();
+
+        restUtils.populateCoreg39Map();
+
+        var course1 = restUtils.getCoreg39CourseByID("872087");
+        var course2 = restUtils.getCoreg39CourseByID("872066");
+        var course3 = restUtils.getCoreg39CourseByID("872079");
+
+        assertEquals(true, course1.isPresent());
+        assertEquals("FRAN  11", course1.get().getExternalCode());
+        assertEquals(true, course2.isPresent());
+        assertEquals("INDT 10D", course2.get().getExternalCode());
+        assertEquals(true, course3.isPresent());
+        assertEquals("TEST 04", course3.get().getExternalCode());
+    }
+
+    @Test
+    void testGetCoreg39CourseByID_WhenCourseExists_ShouldReturnCourse() {
+        List<CourseCodeRecord> mockCoreg39Courses = List.of(
+                new CourseCodeRecord("872087", "FRAN  11", "39"),
+                new CourseCodeRecord("872066", "INDT 10D", "39")
+        );
+
+        doReturn(mockCoreg39Courses).when(restUtils).getCoreg39Courses();
+        restUtils.populateCoreg39Map();
+
+        var result = restUtils.getCoreg39CourseByID("872087");
+
+        assertEquals(true, result.isPresent());
+        if (result.isPresent()) {
+            assertEquals("872087", result.get().getCourseID());
+            assertEquals("FRAN  11", result.get().getExternalCode());
+            assertEquals("39", result.get().getOriginatingSystem());
+        }
+    }
+
+    @Test
+    void testGetCoreg39CourseByID_WhenCourseDoesNotExist_ShouldReturnEmpty() {
+        List<CourseCodeRecord> mockCoreg39Courses = List.of(
+                new CourseCodeRecord("872087", "FRAN  11", "39")
+        );
+
+        doReturn(mockCoreg39Courses).when(restUtils).getCoreg39Courses();
+        restUtils.populateCoreg39Map();
+
+        var result = restUtils.getCoreg39CourseByID("999999");
+
+        assertEquals(false, result.isPresent());
+    }
+
+    @Test
+    void testGetCoreg39CourseByID_WhenMapIsEmpty_ShouldPopulateAndReturnCourse() {
+        List<CourseCodeRecord> mockCoreg39Courses = List.of(
+                new CourseCodeRecord("872087", "FRAN  11", "39"),
+                new CourseCodeRecord("872066", "INDT 10D", "39")
+        );
+
+        doReturn(mockCoreg39Courses).when(restUtils).getCoreg39Courses();
+
+        var result = restUtils.getCoreg39CourseByID("872066");
+
+        assertEquals(true, result.isPresent());
+        if (result.isPresent()) {
+            assertEquals("INDT 10D", result.get().getExternalCode());
+        }
+        verify(restUtils, times(1)).getCoreg39Courses();
+    }
+
+    @Test
+    void testPopulateCoreg39Map_WhenExceptionOccurs_ShouldThrowGradStudentAPIRuntimeException() {
+        doThrow(new RuntimeException("API error")).when(restUtils).getCoreg39Courses();
+
+        assertThrows(
+                GradStudentAPIRuntimeException.class,
+                () -> restUtils.populateCoreg39Map()
+        );
+    }
 }

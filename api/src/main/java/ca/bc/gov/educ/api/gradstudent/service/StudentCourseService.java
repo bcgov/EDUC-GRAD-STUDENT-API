@@ -351,7 +351,13 @@ public class StudentCourseService {
             .toList();
         List<StudentCourse> coursesToAdd = studentCoursesToMerge.entrySet().stream()
                 .filter(entry -> !existingStudentCourses.containsKey(entry.getKey()))
-                .map(Map.Entry::getValue)
+                .map(entry -> {
+                    StudentCourse sourceCourse = entry.getValue();
+                    StudentCourse copiedCourse = new StudentCourse();
+                    BeanUtils.copyProperties(sourceCourse, copiedCourse);
+                    copiedCourse.setId(null);
+                    return copiedCourse;
+                })
                 .toList();
         validationIssues.addAll(saveStudentCourses(targetStudentId, coursesToOverwrite, true).getLeft());
         validationIssues.addAll(saveStudentCourses(targetStudentId, coursesToAdd, false).getLeft());

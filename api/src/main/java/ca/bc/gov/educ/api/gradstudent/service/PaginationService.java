@@ -67,6 +67,14 @@ public class PaginationService {
 
   private <T> Specification<T> getTypeSpecification(String key, FilterOperation filterOperation, String value, ValueType valueType, BaseFilterSpecs<T> filterSpecs) {
     Specification<T> entitySpecification = null;
+
+    // Special handling for DATE_RANGE: always use java.util.Date converter
+    // because entity fields use @Temporal(TemporalType.DATE) which expects java.util.Date
+    if (filterOperation == FilterOperation.DATE_RANGE) {
+      entitySpecification = filterSpecs.getUtilDateTypeSpecification(key, value, filterOperation);
+      return entitySpecification;
+    }
+
     switch (valueType) {
       case STRING ->
               entitySpecification = filterSpecs.getStringTypeSpecification(key, value, filterOperation);

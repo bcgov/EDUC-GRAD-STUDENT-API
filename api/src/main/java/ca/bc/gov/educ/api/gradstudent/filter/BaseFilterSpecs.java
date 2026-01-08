@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.ChronoLocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -25,6 +26,7 @@ public abstract class BaseFilterSpecs<R> {
   private final FilterSpecifications<R, Long> longFilterSpecifications;
   private final FilterSpecifications<R, UUID> uuidFilterSpecifications;
   private final FilterSpecifications<R, Boolean> booleanFilterSpecifications;
+  private final FilterSpecifications<R, Date> utilDateFilterSpecifications;
   private final Converters converters;
 
   /**
@@ -37,6 +39,19 @@ public abstract class BaseFilterSpecs<R> {
    */
   public Specification<R> getDateTypeSpecification(String fieldName, String filterValue, FilterOperation filterOperation) {
     return getSpecification(fieldName, filterValue, filterOperation, converters.getFunction(ChronoLocalDate.class), dateFilterSpecifications);
+  }
+
+  /**
+   * Gets util date type specification (for entity fields with @Temporal(TemporalType.DATE)).
+   * This is specifically used for DATE_RANGE operations to ensure compatibility with java.util.Date entity fields.
+   *
+   * @param fieldName       the field name
+   * @param filterValue     the filter value
+   * @param filterOperation the filter operation
+   * @return the util date type specification
+   */
+  public Specification<R> getUtilDateTypeSpecification(String fieldName, String filterValue, FilterOperation filterOperation) {
+    return getSpecification(fieldName, filterValue, filterOperation, converters.getFunction(Date.class), utilDateFilterSpecifications);
   }
 
   /**

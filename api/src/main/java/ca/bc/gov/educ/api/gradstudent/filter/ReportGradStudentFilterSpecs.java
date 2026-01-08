@@ -6,13 +6,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.ChronoLocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 
 @Service
 @Slf4j
 public class ReportGradStudentFilterSpecs extends BaseFilterSpecs<ReportGradStudentDataEntity> {
 
-  public ReportGradStudentFilterSpecs(FilterSpecifications<ReportGradStudentDataEntity, ChronoLocalDate> dateFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, ChronoLocalDateTime<?>> dateTimeFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, Integer> integerFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, String> stringFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, Long> longFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, UUID> uuidFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, Boolean> booleanFilterSpecifications, Converters converters) {
-    super(dateFilterSpecifications, dateTimeFilterSpecifications, integerFilterSpecifications, stringFilterSpecifications, longFilterSpecifications, uuidFilterSpecifications, booleanFilterSpecifications, converters);
+  public ReportGradStudentFilterSpecs(FilterSpecifications<ReportGradStudentDataEntity, ChronoLocalDate> dateFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, ChronoLocalDateTime<?>> dateTimeFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, Integer> integerFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, String> stringFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, Long> longFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, UUID> uuidFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, Boolean> booleanFilterSpecifications, FilterSpecifications<ReportGradStudentDataEntity, Date> utilDateFilterSpecifications, Converters converters) {
+    super(dateFilterSpecifications, dateTimeFilterSpecifications, integerFilterSpecifications, stringFilterSpecifications, longFilterSpecifications, uuidFilterSpecifications, booleanFilterSpecifications, utilDateFilterSpecifications, converters);
   }
 }

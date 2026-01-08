@@ -3,7 +3,6 @@ package ca.bc.gov.educ.api.gradstudent.service.event;
 import ca.bc.gov.educ.api.gradstudent.constant.GradRequirementYearCodes;
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUpdateResult;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
@@ -14,12 +13,14 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDet
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.student.v1.StudentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.entity.*;
 import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.CourseCacheService;
 import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
+import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,8 +54,6 @@ public class GraduationStudentRecordService {
     private final StudentCourseRepository studentCourseRepository;
     private final FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
     private final EquivalentOrChallengeCodeRepository equivalentOrChallengeCodeRepository;
-    private final Publisher publisher;
-    private static final String DATA_CONVERSION_HISTORY_ACTIVITY_CODE = "DATACONVERT"; // confirm,
     private static final String GDC_ADD = "GDCADD";// confirm,
     private static final String GDC_UPDATE = "GDCUPATE";
     private final HistoryService historyService;
@@ -62,6 +61,7 @@ public class GraduationStudentRecordService {
     public static final String CURRENT = "CUR";
     public static final String TERMINATED = "TER";
     public static final String DECEASED = "DEC";
+    public static final String ARC = "ARC";
     public static final String CREATE_USER = "createUser";
     public static final String CREATE_DATE = "createDate";
     public static final String YYYY_MM_DD = "uuuuMMdd";
@@ -78,6 +78,32 @@ public class GraduationStudentRecordService {
     @Transactional
     public Optional<GraduationStudentRecordEntity> getStudentByStudentID(String studentID) {
         return graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentID));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void handleStudentUpdated(StudentUpdate studentUpdate, GraduationStudentRecordEntity existingStudentRecordEntity, final GradStatusEvent event){
+        String dob = studentUpdate.getDob();
+        if(StringUtils.isNotBlank(dob)){
+            try {
+                existingStudentRecordEntity.setDob(
+                        DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), dob)
+                );
+            } catch(Exception e) {
+                logger.error("Error replicating DOB from upstream: {}", e.getMessage());
+                existingStudentRecordEntity.setDob(null);
+            }
+        }
+        existingStudentRecordEntity.setPen(studentUpdate.getPen());
+        existingStudentRecordEntity.setGenderCode(studentUpdate.getGenderCode());
+        existingStudentRecordEntity.setLegalFirstName(studentUpdate.getLegalFirstName());
+        existingStudentRecordEntity.setLegalLastName(studentUpdate.getLegalLastName());
+        existingStudentRecordEntity.setLegalMiddleNames(studentUpdate.getLegalMiddleNames());
+        existingStudentRecordEntity.setUpdateUser(event.getUpdateUser());
+        existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
+        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
+        existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        var savedStudentRecord = graduationStudentRecordRepository.save(existingStudentRecordEntity);
+        historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -102,7 +128,7 @@ public class GraduationStudentRecordService {
         if(StringUtils.isNotBlank(demStudent.getGradRequirementYear()) && demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
             entity.setProgram(mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode()));
         } else {
-            entity.setProgram(createProgram());
+            entity.setProgram(createProgram(demStudent.getSchoolReportingRequirementCode()));
         }
 
         entity.setCreateUser(demStudent.getCreateUser());
@@ -120,7 +146,7 @@ public class GraduationStudentRecordService {
             frProgram.ifPresent(optionalProgramCode -> optionalProgramEntities.add(createStudentOptionalProgramEntity(optionalProgramCode.getOptionalProgramID(), savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         }
         var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
-        savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
+        savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, GDC_ADD));
         return savedStudentRecord;
     }
 
@@ -164,7 +190,7 @@ public class GraduationStudentRecordService {
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         var savedEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
-        savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE));
+        savedEntities.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, GDC_UPDATE));
 
         if (!optionalProgramsToRemove.isEmpty() || !programIDsToAdd.isEmpty()) {
             boolean projAlreadyY = "Y".equalsIgnoreCase(savedStudentRecord.getRecalculateProjectedGrad());
@@ -173,6 +199,7 @@ public class GraduationStudentRecordService {
                 savedStudentRecord.setRecalculateProjectedGrad("Y");
                 savedStudentRecord.setRecalculateGradStatus("Y");
                 graduationStudentRecordRepository.save(savedStudentRecord);
+                historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
             }
         }
 
@@ -198,6 +225,11 @@ public class GraduationStudentRecordService {
                 }
             });
         }
+
+        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
+        existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        var savedStudentRecord = graduationStudentRecordRepository.save(existingStudentRecordEntity);
+        historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
     }
 
     private void handleReplaceCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudentDetail courseStudent, String studentID) {
@@ -205,9 +237,6 @@ public class GraduationStudentRecordService {
         log.debug("Creating new student course record for course: {}, level: {}, courseID: {}",
                 courseStudent.getCourseCode(), courseStudent.getCourseLevel(), coursesRecord != null ? coursesRecord.getCourseID() : "N/A");
         createNewStudentCourseEntity(courseStudent, studentID, coursesRecord, existingStudentRecordEntity);
-        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
-        existingStudentRecordEntity.setRecalculateGradStatus("Y");
-        graduationStudentRecordRepository.save(existingStudentRecordEntity);
     }
 
     private void handleAppendCourseRecord(GraduationStudentRecordEntity existingStudentRecordEntity, CourseStudentDetail courseStudent, String studentID) {
@@ -228,10 +257,6 @@ public class GraduationStudentRecordService {
         } else if(!courseStudent.getCourseStatus().equalsIgnoreCase("W")) {
             createNewStudentCourseEntity(courseStudent, studentID, coursesRecord, existingStudentRecordEntity);
         }
-
-        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
-        existingStudentRecordEntity.setRecalculateGradStatus("Y");
-        graduationStudentRecordRepository.save(existingStudentRecordEntity);
     }
 
     private void createNewStudentCourseEntity(CourseStudentDetail courseStudent, String studentID, CoregCoursesRecord coursesRecord, GraduationStudentRecordEntity existingStudentRecordEntity) {
@@ -260,7 +285,7 @@ public class GraduationStudentRecordService {
                 var entity = createStudentOptionalProgramEntity(frProgram.get().getOptionalProgramID(), existingStudentRecordEntity.getStudentID(), courseStudent.getCreateUser(), courseStudent.getUpdateUser());
                 var savedEntity = studentOptionalProgramRepository.save(entity);
                 log.debug("Added French optional program for studentID: {}, optionalProgramID: {}", existingStudentRecordEntity.getStudentID(), frProgram.get().getOptionalProgramID());
-                historyService.createStudentOptionalProgramHistory(savedEntity, DATA_CONVERSION_HISTORY_ACTIVITY_CODE);
+                historyService.createStudentOptionalProgramHistory(savedEntity, GDC_UPDATE);
             }
         }
     }
@@ -286,12 +311,12 @@ public class GraduationStudentRecordService {
             newStudentCourseEntity.setInterimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()));
         }
 
-        if(StringUtils.isNotBlank(newStudentCourseEntity.getCompletedCourseLetterGrade())
-                && StringUtils.isNotBlank(newStudentCourseEntity.getCompletedCourseLetterGrade())
-                && !newStudentCourseEntity.getCompletedCourseLetterGrade().equalsIgnoreCase(courseStudent.getFinalLetterGrade())) {
-            newStudentCourseEntity.setCompletedCourseLetterGrade(courseStudent.getFinalLetterGrade());
-        } else if(StringUtils.isBlank(newStudentCourseEntity.getCompletedCourseLetterGrade())) {
-            newStudentCourseEntity.setCompletedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
+        if(StringUtils.isNotBlank(newStudentCourseEntity.getFinalLetterGrade())
+                && StringUtils.isNotBlank(newStudentCourseEntity.getFinalLetterGrade())
+                && !newStudentCourseEntity.getFinalLetterGrade().equalsIgnoreCase(courseStudent.getFinalLetterGrade())) {
+            newStudentCourseEntity.setFinalLetterGrade(courseStudent.getFinalLetterGrade());
+        } else if(StringUtils.isBlank(newStudentCourseEntity.getFinalLetterGrade())) {
+            newStudentCourseEntity.setFinalLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
         }
 
         if(relatedCourseRecord != null && newStudentCourseEntity.getRelatedCourseId() != null
@@ -305,7 +330,7 @@ public class GraduationStudentRecordService {
 
 
         newStudentCourseEntity.setInterimPercent(mapPercentage(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()));
-        newStudentCourseEntity.setCompletedCoursePercentage(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
+        newStudentCourseEntity.setFinalPercent(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()));
         newStudentCourseEntity.setCredits(StringUtils.isNotBlank(courseStudent.getNumberOfCredits()) ? Integer.parseInt(courseStudent.getNumberOfCredits()) : 0);
         newStudentCourseEntity.setFineArtsAppliedSkills(fineArtsSkillsCode);
         newStudentCourseEntity.setEquivOrChallenge(equivalentOrChallengeCode);
@@ -336,8 +361,8 @@ public class GraduationStudentRecordService {
                 .courseSession(courseStudent.getCourseYear() + courseStudent.getCourseMonth())
                 .interimLetterGrade(mapLetterGrade(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
                 .interimPercent(mapPercentage(courseStudent.getInterimLetterGrade(), courseStudent.getInterimPercentage()))
-                .completedCourseLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
-                .completedCoursePercentage(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
+                .finalLetterGrade(mapLetterGrade(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
+                .finalPercent(mapPercentage(courseStudent.getFinalLetterGrade(), courseStudent.getFinalPercentage()))
                 .relatedCourseId(relatedCourseRecord != null ? new BigInteger(relatedCourseRecord.getCourseID()) : null)
                 .customizedCourseName(StringUtils.isNotBlank(coregCoursesRecord.getGenericCourseType()) && coregCoursesRecord.getGenericCourseType().equalsIgnoreCase("G") ? courseStudent.getCourseDescription() : null)
                 .fineArtsAppliedSkills(fineArtsSkillsCode)
@@ -394,12 +419,12 @@ public class GraduationStudentRecordService {
                     .findFirst();
             return letterEntity.isPresent() ? getPercentage(letterGrade, doublePercent) : null;
         } else {
-            return doublePercent;
+            return getPercentage(letterGrade, doublePercent);
         }
     }
     
     private Double getPercentage(String letterGrade, Double percent) {
-        if(percent != null && percent == 0 && StringUtils.isNotBlank(letterGrade) && !letterGrade.equalsIgnoreCase("F")) {
+        if(percent != null && percent.compareTo(0.0) == 0 && (StringUtils.isBlank(letterGrade) || !letterGrade.equalsIgnoreCase("F"))) {
             return null;
         }
         return percent;
@@ -489,6 +514,7 @@ public class GraduationStudentRecordService {
         int statusChangeCount = 0;
         boolean hasAdultChange = false;
         if(demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
+            UUID originalSchoolOfRecordId = newStudentRecordEntity.getSchoolOfRecordId();
             if(newStudentRecordEntity.getSchoolOfRecordId() != null && !Objects.equals(newStudentRecordEntity.getSchoolOfRecordId(), UUID.fromString(demStudent.getSchoolID()))) {
                 newStudentRecordEntity.setSchoolOfRecordId(UUID.fromString(demStudent.getSchoolID()));
                 if(demStudent.getStudentStatus().equalsIgnoreCase("A") || demStudent.getStudentStatus().equalsIgnoreCase("T")) {
@@ -508,7 +534,7 @@ public class GraduationStudentRecordService {
                 statusChangeCount++;
             }
 
-            var mappedStudentStatus = mapStudentStatus(demStudent.getStudentStatus());
+            var mappedStudentStatus = mapStudentStatusForUpdate(demStudent, newStudentRecordEntity, originalSchoolOfRecordId);
             if(!newStudentRecordEntity.getStudentStatus().equalsIgnoreCase(mappedStudentStatus)) {
                 newStudentRecordEntity.setStudentStatus(mappedStudentStatus);
                 projectedChangeCount++;
@@ -603,6 +629,11 @@ public class GraduationStudentRecordService {
                 .studentCitizenship(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? demStudent.getCitizenship() : null)
                 .schoolOfRecordId(UUID.fromString(demStudent.getSchoolID()))
                 .studentID(UUID.fromString(studentFromApi.getStudentID()))
+                .dob((StringUtils.isNotBlank(studentFromApi.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), studentFromApi.getDob()) : null))
+                .genderCode(studentFromApi.getGenderCode())
+                .legalFirstName(studentFromApi.getLegalFirstName())
+                .legalMiddleNames(studentFromApi.getLegalMiddleNames())
+                .legalLastName(studentFromApi.getLegalLastName())
                 .recalculateGradStatus("Y")
                 .recalculateProjectedGrad("Y")
                 .adultStartDate(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? mapAdultStartDate(demStudent.getBirthdate(), demStudent.getGradRequirementYear()): null)
@@ -629,7 +660,39 @@ public class GraduationStudentRecordService {
         } else if(demStudentStatus.equalsIgnoreCase("D")) {
             return DECEASED;
         } else {
-            return null;
+            log.error("Invalid student status: {}", demStudentStatus);
+            throw new IllegalArgumentException("Invalid student status: " + demStudentStatus);
+        }
+    }
+
+    private String mapStudentStatusForUpdate(DemographicStudent demStudent, GraduationStudentRecordEntity graduationStudentRecordEntity, UUID originalSchoolOfRecordId) {
+        String demStudentStatus = demStudent.getStudentStatus();
+        if(demStudentStatus.equalsIgnoreCase("A")) {
+            return CURRENT;
+        } else if(demStudentStatus.equalsIgnoreCase("D")) {
+            return DECEASED;
+        } else if(demStudentStatus.equalsIgnoreCase("T")) {
+            String currentGradStatus = graduationStudentRecordEntity.getStudentStatus();
+
+            if (currentGradStatus.equalsIgnoreCase(TERMINATED)) {
+                return TERMINATED;
+            }
+            if (currentGradStatus.equalsIgnoreCase(ARC)) {
+                return ARC;
+            }
+            if (currentGradStatus.equalsIgnoreCase(CURRENT)) {
+                boolean isSchoolOfRecord = Objects.equals(UUID.fromString(demStudent.getSchoolID()), originalSchoolOfRecordId);
+                if (isSchoolOfRecord) {
+                    return TERMINATED;
+                } else {
+                    return CURRENT;
+                }
+            }
+            log.error("Unable to map student status for update. Reported status: {}, Current GRAD status: {}", demStudentStatus, currentGradStatus);
+            throw new IllegalArgumentException("Unable to map student status for update. Reported status: " + demStudentStatus + ", Current GRAD status: " + currentGradStatus);
+        } else {
+            log.error("Invalid student status: {}", demStudentStatus);
+            throw new IllegalArgumentException("Invalid student status: " + demStudentStatus);
         }
     }
 
@@ -645,12 +708,13 @@ public class GraduationStudentRecordService {
         }
     }
 
-    private String createProgram() {
+    private String createProgram(String schoolReportingRequirementCode) {
         List<GraduationProgramCode> codes =  restUtils.getGraduationProgramCodeList(true);
         var filteredCodes = codes.stream().filter(code -> !code.getProgramCode().equalsIgnoreCase("1950") && !code.getProgramCode().equalsIgnoreCase("SCCP") && !code.getProgramCode().equalsIgnoreCase("NOPROG")).findFirst();
         var code = filteredCodes.orElseThrow(() ->new EntityNotFoundException(GraduationProgramCode.class, "Program Code", "Program Code not found"));
         var splitProgramCode = code.getProgramCode().split("-");
-        return splitProgramCode.length == 2 ? splitProgramCode[0] + "-" + "EN" : code.getProgramCode();
+        var appendCode = schoolReportingRequirementCode.equalsIgnoreCase("CSF") ? "PF" : "EN";
+        return splitProgramCode.length == 2 ? splitProgramCode[0] + "-" + appendCode : code.getProgramCode();
     }
 
     private boolean checkIfSchoolOfRecordIsUpdated(DemographicStudent demStudent, GraduationStudentRecordEntity existingStudentRecordEntity) {

@@ -48,8 +48,18 @@ public class StudentMergeEventHandlerService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processDeMergeEvent(final GradStatusEvent event) {
+    public Boolean processDeMergeEvent(final GradStatusEvent event) throws JsonProcessingException {
         log.info("processing de-merge event {}", event);
+        final List<StudentMerge> studentDeMerges = new ObjectMapper().readValue(event.getEventPayload(), new TypeReference<>() {
+        });
+        Optional<StudentMerge> studentDeMerge = studentDeMerges.stream().filter(this::mergeToPredicate).findFirst();
+        if (studentDeMerge.isEmpty()) {
+            log.info("Student Demerge is empty. EventId: {}", event.getEventId());
+        }else {
+            studentMergeService.demergeStudentProcess(UUID.fromString(studentDeMerge.get().getStudentID()));
+        }
+        markEventAsProcessed(event.getEventId());
+        return true;
     }
 
     private void markEventAsProcessed(UUID eventId) {

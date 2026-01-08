@@ -1446,13 +1446,13 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         StudentCourseEntity sourceCourse = createStudentCourseEntity(sourceId, "1", "202504");
         sourceCourse.setId(sourceCourseId);
         sourceCourse.setInterimPercent(85.0);
-        sourceCourse.setCompletedCoursePercentage(90.0);
+        sourceCourse.setFinalPercent(90.0);
 
         // Target student has existing course (same courseID and session, but different data)
         StudentCourseEntity targetCourse = createStudentCourseEntity(targetId, "1", "202504");
         targetCourse.setId(targetCourseId);
         targetCourse.setInterimPercent(70.0);
-        targetCourse.setCompletedCoursePercentage(75.0);
+        targetCourse.setFinalPercent(75.0);
         // No exam with score - should allow overwrite
 
         StudentCoursesMoveReq request = new StudentCoursesMoveReq();
@@ -1600,8 +1600,8 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         // Source student course
         StudentCourseEntity sourceCourse = createStudentCourseEntity(sourceId, "1", "202504");
         sourceCourse.setId(sourceCourseId);
-        sourceCourse.setCompletedCoursePercentage(85.0);
-        sourceCourse.setCompletedCourseLetterGrade("B");
+        sourceCourse.setFinalPercent(85.0);
+        sourceCourse.setFinalLetterGrade("B");
         StudentCourseExam examWithoutScore = createStudentCourseExam(null, null, null, null);
         sourceCourse.setCourseExam(createStudentCourseExamEntity(examWithoutScore));
 

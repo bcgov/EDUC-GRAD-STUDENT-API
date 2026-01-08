@@ -6,8 +6,9 @@ APP_NAME=$2
 GRAD_NAMESPACE=$3
 COMMON_NAMESPACE=$4
 BUSINESS_NAMESPACE=$5
-SPLUNK_TOKEN=$6
-APP_LOG_LEVEL=$7
+COREG_NAMESPACE=$6
+SPLUNK_TOKEN=$7
+APP_LOG_LEVEL=$8
 
 SPLUNK_URL="gww.splunk.educ.gov.bc.ca"
 FLB_CONFIG="[SERVICE]
@@ -65,6 +66,7 @@ oc create -n "$GRAD_NAMESPACE"-"$envValue" configmap "$APP_NAME"-config-map \
   --from-literal=MAX_RETRY_ATTEMPTS="3" \
   --from-literal=PEN_API="http://student-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/" \
   --from-literal=INSTITUTE_URL="http://institute-api-master.$COMMON_NAMESPACE-$envValue.svc.cluster.local:8080/api/v1/institute" \
+  --from-literal=COREG_API_URL="http://coreg-api-master.$COREG_NAMESPACE-$envValue.svc.cluster.local:8080/api/v1/" \
   --from-literal=CRON_SCHEDULED_REFRESH_NON_GRAD_STATUS="0 0 0 1 * ?" \
   --from-literal=CRON_SCHEDULED_REFRESH_COURSE_DETAILS="0 0 02 * * *" \
   --from-literal=ENABLE_COMPRESSION="true" \

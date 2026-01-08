@@ -183,6 +183,8 @@ endpoint:
       url: http://test
   institute:
     url: http://test
+  coreg:
+    url: http://test
 
 #Splunk LogHelper
 splunk:
