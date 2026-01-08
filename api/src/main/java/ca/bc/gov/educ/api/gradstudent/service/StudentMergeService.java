@@ -39,7 +39,7 @@ public class StudentMergeService {
     private static final Logger logger = LoggerFactory.getLogger(StudentMergeService.class);
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Boolean mergeStudentProcess(UUID studentID, UUID trueStudentID) throws JsonProcessingException {
+    public boolean mergeStudentProcess(UUID studentID, UUID trueStudentID) throws JsonProcessingException {
         //Check the student present in Grad System
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findOptionalByStudentID(studentID);
         if (graduationStudentRecordEntityOptional.isEmpty()) {
@@ -47,8 +47,6 @@ public class StudentMergeService {
             return true;
         }
         GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
-        //Check the merged student present in Grad system; if not onboard.
-        this.checkIfExistsAndOnboard(trueStudentID);
         //Update the grad status for Source Student
         graduationStudentRecordEntity.setStudentStatus(MERGED_STATUS_CODE);
         graduationStudentRecordEntity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
@@ -106,21 +104,6 @@ public class StudentMergeService {
         }
         
         return "CUR";
-    }
-
-    private void checkIfExistsAndOnboard(UUID studentID) throws JsonProcessingException {
-        boolean isExists = isStudentPresentInGrad(studentID);
-        if (!isExists) {
-            logger.info("Student with ID {} does not exist in Grad System. Adopting student", studentID);
-            var pair = this.graduationStatusService.adoptStudent(studentID, ThreadLocalStateUtil.getCurrentUser());
-            if (pair.getRight() != null) {
-                publisher.dispatchChoreographyEvent(pair.getRight());
-            }
-        }
-    }
-
-    private boolean isStudentPresentInGrad(UUID studentID) {
-        return graduationStatusRepository.existsByStudentID(studentID);
     }
 
 }
