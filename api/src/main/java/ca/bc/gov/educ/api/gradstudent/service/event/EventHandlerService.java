@@ -119,7 +119,14 @@ public class EventHandlerService {
         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
         log.debug("handleProcessStudentCourseDataEvent found student :: {}", student);
 
-        graduationStudentRecordService.handleStudentCourseRecord(student.get(), courseStudent, studentFromApi);
+        if (student.isPresent()) {
+            graduationStudentRecordService.handleStudentCourseRecord(student.get(), courseStudent, studentFromApi);
+        } else {
+            graduationStudentRecordService.handleAssessmentAdoptEvent(studentFromApi.getStudentID(), EducGradStudentApiConstants.DEFAULT_CREATED_BY);
+            Optional<GraduationStudentRecordEntity> adoptedStudent = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
+            graduationStudentRecordService.handleStudentCourseRecord(adoptedStudent.get(), courseStudent, studentFromApi);
+        }
+
         event.setEventOutcome(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
         val studentEvent = createEventRecord(event);
         var courses = studentCourseRepository.findByStudentID(UUID.fromString(studentFromApi.getStudentID()));
@@ -148,7 +155,7 @@ public class EventHandlerService {
                             graduationStudentRecordService.handleSetFlagsForGradStudent(student.get(), event);
                             updateEvent(event);
                         } else {
-                            var adoptEvent = graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event);
+                            var adoptEvent = graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event.getUpdateUser()).getRight();
                             updateEvent(event);
                             log.info("Event was processed, ID :: {}", event.getEventId());
                             return adoptEvent;
