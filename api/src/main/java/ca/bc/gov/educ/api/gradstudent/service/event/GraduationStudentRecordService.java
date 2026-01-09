@@ -541,7 +541,8 @@ public class GraduationStudentRecordService {
                 statusChangeCount++;
             }
 
-            if(StringUtils.isNotBlank(newStudentRecordEntity.getStudentCitizenship()) && StringUtils.isNotBlank(demStudent.getCitizenship()) && !newStudentRecordEntity.getStudentCitizenship().equalsIgnoreCase(demStudent.getCitizenship())) {
+            if((StringUtils.isBlank(newStudentRecordEntity.getStudentCitizenship()) && StringUtils.isNotBlank(demStudent.getCitizenship()))  
+                    ||  (StringUtils.isNotBlank(newStudentRecordEntity.getStudentCitizenship()) && StringUtils.isNotBlank(demStudent.getCitizenship()) && !newStudentRecordEntity.getStudentCitizenship().equalsIgnoreCase(demStudent.getCitizenship()))) {
                 newStudentRecordEntity.setStudentCitizenship(demStudent.getCitizenship());
                 projectedChangeCount++;
                 statusChangeCount++;
