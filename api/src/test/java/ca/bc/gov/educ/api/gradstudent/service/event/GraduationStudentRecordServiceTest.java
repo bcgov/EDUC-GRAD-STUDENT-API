@@ -45,6 +45,7 @@ class GraduationStudentRecordServiceTest {
                 .pen("321654987")
                 .genderCode("F")
                 .legalFirstName("Danielle")
+                .statusCode("A")
                 .build();
         GraduationStudentRecordEntity graduationStudentRecordEntity = GraduationStudentRecordEntity.builder()
                 .studentID(studentID)

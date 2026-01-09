@@ -3,10 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.service.event;
 import ca.bc.gov.educ.api.gradstudent.constant.GradRequirementYearCodes;
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUpdateResult;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
-import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDetail;
@@ -100,8 +97,10 @@ public class GraduationStudentRecordService {
         existingStudentRecordEntity.setLegalMiddleNames(studentUpdate.getLegalMiddleNames());
         existingStudentRecordEntity.setUpdateUser(event.getUpdateUser());
         existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
-        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
-        existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        if(!studentUpdate.getStatusCode().equals("M")){
+            existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
+            existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        }
         var savedStudentRecord = graduationStudentRecordRepository.save(existingStudentRecordEntity);
         historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
     }
@@ -581,6 +580,7 @@ public class GraduationStudentRecordService {
 
         if(statusChangeCount > 0) {
             newStudentRecordEntity.setRecalculateGradStatus("Y");
+            newStudentRecordEntity.setRecalculateProjectedGrad("Y");
         }
         
         var hasUpdates = projectedChangeCount > 0 || statusChangeCount > 0 || hasAdultChange;
