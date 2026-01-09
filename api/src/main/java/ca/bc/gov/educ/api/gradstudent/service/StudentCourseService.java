@@ -10,6 +10,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCourseExamEntity;
 import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseMapper;
+import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -47,6 +48,7 @@ public class StudentCourseService {
     private final GraduationStatusService graduationStatusService;
     private final CourseService courseService;
     private final HistoryService historyService;
+    private final GradStatusEventRepository gradStatusEventRepository;
 
     public List<StudentCourse> getStudentCourses(UUID studentID) {
         if (studentID != null) {
@@ -133,6 +135,7 @@ public class StudentCourseService {
             List<StudentCourse> finalCourseList =  new ArrayList<>();
             courseList.forEach(course -> finalCourseList.add(mapper.toStructure(course)));
             gradStatusEvent = EventUtil.createEvent(GRAD_STUDENT_API, GRAD_STUDENT_API, JsonUtil.getJsonStringFromObject(EventUtil.getStudentCourseUpdate(studentID.toString(), finalCourseList)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
+            gradStatusEventRepository.save(gradStatusEvent);
         }
 
         return Pair.of(studentCourseResponse, gradStatusEvent);
@@ -239,6 +242,7 @@ public class StudentCourseService {
             List<StudentCourse> finalCourseList =  new ArrayList<>();
             courseList.forEach(course -> finalCourseList.add(mapper.toStructure(course)));
             gradStatusEvent = EventUtil.createEvent(GRAD_STUDENT_API, GRAD_STUDENT_API, JsonUtil.getJsonStringFromObject(EventUtil.getStudentCourseUpdate(studentID.toString(), finalCourseList)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
+            gradStatusEventRepository.save(gradStatusEvent);
         }
         return Pair.of(courseValidationIssueMap.values().stream().toList(), gradStatusEvent);
     }
@@ -302,6 +306,7 @@ public class StudentCourseService {
             List<StudentCourse> finalCourseListTarget =  new ArrayList<>();
             courseListTarget.forEach(course -> finalCourseListTarget.add(mapper.toStructure(course)));
             gradStatusEvents.add(EventUtil.createEvent(GRAD_STUDENT_API, GRAD_STUDENT_API, JsonUtil.getJsonStringFromObject(EventUtil.getStudentCourseUpdate(request.getTargetStudentId().toString(), finalCourseListTarget)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED));
+            gradStatusEventRepository.saveAll(gradStatusEvents);
         }
 
         return Pair.of(validationIssues, gradStatusEvents);
@@ -372,6 +377,7 @@ public class StudentCourseService {
         List<StudentCourse> courses = new ArrayList<>(coursesToAdd);
         courses.addAll(coursesToOverwrite);
         var gradStatusEvent = EventUtil.createEvent(GRAD_STUDENT_API, GRAD_STUDENT_API, JsonUtil.getJsonStringFromObject(EventUtil.getStudentCourseUpdate(targetStudentId.toString(), courses)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
+        gradStatusEventRepository.save(gradStatusEvent);
         return Pair.of(validationIssues, gradStatusEvent);
     }
 
