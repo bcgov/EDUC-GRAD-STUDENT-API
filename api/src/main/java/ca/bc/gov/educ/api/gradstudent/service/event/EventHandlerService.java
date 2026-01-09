@@ -22,7 +22,6 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransfor
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import ca.bc.gov.educ.api.gradstudent.service.CourseService;
-import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -61,9 +60,8 @@ public class EventHandlerService {
     private final GradStatusEventRepository gradStatusEventRepository;
     private final StudentCourseRepository studentCourseRepository;
     private final GraduationStatusTransformer graduationStatusTransformer;
-    private final StudentCourseMapper courseMapper = StudentCourseMapper.mapper;
+    private static final StudentCourseMapper courseMapper = StudentCourseMapper.mapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final GradStudentService gradStudentService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<byte[], List<GradStatusEvent>> handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
@@ -119,7 +117,14 @@ public class EventHandlerService {
         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
         log.debug("handleProcessStudentCourseDataEvent found student :: {}", student);
 
-        graduationStudentRecordService.handleStudentCourseRecord(student.get(), courseStudent, studentFromApi);
+        if (student.isPresent()) {
+            graduationStudentRecordService.handleStudentCourseRecord(student.get(), courseStudent, studentFromApi);
+        } else {
+            graduationStudentRecordService.handleAssessmentAdoptEvent(studentFromApi.getStudentID(), EducGradStudentApiConstants.DEFAULT_CREATED_BY);
+            Optional<GraduationStudentRecordEntity> adoptedStudent = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
+            graduationStudentRecordService.handleStudentCourseRecord(adoptedStudent.get(), courseStudent, studentFromApi);
+        }
+
         event.setEventOutcome(EventOutcome.COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
         val studentEvent = createEventRecord(event);
         var courses = studentCourseRepository.findByStudentID(UUID.fromString(studentFromApi.getStudentID()));
@@ -148,7 +153,7 @@ public class EventHandlerService {
                             graduationStudentRecordService.handleSetFlagsForGradStudent(student.get(), event);
                             updateEvent(event);
                         } else {
-                            var adoptEvent = graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event);
+                            var adoptEvent = graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, event.getUpdateUser()).getRight();
                             updateEvent(event);
                             log.info("Event was processed, ID :: {}", event.getEventId());
                             return adoptEvent;
