@@ -34,12 +34,6 @@ public abstract class GradBaseService {
 
     protected void validateStudentStatusAndResetBatchFlags(GraduationStudentRecordEntity gradEntity) {
         String studentStatus = gradEntity.getStudentStatus();
-        // GRAD2-2934
-        // 1. If a student in GRAD is ARC/TER then do not set TVR flag when their other data changes
-        // 2. If a student in GRAD is changed to ARC/TER then set TVR flag to NULL
-        if (STUDENT_STATUS_ARCHIVED.equalsIgnoreCase(studentStatus) || STUDENT_STATUS_TERMINATED.equalsIgnoreCase(studentStatus)) {
-            gradEntity.setRecalculateProjectedGrad(null);
-        }
         // GRAD2-2922 & GRAD2-2950
         // 1. If a student in GRAD is MER then do not set Transcript & TVR flags  when their other data changes
         // 2. If a student in GRAD is changed to MER then set Transcript & TVR flags to NULL
@@ -57,12 +51,6 @@ public abstract class GradBaseService {
         }
         if (studentStatus == null) {
             studentStatus = gradEntity.getStudentStatus();
-        }
-        // GRAD2-2934
-        // 1. If a student in GRAD is ARC/TER then do not set TVR flag when their other data changes
-        // 2. If a student in GRAD is changed to ARC/TER then set TVR flag to NULL
-        if (STUDENT_STATUS_ARCHIVED.equalsIgnoreCase(studentStatus) || STUDENT_STATUS_TERMINATED.equalsIgnoreCase(studentStatus)) {
-            addUpdateFieldIntoMap(updateFieldsMap, FieldName.RECALC_TVR, FieldType.STRING, NULL_VALUE);
         }
         // GRAD2-2922 & GRAD2-2950
         // 1. If a student in GRAD is MER then do not set Transcript & TVR flags  when their other data changes
