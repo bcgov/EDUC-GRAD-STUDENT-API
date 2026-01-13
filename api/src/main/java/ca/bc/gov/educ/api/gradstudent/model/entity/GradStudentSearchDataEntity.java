@@ -33,7 +33,7 @@ public class GradStudentSearchDataEntity extends BaseEntity {
     private String legalMiddleNames;
 
     @Column(name = "DOB",  nullable = true)
-    private LocalDateTime dob;
+    private Date dob;
 
     @Column(name = "GENDER_CODE", nullable = true)
     private String genderCode;
