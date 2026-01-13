@@ -362,7 +362,7 @@ public class CSVReportService {
 
         String birthdate = "";
         if (gradStudent.getDob() != null) {
-            birthdate = EducGradStudentApiUtils.formatDate(gradStudent.getDob(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+            birthdate = gradStudent.getDob().format(DateTimeFormatter.ofPattern(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT));
         }
 
         String completionDate = "";
