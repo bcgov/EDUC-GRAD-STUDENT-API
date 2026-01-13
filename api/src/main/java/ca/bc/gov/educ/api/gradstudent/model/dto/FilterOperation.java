@@ -82,9 +82,10 @@ public enum FilterOperation {
   /**
    * Date range filter operation - supports optional start and/or end dates.
    */
-  DATE_RANGE("date_range");
+  DATE_RANGE("date_range"),
 
-  ;
+  DATE_TIME_RANGE("date_time_range");
+
   /**
    * From value optional.
    *

@@ -67,11 +67,11 @@ public class FilterCriteria<T extends Comparable<T>> {
 
     String[] operationValues;
 
-    if (filterOperation == FilterOperation.BETWEEN || filterOperation == FilterOperation.IN || filterOperation == FilterOperation.NOT_IN || filterOperation == FilterOperation.IN_LEFT_JOIN || filterOperation == FilterOperation.NONE_IN || filterOperation == FilterOperation.IN_NOT_DISTINCT || filterOperation == FilterOperation.DATE_RANGE) {
+    if (filterOperation == FilterOperation.BETWEEN || filterOperation == FilterOperation.IN || filterOperation == FilterOperation.NOT_IN || filterOperation == FilterOperation.IN_LEFT_JOIN || filterOperation == FilterOperation.NONE_IN || filterOperation == FilterOperation.IN_NOT_DISTINCT || filterOperation == FilterOperation.DATE_RANGE || filterOperation == FilterOperation.DATE_TIME_RANGE) {
       if (fieldValue != null) {
         // Split the fieldValue value as comma separated.
         // For DATE_RANGE, we need to preserve empty strings (e.g., "2023-01-01," becomes ["2023-01-01", ""])
-        if (filterOperation == FilterOperation.DATE_RANGE) {
+        if (filterOperation == FilterOperation.DATE_RANGE || filterOperation == FilterOperation.DATE_TIME_RANGE) {
           operationValues = fieldValue.split(",", -1); // -1 preserves trailing empty strings
         } else {
           operationValues = StringUtils.split(fieldValue, ",");
@@ -117,7 +117,7 @@ public class FilterCriteria<T extends Comparable<T>> {
       }
 
       //For 'date_range' operation - allows optional start and/or end date
-    } else if (FilterOperation.DATE_RANGE == operation) {
+    } else if (FilterOperation.DATE_RANGE == operation || FilterOperation.DATE_TIME_RANGE == operation) {
       if (operationValues.length != 2) {
         throw new IllegalArgumentException("For 'date_range' operation two values are expected (startDate,endDate), either can be empty");
       } else {
