@@ -13,7 +13,6 @@ public interface UpsertStudentCourseValidationBaseRule extends StudentCourseVali
     Integer DEFAULT_MIN_PERCENTAGE_VALUE = 0;
     Integer DEFAULT_MAX_PERCENTAGE_VALUE = 100;
     String BOARD_AUTHORITY_CODE = "BA";
-    String LOCAL_DEVELOPMENT_CODE = "LD";
     String CAREER_PROGRAM_CODE = "CP";
 
     default Pair<LocalDate, LocalDate> getCurrentSessionPeriod() {

@@ -855,6 +855,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         var d = course.getStudentDetails().get(0);
         d.setCourseLevel("11");
         d.setCourseGraduationRequirement("F");
+        d.setCourseCode("XENFF");
 
         var student = createmockStudent();
         var grad = createMockGraduationStudentRecordEntity(UUID.fromString(student.getStudentID()), UUID.randomUUID());
