@@ -377,7 +377,7 @@ public class GraduationStudentRecordService {
         var is1996 = GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear);
         var is2004_2018_2023 = GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear));
         var isBA = "BA".equalsIgnoreCase(catCode);
-        var isLD = "LD".equalsIgnoreCase(catCode);
+        var isLD = courseStudent.getCourseCode() != null && courseStudent.getCourseCode().startsWith("X");
 
         log.debug("Resolving fine arts applied skills code with gradRequirementYear: {}, catCode: {}, isGrade11: {}, is1996: {}, is2004_2018_2023: {}, isBA: {}, isLD: {}",
                 gradRequirementYear, catCode, isGrade11, is1996, is2004_2018_2023, isBA, isLD);
