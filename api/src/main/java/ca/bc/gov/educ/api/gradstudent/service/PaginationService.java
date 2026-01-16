@@ -75,6 +75,11 @@ public class PaginationService {
       return entitySpecification;
     }
 
+    if (filterOperation == FilterOperation.DATE_TIME_RANGE) {
+      entitySpecification = filterSpecs.getDateTimeTypeSpecification(key, value, filterOperation);
+      return entitySpecification;
+    }
+
     switch (valueType) {
       case STRING ->
               entitySpecification = filterSpecs.getStringTypeSpecification(key, value, filterOperation);

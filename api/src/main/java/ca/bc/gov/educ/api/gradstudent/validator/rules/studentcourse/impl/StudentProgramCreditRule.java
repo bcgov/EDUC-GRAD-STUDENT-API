@@ -69,14 +69,16 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
         final List<ValidationIssue> programValidationIssues = new ArrayList<>();
         if(StringUtils.isBlank(programCode)) return programValidationIssues;
         String fineArtsAppliedSkillsValue = studentCourse.getFineArtsAppliedSkills();
+        String courseCode = course.getCourseCode();
         boolean isLevelGrade11 = StringUtils.isNotBlank(course.getCourseLevel()) && course.getCourseLevel().startsWith("11");
         if(StringUtils.isNotBlank(fineArtsAppliedSkillsValue)  && !(isLevelGrade11 && Set.of("B", "A", "F").contains(fineArtsAppliedSkillsValue) && (BOARD_AUTHORITY_CODE.equals(course.getCourseCategory().getCode()) ||
-                LOCAL_DEVELOPMENT_CODE.equals(course.getCourseCategory().getCode()) ||
+                (courseCode != null && courseCode.startsWith("X")) ||
                 CAREER_PROGRAM_CODE.equals(course.getCourseCategory().getCode())))) {
             return List.of(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_BA_LA_CA_VALID));
         }
         if(!PROGRAM_CODES_1995.contains(programCode) && StringUtils.isNotBlank(fineArtsAppliedSkillsValue) && Set.of("B", "A", "F").contains(fineArtsAppliedSkillsValue)
-                && Set.of(CAREER_PROGRAM_CODE, LOCAL_DEVELOPMENT_CODE).contains(course.getCourseCategory().getCode())) {
+                && (CAREER_PROGRAM_CODE.equalsIgnoreCase(course.getCourseCategory().getCode())
+                || (courseCode != null && courseCode.startsWith("X")))) {
                 programValidationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_FINE_ARTS_APPLIED_SKILLED_1995_VALID));
         }
         if (PROGRAM_CODES_1995.contains(programCode)) {

@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.sql.Date;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -27,19 +30,19 @@ public class GraduationStatusTransformer {
 
     private static final Logger logger = LoggerFactory.getLogger(GraduationStatusTransformer.class);
 
-    private static final String JSON_PARSING_ERROR = "Parsing Error: {}";
-
-    @Autowired
     ModelMapper modelMapper;
-    
-    @Autowired
     GradValidation validation;
-
-    @Autowired
     JsonTransformer jsonTransformer;
+    ReportGradStudentDataRepository reportGradStudentDataRepository;
 
     @Autowired
-    ReportGradStudentDataRepository reportGradStudentDataRepository;
+    public GraduationStatusTransformer(ModelMapper modelMapper, GradValidation validation, JsonTransformer jsonTransformer, ReportGradStudentDataRepository reportGradStudentDataRepository) {
+        this.modelMapper = modelMapper;
+        this.validation = validation;
+        this.jsonTransformer = jsonTransformer;
+        this.reportGradStudentDataRepository = reportGradStudentDataRepository;
+    }
+
 
     public GraduationStudentRecord transformToDTOWithModifiedProgramCompletionDate(GraduationStudentRecordEntity gradStatusEntity) {
         GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
@@ -152,6 +155,11 @@ public class GraduationStatusTransformer {
         List<GraduationStudentRecord> results = new ArrayList<>();
         Map<UUID, ReportGradStudentDataEntity> reportGradStudentDataMap = convertGraduationStudentRecordViewToReportGradStudentDataMap(gradStatusEntities);
         for (GraduationStudentRecordView gradStatusEntity : gradStatusEntities) {
+            if(gradStatusEntity.getProgramCompletionDate() != null && isPriorToCurrentSchoolYear(gradStatusEntity.getProgramCompletionDate())) {
+                // Current students with a Program completion date prior to the current school year, i.e. OCT 20XX, for a graduation program in grade 12/AD will no longer be included in either of the amalgamated Projected TVR lists.
+                // per GRAD2-3226
+                continue;
+            }
             GraduationStudentRecord gradStatus = modelMapper.map(gradStatusEntity, GraduationStudentRecord.class);
             gradStatus.setProgramCompletionDate(EducGradStudentApiUtils.parseTraxDate(gradStatusEntity.getProgramCompletionDate() != null ? gradStatusEntity.getProgramCompletionDate().toString():null));
             populatePenAndLegalNamesAndNonGradReasons(gradStatus, reportGradStudentDataMap);
@@ -172,6 +180,13 @@ public class GraduationStatusTransformer {
                 .thenComparing(GraduationStudentRecord::getLegalFirstName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(GraduationStudentRecord::getLegalMiddleNames, Comparator.nullsLast(Comparator.naturalOrder())));
         return results.stream().map(GraduationStudentRecord::getStudentID).toList();
+    }
+
+    private boolean isPriorToCurrentSchoolYear(java.util.Date date) {
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDate localDate = Instant.ofEpochMilli(date.getTime()).atZone(zone).toLocalDate();
+        LocalDate oct1 = LocalDate.of(LocalDate.now(zone).getYear(), 10, 1);
+        return localDate.isBefore(oct1);
     }
 
     private Map<UUID, ReportGradStudentDataEntity> convertGraduationStudentRecordViewToReportGradStudentDataMap(List<GraduationStudentRecordView> gradStatusEntities) {

@@ -392,9 +392,6 @@ public class GraduationStatusService extends GradBaseService {
             String status = gradEntity.getStudentStatus().toUpperCase();
             if(Set.of("CUR", "ARC", "TER", "DEC").contains(status) && !"Y".equals(gradEntity.getRecalculateGradStatus())) {
                 gradEntity.setRecalculateGradStatus("Y");
-                isUpdated = true;
-            }
-            if("CUR".equals(status) && !"Y".equals(gradEntity.getRecalculateProjectedGrad())) {
                 gradEntity.setRecalculateProjectedGrad("Y");
                 isUpdated = true;
             }
@@ -1259,6 +1256,7 @@ public class GraduationStatusService extends GradBaseService {
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEnity = gradStatusOptional.get();
             gradEnity.setRecalculateGradStatus("Y");
+            gradEnity.setRecalculateProjectedGrad("Y");
             if(!isGraduated) {
                 gradEnity.setProgramCompletionDate(null);
                 gradEnity.setHonoursStanding(null);
@@ -1606,8 +1604,10 @@ public class GraduationStatusService extends GradBaseService {
         String activeStatus = PenGradStudentStatusEnum.CUR.label;
         studentEntity.setStudentStatus(activeStatus.equals(student.getStatusCode()) ? PenGradStudentStatusEnum.CUR.name() : PenGradStudentStatusEnum.DEC.name());
         studentEntity.setStudentGrade(student.getGradeCode());
-        studentEntity.setRecalculateGradStatus(activeStatus.equals(student.getStatusCode()) ? "Y" : null);
-        studentEntity.setRecalculateProjectedGrad(activeStatus.equals(student.getStatusCode()) ? "Y" : null);
+        if(!student.getStatusCode().equals(PenGradStudentStatusEnum.MER.name())) {
+            studentEntity.setRecalculateGradStatus("Y");
+            studentEntity.setRecalculateProjectedGrad("Y");
+        }
 
         studentEntity.setPen(student.getPen());
         studentEntity.setLegalMiddleNames(student.getLegalMiddleNames());

@@ -3,10 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.service.event;
 import ca.bc.gov.educ.api.gradstudent.constant.GradRequirementYearCodes;
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GradStudentUpdateResult;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
-import ca.bc.gov.educ.api.gradstudent.model.dto.LetterGrade;
-import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDetail;
@@ -24,10 +21,10 @@ import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -102,8 +99,10 @@ public class GraduationStudentRecordService {
         existingStudentRecordEntity.setLegalMiddleNames(studentUpdate.getLegalMiddleNames());
         existingStudentRecordEntity.setUpdateUser(event.getUpdateUser());
         existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
-        existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
-        existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        if(!studentUpdate.getStatusCode().equals("M")){
+            existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
+            existingStudentRecordEntity.setRecalculateGradStatus("Y");
+        }
         var savedStudentRecord = graduationStudentRecordRepository.save(existingStudentRecordEntity);
         historyService.createStudentHistory(savedStudentRecord, PENALERT.getCode());
     }
@@ -118,8 +117,8 @@ public class GraduationStudentRecordService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public GradStatusEvent handleAssessmentAdoptEvent(String studentID, final GradStatusEvent event) throws JsonProcessingException {
-        return graduationStatusService.adoptStudent(UUID.fromString(studentID), event.getUpdateUser()).getRight();
+    public Pair<GraduationStudentRecord, GradStatusEvent> handleAssessmentAdoptEvent(String studentID, final String updateUser) throws JsonProcessingException {
+        return graduationStatusService.adoptStudent(UUID.fromString(studentID), updateUser);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -380,7 +379,7 @@ public class GraduationStudentRecordService {
         var is1996 = GradRequirementYearCodes.YEAR_1996.getCode().equalsIgnoreCase(gradRequirementYear);
         var is2004_2018_2023 = GradRequirementYearCodes.get2004_2018_2023Codes().stream().anyMatch(reqYear -> reqYear.equalsIgnoreCase(gradRequirementYear));
         var isBA = "BA".equalsIgnoreCase(catCode);
-        var isLD = "LD".equalsIgnoreCase(catCode);
+        var isLD = courseStudent.getCourseCode() != null && courseStudent.getCourseCode().startsWith("X");
 
         log.debug("Resolving fine arts applied skills code with gradRequirementYear: {}, catCode: {}, isGrade11: {}, is1996: {}, is2004_2018_2023: {}, isBA: {}, isLD: {}",
                 gradRequirementYear, catCode, isGrade11, is1996, is2004_2018_2023, isBA, isLD);
@@ -583,6 +582,7 @@ public class GraduationStudentRecordService {
 
         if(statusChangeCount > 0) {
             newStudentRecordEntity.setRecalculateGradStatus("Y");
+            newStudentRecordEntity.setRecalculateProjectedGrad("Y");
         }
         
         var hasUpdates = projectedChangeCount > 0 || statusChangeCount > 0 || hasAdultChange;
