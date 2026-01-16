@@ -43,6 +43,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static ca.bc.gov.educ.api.gradstudent.constant.HistoryActivityCodes.PENALERT;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -103,7 +105,7 @@ public class GraduationStudentRecordService {
         existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
         existingStudentRecordEntity.setRecalculateGradStatus("Y");
         var savedStudentRecord = graduationStudentRecordRepository.save(existingStudentRecordEntity);
-        historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
+        historyService.createStudentHistory(savedStudentRecord, PENALERT.getCode());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)

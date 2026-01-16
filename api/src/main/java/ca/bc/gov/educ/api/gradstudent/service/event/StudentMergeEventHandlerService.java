@@ -40,7 +40,7 @@ public class StudentMergeEventHandlerService {
             markEventAsProcessed(event.getEventId());
             return true;
         }
-        boolean mergeResult = studentMergeService.mergeStudentProcess(UUID.fromString(studentMerge.get().getStudentID()), UUID.fromString(studentMerge.get().getMergeStudentID()));
+        boolean mergeResult = studentMergeService.mergeStudentProcess(UUID.fromString(studentMerge.get().getStudentID()), UUID.fromString(studentMerge.get().getMergeStudentID()), event.getUpdateUser());
         if (mergeResult) {
             markEventAsProcessed(event.getEventId());
         }
@@ -56,7 +56,7 @@ public class StudentMergeEventHandlerService {
         if (studentDeMerge.isEmpty()) {
             log.info("Student Demerge is empty. EventId: {}", event.getEventId());
         }else {
-            studentMergeService.demergeStudentProcess(UUID.fromString(studentDeMerge.get().getStudentID()));
+            studentMergeService.demergeStudentProcess(UUID.fromString(studentDeMerge.get().getStudentID()), event.getUpdateUser());
         }
         markEventAsProcessed(event.getEventId());
         return true;

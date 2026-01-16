@@ -10,6 +10,7 @@ import ca.bc.gov.educ.api.gradstudent.util.ThreadLocalStateUtil;
 import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,7 @@ public class StudentMergeService {
     private static final String MERGED_STATUS_CODE = "MER";
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public boolean mergeStudentProcess(UUID studentID, UUID trueStudentID) {
+    public boolean mergeStudentProcess(UUID studentID, UUID trueStudentID, String updateUser) {
         //Check the student present in Grad System
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findOptionalByStudentID(studentID);
         if (graduationStudentRecordEntityOptional.isEmpty()) {
@@ -42,7 +43,7 @@ public class StudentMergeService {
         GraduationStudentRecordEntity graduationStudentRecordEntity = graduationStudentRecordEntityOptional.get();
         //Update the grad status for Source Student
         graduationStudentRecordEntity.setStudentStatus(MERGED_STATUS_CODE);
-        graduationStudentRecordEntity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
+        graduationStudentRecordEntity.setUpdateUser(StringUtils.isNotBlank(updateUser) ? updateUser : ThreadLocalStateUtil.getCurrentUser());
         graduationStudentRecordEntity.setUpdateDate(LocalDateTime.now());
         graduationStatusRepository.save(graduationStudentRecordEntity);
         // update history
@@ -60,7 +61,7 @@ public class StudentMergeService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void demergeStudentProcess(UUID studentID) {
+    public void demergeStudentProcess(UUID studentID, String updateUser) {
         //Check the student present in Grad System
         Optional<GraduationStudentRecordEntity> graduationStudentRecordEntityOptional = graduationStatusRepository.findOptionalByStudentID(studentID);
         if (graduationStudentRecordEntityOptional.isEmpty()) {
@@ -70,7 +71,7 @@ public class StudentMergeService {
             var priorStatus = findMERRecordWithPrevious(studentID);
             //Update the grad status for Source Student
             graduationStudentRecordEntity.setStudentStatus(priorStatus);
-            graduationStudentRecordEntity.setUpdateUser(ThreadLocalStateUtil.getCurrentUser());
+            graduationStudentRecordEntity.setUpdateUser(StringUtils.isNotBlank(updateUser) ? updateUser : ThreadLocalStateUtil.getCurrentUser());
             graduationStudentRecordEntity.setUpdateDate(LocalDateTime.now());
             graduationStatusRepository.save(graduationStudentRecordEntity);
             // update history
