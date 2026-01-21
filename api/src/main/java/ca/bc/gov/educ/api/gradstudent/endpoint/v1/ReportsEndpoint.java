@@ -3,6 +3,7 @@ package ca.bc.gov.educ.api.gradstudent.endpoint.v1;
 import ca.bc.gov.educ.api.gradstudent.model.dto.DownloadableReportResponse;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,4 +43,11 @@ public interface ReportsEndpoint {
     @Transactional(readOnly = true)
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
     void getOptionalProgramStudentSearchReport(@RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson, HttpServletResponse response) throws IOException;
+
+    @GetMapping("/students/search/download")
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Transactional(readOnly = true)
+    @Operation(summary = "Download Student Search Report", description = "Download CSV report of student search results")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+    void getStudentSearchReport(@RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson, HttpServletResponse response) throws IOException;
 }

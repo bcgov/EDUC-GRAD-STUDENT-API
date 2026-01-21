@@ -945,4 +945,75 @@ class ReportsControllerTest extends BaseIntegrationTest {
         assertThat(csvContent).contains("Archived");
     }
 
+    @Test
+    void testGetStudentSearchReport_WithSearchCriteria_ShouldReturnFilteredRecords() throws Exception {
+        final GrantedAuthority grantedAuthority = () -> "SCOPE_READ_GRAD_GRADUATION_STATUS";
+        final SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor mockAuthority = oidcLogin().authorities(grantedAuthority);
+
+        var schoolID = UUID.randomUUID();
+
+        var gradStudent = new GraduationStudentRecordEntity();
+        gradStudent.setStudentID(UUID.randomUUID());
+        gradStudent.setPen("555555555");
+        gradStudent.setLegalFirstName("Alice");
+        gradStudent.setLegalLastName("Williams");
+        gradStudent.setLegalMiddleNames("Marie");
+        gradStudent.setStudentStatus("CUR");
+        gradStudent.setProgram("2018-EN");
+        gradStudent.setStudentGrade("12");
+        gradStudent.setGenderCode("F");
+        gradStudent.setSchoolOfRecordId(schoolID);
+        gradStudent.setDob(LocalDateTime.of(2005, 3, 20, 0, 0));
+        gradStudent.setProgramCompletionDate(Date.valueOf(LocalDate.of(2023, 6, 1)));
+        gradStudent.setRecalculateGradStatus("Y");
+        gradStudent.setRecalculateProjectedGrad("N");
+        graduationStudentRecordRepository.save(gradStudent);
+
+        var school = createMockSchoolTombstone();
+        school.setSchoolId(String.valueOf(schoolID));
+        school.setMincode("11223344");
+        school.setDisplayName("Williams High School");
+
+        when(restUtils.getSchoolBySchoolID(any())).thenReturn(Optional.of(school));
+
+        var searchCriteria = "[{\"condition\":\"AND\",\"searchCriteriaList\":[{\"key\":\"program\",\"operation\":\"eq\",\"value\":\"2018-EN\",\"valueType\":\"STRING\"}]}]";
+
+        var resultActions = this.mockMvc.perform(
+                        get(EducGradStudentApiConstants.BASE_URL_REPORT + "/students/search/download")
+                                .param("searchCriteriaList", searchCriteria)
+                                .with(mockAuthority))
+                .andDo(print()).andExpect(status().isOk());
+
+        String csvContent = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(csvContent).isNotBlank();
+        assertThat(csvContent).contains("PEN");
+        assertThat(csvContent).contains("Student Status");
+        assertThat(csvContent).contains("Surname");
+        assertThat(csvContent).contains("Given Name");
+        assertThat(csvContent).contains("Middle Name");
+        assertThat(csvContent).contains("Birthdate");
+        assertThat(csvContent).contains("Gender");
+        assertThat(csvContent).contains("Grade");
+        assertThat(csvContent).contains("Program");
+        assertThat(csvContent).contains("Completion Date");
+        assertThat(csvContent).contains("School of Record Code");
+        assertThat(csvContent).contains("School of Record Name");
+        assertThat(csvContent).contains("Recalculate Grad Status?");
+        assertThat(csvContent).contains("Recalculate Projected Grad?");
+        assertThat(csvContent).contains("555555555");
+        assertThat(csvContent).contains("Current");
+        assertThat(csvContent).contains("Williams");
+        assertThat(csvContent).contains("Alice");
+        assertThat(csvContent).contains("Marie");
+        assertThat(csvContent).contains("2005-03-20");
+        assertThat(csvContent).contains("F");
+        assertThat(csvContent).contains("12");
+        assertThat(csvContent).contains("2018-EN");
+        assertThat(csvContent).contains("2023/06");
+        assertThat(csvContent).contains("11223344");
+        assertThat(csvContent).contains("Williams High School");
+        assertThat(csvContent).contains("Y");
+        assertThat(csvContent).contains("N");
+    }
+
 }

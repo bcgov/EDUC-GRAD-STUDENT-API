@@ -48,4 +48,9 @@ public class ReportsController implements ReportsEndpoint {
     public void getOptionalProgramStudentSearchReport(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
         csvReportService.generateOptionalProgramStudentSearchReportStream(searchCriteriaListJson, response);
     }
+
+    @Override
+    public void getStudentSearchReport(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
+        csvReportService.generateStudentSearchReportStream(searchCriteriaListJson, response);
+    }
 }
