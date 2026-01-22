@@ -4,6 +4,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentCourseSearchReportHeader;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentOptionalProgramSearchReportHeader;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentProgramSearchReportHeader;
+import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentSearchReportHeader;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.YukonReportHeader;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
@@ -35,11 +36,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -525,6 +526,93 @@ public class CSVReportService {
                 schoolOfGraduationName,
                 optionalProgramName,
                 optionalProgramCompletionDate
+        );
+    }
+
+    /**
+     * Generate CSV report for student search results
+     *
+     * @param searchCriteriaListJson search criteria in JSON format
+     * @param response HTTP response to write CSV to
+     * @throws IOException if writing to response fails
+     */
+    public void generateStudentSearchReportStream(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
+        List<Sort.Order> sorts = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Specification<GradStudentSearchDataEntity> specs =
+                gradStudentSearchService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
+
+        List<String> headers = Arrays.stream(StudentSearchReportHeader.values())
+                .map(StudentSearchReportHeader::getCode)
+                .toList();
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"StudentSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+             Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
+
+            csvPrinter.printRecord(headers);
+
+            gradStudentStream
+                    .map(this::prepareStudentSearchDataForCsv)
+                    .forEach(csvRowData -> {
+                        try {
+                            csvPrinter.printRecord(csvRowData);
+                            csvPrinter.flush();
+                        } catch (IOException e) {
+                            throw new GradStudentAPIRuntimeException(e);
+                        }
+                    });
+
+            csvPrinter.flush();
+        }
+    }
+
+    private List<String> prepareStudentSearchDataForCsv(GradStudentSearchDataEntity gradStudent) {
+        String pen = StringUtils.defaultString(gradStudent.getPen());
+        String studentStatus = getHumanReadableStudentStatus(gradStudent.getStudentStatus());
+        String surname = StringUtils.defaultString(gradStudent.getLegalLastName());
+        String givenName = StringUtils.defaultString(gradStudent.getLegalFirstName());
+        String middleName = StringUtils.defaultString(gradStudent.getLegalMiddleNames());
+        String birthdate = gradStudent.getDob() != null ? gradStudent.getDob().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : "";
+        String gender = StringUtils.defaultString(gradStudent.getGenderCode());
+        String grade = StringUtils.defaultString(gradStudent.getStudentGrade());
+        String program = StringUtils.defaultString(gradStudent.getProgram());
+        String completionDate = gradStudent.getProgramCompletionDate() != null ?
+                new SimpleDateFormat("yyyy/MM").format(gradStudent.getProgramCompletionDate()) : "";
+
+        String schoolOfRecordCode = "";
+        String schoolOfRecordName = "";
+        if (gradStudent.getSchoolOfRecordId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudent.getSchoolOfRecordId().toString());
+            if (school.isPresent()) {
+                schoolOfRecordCode = StringUtils.defaultString(school.get().getMincode());
+                schoolOfRecordName = StringUtils.defaultString(school.get().getDisplayName());
+            }
+        }
+
+        String recalculateGradStatus = StringUtils.defaultString(gradStudent.getRecalculateGradStatus());
+        String recalculateProjectedGrad = StringUtils.defaultString(gradStudent.getRecalculateProjectedGrad());
+
+        return List.of(
+                pen,
+                studentStatus,
+                surname,
+                givenName,
+                middleName,
+                birthdate,
+                gender,
+                grade,
+                program,
+                completionDate,
+                schoolOfRecordCode,
+                schoolOfRecordName,
+                recalculateGradStatus,
+                recalculateProjectedGrad
         );
     }
 
