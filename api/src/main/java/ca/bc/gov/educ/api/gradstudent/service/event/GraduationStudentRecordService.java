@@ -49,6 +49,7 @@ public class GraduationStudentRecordService {
     private final RestUtils restUtils;
     private final CourseCacheService courseCacheService;
     private final GraduationStudentRecordRepository graduationStudentRecordRepository;
+    private final GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
     private final StudentOptionalProgramRepository studentOptionalProgramRepository;
     private final StudentCourseRepository studentCourseRepository;
     private final FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
@@ -61,6 +62,9 @@ public class GraduationStudentRecordService {
     public static final String TERMINATED = "TER";
     public static final String DECEASED = "DEC";
     public static final String ARC = "ARC";
+    public static final String MERGED = "MER";
+    public static final Set<String> gradActiveStatuses = Set.of(CURRENT, TERMINATED, ARC);
+    public static final Set<String> gradNonActiveStatuses = Set.of(MERGED, DECEASED);
     public static final String CREATE_USER = "createUser";
     public static final String CREATE_DATE = "createDate";
     public static final String YYYY_MM_DD = "uuuuMMdd";
@@ -92,6 +96,7 @@ public class GraduationStudentRecordService {
                 existingStudentRecordEntity.setDob(null);
             }
         }
+        updateGradStatusFromStudentApi(studentUpdate, existingStudentRecordEntity);
         existingStudentRecordEntity.setPen(studentUpdate.getPen());
         existingStudentRecordEntity.setGenderCode(studentUpdate.getGenderCode());
         existingStudentRecordEntity.setLegalFirstName(studentUpdate.getLegalFirstName());
@@ -655,6 +660,39 @@ public class GraduationStudentRecordService {
         return null;
     }
 
+    private void updateGradStatusFromStudentApi(StudentUpdate studentUpdate, GraduationStudentRecordEntity existingStudentRecordEntity) {
+        var existingStatus = existingStudentRecordEntity.getStudentStatus();
+        var incomingStatus = studentUpdate.getStatusCode();
+
+        if("A".equals(incomingStatus) && gradActiveStatuses.contains(existingStatus.toUpperCase())){
+            return;
+        }
+        if("A".equals(incomingStatus) && gradNonActiveStatuses.contains(existingStatus.toUpperCase())){
+            String previousStatus = findPreviousActiveStatus(existingStudentRecordEntity.getStudentID(), existingStatus);
+            existingStudentRecordEntity.setStudentStatus(previousStatus);
+        } else {
+            existingStudentRecordEntity.setStudentStatus(mapStudentStatus(incomingStatus));
+        }
+    }
+
+    public String findPreviousActiveStatus(UUID studentID, String currentStatus) {
+        List<GraduationStudentRecordHistoryEntity> allRecords = graduationStudentRecordHistoryRepository.findAllHistoryDescByStudentId(studentID);
+
+        for (int i = 0; i < allRecords.size(); i++) {
+            if (currentStatus.equalsIgnoreCase(allRecords.get(i).getStudentStatus())) {
+                // Look through remaining history records for first active status
+                for (int j = i + 1; j < allRecords.size(); j++) {
+                    String status = allRecords.get(j).getStudentStatus();
+                    if (gradActiveStatuses.contains(status.toUpperCase())) {
+                        return status;
+                    }
+                }
+                break;
+            }
+        }
+        return CURRENT;
+    }
+
     private String mapStudentStatus(String demStudentStatus) {
         if(demStudentStatus.equalsIgnoreCase("A")) {
             return CURRENT;
@@ -662,6 +700,8 @@ public class GraduationStudentRecordService {
             return TERMINATED;
         } else if(demStudentStatus.equalsIgnoreCase("D")) {
             return DECEASED;
+        } else if(demStudentStatus.equalsIgnoreCase("M")) {
+            return MERGED;
         } else {
             log.error("Invalid student status: {}", demStudentStatus);
             throw new IllegalArgumentException("Invalid student status: " + demStudentStatus);
