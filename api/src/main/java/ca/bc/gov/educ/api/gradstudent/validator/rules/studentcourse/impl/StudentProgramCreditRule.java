@@ -52,7 +52,12 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
         Course course = studentCourseRuleData.getCourse();
         if(course != null) {
             StudentCourse studentCourse = studentCourseRuleData.getStudentCourse();
-            if(studentCourse.getCredits() != null && course.getCourseAllowableCredit().stream().filter(x -> x.getCreditValue().equals(studentCourse.getCredits().toString())).findFirst().isEmpty()) {
+            boolean isZeroCreditsAllowed = studentCourse.getCredits() != null && studentCourse.getCredits() == 0
+                    && StringUtils.isNotBlank(studentCourse.getFinalLetterGrade())
+                    && (studentCourse.getFinalLetterGrade().equalsIgnoreCase("W") || studentCourse.getFinalLetterGrade().equalsIgnoreCase("F"));
+
+            if(studentCourse.getCredits() != null && !isZeroCreditsAllowed
+                    && course.getCourseAllowableCredit().stream().filter(x -> x.getCreditValue().equals(studentCourse.getCredits().toString())).findFirst().isEmpty()) {
                 validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID));
             }
             if (!validationIssues.isEmpty()) return validationIssues;
