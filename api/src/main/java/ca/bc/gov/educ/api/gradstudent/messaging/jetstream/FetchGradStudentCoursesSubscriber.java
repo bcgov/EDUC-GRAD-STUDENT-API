@@ -53,7 +53,7 @@ public class FetchGradStudentCoursesSubscriber implements MessageHandler {
 
     @Override
     public void onMessage(Message message) {
-        Runnable task = () -> {
+        this.subscriberExecutor.execute(() -> {
             val eventString = new String(message.getData());
             log.debug("Received message: {}", eventString);
             String response;
@@ -71,12 +71,7 @@ public class FetchGradStudentCoursesSubscriber implements MessageHandler {
                 log.error("Error while processing GET_STUDENT_COURSES event", e);
             }
             this.natsConnection.publish(message.getReplyTo(), response.getBytes());
-        };
-        if (this.subscriberExecutor != null) {
-            this.subscriberExecutor.execute(task);
-        } else {
-            task.run();
-        }
+        });
     }
 
     private String getResponse(List<StudentCourse> studentCourseRecords) throws JsonProcessingException {

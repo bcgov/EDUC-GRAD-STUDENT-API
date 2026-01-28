@@ -55,7 +55,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
 
     @Override
     public void onMessage(Message message) {
-        Runnable task = () -> {
+        this.subscriberExecutor.execute(() -> {
             val eventString = new String(message.getData());
             log.debug(eventString);
             String response;
@@ -72,12 +72,7 @@ public class FetchGradStatusSubscriber implements MessageHandler {
                 }
             }
             this.natsConnection.publish(message.getReplyTo(), response.getBytes());
-        };
-        if (this.subscriberExecutor != null) {
-            this.subscriberExecutor.execute(task);
-        } else {
-            task.run();
-        }
+        });
     }
 
     private GraduationStudentGradStatusRequest getGraduationStudentGradStatusRequest(Event event) throws JsonProcessingException {
