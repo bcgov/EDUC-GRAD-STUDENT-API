@@ -21,12 +21,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 @Component
 public class FetchGradStudentRecordSubscriber implements MessageHandler {
@@ -34,15 +36,18 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
     private final Connection natsConnection;
     private Dispatcher dispatcher;
     private final GradStudentService gradStudentService;
+    private final Executor subscriberExecutor;
     public static final String RESPONDING_BACK_TO_NATS_ON_CHANNEL = "responding back to NATS on {} channel ";
     public static final String PAYLOAD_LOG = "payload is :: {}";
     private static final String TOPIC = Topics.GRAD_STUDENT_API_FETCH_GRAD_STUDENT_TOPIC.toString();
     private static final Logger log = LoggerFactory.getLogger(FetchGradStudentRecordSubscriber.class);
 
     @Autowired
-    public FetchGradStudentRecordSubscriber(final Connection natsConnection, GradStudentService gradStudentService, EducGradStudentApiConstants constants) {
+    public FetchGradStudentRecordSubscriber(final Connection natsConnection, GradStudentService gradStudentService, EducGradStudentApiConstants constants,
+                                            @Qualifier("subscriberExecutor") Executor subscriberExecutor) {
         this.natsConnection = natsConnection;
         this.gradStudentService = gradStudentService;
+        this.subscriberExecutor = subscriberExecutor;
     }
 
     @PostConstruct
@@ -53,25 +58,32 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
 
     @Override
     public void onMessage(Message message) {
-        val eventString = new String(message.getData());
-        log.debug("Received message: {}", eventString);
-        String response;
+        Runnable task = () -> {
+            val eventString = new String(message.getData());
+            log.debug("Received message: {}", eventString);
+            String response;
 
-        try {
-            Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
-            log.info("received GET_STUDENT event :: {}", event.getSagaId());
-            log.trace(PAYLOAD_LOG, event.getEventPayload());
-            UUID studentId = UUID.fromString(event.getEventPayload());
-            GradStudentRecord studentRecord = gradStudentService.getGraduationStudentRecord(studentId);
-            response = getResponse(studentRecord);
-            log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-        } catch (Exception e) {
-            response = getErrorResponse(e);
-            if(!(e instanceof EntityNotFoundException)) {
-                log.error("Error while processing GET_STUDENT event", e);
+            try {
+                Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+                log.info("received GET_STUDENT event :: {}", event.getSagaId());
+                log.trace(PAYLOAD_LOG, event.getEventPayload());
+                UUID studentId = UUID.fromString(event.getEventPayload());
+                GradStudentRecord studentRecord = gradStudentService.getGraduationStudentRecord(studentId);
+                response = getResponse(studentRecord);
+                log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+            } catch (Exception e) {
+                response = getErrorResponse(e);
+                if(!(e instanceof EntityNotFoundException)) {
+                    log.error("Error while processing GET_STUDENT event", e);
+                }
             }
+            this.natsConnection.publish(message.getReplyTo(), response.getBytes());
+        };
+        if (this.subscriberExecutor != null) {
+            this.subscriberExecutor.execute(task);
+        } else {
+            task.run();
         }
-        this.natsConnection.publish(message.getReplyTo(), response.getBytes());
     }
 
     public String getResponse(GradStudentRecord studentRecord) throws JsonProcessingException {

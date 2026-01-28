@@ -25,6 +25,7 @@ import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -69,6 +70,10 @@ public class FetchGradStudentCoursesSubscriberTest extends BaseIntegrationTest {
         Field natsConnectionField = FetchGradStudentCoursesSubscriber.class.getDeclaredField("natsConnection");
         natsConnectionField.setAccessible(true);
         natsConnectionField.set(fetchCoursesSubscriber, connection);
+
+        Field executorField = FetchGradStudentCoursesSubscriber.class.getDeclaredField("subscriberExecutor");
+        executorField.setAccessible(true);
+        executorField.set(fetchCoursesSubscriber, (Executor) Runnable::run);
     }
 
     @Test
