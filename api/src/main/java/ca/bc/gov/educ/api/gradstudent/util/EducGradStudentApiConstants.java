@@ -271,4 +271,10 @@ public class EducGradStudentApiConstants {
 
     @Value("${endpoint.coreg.url}")
     private String coregApiURL;
+
+    @Value("${threads.min.subscriber}")
+    private Integer minSubscriberThreads;
+
+    @Value("${threads.max.subscriber}")
+    private Integer maxSubscriberThreads;
 }

@@ -11,6 +11,7 @@ import io.nats.client.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -89,6 +90,7 @@ public class EventHandlerDelegatorService {
    * @param event   the event
    * @param message the message
    */
+  @Async("subscriberExecutor")
   public void handleEvent(final Event event, final Message message) {
     byte[] response;
     boolean isSynchronous = message.getReplyTo() != null;

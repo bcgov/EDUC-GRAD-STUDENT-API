@@ -201,3 +201,9 @@ data-conversion:
   student-guid-pen-xref:
     enabled:  true
 
+threads:
+  min:
+    subscriber: 2
+  max:
+    subscriber: 2
+

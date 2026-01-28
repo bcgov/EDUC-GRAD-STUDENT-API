@@ -30,6 +30,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -99,6 +100,10 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
         Field field2 = FetchGradStatusSubscriber.class.getDeclaredField("natsConnection");
         field2.setAccessible(true);
         field2.set(fetchGradStatusSubscriber, natsConnection.connection());
+
+        Field executorField = FetchGradStatusSubscriber.class.getDeclaredField("subscriberExecutor");
+        executorField.setAccessible(true);
+        executorField.set(fetchGradStatusSubscriber, (Executor) Runnable::run);
     }
 
 
@@ -140,4 +145,3 @@ public class FetchGradStatusSubscriberTest extends BaseIntegrationTest {
         return Event.builder().eventPayload(objectMapper.writeValueAsString(studentID)).build();
     }
 }
-

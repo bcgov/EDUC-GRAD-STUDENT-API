@@ -17,11 +17,13 @@ import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 @Component
 public class FetchGradStudentCoursesSubscriber implements MessageHandler {
@@ -29,15 +31,18 @@ public class FetchGradStudentCoursesSubscriber implements MessageHandler {
     private final Connection natsConnection;
     private Dispatcher dispatcher;
     private final StudentCourseService gradStudentCourseService;
+    private final Executor subscriberExecutor;
     public static final String RESPONDING_BACK_TO_NATS_ON_CHANNEL = "responding back to NATS on {} channel ";
     public static final String PAYLOAD_LOG = "payload is :: {}";
     private static final String TOPIC = Topics.GRAD_STUDENT_API_FETCH_GRAD_STUDENT_COURSES_TOPIC.toString();
     private static final Logger log = LoggerFactory.getLogger(FetchGradStudentCoursesSubscriber.class);
 
     @Autowired
-    public FetchGradStudentCoursesSubscriber(final Connection natsConnection, StudentCourseService gradStudentCourseService, EducGradStudentApiConstants constants) {
+    public FetchGradStudentCoursesSubscriber(final Connection natsConnection, StudentCourseService gradStudentCourseService, EducGradStudentApiConstants constants,
+                                             @Qualifier("subscriberExecutor") Executor subscriberExecutor) {
         this.natsConnection = natsConnection;
         this.gradStudentCourseService = gradStudentCourseService;
+        this.subscriberExecutor = subscriberExecutor;
     }
 
     @PostConstruct
@@ -48,23 +53,25 @@ public class FetchGradStudentCoursesSubscriber implements MessageHandler {
 
     @Override
     public void onMessage(Message message) {
-        val eventString = new String(message.getData());
-        log.debug("Received message: {}", eventString);
-        String response;
+        this.subscriberExecutor.execute(() -> {
+            val eventString = new String(message.getData());
+            log.debug("Received message: {}", eventString);
+            String response;
 
-        try {
-            Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
-            log.info("received GET_STUDENT_COURSES event :: {}", event.getSagaId());
-            log.trace(PAYLOAD_LOG, event.getEventPayload());
-            UUID studentId = UUID.fromString(event.getEventPayload());
-            List<StudentCourse> studentCourseRecords = gradStudentCourseService.getStudentCourses(studentId);
-            response = getResponse(studentCourseRecords);
-            log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
-        } catch (Exception e) {
-            response = getErrorResponse(e);
-            log.error("Error while processing GET_STUDENT_COURSES event", e);
-        }
-        this.natsConnection.publish(message.getReplyTo(), response.getBytes());
+            try {
+                Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+                log.info("received GET_STUDENT_COURSES event :: {}", event.getSagaId());
+                log.trace(PAYLOAD_LOG, event.getEventPayload());
+                UUID studentId = UUID.fromString(event.getEventPayload());
+                List<StudentCourse> studentCourseRecords = gradStudentCourseService.getStudentCourses(studentId);
+                response = getResponse(studentCourseRecords);
+                log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+            } catch (Exception e) {
+                response = getErrorResponse(e);
+                log.error("Error while processing GET_STUDENT_COURSES event", e);
+            }
+            this.natsConnection.publish(message.getReplyTo(), response.getBytes());
+        });
     }
 
     private String getResponse(List<StudentCourse> studentCourseRecords) throws JsonProcessingException {

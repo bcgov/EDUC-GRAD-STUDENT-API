@@ -18,10 +18,12 @@ import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 @Component
 public class FetchGradStatusSubscriber implements MessageHandler {
@@ -29,15 +31,18 @@ public class FetchGradStatusSubscriber implements MessageHandler {
     private final Connection natsConnection;
     private Dispatcher dispatcher;
     private final GraduationStatusService graduationStatusService;
+    private final Executor subscriberExecutor;
 
     private static final String TOPIC = Topics.GRAD_STUDENT_API_FETCH_GRAD_STATUS_TOPIC.toString();
 
     private static final Logger log = LoggerFactory.getLogger(FetchGradStatusSubscriber.class);
 
     @Autowired
-    public FetchGradStatusSubscriber(final Connection natsConnection, GraduationStatusService graduationStatusService, EducGradStudentApiConstants constants) {
+    public FetchGradStatusSubscriber(final Connection natsConnection, GraduationStatusService graduationStatusService, EducGradStudentApiConstants constants,
+                                     @Qualifier("subscriberExecutor") Executor subscriberExecutor) {
         this.natsConnection = natsConnection;
         this.graduationStatusService = graduationStatusService;
+        this.subscriberExecutor = subscriberExecutor;
     }
 
     @PostConstruct
@@ -48,21 +53,23 @@ public class FetchGradStatusSubscriber implements MessageHandler {
 
     @Override
     public void onMessage(Message message) {
-        val eventString = new String(message.getData());
-        log.debug(eventString);
-        String response;
-        try {
-            Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
-            UUID stdId = JsonUtil.getJsonObjectFromString(UUID.class, event.getEventPayload());
-            GraduationStudentRecordGradStatus graduationStatus = graduationStatusService.getGraduationStatusProjection(stdId);
-            response = getResponse(graduationStatus);
-        } catch (Exception e) {
-            response = getErrorResponse(e);
-            if(!(e instanceof EntityNotFoundException)){
-                log.error(String.format("NATS message exception at FetchGradStatusSubscriber: %s when processing: %s", e.getMessage(), eventString));
+        this.subscriberExecutor.execute(() -> {
+            val eventString = new String(message.getData());
+            log.debug(eventString);
+            String response;
+            try {
+                Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
+                UUID stdId = JsonUtil.getJsonObjectFromString(UUID.class, event.getEventPayload());
+                GraduationStudentRecordGradStatus graduationStatus = graduationStatusService.getGraduationStatusProjection(stdId);
+                response = getResponse(graduationStatus);
+            } catch (Exception e) {
+                response = getErrorResponse(e);
+                if(!(e instanceof EntityNotFoundException)){
+                    log.error(String.format("NATS message exception at FetchGradStatusSubscriber: %s when processing: %s", e.getMessage(), eventString));
+                }
             }
-        }
-        this.natsConnection.publish(message.getReplyTo(), response.getBytes());
+            this.natsConnection.publish(message.getReplyTo(), response.getBytes());
+        });
     }
 
     private String getResponse(GraduationStudentRecordGradStatus graduationStudentRecord) throws JsonProcessingException {

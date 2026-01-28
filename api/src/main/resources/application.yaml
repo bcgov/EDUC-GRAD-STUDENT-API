@@ -251,3 +251,9 @@ data-conversion:
   student-guid-pen-xref:
     enabled:  ${ENABLE_STUDENT_ID_PEN_XREF}
 
+threads:
+  min:
+    subscriber: ${THREADS_MIN_SUBSCRIBER}
+  max:
+    subscriber: ${THREADS_MAX_SUBSCRIBER}
+

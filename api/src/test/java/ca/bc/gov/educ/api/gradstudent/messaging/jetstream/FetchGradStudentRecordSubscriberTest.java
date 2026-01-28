@@ -27,6 +27,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -72,6 +73,10 @@ public class FetchGradStudentRecordSubscriberTest extends BaseIntegrationTest {
         Field natsConnectionField = FetchGradStudentRecordSubscriber.class.getDeclaredField("natsConnection");
         natsConnectionField.setAccessible(true);
         natsConnectionField.set(fetchSubscriber, connection);
+
+        Field executorField = FetchGradStudentRecordSubscriber.class.getDeclaredField("subscriberExecutor");
+        executorField.setAccessible(true);
+        executorField.set(fetchSubscriber, (Executor) Runnable::run);
     }
 
 
