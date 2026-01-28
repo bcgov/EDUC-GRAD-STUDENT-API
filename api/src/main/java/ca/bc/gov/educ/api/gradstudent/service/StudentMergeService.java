@@ -72,6 +72,8 @@ public class StudentMergeService {
             graduationStudentRecordEntity.setStudentStatus(priorStatus);
             graduationStudentRecordEntity.setUpdateUser(StringUtils.isNotBlank(updateUser) ? updateUser : ThreadLocalStateUtil.getCurrentUser());
             graduationStudentRecordEntity.setUpdateDate(LocalDateTime.now());
+            graduationStudentRecordEntity.setRecalculateGradStatus("Y");
+            graduationStudentRecordEntity.setRecalculateProjectedGrad("Y");
             graduationStatusRepository.save(graduationStudentRecordEntity);
             // update history
             historyService.createStudentHistory(graduationStudentRecordEntity, HistoryActivityCodes.USERDEMERGE.getCode());
