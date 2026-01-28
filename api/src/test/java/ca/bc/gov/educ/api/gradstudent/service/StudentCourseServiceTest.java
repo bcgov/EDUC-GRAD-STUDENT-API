@@ -1796,4 +1796,158 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         assertThat(gradStatusEvent).isNotNull();
         Mockito.verify(studentCourseRepository, atLeastOnce()).saveAll(anyList());
     }
+
+    @Test
+    public void testCreateStudentCourse_WithdrawnGrade_ZeroCredits_ShouldPassValidation() throws JsonProcessingException {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+
+        StudentCourse studentCourse = createStudentCourse("5", "202504", null, null, null, "W", 0, null, null);
+        Map<String, StudentCourse> studentCourses = new HashMap<>();
+        studentCourses.put("studentCourseWithdrawn", studentCourse);
+
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2018-EN");
+        graduationStatusEntity.setStudentID(studentID);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
+
+        assertNotNull(result);
+        var withdrawnCourseValidation = result.stream()
+                .filter(v -> "5".equals(v.getCourseID()) && "202504".equals(v.getCourseSession()))
+                .findFirst();
+
+        assertTrue("Withdrawn course validation should be present", withdrawnCourseValidation.isPresent());
+        var validationIssues = withdrawnCourseValidation.get().getValidationIssues();
+        boolean hasCreditValidationError = validationIssues.stream()
+                .anyMatch(issue -> issue.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())
+                        && "ERROR".equals(issue.getValidationIssueSeverityCode()));
+        assertFalse("Withdrawn course with 0 credits should not have credit validation error", hasCreditValidationError);
+    }
+
+    @Test
+    public void testCreateStudentCourse_FailGrade_ZeroCredits_ShouldPassValidation() throws JsonProcessingException {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+
+        // Create a student course with final letter grade "F" and 0 credits
+        StudentCourse studentCourse = createStudentCourse("5", "202504", null, null, null, "F", 0, null, null);
+        Map<String, StudentCourse> studentCourses = new HashMap<>();
+        studentCourses.put("studentCourseFailed", studentCourse);
+
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2018-EN");
+        graduationStatusEntity.setStudentID(studentID);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
+
+        assertNotNull(result);
+        // Should NOT have STUDENT_COURSE_CREDITS_VALID error for failed courses with 0 credits
+        var failedCourseValidation = result.stream()
+                .filter(v -> "5".equals(v.getCourseID()) && "202504".equals(v.getCourseSession()))
+                .findFirst();
+
+        assertTrue("Failed course validation should be present", failedCourseValidation.isPresent());
+        var validationIssues = failedCourseValidation.get().getValidationIssues();
+        boolean hasCreditValidationError = validationIssues.stream()
+                .anyMatch(issue -> issue.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())
+                        && "ERROR".equals(issue.getValidationIssueSeverityCode()));
+        assertFalse("Failed course with 0 credits should not have credit validation error", hasCreditValidationError);
+    }
+
+    @Test
+    public void testCreateStudentCourse_PassingGrade_ZeroCredits_ShouldFailValidation() throws JsonProcessingException {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+
+        // Create a student course with final letter grade "A" (passing) and 0 credits - should fail
+        StudentCourse studentCourse = createStudentCourse("5", "202504", null, null, 89, "A", 0, null, null);
+        Map<String, StudentCourse> studentCourses = new HashMap<>();
+        studentCourses.put("studentCourseWithZeroCredits", studentCourse);
+
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2018-EN");
+        graduationStatusEntity.setStudentID(studentID);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
+
+        assertNotNull(result);
+        // SHOULD have STUDENT_COURSE_CREDITS_VALID error for passing courses with 0 credits
+        var passingCourseValidation = result.stream()
+                .filter(v -> "5".equals(v.getCourseID()) && "202504".equals(v.getCourseSession()))
+                .findFirst();
+
+        assertTrue("Validation result should be present for course with zero credits and passing grade", passingCourseValidation.isPresent());
+        var validationIssues = passingCourseValidation.get().getValidationIssues();
+        boolean hasCreditValidationError = validationIssues.stream()
+                .anyMatch(issue -> issue.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())
+                        && "ERROR".equals(issue.getValidationIssueSeverityCode()));
+        assertTrue("Passing course with 0 credits should have credit validation error", hasCreditValidationError);
+    }
+
+    @Test
+    public void testUpdateStudentCourse_WithdrawnGrade_ZeroCredits_ShouldPassValidation() throws JsonProcessingException {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+
+        // Create existing course entity
+        StudentCourseEntity existingCourse = createStudentCourseEntity(studentID, "5", "202504");
+        existingCourse.setId(courseId);
+        existingCourse.setFinalLetterGrade("A");
+        existingCourse.setCredits(4);
+
+        // Update to withdrawn with 0 credits
+        StudentCourse updateCourse = createStudentCourse("5", "202504", null, null, null, "W", 0, null, null);
+        updateCourse.setId(courseId.toString());
+        updateCourse.setStudentID(studentID.toString());
+
+        Map<String, StudentCourse> studentCourses = new HashMap<>();
+        studentCourses.put("studentCourseWithdrawn", updateCourse);
+
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2018-EN");
+        graduationStatusEntity.setStudentID(studentID);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(studentCourseRepository.findById(courseId)).thenReturn(Optional.of(existingCourse));
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
+
+        assertNotNull(result);
+        // Should NOT have STUDENT_COURSE_CREDITS_VALID error when updating to withdrawn with 0 credits
+        var withdrawnCourseValidation = result.stream()
+                .filter(v -> "5".equals(v.getCourseID()) && "202504".equals(v.getCourseSession()))
+                .findFirst();
+
+        assertTrue("Updated withdrawn course validation should be present", withdrawnCourseValidation.isPresent());
+        var validationIssues = withdrawnCourseValidation.get().getValidationIssues();
+        boolean hasCreditValidationError = validationIssues.stream()
+                .anyMatch(issue -> issue.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())
+                        && "ERROR".equals(issue.getValidationIssueSeverityCode()));
+        assertFalse("Updated withdrawn course with 0 credits should not have credit validation error", hasCreditValidationError);
+    }
 }
