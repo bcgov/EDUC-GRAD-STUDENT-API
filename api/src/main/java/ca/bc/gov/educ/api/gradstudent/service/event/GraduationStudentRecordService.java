@@ -528,16 +528,19 @@ public class GraduationStudentRecordService {
                     statusChangeCount++;
                 }
             }
-            if(!newStudentRecordEntity.getStudentGrade().equalsIgnoreCase(demStudent.getGrade()) && demStudent.getStudentStatus().equalsIgnoreCase("A") && newStudentRecordEntity.getProgramCompletionDate() == null) {
-                newStudentRecordEntity.setStudentGrade(demStudent.getGrade());
-                projectedChangeCount++;
-                statusChangeCount++;
-            } else if (!newStudentRecordEntity.getStudentGrade().equalsIgnoreCase(demStudent.getGrade()) && demStudent.getStudentStatus().equalsIgnoreCase("A") && newStudentRecordEntity.getProgramCompletionDate() != null) {
-                newStudentRecordEntity.setStudentGrade(demStudent.getGrade());
-                projectedChangeCount++;
-            } else if (!newStudentRecordEntity.getStudentGrade().equalsIgnoreCase(demStudent.getGrade()) && demStudent.getStudentStatus().equalsIgnoreCase("T")) {
-                newStudentRecordEntity.setStudentGrade(demStudent.getGrade());
-                statusChangeCount++;
+            
+            if(StringUtils.isNotBlank(newStudentRecordEntity.getStudentGrade())) {
+                if (!newStudentRecordEntity.getStudentGrade().equalsIgnoreCase(demStudent.getGrade()) && demStudent.getStudentStatus().equalsIgnoreCase("A") && newStudentRecordEntity.getProgramCompletionDate() == null) {
+                    newStudentRecordEntity.setStudentGrade(demStudent.getGrade());
+                    projectedChangeCount++;
+                    statusChangeCount++;
+                } else if (!newStudentRecordEntity.getStudentGrade().equalsIgnoreCase(demStudent.getGrade()) && demStudent.getStudentStatus().equalsIgnoreCase("A") && newStudentRecordEntity.getProgramCompletionDate() != null) {
+                    newStudentRecordEntity.setStudentGrade(demStudent.getGrade());
+                    projectedChangeCount++;
+                } else if (!newStudentRecordEntity.getStudentGrade().equalsIgnoreCase(demStudent.getGrade()) && demStudent.getStudentStatus().equalsIgnoreCase("T")) {
+                    newStudentRecordEntity.setStudentGrade(demStudent.getGrade());
+                    statusChangeCount++;
+                }
             }
 
             var mappedStudentStatus = mapStudentStatusForUpdate(demStudent, newStudentRecordEntity, originalSchoolOfRecordId);
