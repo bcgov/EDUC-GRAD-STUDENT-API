@@ -24,6 +24,9 @@ public class StudentOptionalProgramPaginationRepositoryImpl implements StudentOp
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<StudentOptionalProgramPaginationEntity> cq = cb.createQuery(StudentOptionalProgramPaginationEntity.class);
         Root<StudentOptionalProgramPaginationEntity> root = cq.from(StudentOptionalProgramPaginationEntity.class);
+
+        root.fetch("graduationStudentRecordEntity");
+
         if (spec != null) {
             cq.where(spec.toPredicate(root, cq, cb));
         }
