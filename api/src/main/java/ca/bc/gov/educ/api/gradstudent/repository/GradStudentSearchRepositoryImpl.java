@@ -38,6 +38,8 @@ public class GradStudentSearchRepositoryImpl implements GradStudentSearchReposit
 
         query.setHint("org.hibernate.fetchSize", 5000);
         query.setHint("org.hibernate.readOnly", true);
+        query.setHint("org.hibernate.cacheable", false);
+        query.setHint("jakarta.persistence.cache.storeMode", "BYPASS");
 
         return query.getResultStream();
     }
