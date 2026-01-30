@@ -49,6 +49,9 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class CSVReportService {
 
+    private static final int CSV_BUFFER_SIZE = 131072; // 128KB
+    private static final int CSV_FLUSH_INTERVAL = 5000;
+
     private final RestUtils restUtils;
     private final GraduationStudentRecordRepository graduationStudentRecordRepository;
     private final StudentCoursePaginationService studentCoursePaginationService;
@@ -93,7 +96,7 @@ public class CSVReportService {
                 .build();
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream), CSV_BUFFER_SIZE);
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
 
             csvPrinter.printRecord(headers);
@@ -193,18 +196,21 @@ public class CSVReportService {
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<StudentCoursePaginationEntity> studentCourseStream = studentCoursePaginationRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
+            final int[] rowCount = {0};
             studentCourseStream
                     .map(this::prepareCourseStudentSearchDataForCsv)
                     .forEach(csvRowData -> {
                         try {
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+                            if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
                             throw new GradStudentAPIRuntimeException(e);
                         }
@@ -319,18 +325,21 @@ public class CSVReportService {
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
+            final int[] rowCount = {0};
             gradStudentStream
                     .map(this::prepareProgramStudentSearchDataForCsv)
                     .forEach(csvRowData -> {
                         try {
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+                            if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
                             throw new GradStudentAPIRuntimeException(e);
                         }
@@ -421,18 +430,21 @@ public class CSVReportService {
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<StudentOptionalProgramPaginationEntity> studentOptionalProgramStream = studentOptionalProgramPaginationRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
+            final int[] rowCount = {0};
             studentOptionalProgramStream
                     .map(this::prepareOptionalProgramStudentSearchDataForCsv)
                     .forEach(csvRowData -> {
                         try {
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+                            if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
                             throw new GradStudentAPIRuntimeException(e);
                         }
@@ -551,18 +563,21 @@ public class CSVReportService {
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
+            final int[] rowCount = {0};
             gradStudentStream
                     .map(this::prepareStudentSearchDataForCsv)
                     .forEach(csvRowData -> {
                         try {
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+                            if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
                             throw new GradStudentAPIRuntimeException(e);
                         }

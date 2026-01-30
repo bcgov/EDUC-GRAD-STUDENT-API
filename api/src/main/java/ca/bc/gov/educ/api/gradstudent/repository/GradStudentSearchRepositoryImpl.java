@@ -36,6 +36,9 @@ public class GradStudentSearchRepositoryImpl implements GradStudentSearchReposit
 
         TypedQuery<GradStudentSearchDataEntity> query = entityManager.createQuery(cq);
 
+        query.setHint("org.hibernate.fetchSize", 5000);
+        query.setHint("org.hibernate.readOnly", true);
+
         return query.getResultStream();
     }
 }

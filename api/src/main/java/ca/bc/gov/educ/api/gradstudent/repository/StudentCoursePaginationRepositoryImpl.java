@@ -37,6 +37,9 @@ public class StudentCoursePaginationRepositoryImpl implements StudentCoursePagin
 
         TypedQuery<StudentCoursePaginationEntity> query = entityManager.createQuery(cq);
 
+        query.setHint("org.hibernate.fetchSize", 5000);
+        query.setHint("org.hibernate.readOnly", true);
+
         return query.getResultStream();
     }
 }

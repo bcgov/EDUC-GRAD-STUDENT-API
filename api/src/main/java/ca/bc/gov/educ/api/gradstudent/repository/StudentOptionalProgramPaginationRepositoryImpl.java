@@ -28,6 +28,10 @@ public class StudentOptionalProgramPaginationRepositoryImpl implements StudentOp
             cq.where(spec.toPredicate(root, cq, cb));
         }
         TypedQuery<StudentOptionalProgramPaginationEntity> query = entityManager.createQuery(cq);
+
+        query.setHint("org.hibernate.fetchSize", 5000);
+        query.setHint("org.hibernate.readOnly", true);
+
         return query.getResultStream();
     }
 }
