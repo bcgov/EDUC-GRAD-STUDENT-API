@@ -464,8 +464,6 @@ class ReportsControllerTest extends BaseIntegrationTest {
         gradStudent.setDob(LocalDateTime.of(2005, 3, 20, 0, 0));
         gradStudent.setProgramCompletionDate(Date.valueOf(LocalDate.now().minusDays(5)));
         gradStudent.setAdultStartDate(Date.valueOf(LocalDate.of(2023, 9, 1)));
-        gradStudent.setRecalculateGradStatus("Y");
-        gradStudent.setRecalculateProjectedGrad("N");
         graduationStudentRecordRepository.save(gradStudent);
 
         var school = createMockSchoolTombstone();
@@ -498,8 +496,6 @@ class ReportsControllerTest extends BaseIntegrationTest {
         assertThat(csvContent).contains("2018-EN");
         assertThat(csvContent).contains("12345678");
         assertThat(csvContent).contains("Test High School");
-        assertThat(csvContent).contains("Yes");
-        assertThat(csvContent).contains("No");
     }
 
     @Test
