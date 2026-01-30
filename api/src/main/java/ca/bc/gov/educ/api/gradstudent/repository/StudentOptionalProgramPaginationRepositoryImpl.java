@@ -24,10 +24,17 @@ public class StudentOptionalProgramPaginationRepositoryImpl implements StudentOp
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<StudentOptionalProgramPaginationEntity> cq = cb.createQuery(StudentOptionalProgramPaginationEntity.class);
         Root<StudentOptionalProgramPaginationEntity> root = cq.from(StudentOptionalProgramPaginationEntity.class);
+
+        root.fetch("graduationStudentRecordEntity");
+
         if (spec != null) {
             cq.where(spec.toPredicate(root, cq, cb));
         }
         TypedQuery<StudentOptionalProgramPaginationEntity> query = entityManager.createQuery(cq);
+
+        query.setHint("org.hibernate.fetchSize", 5000);
+        query.setHint("org.hibernate.readOnly", true);
+
         return query.getResultStream();
     }
 }

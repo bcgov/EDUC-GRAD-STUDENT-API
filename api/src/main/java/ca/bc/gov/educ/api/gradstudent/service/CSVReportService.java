@@ -35,6 +35,7 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -48,6 +49,17 @@ import java.util.stream.Stream;
 @Slf4j
 @RequiredArgsConstructor
 public class CSVReportService {
+
+    // Stream Constants
+    private static final int CSV_BUFFER_SIZE = 131072; // 128KB
+    private static final int CSV_FLUSH_INTERVAL = 5000;
+
+    // CSV Report Constants
+    private static final String CONTENT_TYPE_CSV = "text/csv";
+    private static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
+    private static final String DATE_FORMAT_YYYYMMDD = "yyyyMMdd";
+    private static final String CSV_FILE_EXTENSION = ".csv\"";
+    private static final String ATTACHMENT_FILENAME_PREFIX = "attachment; filename=\"";
 
     private final RestUtils restUtils;
     private final GraduationStudentRecordRepository graduationStudentRecordRepository;
@@ -93,7 +105,7 @@ public class CSVReportService {
                 .build();
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream), CSV_BUFFER_SIZE);
             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
 
             csvPrinter.printRecord(headers);
@@ -188,23 +200,28 @@ public class CSVReportService {
                 .map(StudentCourseSearchReportHeader::getCode)
                 .toList();
 
-        response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=\"StudentCourseSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+        response.setContentType(CONTENT_TYPE_CSV);
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_PREFIX + "StudentCourseSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_YYYYMMDD)) + CSV_FILE_EXTENSION);
+        response.setBufferSize(CSV_BUFFER_SIZE);
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<StudentCoursePaginationEntity> studentCourseStream = studentCoursePaginationRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
+            final int[] rowCount = {0};
             studentCourseStream
-                    .map(this::prepareCourseStudentSearchDataForCsv)
-                    .forEach(csvRowData -> {
+                    .forEach(studentCourse -> {
                         try {
+                            List<String> csvRowData = prepareCourseStudentSearchDataForCsv(studentCourse);
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+                            if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
                             throw new GradStudentAPIRuntimeException(e);
                         }
@@ -241,8 +258,7 @@ public class CSVReportService {
             Optional<CourseCodeRecord> courseRecord = restUtils.getCoreg39CourseByID(studentCourse.getCourseID().toString());
             if (courseRecord.isPresent() && StringUtils.isNotBlank(courseRecord.get().getExternalCode())) {
                 String externalCode = courseRecord.get().getExternalCode();
-                int codeLength = Math.min(5, externalCode.length());
-                courseCode = externalCode.substring(0, codeLength).trim();
+                courseCode = externalCode.substring(0, Math.min(5, externalCode.length())).trim();
                 if (externalCode.length() > 5) {
                     courseLevel = externalCode.substring(5).trim();
                 }
@@ -314,23 +330,28 @@ public class CSVReportService {
                 .map(StudentProgramSearchReportHeader::getCode)
                 .toList();
 
-        response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=\"StudentProgramSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+        response.setContentType(CONTENT_TYPE_CSV);
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_PREFIX + "StudentProgramSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_YYYYMMDD)) + CSV_FILE_EXTENSION);
+        response.setBufferSize(CSV_BUFFER_SIZE);
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
+            final int[] rowCount = {0};
             gradStudentStream
-                    .map(this::prepareProgramStudentSearchDataForCsv)
-                    .forEach(csvRowData -> {
+                    .forEach(gradStudent -> {
                         try {
+                            List<String> csvRowData = prepareProgramStudentSearchDataForCsv(gradStudent);
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+                            if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
                             throw new GradStudentAPIRuntimeException(e);
                         }
@@ -416,23 +437,28 @@ public class CSVReportService {
                 .map(StudentOptionalProgramSearchReportHeader::getCode)
                 .toList();
 
-        response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=\"StudentOptionalProgramSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+        response.setContentType(CONTENT_TYPE_CSV);
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_PREFIX + "StudentOptionalProgramSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_YYYYMMDD)) + CSV_FILE_EXTENSION);
+        response.setBufferSize(CSV_BUFFER_SIZE);
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<StudentOptionalProgramPaginationEntity> studentOptionalProgramStream = studentOptionalProgramPaginationRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
+            final int[] rowCount = {0};
             studentOptionalProgramStream
-                    .map(this::prepareOptionalProgramStudentSearchDataForCsv)
-                    .forEach(csvRowData -> {
+                    .forEach(studentOptionalProgram -> {
                         try {
+                            List<String> csvRowData = prepareOptionalProgramStudentSearchDataForCsv(studentOptionalProgram);
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+                            if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
                             throw new GradStudentAPIRuntimeException(e);
                         }
@@ -546,23 +572,28 @@ public class CSVReportService {
                 .map(StudentSearchReportHeader::getCode)
                 .toList();
 
-        response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=\"StudentSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".csv\"");
+        response.setContentType(CONTENT_TYPE_CSV);
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_PREFIX + "StudentSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_YYYYMMDD)) + CSV_FILE_EXTENSION);
+        response.setBufferSize(CSV_BUFFER_SIZE);
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
              Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
 
             csvPrinter.printRecord(headers);
 
+            final int[] rowCount = {0};
             gradStudentStream
-                    .map(this::prepareStudentSearchDataForCsv)
-                    .forEach(csvRowData -> {
+                    .forEach(gradStudent -> {
                         try {
+                            List<String> csvRowData = prepareStudentSearchDataForCsv(gradStudent);
                             csvPrinter.printRecord(csvRowData);
-                            csvPrinter.flush();
+                            if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
                         } catch (IOException e) {
                             throw new GradStudentAPIRuntimeException(e);
                         }

@@ -31,11 +31,16 @@ public class StudentCoursePaginationRepositoryImpl implements StudentCoursePagin
         CriteriaQuery<StudentCoursePaginationEntity> cq = cb.createQuery(StudentCoursePaginationEntity.class);
         Root<StudentCoursePaginationEntity> root = cq.from(StudentCoursePaginationEntity.class);
 
+        root.fetch("graduationStudentRecordEntity");
+
         if (spec != null) {
             cq.where(spec.toPredicate(root, cq, cb));
         }
 
         TypedQuery<StudentCoursePaginationEntity> query = entityManager.createQuery(cq);
+
+        query.setHint("org.hibernate.fetchSize", 5000);
+        query.setHint("org.hibernate.readOnly", true);
 
         return query.getResultStream();
     }
