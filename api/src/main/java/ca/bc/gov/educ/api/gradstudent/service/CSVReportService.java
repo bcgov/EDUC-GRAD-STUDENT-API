@@ -445,11 +445,13 @@ public class CSVReportService {
 
             csvPrinter.printRecord(headers);
 
+            List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
+
             final int[] rowCount = {0};
             studentOptionalProgramStream
                     .forEach(studentOptionalProgram -> {
                         try {
-                            List<String> csvRowData = prepareOptionalProgramStudentSearchDataForCsv(studentOptionalProgram);
+                            List<String> csvRowData = prepareOptionalProgramStudentSearchDataForCsv(studentOptionalProgram, optionalProgramCodes);
                             csvPrinter.printRecord(csvRowData);
                             if (++rowCount[0] % CSV_FLUSH_INTERVAL == 0) {
                                 csvPrinter.flush();
@@ -463,7 +465,7 @@ public class CSVReportService {
         }
     }
 
-    private List<String> prepareOptionalProgramStudentSearchDataForCsv(StudentOptionalProgramPaginationEntity studentOptionalProgram) {
+    private List<String> prepareOptionalProgramStudentSearchDataForCsv(StudentOptionalProgramPaginationEntity studentOptionalProgram, List<OptionalProgramCode> optionalProgramCodes) {
         var gradStudentRecord = studentOptionalProgram.getGraduationStudentRecordEntity();
 
         String pen = gradStudentRecord != null && gradStudentRecord.getPen() != null
@@ -515,10 +517,8 @@ public class CSVReportService {
             schoolOfGraduationName = school.map(School::getDisplayName).orElse("");
         }
 
-        // Get optional program name
         String optionalProgramName = "";
         if (studentOptionalProgram.getOptionalProgramID() != null) {
-            List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
             optionalProgramName = optionalProgramCodes.stream()
                     .filter(op -> op.getOptionalProgramID().equals(studentOptionalProgram.getOptionalProgramID()))
                     .findFirst()
