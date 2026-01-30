@@ -31,8 +31,6 @@ public class StudentCoursePaginationRepositoryImpl implements StudentCoursePagin
         CriteriaQuery<StudentCoursePaginationEntity> cq = cb.createQuery(StudentCoursePaginationEntity.class);
         Root<StudentCoursePaginationEntity> root = cq.from(StudentCoursePaginationEntity.class);
 
-        root.fetch("graduationStudentRecordEntity");
-
         if (spec != null) {
             cq.where(spec.toPredicate(root, cq, cb));
         }
@@ -43,6 +41,7 @@ public class StudentCoursePaginationRepositoryImpl implements StudentCoursePagin
         query.setHint("org.hibernate.readOnly", true);
         query.setHint("org.hibernate.cacheable", false);
         query.setHint("jakarta.persistence.cache.storeMode", "BYPASS");
+        query.setHint("jakarta.persistence.query.timeout", 300000);
 
         return query.getResultStream();
     }

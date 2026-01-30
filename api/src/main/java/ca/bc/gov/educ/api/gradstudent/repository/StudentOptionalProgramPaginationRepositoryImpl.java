@@ -25,8 +25,6 @@ public class StudentOptionalProgramPaginationRepositoryImpl implements StudentOp
         CriteriaQuery<StudentOptionalProgramPaginationEntity> cq = cb.createQuery(StudentOptionalProgramPaginationEntity.class);
         Root<StudentOptionalProgramPaginationEntity> root = cq.from(StudentOptionalProgramPaginationEntity.class);
 
-        root.fetch("graduationStudentRecordEntity");
-
         if (spec != null) {
             cq.where(spec.toPredicate(root, cq, cb));
         }
@@ -36,6 +34,7 @@ public class StudentOptionalProgramPaginationRepositoryImpl implements StudentOp
         query.setHint("org.hibernate.readOnly", true);
         query.setHint("org.hibernate.cacheable", false);
         query.setHint("jakarta.persistence.cache.storeMode", "BYPASS");
+        query.setHint("jakarta.persistence.query.timeout", 300000);
 
         return query.getResultStream();
     }
