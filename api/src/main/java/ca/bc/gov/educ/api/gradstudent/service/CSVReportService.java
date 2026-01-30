@@ -397,9 +397,6 @@ public class CSVReportService {
             adultStartDate = EducGradStudentApiUtils.formatDate(gradStudent.getAdultStartDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
         }
 
-        String recalculateGradStatus = "Y".equalsIgnoreCase(gradStudent.getRecalculateGradStatus()) ? "Yes" : "No";
-        String recalculateProjectedGrad = "Y".equalsIgnoreCase(gradStudent.getRecalculateProjectedGrad()) ? "Yes" : "No";
-
         return Arrays.asList(
                 gradStudent.getPen() != null ? gradStudent.getPen() : "",
                 gradStudent.getStudentStatus() != null ? getHumanReadableStudentStatus(gradStudent.getStudentStatus()) : "",
@@ -414,9 +411,7 @@ public class CSVReportService {
                 schoolOfRecordName,
                 schoolOfGraduationCode,
                 schoolOfGraduationName,
-                adultStartDate,
-                recalculateGradStatus,
-                recalculateProjectedGrad
+                adultStartDate
         );
     }
 

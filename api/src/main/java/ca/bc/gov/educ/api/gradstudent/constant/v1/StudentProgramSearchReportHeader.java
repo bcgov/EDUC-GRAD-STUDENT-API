@@ -18,9 +18,7 @@ public enum StudentProgramSearchReportHeader {
     SCHOOL_OF_RECORD_NAME("School of Record Name"),
     SCHOOL_OF_GRADUATION_CODE("School of Graduation Code"),
     SCHOOL_OF_GRADUATION_NAME("School of Graduation Name"),
-    ADULT_START_DATE("Adult Start Date"),
-    RECALCULATE_GRAD_STATUS("Recalculate Grad Status?"),
-    RECALCULATE_PROJECTED_GRAD("Recalculate Projected Grad?")
+    ADULT_START_DATE("Adult Start Date")
     ;
 
     private final String code;
