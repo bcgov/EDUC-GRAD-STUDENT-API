@@ -52,7 +52,7 @@ public class StudentOptionalProgramPaginationRepositoryImpl implements StudentOp
     /**
      * Stream optional program data using native SQL
      *
-     * @param whereClause WHERE clause for filtering (without "WHERE" keyword)
+     * @param whereClause WHERE clause for filtering
      * @return Stream of OptionalProgramReport
      */
     @Override

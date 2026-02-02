@@ -252,7 +252,7 @@ public class CSVReportService {
      *
      * @param searchCriteriaListJson JSON string containing search criteria
      * @param objectMapper Jackson ObjectMapper for JSON parsing
-     * @return WHERE clause string (without "WHERE" keyword) or empty string if no criteria
+     * @return WHERE clause string or empty string if no criteria
      */
     private String buildWhereClauseForReport(String searchCriteriaListJson, ObjectMapper objectMapper) {
         if (StringUtils.isBlank(searchCriteriaListJson)) {

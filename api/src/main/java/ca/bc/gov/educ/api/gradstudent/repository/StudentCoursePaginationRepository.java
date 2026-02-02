@@ -20,7 +20,7 @@ interface StudentCoursePaginationRepositoryCustom {
 
     /**
      * Stream course data for report generation using native SQL
-     * @param whereClause Optional WHERE clause (without the "WHERE" keyword)
+     * @param whereClause Optional WHERE clause
      * @return Stream of CourseReport with only required columns
      */
     Stream<CourseReport> streamForCourseReport(String whereClause);
