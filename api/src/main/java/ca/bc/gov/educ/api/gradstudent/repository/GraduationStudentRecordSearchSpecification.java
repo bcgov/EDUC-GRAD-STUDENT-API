@@ -41,7 +41,7 @@ public class GraduationStudentRecordSearchSpecification implements Specification
                     curStatusOptional
             );
         }
-        boolean certDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode, "USERDISTOC", "USERDISTRC");
+        boolean certDist = StringUtils.equalsAnyIgnoreCase(searchCriteria.activityCode, "GRADPROJECTED", "USERDISTOC", "USERDISTRC");
         if(certDist) {
             curStatusOptional = criteriaBuilder.not(root.get(STUDENT_STATUS).in("MER", "DEC"));
         } else {
