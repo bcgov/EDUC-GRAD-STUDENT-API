@@ -21,6 +21,7 @@ import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,7 @@ public class CSVReportService {
     // Stream Constants
     private static final int CSV_BUFFER_SIZE = 1024;
     private static final int CSV_FLUSH_INTERVAL = 100;
+    private static final int ENTITY_MANAGER_CLEAR_INTERVAL = 10000;
 
     // CSV Report Constants
     private static final String CONTENT_TYPE_CSV = "text/csv";
@@ -72,6 +74,8 @@ public class CSVReportService {
     private final StudentOptionalProgramPaginationLeanRepository studentOptionalProgramPaginationLeanRepository;
     private final GradStudentSearchService gradStudentSearchService;
     private final GradStudentSearchRepository gradStudentSearchRepository;
+    private final EntityManager entityManager;
+
 
     public DownloadableReportResponse generateYukonReport(UUID districtID, String fromDate, String toDate) {
         var district = restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", districtID.toString()));
@@ -617,8 +621,13 @@ public class CSVReportService {
                             List<String> csvRowData = prepareProgramStudentSearchDataForCsv(gradStudent);
                             csvPrinter.printRecord(csvRowData);
                             int count = rowCount.incrementAndGet();
+
                             if (count % CSV_FLUSH_INTERVAL == 0) {
                                 csvPrinter.flush();
+                            }
+
+                            if (count % ENTITY_MANAGER_CLEAR_INTERVAL == 0) {
+                                entityManager.clear();
                             }
                         } catch (IOException e) {
                             log.debug("Client disconnected during program student search report at record {}. Stopping stream.", rowCount.get());
@@ -934,8 +943,13 @@ public class CSVReportService {
                             List<String> csvRowData = prepareStudentSearchDataForCsv(gradStudent);
                             csvPrinter.printRecord(csvRowData);
                             int count = rowCount.incrementAndGet();
+
                             if (count % CSV_FLUSH_INTERVAL == 0) {
                                 csvPrinter.flush();
+                            }
+
+                            if (count % ENTITY_MANAGER_CLEAR_INTERVAL == 0) {
+                                entityManager.clear();
                             }
                         } catch (IOException e) {
                             log.debug("Client disconnected during student search report at record {}. Stopping stream.", rowCount.get());
