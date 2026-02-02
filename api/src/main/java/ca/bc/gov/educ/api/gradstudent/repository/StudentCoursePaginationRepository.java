@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.CourseReport;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,5 +17,11 @@ public interface StudentCoursePaginationRepository extends JpaRepository<Student
 
 interface StudentCoursePaginationRepositoryCustom {
     Stream<StudentCoursePaginationEntity> streamAll(Specification<StudentCoursePaginationEntity> spec);
-}
 
+    /**
+     * Stream course data for report generation using native SQL
+     * @param whereClause Optional WHERE clause (without the "WHERE" keyword)
+     * @return Stream of CourseReport with only required columns
+     */
+    Stream<CourseReport> streamForCourseReport(String whereClause);
+}
