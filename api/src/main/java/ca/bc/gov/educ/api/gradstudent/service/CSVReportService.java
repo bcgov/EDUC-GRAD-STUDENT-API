@@ -252,7 +252,7 @@ public class CSVReportService {
 
     /**
      * Build WHERE clause from search criteria JSON for report queries.
-     * Handles UUID columns with HEXTORAW conversion for Oracle.
+     * Handles UUID columns with HEXTORAW conversion
      *
      * @param searchCriteriaListJson JSON string containing search criteria
      * @param objectMapper Jackson ObjectMapper for JSON parsing
