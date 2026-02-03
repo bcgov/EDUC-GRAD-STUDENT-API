@@ -8,8 +8,7 @@ import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentSearchReportHeader;
 import ca.bc.gov.educ.api.gradstudent.constant.v1.YukonReportHeader;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
-import ca.bc.gov.educ.api.gradstudent.model.dto.DownloadableReportResponse;
-import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationData;
+import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
@@ -19,8 +18,10 @@ import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,7 @@ public class CSVReportService {
     // Stream Constants
     private static final int CSV_BUFFER_SIZE = 1024;
     private static final int CSV_FLUSH_INTERVAL = 100;
+    private static final int ENTITY_MANAGER_CLEAR_INTERVAL = 10000;
 
     // CSV Report Constants
     private static final String CONTENT_TYPE_CSV = "text/csv";
@@ -72,6 +74,8 @@ public class CSVReportService {
     private final StudentOptionalProgramPaginationLeanRepository studentOptionalProgramPaginationLeanRepository;
     private final GradStudentSearchService gradStudentSearchService;
     private final GradStudentSearchRepository gradStudentSearchRepository;
+    private final EntityManager entityManager;
+
 
     public DownloadableReportResponse generateYukonReport(UUID districtID, String fromDate, String toDate) {
         var district = restUtils.getDistrictByDistrictID(districtID.toString()).orElseThrow(() -> new EntityNotFoundException(District.class, "districtID", districtID.toString()));
@@ -193,10 +197,8 @@ public class CSVReportService {
      * @throws IOException if writing to response fails
      */
     public void generateCourseStudentSearchReportStream(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
-        List<Sort.Order> sorts = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        Specification<StudentCoursePaginationEntity> specs =
-                studentCoursePaginationService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
+        String whereClause = buildWhereClauseForReport(searchCriteriaListJson, objectMapper);
 
         List<String> headers = Arrays.stream(StudentCourseSearchReportHeader.values())
                 .map(StudentCourseSearchReportHeader::getCode)
@@ -211,7 +213,7 @@ public class CSVReportService {
 
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
-             Stream<StudentCoursePaginationEntity> studentCourseStream = studentCoursePaginationRepository.streamAll(specs)) {
+             Stream<CourseReport> courseReportStream = studentCoursePaginationRepository.streamForCourseReport(whereClause)) {
 
             csvPrinter.printRecord(headers);
             csvPrinter.flush();
@@ -221,11 +223,11 @@ public class CSVReportService {
 
             log.debug("Starting course student search report stream processing");
 
-            studentCourseStream
-                    .takeWhile(sc -> !clientDisconnected.get())
-                    .forEach(studentCourse -> {
+            courseReportStream
+                    .takeWhile(dto -> !clientDisconnected.get())
+                    .forEach(courseDTO -> {
                         try {
-                            List<String> csvRowData = prepareCourseStudentSearchDataForCsv(studentCourse);
+                            List<String> csvRowData = prepareCourseReportDataForCsv(courseDTO);
                             csvPrinter.printRecord(csvRowData);
                             int count = rowCount.incrementAndGet();
                             if (count % CSV_FLUSH_INTERVAL == 0) {
@@ -246,6 +248,252 @@ public class CSVReportService {
         } catch (IOException e) {
             log.warn("Failed to start or complete course student search report generation: {}", e.getMessage());
         }
+    }
+
+    /**
+     * Build WHERE clause from search criteria JSON for report queries.
+     * Handles UUID columns with HEXTORAW conversion
+     *
+     * @param searchCriteriaListJson JSON string containing search criteria
+     * @param objectMapper Jackson ObjectMapper for JSON parsing
+     * @return WHERE clause string or empty string if no criteria
+     */
+    private String buildWhereClauseForReport(String searchCriteriaListJson, ObjectMapper objectMapper) {
+        if (StringUtils.isBlank(searchCriteriaListJson)) {
+            return "";
+        }
+
+        try {
+            List<Search> searches = objectMapper.readValue(searchCriteriaListJson, new TypeReference<>() {});
+            if (searches == null || searches.isEmpty()) {
+                return "";
+            }
+
+            StringBuilder whereClause = new StringBuilder();
+            boolean first = true;
+
+            for (Search search : searches) {
+                if (search.getSearchCriteriaList() == null || search.getSearchCriteriaList().isEmpty()) {
+                    continue;
+                }
+
+                if (!first) {
+                    whereClause.append(" ").append(search.getCondition() != null ? search.getCondition().toString() : "AND").append(" ");
+                }
+
+                whereClause.append("(");
+                boolean firstCriteria = true;
+
+                for (SearchCriteria criteria : search.getSearchCriteriaList()) {
+                    if (!firstCriteria) {
+                        whereClause.append(" ").append(criteria.getCondition() != null ? criteria.getCondition().toString() : "AND").append(" ");
+                    }
+
+                    String column = mapFieldToColumn(criteria.getKey());
+                    String value = criteria.getValue();
+                    String valueType = criteria.getValueType() != null ? criteria.getValueType().toString() : "STRING";
+
+                    switch (criteria.getOperation()) {
+                        case EQUAL:
+                            if (value == null || value.isEmpty()) {
+                                whereClause.append(column).append(" IS NULL");
+                            } else if ("UUID".equals(valueType)) {
+                                whereClause.append(column).append(" = HEXTORAW('").append(escapeSql(value.replace("-", ""))).append("')");
+                            } else {
+                                whereClause.append(column).append(" = '").append(escapeSql(value)).append("'");
+                            }
+                            break;
+                        case NOT_EQUAL:
+                            if (value == null || value.isEmpty()) {
+                                whereClause.append(column).append(" IS NOT NULL");
+                            } else if ("UUID".equals(valueType)) {
+                                whereClause.append(column).append(" != HEXTORAW('").append(escapeSql(value.replace("-", ""))).append("')");
+                            } else {
+                                whereClause.append(column).append(" != '").append(escapeSql(value)).append("'");
+                            }
+                            break;
+                        case CONTAINS:
+                            whereClause.append(column).append(" LIKE '%").append(escapeSql(value)).append("%'");
+                            break;
+                        case STARTS_WITH:
+                            whereClause.append(column).append(" LIKE '").append(escapeSql(value)).append("%'");
+                            break;
+                        case IN:
+                            if ("UUID".equals(valueType)) {
+                                String[] uuids = value.split(",");
+                                whereClause.append(column).append(" IN (");
+                                for (int i = 0; i < uuids.length; i++) {
+                                    if (i > 0) whereClause.append(", ");
+                                    whereClause.append("HEXTORAW('").append(escapeSql(uuids[i].trim().replace("-", ""))).append("')");
+                                }
+                                whereClause.append(")");
+                            } else {
+                                whereClause.append(column).append(" IN (").append(value).append(")");
+                            }
+                            break;
+                        case GREATER_THAN:
+                            whereClause.append(column).append(" > '").append(escapeSql(value)).append("'");
+                            break;
+                        case GREATER_THAN_OR_EQUAL_TO:
+                            whereClause.append(column).append(" >= '").append(escapeSql(value)).append("'");
+                            break;
+                        case LESS_THAN:
+                            whereClause.append(column).append(" < '").append(escapeSql(value)).append("'");
+                            break;
+                        case LESS_THAN_OR_EQUAL_TO:
+                            whereClause.append(column).append(" <= '").append(escapeSql(value)).append("'");
+                            break;
+                        case DATE_RANGE:
+                            if (value != null && value.contains(",")) {
+                                String[] dates = value.split(",");
+                                if (dates.length == 2) {
+                                    whereClause.append(column)
+                                            .append(" BETWEEN TO_TIMESTAMP('")
+                                            .append(escapeSql(dates[0].trim()))
+                                            .append("', 'YYYY-MM-DD\"T\"HH24:MI:SS') AND TO_TIMESTAMP('")
+                                            .append(escapeSql(dates[1].trim()))
+                                            .append("', 'YYYY-MM-DD\"T\"HH24:MI:SS')");
+                                }
+                            }
+                            break;
+                        default:
+                            if (value == null || value.isEmpty()) {
+                                whereClause.append(column).append(" IS NULL");
+                            } else {
+                                whereClause.append(column).append(" = '").append(escapeSql(value)).append("'");
+                            }
+                    }
+
+                    firstCriteria = false;
+                }
+
+                whereClause.append(")");
+                first = false;
+            }
+
+            return whereClause.toString();
+        } catch (Exception e) {
+            log.warn("Failed to parse search criteria for course report: {}", e.getMessage());
+            return "";
+        }
+    }
+
+    private String mapFieldToColumn(String fieldName) {
+        if (fieldName.startsWith("graduationStudentRecordEntity.")) {
+            fieldName = fieldName.substring("graduationStudentRecordEntity.".length());
+        }
+
+        // Map field names from SearchCriteria to database columns
+        return switch (fieldName) {
+            // Graduation Student Record fields (gsr)
+            case "pen" -> "gsr.PEN";
+            case "studentStatus", "studentStatusCode" -> "gsr.STUDENT_STATUS_CODE";
+            case "legalLastName", "surname" -> "gsr.LEGAL_LAST_NAME";
+            case "dob", "birthdate" -> "gsr.DOB";
+            case "studentGrade", "grade" -> "gsr.STUDENT_GRADE";
+            case "program", "graduationProgramCode" -> "gsr.GRADUATION_PROGRAM_CODE";
+            case "programCompletionDate" -> "gsr.PROGRAM_COMPLETION_DATE";
+            case "schoolOfRecord", "schoolOfRecordCode" -> "gsr.SCHOOL_OF_RECORD";
+            case "schoolOfRecordId" -> "gsr.SCHOOL_OF_RECORD_ID";
+            case "schoolAtGrad", "schoolAtGraduation", "schoolOfGraduationCode" -> "gsr.SCHOOL_AT_GRADUATION";
+            case "schoolAtGradId", "schoolAtGraduationId" -> "gsr.SCHOOL_AT_GRADUATION_ID";
+
+            // Student Course fields (sc)
+            case "courseID", "courseId" -> "sc.COURSE_ID";
+            case "courseSession" -> "sc.COURSE_SESSION";
+            case "interimPercent" -> "sc.INTERIM_PERCENT";
+            case "interimLetterGrade" -> "sc.INTERIM_LETTER_GRADE";
+            case "finalPercent" -> "sc.FINAL_PERCENT";
+            case "finalLetterGrade" -> "sc.FINAL_LETTER_GRADE";
+            case "credits", "numberCredits" -> "sc.NUMBER_CREDITS";
+            case "equivOrChallenge", "equivalentOrChallengeCode" -> "sc.EQUIVALENT_OR_CHALLENGE_CODE";
+            case "fineArtsAppliedSkillsCode" -> "sc.FINE_ARTS_APPLIED_SKILLS_CODE";
+            case "studentExamId", "studentCourseExamId" -> "sc.STUDENT_COURSE_EXAM_ID";
+
+            // Student Optional Program fields (sop)
+            case "optionalProgramID", "optionalProgramId" -> "sop.OPTIONAL_PROGRAM_ID";
+            case "completionDate", "optionalProgramCompletionDate" -> "sop.COMPLETION_DATE";
+
+            default -> fieldName; // Fallback to original field name
+        };
+    }
+
+    private String escapeSql(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("'", "''");
+    }
+
+    private List<String> prepareCourseReportDataForCsv(CourseReport courseDTO) {
+        String schoolOfRecordName = "";
+        if (courseDTO.getSchoolOfRecordId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(courseDTO.getSchoolOfRecordId().toString());
+            schoolOfRecordName = school.map(School::getDisplayName).orElse("");
+        }
+
+        String schoolOfGraduationName = "";
+        if (courseDTO.getSchoolAtGraduationId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(courseDTO.getSchoolAtGraduationId().toString());
+            schoolOfGraduationName = school.map(School::getDisplayName).orElse("");
+        }
+
+        String courseCode = "";
+        String courseLevel = "";
+        if (courseDTO.getCourseID() != null) {
+            Optional<CourseCodeRecord> courseRecord = restUtils.getCoreg39CourseByID(courseDTO.getCourseID().toString());
+            if (courseRecord.isPresent() && StringUtils.isNotBlank(courseRecord.get().getExternalCode())) {
+                String externalCode = courseRecord.get().getExternalCode();
+                courseCode = externalCode.substring(0, Math.min(5, externalCode.length())).trim();
+                if (externalCode.length() > 5) {
+                    courseLevel = externalCode.substring(5).trim();
+                }
+            }
+        }
+
+        String birthdate = courseDTO.getDob() != null
+                ? courseDTO.getDob().format(DateTimeFormatter.ISO_LOCAL_DATE) : "";
+        String completionDate = courseDTO.getProgramCompletionDate() != null
+                ? courseDTO.getProgramCompletionDate().format(DateTimeFormatter.ISO_LOCAL_DATE) : "";
+
+        String equivChall = "";
+        if (StringUtils.isNotBlank(courseDTO.getEquivOrChallenge())) {
+            if (courseDTO.getEquivOrChallenge().startsWith("E")) {
+                equivChall = "E";
+            } else if (courseDTO.getEquivOrChallenge().startsWith("C")) {
+                equivChall = "C";
+            }
+        }
+
+        String fineArtsAppSkill = StringUtils.isNotBlank(courseDTO.getFineArtsAppliedSkillsCode())
+                ? courseDTO.getFineArtsAppliedSkillsCode() : "";
+
+        String hasExam = courseDTO.getStudentExamId() != null ? "Yes" : "No";
+
+        return Arrays.asList(
+                courseDTO.getPen() != null ? courseDTO.getPen() : "",
+                courseDTO.getStudentStatus() != null ? getHumanReadableStudentStatus(courseDTO.getStudentStatus()) : "",
+                courseDTO.getLegalLastName() != null ? courseDTO.getLegalLastName() : "",
+                birthdate,
+                courseDTO.getStudentGrade() != null ? courseDTO.getStudentGrade() : "",
+                courseDTO.getProgram() != null ? courseDTO.getProgram() : "",
+                completionDate,
+                courseDTO.getSchoolOfRecord() != null ? courseDTO.getSchoolOfRecord() : "",
+                schoolOfRecordName,
+                courseDTO.getSchoolAtGraduation() != null ? courseDTO.getSchoolAtGraduation() : "",
+                schoolOfGraduationName,
+                courseCode,
+                courseLevel,
+                courseDTO.getCourseSession() != null ? courseDTO.getCourseSession() : "",
+                courseDTO.getInterimPercent() != null ? courseDTO.getInterimPercent().toString() : "",
+                courseDTO.getInterimLetterGrade() != null ? courseDTO.getInterimLetterGrade() : "",
+                courseDTO.getFinalPercent() != null ? courseDTO.getFinalPercent().toString() : "",
+                courseDTO.getFinalLetterGrade() != null ? courseDTO.getFinalLetterGrade() : "",
+                courseDTO.getCredits() != null ? courseDTO.getCredits().toString() : "",
+                equivChall,
+                fineArtsAppSkill,
+                hasExam
+        );
     }
 
     private List<String> prepareCourseStudentSearchDataForCsv(StudentCoursePaginationEntity studentCourse) {
@@ -373,8 +621,13 @@ public class CSVReportService {
                             List<String> csvRowData = prepareProgramStudentSearchDataForCsv(gradStudent);
                             csvPrinter.printRecord(csvRowData);
                             int count = rowCount.incrementAndGet();
+
                             if (count % CSV_FLUSH_INTERVAL == 0) {
                                 csvPrinter.flush();
+                            }
+
+                            if (count % ENTITY_MANAGER_CLEAR_INTERVAL == 0) {
+                                entityManager.clear();
                             }
                         } catch (IOException e) {
                             log.debug("Client disconnected during program student search report at record {}. Stopping stream.", rowCount.get());
@@ -448,17 +701,15 @@ public class CSVReportService {
     }
 
     /**
-     * Generate CSV report for student optional program search
+     * Generate CSV report for student optional program search using native SQL streaming.
      *
      * @param searchCriteriaListJson search criteria in JSON format
      * @param response HTTP response to write CSV to
      * @throws IOException if writing to response fails
      */
     public void generateOptionalProgramStudentSearchReportStream(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
-        List<Sort.Order> sorts = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        Specification<StudentOptionalProgramPaginationEntity> specs =
-                studentOptionalProgramPaginationService.setSpecificationAndSortCriteria("", searchCriteriaListJson, objectMapper, sorts);
+        String whereClause = buildWhereClauseForReport(searchCriteriaListJson, objectMapper);
 
         List<String> headers = Arrays.stream(StudentOptionalProgramSearchReportHeader.values())
                 .map(StudentOptionalProgramSearchReportHeader::getCode)
@@ -473,7 +724,7 @@ public class CSVReportService {
 
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
-             Stream<StudentOptionalProgramPaginationEntity> studentOptionalProgramStream = studentOptionalProgramPaginationRepository.streamAll(specs)) {
+             Stream<OptionalProgramReport> optionalProgramReportStream = studentOptionalProgramPaginationRepository.streamForOptionalProgramReport(whereClause)) {
 
             csvPrinter.printRecord(headers);
             csvPrinter.flush();
@@ -485,11 +736,11 @@ public class CSVReportService {
 
             log.debug("Starting optional program student search report stream processing");
 
-            studentOptionalProgramStream
-                    .takeWhile(sop -> !clientDisconnected.get())
-                    .forEach(studentOptionalProgram -> {
+            optionalProgramReportStream
+                    .takeWhile(op -> !clientDisconnected.get())
+                    .forEach(optionalProgramDTO -> {
                         try {
-                            List<String> csvRowData = prepareOptionalProgramStudentSearchDataForCsv(studentOptionalProgram, optionalProgramCodes);
+                            List<String> csvRowData = prepareOptionalProgramReportDataForCsv(optionalProgramDTO, optionalProgramCodes);
                             csvPrinter.printRecord(csvRowData);
                             int count = rowCount.incrementAndGet();
 
@@ -511,6 +762,57 @@ public class CSVReportService {
         } catch (IOException e) {
             log.warn("Failed to start or complete optional program student search report generation: {}", e.getMessage());
         }
+    }
+
+    private List<String> prepareOptionalProgramReportDataForCsv(
+            OptionalProgramReport optionalProgramDTO,
+            List<OptionalProgramCode> optionalProgramCodes) {
+
+        String schoolOfRecordName = "";
+        if (optionalProgramDTO.getSchoolOfRecordId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(optionalProgramDTO.getSchoolOfRecordId().toString());
+            schoolOfRecordName = school.map(School::getDisplayName).orElse("");
+        }
+
+        String schoolOfGraduationName = "";
+        if (optionalProgramDTO.getSchoolAtGraduationId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(optionalProgramDTO.getSchoolAtGraduationId().toString());
+            schoolOfGraduationName = school.map(School::getDisplayName).orElse("");
+        }
+
+        String optionalProgramName = "";
+        if (optionalProgramDTO.getOptionalProgramId() != null) {
+            optionalProgramName = optionalProgramCodes.stream()
+                    .filter(op -> op.getOptionalProgramID().equals(optionalProgramDTO.getOptionalProgramId()))
+                    .findFirst()
+                    .map(OptionalProgramCode::getOptionalProgramName)
+                    .orElse("");
+        }
+
+        String birthdate = optionalProgramDTO.getDob() != null
+                ? optionalProgramDTO.getDob().format(DateTimeFormatter.ISO_LOCAL_DATE) : "";
+        String completionDate = optionalProgramDTO.getProgramCompletionDate() != null
+                ? optionalProgramDTO.getProgramCompletionDate().format(DateTimeFormatter.ISO_LOCAL_DATE) : "";
+        String optionalProgramCompletionDate = optionalProgramDTO.getOptionalProgramCompletionDate() != null
+                ? optionalProgramDTO.getOptionalProgramCompletionDate().format(DateTimeFormatter.ISO_LOCAL_DATE) : "";
+
+        return Arrays.asList(
+                optionalProgramDTO.getPen() != null ? optionalProgramDTO.getPen() : "",
+                getHumanReadableStudentStatus(optionalProgramDTO.getStudentStatus()),
+                optionalProgramDTO.getLegalLastName() != null ? optionalProgramDTO.getLegalLastName() : "",
+                optionalProgramDTO.getLegalFirstName() != null ? optionalProgramDTO.getLegalFirstName() : "",
+                optionalProgramDTO.getLegalMiddleNames() != null ? optionalProgramDTO.getLegalMiddleNames() : "",
+                birthdate,
+                optionalProgramDTO.getStudentGrade() != null ? optionalProgramDTO.getStudentGrade() : "",
+                optionalProgramDTO.getProgram() != null ? optionalProgramDTO.getProgram() : "",
+                completionDate,
+                optionalProgramDTO.getSchoolOfRecord() != null ? optionalProgramDTO.getSchoolOfRecord() : "",
+                schoolOfRecordName,
+                optionalProgramDTO.getSchoolAtGraduation() != null ? optionalProgramDTO.getSchoolAtGraduation() : "",
+                schoolOfGraduationName,
+                optionalProgramName,
+                optionalProgramCompletionDate
+        );
     }
 
     private List<String> prepareOptionalProgramStudentSearchDataForCsv(StudentOptionalProgramPaginationEntity studentOptionalProgram, List<OptionalProgramCode> optionalProgramCodes) {
@@ -641,8 +943,13 @@ public class CSVReportService {
                             List<String> csvRowData = prepareStudentSearchDataForCsv(gradStudent);
                             csvPrinter.printRecord(csvRowData);
                             int count = rowCount.incrementAndGet();
+
                             if (count % CSV_FLUSH_INTERVAL == 0) {
                                 csvPrinter.flush();
+                            }
+
+                            if (count % ENTITY_MANAGER_CLEAR_INTERVAL == 0) {
+                                entityManager.clear();
                             }
                         } catch (IOException e) {
                             log.debug("Client disconnected during student search report at record {}. Stopping stream.", rowCount.get());

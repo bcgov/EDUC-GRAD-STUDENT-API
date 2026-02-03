@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
+import ca.bc.gov.educ.api.gradstudent.model.dto.OptionalProgramReport;
 import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramPaginationEntity;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,5 +19,6 @@ public interface StudentOptionalProgramPaginationRepository extends JpaRepositor
 
 interface StudentOptionalProgramPaginationRepositoryCustom {
     Stream<StudentOptionalProgramPaginationEntity> streamAll(Specification<StudentOptionalProgramPaginationEntity> spec);
+    Stream<OptionalProgramReport> streamForOptionalProgramReport(String whereClause);
 }
 
