@@ -8,6 +8,7 @@ import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordHistoryEntity;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
+import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -21,6 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +66,63 @@ class GraduationStudentRecordServiceTest {
         graduationStudentRecordService.handleStudentUpdated(studentUpdate, graduationStudentRecordEntity, event);
         Optional<GraduationStudentRecordEntity> savedEntity = graduationStudentRecordRepository.findById(studentID);
         savedEntity.ifPresent(studentRecordEntity -> assertEquals(graduationStudentRecordEntity.getStudentID(), studentRecordEntity.getStudentID()));
+    }
+
+    @Test
+    @Transactional
+    void testUpdateStudentRecord_RefreshesDemographicsFromStudentApi() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolID = UUID.randomUUID();
+
+        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "A", schoolID.toString());
+        Student studentFromApi = Student.builder()
+                .studentID(studentID.toString())
+                .pen("987654321")
+                .legalFirstName("Ada")
+                .legalMiddleNames("Lovelace")
+                .legalLastName("Byron")
+                .genderCode("F")
+                .dob("2001-02-03")
+                .build();
+        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "CUR");
+        existingEntity.setPen("111111111");
+        existingEntity.setLegalFirstName("Old");
+        existingEntity.setLegalLastName("Name");
+
+        var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity);
+
+        assertNotNull(result);
+        GraduationStudentRecordEntity updatedEntity = result.getRight();
+        assertEquals(studentFromApi.getPen(), updatedEntity.getPen());
+        assertEquals(studentFromApi.getLegalFirstName(), updatedEntity.getLegalFirstName());
+        assertEquals(studentFromApi.getLegalMiddleNames(), updatedEntity.getLegalMiddleNames());
+        assertEquals(studentFromApi.getLegalLastName(), updatedEntity.getLegalLastName());
+        assertEquals(studentFromApi.getGenderCode(), updatedEntity.getGenderCode());
+        assertEquals(DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), studentFromApi.getDob()), updatedEntity.getDob());
+    }
+
+    @Test
+    @Transactional
+    void testUpdateStudentRecord_InvalidDobDoesNotThrowOrOverwrite() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolID = UUID.randomUUID();
+
+        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "A", schoolID.toString());
+        Student studentFromApi = Student.builder()
+                .studentID(studentID.toString())
+                .pen("987654321")
+                .legalFirstName("Ada")
+                .legalLastName("Byron")
+                .genderCode("F")
+                .dob("bad-date")
+                .build();
+        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "CUR");
+        existingEntity.setDob(null);
+
+        assertDoesNotThrow(() -> graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity));
+        var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity);
+        assertNotNull(result);
+        assertNull(result.getRight().getDob());
     }
 
     @ParameterizedTest
