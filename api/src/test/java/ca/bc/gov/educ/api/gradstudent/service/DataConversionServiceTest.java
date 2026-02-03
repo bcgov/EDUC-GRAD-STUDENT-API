@@ -136,6 +136,41 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testGraduationStudentRecordAsNew_UsesStudentApiDemographics() {
+        UUID studentID = UUID.randomUUID();
+
+        GraduationStudentRecord graduationStatus = new GraduationStudentRecord();
+        graduationStatus.setStudentID(studentID);
+        graduationStatus.setPen("111111111");
+        graduationStatus.setStudentStatus("A");
+        graduationStatus.setProgram("2018-EN");
+
+        GraduationStudentRecordEntity savedEntity = new GraduationStudentRecordEntity();
+        BeanUtils.copyProperties(graduationStatus, savedEntity);
+
+        GradSearchStudent gradSearchStudent = GradSearchStudent.builder()
+                .studentID(studentID.toString())
+                .pen("222222222")
+                .legalFirstName("Ada")
+                .legalMiddleNames("Lovelace")
+                .legalLastName("Byron")
+                .build();
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.empty());
+        when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString())).thenReturn(gradSearchStudent);
+
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, graduationStatus, false);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getPen()).isEqualTo(gradSearchStudent.getPen());
+        assertThat(result.getLegalFirstName()).isEqualTo(gradSearchStudent.getLegalFirstName());
+        assertThat(result.getLegalMiddleNames()).isEqualTo(gradSearchStudent.getLegalMiddleNames());
+        assertThat(result.getLegalLastName()).isEqualTo(gradSearchStudent.getLegalLastName());
+    }
+
+    @Test
     public void testGraduationStudentRecordAsUpdate() {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -263,13 +298,27 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
         when(this.requestBodyMock.retrieve()).thenReturn(this.responseMock);
         when(this.responseMock.bodyToMono(Integer.class)).thenReturn(Mono.just(0));
 
+        GradSearchStudent gradSearchStudent = GradSearchStudent.builder()
+                .studentID(studentID.toString())
+                .pen("987654321")
+                .legalFirstName("Sam")
+                .legalMiddleNames("Q")
+                .legalLastName("Rogers")
+                .build();
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString())).thenReturn(gradSearchStudent);
+        when(graduationStatusRepository.save(any(GraduationStudentRecordEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
         var result = dataConversionService.updateGraduationStatusByFields(requestDTO, "accessToken");
 
         assertThat(result).isNotNull();
         assertThat(result.getStudentID()).isEqualTo(graduationStatusEntity.getStudentID());
-        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
+        assertThat(result.getPen()).isEqualTo(gradSearchStudent.getPen());
         assertThat(result.getStudentStatus()).isEqualTo(graduationStatusEntity.getStudentStatus());
         assertThat(result.getGpa()).isEqualTo(graduationStatusEntity.getGpa());
+        assertThat(result.getLegalFirstName()).isEqualTo(gradSearchStudent.getLegalFirstName());
+        assertThat(result.getLegalMiddleNames()).isEqualTo(gradSearchStudent.getLegalMiddleNames());
+        assertThat(result.getLegalLastName()).isEqualTo(gradSearchStudent.getLegalLastName());
 
         assertThat(result.getProgramCompletionDate()).isEqualTo(field1.getValue());
         assertThat(result.getProgram()).isEqualTo(field2.getValue());
