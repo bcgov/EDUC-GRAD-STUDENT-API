@@ -100,7 +100,7 @@ public class DataConversionService extends GradBaseService {
         Optional<GraduationStudentRecordEntity> gradStatusOptional = graduationStatusRepository.findById(studentID);
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString());
-        if(gradSearchStudent != null) {
+        if (gradSearchStudent != null && StringUtils.isNotBlank(gradSearchStudent.getStudentID())) {
             sourceObject.setPen(gradSearchStudent.getPen());
             sourceObject.setDob((StringUtils.isNotBlank(gradSearchStudent.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), gradSearchStudent.getDob()) : null));
             sourceObject.setGenderCode(gradSearchStudent.getGenderCode());
@@ -132,6 +132,21 @@ public class DataConversionService extends GradBaseService {
             Map<FieldName, OngoingUpdateFieldDTO> updateFieldsMap = populateOngoingUpdateFields(requestDTO.getUpdateFields(), gradEntity, accessToken);
             validateStudentStatusAndResetBatchFlags(gradEntity, updateFieldsMap);
             gradEntity = saveUpdateFields(studentID, updateFieldsMap, getUsername());
+            // refresh demographics from Student API when possible
+            try {
+                GradSearchStudent gradSearchStudent = gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString());
+                if (gradSearchStudent != null && StringUtils.isNotBlank(gradSearchStudent.getStudentID())) {
+                    gradEntity.setPen(gradSearchStudent.getPen());
+                    gradEntity.setDob((StringUtils.isNotBlank(gradSearchStudent.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), gradSearchStudent.getDob()) : null));
+                    gradEntity.setGenderCode(gradSearchStudent.getGenderCode());
+                    gradEntity.setLegalFirstName(gradSearchStudent.getLegalFirstName());
+                    gradEntity.setLegalLastName(gradSearchStudent.getLegalLastName());
+                    gradEntity.setLegalMiddleNames(gradSearchStudent.getLegalMiddleNames());
+                    gradEntity = graduationStatusRepository.save(gradEntity);
+                }
+            } catch (Exception e) {
+                log.warn("Unable to refresh demographics from Student API for student {}: {}", studentID, e.getMessage());
+            }
             if (constants.isStudentGuidPenXrefEnabled() && StringUtils.isNotBlank(requestDTO.getPen())) {
                 saveStudentGuidPenXref(studentID, requestDTO.getPen());
             }
