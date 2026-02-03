@@ -71,6 +71,7 @@ public class GraduationStudentRecordService {
     public static final String CREATE_DATE = "createDate";
     public static final String YYYY_MM_DD = "uuuuMMdd";
     public static final String EN_1996_CODE = "1996-EN";
+    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd";
     public final List<String> fral10Programs = Arrays.asList("2023-EN", "2018-EN", "2004-EN");
     public final List<String> fral11Programs = Arrays.asList(EN_1996_CODE, "1986-EN");
     private static final Logger logger = LoggerFactory.getLogger(GraduationStudentRecordService.class);
@@ -91,7 +92,7 @@ public class GraduationStudentRecordService {
         if(StringUtils.isNotBlank(dob)){
             try {
                 existingStudentRecordEntity.setDob(
-                        DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), dob)
+                        DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT), dob)
                 );
             } catch(Exception e) {
                 logger.error("Error replicating DOB from upstream: {}", e.getMessage());
@@ -186,6 +187,21 @@ public class GraduationStudentRecordService {
         var updatedEntity = studentUpdate.getRight();
         updatedEntity.setUpdateUser(demStudent.getUpdateUser());
         updatedEntity.setUpdateDate(LocalDateTime.now());
+        // ensure latest demographics from student api
+        if (studentFromApi != null) {
+            updatedEntity.setPen(studentFromApi.getPen());
+            updatedEntity.setLegalFirstName(studentFromApi.getLegalFirstName());
+            updatedEntity.setLegalMiddleNames(studentFromApi.getLegalMiddleNames());
+            updatedEntity.setLegalLastName(studentFromApi.getLegalLastName());
+            updatedEntity.setGenderCode(studentFromApi.getGenderCode());
+            if (StringUtils.isNotBlank(studentFromApi.getDob())) {
+                try {
+                    updatedEntity.setDob(DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT), studentFromApi.getDob()));
+                } catch (Exception e) {
+                    logger.warn("Invalid DOB from Student API for student {}: {}", studentFromApi.getStudentID(), studentFromApi.getDob());
+                }
+            }
+        }
         var savedStudentRecord = graduationStudentRecordRepository.save(updatedEntity);
         if(Boolean.TRUE.equals(studentWasUpdated)) {
             historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
@@ -580,39 +596,30 @@ public class GraduationStudentRecordService {
         List<String> careerProgramIDs = new ArrayList<>();
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode1())) {
-            var programCode1Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(truncProgramCode(demStudent.getProgramCode1())));
+            var programCode1Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(extractProgramCode(demStudent.getProgramCode1())));
             programCode1Entity.ifPresent(entity -> careerProgramIDs.add(entity.getCode()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode2())) {
-            var programCode2Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(truncProgramCode(demStudent.getProgramCode2())));
+            var programCode2Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(extractProgramCode(demStudent.getProgramCode2())));
             programCode2Entity.ifPresent(entity -> careerProgramIDs.add(entity.getCode()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode3())) {
-            var programCode3Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(truncProgramCode(demStudent.getProgramCode3())));
+            var programCode3Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(extractProgramCode(demStudent.getProgramCode3())));
             programCode3Entity.ifPresent(entity -> careerProgramIDs.add(entity.getCode()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode4())) {
-            var programCode4Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(truncProgramCode(demStudent.getProgramCode4())));
+            var programCode4Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(extractProgramCode(demStudent.getProgramCode4())));
             programCode4Entity.ifPresent(entity -> careerProgramIDs.add(entity.getCode()));
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode5())) {
-            var programCode5Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(truncProgramCode(demStudent.getProgramCode5())));
+            var programCode5Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(extractProgramCode(demStudent.getProgramCode5())));
             programCode5Entity.ifPresent(entity -> careerProgramIDs.add(entity.getCode()));
         }
         return careerProgramIDs;
-    }
-
-    private String truncProgramCode(String incomingProgramCode) {
-        if(incomingProgramCode.length() == 3) {
-            return incomingProgramCode.substring(1);
-        } else if(incomingProgramCode.length() == 4) {
-            return incomingProgramCode.substring(2);
-        }
-        return incomingProgramCode;
     }
 
     private Pair<Boolean, GraduationStudentRecordEntity> compareAndUpdateGraduationStudentRecordEntity(DemographicStudent demStudent, GraduationStudentRecordEntity newStudentRecordEntity, GradStudentUpdateResult gradStudentUpdateResult) {
@@ -759,7 +766,7 @@ public class GraduationStudentRecordService {
                 .studentCitizenship(demStudent.getIsSummerCollection().equalsIgnoreCase("N") ? demStudent.getCitizenship() : null)
                 .schoolOfRecordId(UUID.fromString(demStudent.getSchoolID()))
                 .studentID(UUID.fromString(studentFromApi.getStudentID()))
-                .dob((StringUtils.isNotBlank(studentFromApi.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern("yyyy-MM-dd"), studentFromApi.getDob()) : null))
+                .dob((StringUtils.isNotBlank(studentFromApi.getDob()) ? DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT), studentFromApi.getDob()) : null))
                 .genderCode(studentFromApi.getGenderCode())
                 .legalFirstName(studentFromApi.getLegalFirstName())
                 .legalMiddleNames(studentFromApi.getLegalMiddleNames())
