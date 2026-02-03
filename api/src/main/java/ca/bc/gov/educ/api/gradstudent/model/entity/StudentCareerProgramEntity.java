@@ -1,14 +1,16 @@
 package ca.bc.gov.educ.api.gradstudent.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Entity
 @Table(name = "STUDENT_CAREER_PROGRAM")
 public class StudentCareerProgramEntity extends BaseEntity {

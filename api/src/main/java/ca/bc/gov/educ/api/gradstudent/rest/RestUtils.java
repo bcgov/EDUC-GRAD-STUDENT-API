@@ -11,6 +11,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dc.Event;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Student;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.CareerProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.District;
@@ -63,6 +64,7 @@ public class RestUtils {
   private final ReadWriteLock gradProgramLock = new ReentrantReadWriteLock();
   private final Map<UUID, OptionalProgramCode> optionalProgramCodesMap = new ConcurrentHashMap<>();
   private final Map<String, GraduationProgramCode> gradProgramCodeMap = new ConcurrentHashMap<>();
+  private final Map<String, CareerProgramCode> careerProgramCodesMap = new ConcurrentHashMap<>();
   private final Map<String, District> districtMap = new ConcurrentHashMap<>();
   private final Map<String, School> schoolMap = new ConcurrentHashMap<>();
   private final Map<String, CourseCodeRecord> coreg39Map = new ConcurrentHashMap<>();
@@ -70,6 +72,7 @@ public class RestUtils {
   private final ReadWriteLock districtLock = new ReentrantReadWriteLock();
   private final ReadWriteLock schoolLock = new ReentrantReadWriteLock();
   private final ReadWriteLock coreg39Lock = new ReentrantReadWriteLock();
+  private final ReadWriteLock careerProgramLock = new ReentrantReadWriteLock();
 
   public static final Executor bgTask = new EnhancedQueueExecutor.Builder()
           .setThreadFactory(new ThreadFactoryBuilder().setNameFormat("bg-task-executor-%d").build())
@@ -98,6 +101,7 @@ public class RestUtils {
     this.populateDistrictMap();
     this.populateSchoolMap();
     this.populateCoreg39Map();
+    this.populateCareerProgramsMap();
   }
 
   @Scheduled(cron = "${cron.scheduled.process.cache-cron.run}")
@@ -167,6 +171,41 @@ public class RestUtils {
             .bodyToFlux(OptionalProgramCode.class)
             .collectList()
             .block();
+  }
+
+  private List<CareerProgramCode> getCareerPrograms() {
+    log.info("Calling Grad api to load career programs to memory");
+    return this.webClient.get()
+            .uri(constants.getGradProgramUrl() + "/careerprogram")
+            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .retrieve()
+            .bodyToFlux(CareerProgramCode.class)
+            .collectList()
+            .block();
+  }
+
+  public void populateCareerProgramsMap() {
+    val writeLock = this.careerProgramLock.writeLock();
+    try {
+      writeLock.lock();
+      this.careerProgramCodesMap.clear();
+      for (val program : this.getCareerPrograms()) {
+        this.careerProgramCodesMap.put(program.getCode(), program);
+      }
+    } catch (Exception ex) {
+      log.error("Unable to load map cache career program {}", ex);
+    } finally {
+      writeLock.unlock();
+    }
+    log.info("Loaded  {} career programs to memory", this.careerProgramCodesMap.values().size());
+  }
+
+  public List<CareerProgramCode> getCareerProgramCodeList() {
+    if (this.careerProgramCodesMap.isEmpty()) {
+      log.info("Career Program Code map is empty reloading them");
+      this.populateCareerProgramsMap();
+    }
+    return this.careerProgramCodesMap.values().stream().toList();
   }
 
   private List<GraduationProgramCode> getGraduationProgramCodes() {
