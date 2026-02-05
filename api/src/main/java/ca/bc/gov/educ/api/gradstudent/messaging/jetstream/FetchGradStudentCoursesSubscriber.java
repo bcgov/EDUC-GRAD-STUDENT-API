@@ -60,12 +60,12 @@ public class FetchGradStudentCoursesSubscriber implements MessageHandler {
 
             try {
                 Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
-                log.info("received GET_STUDENT_COURSES event :: {}", event.getSagaId());
+                log.debug("received GET_STUDENT_COURSES event :: {}", event.getSagaId());
                 log.trace(PAYLOAD_LOG, event.getEventPayload());
                 UUID studentId = UUID.fromString(event.getEventPayload());
                 List<StudentCourse> studentCourseRecords = gradStudentCourseService.getStudentCourses(studentId);
                 response = getResponse(studentCourseRecords);
-                log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+                log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
             } catch (Exception e) {
                 response = getErrorResponse(e);
                 log.error("Error while processing GET_STUDENT_COURSES event", e);

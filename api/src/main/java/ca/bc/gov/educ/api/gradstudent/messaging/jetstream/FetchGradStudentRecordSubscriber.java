@@ -65,12 +65,12 @@ public class FetchGradStudentRecordSubscriber implements MessageHandler {
 
             try {
                 Event event = JsonUtil.getJsonObjectFromString(Event.class, eventString);
-                log.info("received GET_STUDENT event :: {}", event.getSagaId());
+                log.debug("received GET_STUDENT event :: {}", event.getSagaId());
                 log.trace(PAYLOAD_LOG, event.getEventPayload());
                 UUID studentId = UUID.fromString(event.getEventPayload());
                 GradStudentRecord studentRecord = gradStudentService.getGraduationStudentRecord(studentId);
                 response = getResponse(studentRecord);
-                log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+                log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
             } catch (Exception e) {
                 response = getErrorResponse(e);
                 if(!(e instanceof EntityNotFoundException)) {

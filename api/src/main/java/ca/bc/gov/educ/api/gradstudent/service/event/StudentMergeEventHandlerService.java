@@ -31,12 +31,12 @@ public class StudentMergeEventHandlerService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Boolean processMergeEvent(final GradStatusEvent event) throws JsonProcessingException {
-        log.info("processing merge event {}", event);
+        log.debug("processing merge event {}", event);
         final List<StudentMerge> studentMerges = new ObjectMapper().readValue(event.getEventPayload(), new TypeReference<>() {
         });
         Optional<StudentMerge> studentMerge = studentMerges.stream().filter(this::mergeToPredicate).findFirst();
         if (studentMerge.isEmpty()) {
-            log.info("Student Merge is empty. EventId: {}", event.getEventId());
+            log.debug("Student Merge is empty. EventId: {}", event.getEventId());
             markEventAsProcessed(event.getEventId());
             return true;
         }
@@ -49,12 +49,12 @@ public class StudentMergeEventHandlerService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Boolean processDeMergeEvent(final GradStatusEvent event) throws JsonProcessingException {
-        log.info("processing de-merge event {}", event);
+        log.debug("processing de-merge event {}", event);
         final List<StudentMerge> studentDeMerges = new ObjectMapper().readValue(event.getEventPayload(), new TypeReference<>() {
         });
         Optional<StudentMerge> studentDeMerge = studentDeMerges.stream().filter(this::mergeToPredicate).findFirst();
         if (studentDeMerge.isEmpty()) {
-            log.info("Student Demerge is empty. EventId: {}", event.getEventId());
+            log.debug("Student Demerge is empty. EventId: {}", event.getEventId());
         }else {
             studentMergeService.demergeStudentProcess(UUID.fromString(studentDeMerge.get().getStudentID()), event.getUpdateUser());
         }
@@ -74,6 +74,6 @@ public class StudentMergeEventHandlerService {
         event.setEventStatus(EventStatus.PROCESSED.toString());
         event.setUpdateDate(LocalDateTime.now());
         this.gradStatusEventRepository.save(event);
-        log.info("event processed {}", event.getEventId());
+        log.debug("event processed {}", event.getEventId());
     }
 }

@@ -27,7 +27,7 @@ public class PenServicesEventHandlerDelegatorService {
             final var persistedEvent = this.graduationStatusService.persistEventToDB(choreographedEvent);
             if(persistedEvent != null) {
                 message.ack(); // acknowledge to Jet Stream that api got the message and it is now in DB.
-                log.info("acknowledged to Jet Stream...");
+                log.debug("acknowledged to Jet Stream...");
                 studentMergeChoreographer.handleEvent(persistedEvent);
             }
         }
