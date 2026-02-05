@@ -262,7 +262,18 @@ public class DataConversionService extends GradBaseService {
     }
 
     private GraduationStudentRecordEntity handleExistingGraduationStatus(GraduationStudentRecordEntity sourceObject, GraduationStudentRecordEntity targetObject, String pen, boolean ongoingUpdate) {
-        BeanUtils.copyProperties(sourceObject, targetObject, CREATE_USER, CREATE_DATE);
+        BeanUtils.copyProperties(
+            sourceObject,
+            targetObject,
+            CREATE_USER,
+            CREATE_DATE,
+            "pen",
+            "legalFirstName",
+            "legalMiddleNames",
+            "legalLastName",
+            "dob",
+            "genderCode"
+        );
         targetObject.setUpdateDate(null);
         targetObject.setUpdateUser(null);
         targetObject = graduationStatusRepository.saveAndFlush(targetObject);

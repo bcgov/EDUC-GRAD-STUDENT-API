@@ -216,6 +216,42 @@ public class DataConversionServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testGraduationStudentRecordAsUpdate_preservesDemographicsWhenInputNull() {
+        UUID studentID = UUID.randomUUID();
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("123456789");
+        graduationStatusEntity.setLegalFirstName("Jane");
+        graduationStatusEntity.setLegalMiddleNames("Q");
+        graduationStatusEntity.setLegalLastName("Doe");
+        graduationStatusEntity.setStudentStatus("CUR");
+        graduationStatusEntity.setProgram("2018-EN");
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        GraduationStudentRecord input = new GraduationStudentRecord();
+        BeanUtils.copyProperties(graduationStatusEntity, input);
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM"));
+        input.setPen(null);
+        input.setLegalFirstName(null);
+        input.setLegalMiddleNames(null);
+        input.setLegalLastName(null);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(studentID.toString())).thenReturn(null);
+        when(graduationStatusRepository.saveAndFlush(any(GraduationStudentRecordEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = dataConversionService.saveGraduationStudentRecord(studentID, input, false);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getPen()).isEqualTo(graduationStatusEntity.getPen());
+        assertThat(result.getLegalFirstName()).isEqualTo(graduationStatusEntity.getLegalFirstName());
+        assertThat(result.getLegalMiddleNames()).isEqualTo(graduationStatusEntity.getLegalMiddleNames());
+        assertThat(result.getLegalLastName()).isEqualTo(graduationStatusEntity.getLegalLastName());
+    }
+
+    @Test
     public void testGraduationStudentRecordAsOngoingUpdate() {
         // ID
         UUID studentID = UUID.randomUUID();

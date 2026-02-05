@@ -200,7 +200,22 @@ public class GraduationStatusService extends GradBaseService {
         GraduationStudentRecordEntity sourceObject = graduationStatusTransformer.transformToEntity(graduationStatus);
         if (gradStatusOptional.isPresent()) {
             GraduationStudentRecordEntity gradEntity = gradStatusOptional.get();
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "recalculateGradStatus", "recalculateProjectedGrad", "programCompletionDate", "studentProjectedGradData");
+            BeanUtils.copyProperties(
+                sourceObject,
+                gradEntity,
+                CREATE_USER,
+                CREATE_DATE,
+                "recalculateGradStatus",
+                "recalculateProjectedGrad",
+                "programCompletionDate",
+                "studentProjectedGradData",
+                "pen",
+                "legalFirstName",
+                "legalMiddleNames",
+                "legalLastName",
+                "dob",
+                "genderCode"
+            );
             gradEntity.setBatchId(batchId);
             if(!gradEntity.getProgram().equalsIgnoreCase("SCCP") && !gradEntity.getProgram().equalsIgnoreCase("NOPROG")) {
                 gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
@@ -288,7 +303,22 @@ public class GraduationStatusService extends GradBaseService {
             
             boolean isCitizenshipChanged = StringUtils.isNotBlank(sourceObject.getStudentCitizenship()) && StringUtils.isNotBlank(gradEntity.getStudentCitizenship()) && !sourceObject.getStudentCitizenship().equalsIgnoreCase(gradEntity.getStudentCitizenship());
 
-            BeanUtils.copyProperties(sourceObject, gradEntity, CREATE_USER, CREATE_DATE, "studentGradData", "studentProjectedGradData", "recalculateGradStatus", "recalculateProjectedGrad");
+            BeanUtils.copyProperties(
+                sourceObject,
+                gradEntity,
+                CREATE_USER,
+                CREATE_DATE,
+                "studentGradData",
+                "studentProjectedGradData",
+                "recalculateGradStatus",
+                "recalculateProjectedGrad",
+                "pen",
+                "legalFirstName",
+                "legalMiddleNames",
+                "legalLastName",
+                "dob",
+                "genderCode"
+            );
             gradEntity.setProgramCompletionDate(sourceObject.getProgramCompletionDate());
             gradEntity.setUpdateUser(null);
             validateStudentStatusAndResetBatchFlags(gradEntity);
