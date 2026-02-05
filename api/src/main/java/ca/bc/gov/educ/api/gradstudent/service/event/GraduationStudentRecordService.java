@@ -219,12 +219,14 @@ public class GraduationStudentRecordService {
 
         //CP optional program ID
         var optionalCPProgramCode = getOptionalProgramCode(optionalProgramCodes, "CP", savedStudentRecord.getProgram());
+        log.info("optionalCPProgramCode: {}", optionalCPProgramCode);
 
-        log.debug("Optional program code list is :: {}", optionalProgramCodes);
+        log.info("Optional program code list is :: {}", optionalProgramCodes);
         //optional program list from DEM file
         List<UUID> incomingProgramIDs = getOptionalProgramIDForIncomingPrograms(demStudent, optionalProgramCodes, savedStudentRecord.getProgram());
         //if student is not grad. and program code is -PF - add DD if not present
         if (!isGraduated && StringUtils.endsWithIgnoreCase(savedStudentRecord.getProgram(), "-PF")) {
+            log.info("inside the DD check");
             getOptionalProgramCode(optionalProgramCodes, OptionalProgramCodes.DD.getCode(), savedStudentRecord.getProgram())
                     .map(OptionalProgramCode::getOptionalProgramID)
                     .filter(ddId -> !incomingProgramIDs.contains(ddId))
@@ -236,20 +238,22 @@ public class GraduationStudentRecordService {
         //check if the optional program list from DEM file contains CP
         var noCPInDem = incomingProgramIDs.stream().noneMatch(id -> cpProgram != null && Objects.equals(cpProgram.getOptionalProgramID(), id));
         //if no CP- delete the career programs codes for that student
+        log.info("found CP in dem file: {}", noCPInDem);
+        log.info("is graduated: {}", !isGraduated);
         if(!isGraduated && noCPInDem) {
             studentCareerProgramRepository.deleteByStudentID(savedStudentRecord.getStudentID());
         }
 
         //remove optional prog. - it will remove optional program code and CP if condition is met
         var optionalProgramsToRemove = getOptionalProgramForRemoval(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs, optionalProgramCodes, isGraduated, savedStudentRecord.getProgram());
-        log.debug("Found optional program IDs to remove :: {}", optionalProgramsToRemove);
+        log.info("Found optional program IDs to remove :: {}", optionalProgramsToRemove);
         if(!optionalProgramsToRemove.isEmpty()) {
             studentOptionalProgramRepository.deleteAll(optionalProgramsToRemove);
         }
 
         //add optional prog. - this will add CP if condition is met
         List<UUID> programIDsToAdd = getOptionalProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs);
-        log.debug("Found optional program IDs to add :: {}", programIDsToAdd);
+        log.info("Found optional program IDs to add :: {}", programIDsToAdd);
 
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
@@ -259,6 +263,7 @@ public class GraduationStudentRecordService {
             List<String> careerProgramIDs = getCareerProgramIDForIncomingPrograms(demStudent, careerProgramCodes);
             List<String> careerCodesToAdd = getCareerProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), careerProgramIDs);
             // this will save career codes to the career repository
+            log.info("Found career codes to add :: {}", careerCodesToAdd);
             List<StudentCareerProgramEntity> careerProgramEntities = new ArrayList<>();
             careerCodesToAdd.forEach(programCode -> careerProgramEntities.add(createStudentCareerProgramEntity(programCode, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
             studentCareerProgramRepository.saveAll(careerProgramEntities);
