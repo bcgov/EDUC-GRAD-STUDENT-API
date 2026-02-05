@@ -58,6 +58,7 @@ public class GraduationStudentRecordService {
     private final StudentCareerProgramRepository studentCareerProgramRepository;
     private static final String GDC_ADD = "GDCADD";// confirm,
     private static final String GDC_UPDATE = "GDCUPATE";
+    private static final String GDC_DELETE = "GDCDELETE";
     private final HistoryService historyService;
     private final GraduationStatusService graduationStatusService;
     public static final String CURRENT = "CUR";
@@ -248,6 +249,7 @@ public class GraduationStudentRecordService {
         var optionalProgramsToRemove = getOptionalProgramForRemoval(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs, optionalProgramCodes, isGraduated, savedStudentRecord.getProgram());
         log.info("Found optional program IDs to remove :: {}", optionalProgramsToRemove);
         if(!optionalProgramsToRemove.isEmpty()) {
+            optionalProgramsToRemove.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, GDC_DELETE));
             studentOptionalProgramRepository.deleteAll(optionalProgramsToRemove);
         }
 
