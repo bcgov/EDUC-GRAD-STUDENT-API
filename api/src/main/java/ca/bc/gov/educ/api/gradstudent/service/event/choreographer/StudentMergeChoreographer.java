@@ -41,7 +41,7 @@ public class StudentMergeChoreographer {
                 if (eventFromDBOptional.isPresent()) {
                     val eventFromDB = eventFromDBOptional.get();
                     if (eventFromDB.getEventStatus().equals(EventStatus.DB_COMMITTED.toString())) {
-                        log.info("Processing event with event ID :: {}", event.getEventId());
+                        log.debug("Processing event with event ID :: {}", event.getEventId());
                         switch (event.getEventType()) {
                             case "CREATE_MERGE":
                                 this.studentMergeEventHandlerService.processMergeEvent(event);
@@ -61,4 +61,3 @@ public class StudentMergeChoreographer {
         });
     }
 }
-

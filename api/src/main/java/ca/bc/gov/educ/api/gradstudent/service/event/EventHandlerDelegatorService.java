@@ -52,13 +52,13 @@ public class EventHandlerDelegatorService {
 
   public void handleChoreographyEvent(@NonNull final ChoreographedEvent choreographedEvent, final Message message) throws IOException {
     try {
-      log.info("Prior to processing Choreographed event {}", choreographedEvent);
+      log.debug("Prior to processing Choreographed event {}", choreographedEvent);
       if (this.graduationStatusService.eventExistsInDB(choreographedEvent).isEmpty()) {
-        log.info("Inside processing Choreographed event {}", choreographedEvent);
+        log.debug("Inside processing Choreographed event {}", choreographedEvent);
         final var persistedEvent = this.graduationStatusService.persistEventToDB(choreographedEvent);
         if (persistedEvent != null) {
           message.ack(); // acknowledge to Jet Stream that api got the message and it is now in DB.
-          log.info("acknowledged to Jet Stream...");
+          log.debug("acknowledged to Jet Stream...");
 
           switch (choreographedEvent.getEventType()) {
             case ASSESSMENT_STUDENT_UPDATE:
@@ -71,13 +71,13 @@ public class EventHandlerDelegatorService {
               this.eventHandlerService.handleStudentUpdatedDataEvent(persistedEvent);
               break;
             default:
-              log.info("Silently ignoring other events :: {}", choreographedEvent);
+              log.debug("Silently ignoring other events :: {}", choreographedEvent);
               break;
           }
         } 
       } else {
         message.ack(); // acknowledge to Jet Stream that api got the message and it is already in DB.
-        log.info("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
+        log.debug("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
       }
     }catch (final Exception e) {
       log.error("Exception occurred processing choreographed event: {}", e.getMessage());
@@ -97,34 +97,34 @@ public class EventHandlerDelegatorService {
     try {
       switch (event.getEventType()) {
         case PROCESS_STUDENT_DEM_DATA:
-          log.info("Received PROCESS_STUDENT_DEM_DATA event :: {}", event);
+          log.debug("Received PROCESS_STUDENT_DEM_DATA event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           var pairResponse = eventHandlerService.handleProcessStudentDemDataEvent(event);
-          log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, pairResponse.getLeft());
           if(pairResponse.getRight() != null) {
             pairResponse.getRight().forEach(this::publishToJetStream);
           }
           break;
         case PROCESS_STUDENT_COURSE_DATA:
-          log.info("Received PROCESS_STUDENT_COURSE_DATA event :: {}", event);
+          log.debug("Received PROCESS_STUDENT_COURSE_DATA event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           var pairCourseResponse = eventHandlerService.handleProcessStudentCourseDataEvent(event);
-          log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, pairCourseResponse.getLeft());
           if(pairCourseResponse.getRight() != null) {
             publishToJetStream(pairCourseResponse.getRight());
           }
           break;
         case GET_STUDENT_COURSES:
-          log.info("Received GET_STUDENT_COURSES event :: {}", event);
+          log.debug("Received GET_STUDENT_COURSES event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           response = eventHandlerService.handleGetStudentCoursesEvent(event);
-          log.info(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
         default:
-          log.info("silently ignoring other events :: {}", event);
+          log.debug("silently ignoring other events :: {}", event);
           break;
       }
     } catch (final Exception e) {

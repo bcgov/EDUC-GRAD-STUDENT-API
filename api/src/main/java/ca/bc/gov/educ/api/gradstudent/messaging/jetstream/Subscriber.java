@@ -129,7 +129,7 @@ public class Subscriber {
             this.penServicesEventHandlerDelegatorService.handleChoreographyEvent(event, message);
           } else{
             jetStreamEventHandlerService.updateEventStatus(event);
-            log.info("Ignoring event :: {} ", event);
+            log.debug("Ignoring event :: {} ", event);
             message.ack();
           }
         } catch (final IOException e) {
