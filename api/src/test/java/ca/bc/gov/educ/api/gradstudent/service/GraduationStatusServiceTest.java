@@ -26,6 +26,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -423,6 +424,48 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    void testSaveGraduationStatus_preservesDemographicsWhenInputNull() throws JsonProcessingException {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("123456789");
+        graduationStatusEntity.setLegalFirstName("Jane");
+        graduationStatusEntity.setLegalMiddleNames("Q");
+        graduationStatusEntity.setLegalLastName("Doe");
+        graduationStatusEntity.setStudentStatus("A");
+        graduationStatusEntity.setProgram("2018-EN");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        GraduationStudentRecord input = new GraduationStudentRecord();
+        BeanUtils.copyProperties(graduationStatusEntity, input);
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM"));
+        input.setPen(null);
+        input.setLegalFirstName(null);
+        input.setLegalMiddleNames(null);
+        input.setLegalLastName(null);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        doAnswer(invocation -> invocation.getArgument(0))
+                .when(graduationStatusRepository)
+                .saveAndFlush(any(GraduationStudentRecordEntity.class));
+
+        graduationStatusService.saveGraduationStatus(studentID, input, null, "accessToken");
+
+        ArgumentCaptor<GraduationStudentRecordEntity> captor = ArgumentCaptor.forClass(GraduationStudentRecordEntity.class);
+        verify(graduationStatusRepository).saveAndFlush(captor.capture());
+        GraduationStudentRecordEntity saved = captor.getValue();
+
+        assertThat(saved.getPen()).isEqualTo(graduationStatusEntity.getPen());
+        assertThat(saved.getLegalFirstName()).isEqualTo(graduationStatusEntity.getLegalFirstName());
+        assertThat(saved.getLegalMiddleNames()).isEqualTo(graduationStatusEntity.getLegalMiddleNames());
+        assertThat(saved.getLegalLastName()).isEqualTo(graduationStatusEntity.getLegalLastName());
+    }
+
+    @Test
     void testUpdateGraduationStatus_givenSameData_whenDataIsValidated_thenReturnSuccess() throws JsonProcessingException {
         // ID
         UUID studentID = UUID.randomUUID();
@@ -482,6 +525,51 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
         assertThat(result.getRecalculateGradStatus()).isNull();
         assertThat(result.getProgramCompletionDate()).isEqualTo(input.getProgramCompletionDate());
+    }
+
+    @Test
+    void testUpdateGraduationStatus_preservesDemographicsWhenInputNull() throws JsonProcessingException {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolId = UUID.randomUUID();
+
+        GraduationStudentRecordEntity graduationStatusEntity = new GraduationStudentRecordEntity();
+        graduationStatusEntity.setStudentID(studentID);
+        graduationStatusEntity.setPen("123456789");
+        graduationStatusEntity.setLegalFirstName("Jane");
+        graduationStatusEntity.setLegalMiddleNames("Q");
+        graduationStatusEntity.setLegalLastName("Doe");
+        graduationStatusEntity.setStudentStatus("CUR");
+        graduationStatusEntity.setStudentGrade("12");
+        graduationStatusEntity.setProgram("2018-EN");
+        graduationStatusEntity.setSchoolOfRecordId(schoolId);
+        graduationStatusEntity.setSchoolAtGradId(schoolId);
+        graduationStatusEntity.setProgramCompletionDate(new Date(System.currentTimeMillis()));
+
+        GraduationStudentRecord input = new GraduationStudentRecord();
+        BeanUtils.copyProperties(graduationStatusEntity, input);
+        input.setProgramCompletionDate(EducGradStudentApiUtils.formatDate(graduationStatusEntity.getProgramCompletionDate(), "yyyy/MM"));
+        input.setPen(null);
+        input.setLegalFirstName(null);
+        input.setLegalMiddleNames(null);
+        input.setLegalLastName(null);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        doAnswer(invocation -> invocation.getArgument(0))
+                .when(graduationStatusRepository)
+                .saveAndFlush(any(GraduationStudentRecordEntity.class));
+        when(gradStudentOptionalProgramRepository.findByStudentID(studentID)).thenReturn(List.of());
+        when(gradStudentCareerProgramRepository.findByStudentID(studentID)).thenReturn(List.of());
+
+        graduationStatusService.updateGraduationStatus(studentID, input, "accessToken", false);
+
+        ArgumentCaptor<GraduationStudentRecordEntity> captor = ArgumentCaptor.forClass(GraduationStudentRecordEntity.class);
+        verify(graduationStatusRepository).saveAndFlush(captor.capture());
+        GraduationStudentRecordEntity saved = captor.getValue();
+
+        assertThat(saved.getPen()).isEqualTo(graduationStatusEntity.getPen());
+        assertThat(saved.getLegalFirstName()).isEqualTo(graduationStatusEntity.getLegalFirstName());
+        assertThat(saved.getLegalMiddleNames()).isEqualTo(graduationStatusEntity.getLegalMiddleNames());
+        assertThat(saved.getLegalLastName()).isEqualTo(graduationStatusEntity.getLegalLastName());
     }
 
     @Test
