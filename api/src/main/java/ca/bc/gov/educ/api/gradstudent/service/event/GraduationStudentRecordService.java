@@ -560,35 +560,35 @@ public class GraduationStudentRecordService {
 
     private List<UUID> getOptionalProgramIDForIncomingPrograms(DemographicStudent demStudent, List<OptionalProgramCode> optionalProgramCodes, String gradProgram) {
         List<UUID> optionalProgramIDs = new ArrayList<>();
-        log.info("Optional program code 1 is :: {}", demStudent.getProgramCode1());
+        log.info("Optional program code 1 is :: {} , extract {}", demStudent.getProgramCode1(), extractProgramCode(demStudent.getProgramCode1()));
         if(StringUtils.isNotBlank(demStudent.getProgramCode1())) {
             var programCode1Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode1()), gradProgram);
             log.info("Optional program code 1 found is :: {}", programCode1Entity);
             programCode1Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
-        log.info("Optional program code 2 is :: {}", demStudent.getProgramCode2());
+        log.info("Optional program code 2 is :: {} , extract {}", demStudent.getProgramCode2(), extractProgramCode(demStudent.getProgramCode2()));
         if(StringUtils.isNotBlank(demStudent.getProgramCode2())) {
             var programCode2Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode2()), gradProgram);
             log.info("Optional program code 2 found is :: {}", programCode2Entity);
             programCode2Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
-        log.info("Optional program code 3 is :: {}", demStudent.getProgramCode3());
+        log.info("Optional program code 3 is :: {} , extract {}", demStudent.getProgramCode3(), extractProgramCode(demStudent.getProgramCode3()));
         if(StringUtils.isNotBlank(demStudent.getProgramCode3())) {
             var programCode3Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode3()), gradProgram);
             log.info("Optional program code 3 found is :: {}", programCode3Entity);
             programCode3Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
-        log.info("Optional program code 4 is :: {}", demStudent.getProgramCode4());
+        log.info("Optional program code 4 is :: {} , extract {}", demStudent.getProgramCode4(), extractProgramCode(demStudent.getProgramCode4()));
         if(StringUtils.isNotBlank(demStudent.getProgramCode4())) {
             var programCode4Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode4()), gradProgram);
             log.info("Optional program code 4 found is :: {}", programCode4Entity);
             programCode4Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
         }
 
-        log.info("Optional program code 5 is :: {}", demStudent.getProgramCode5());
+        log.info("Optional program code 5 is :: {} , extract {}", demStudent.getProgramCode5(), extractProgramCode(demStudent.getProgramCode5()));
         if(StringUtils.isNotBlank(demStudent.getProgramCode5())) {
             var programCode5Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode5()), gradProgram);
             log.info("Optional program code 5 found is :: {}", programCode5Entity);
