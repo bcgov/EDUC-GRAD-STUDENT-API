@@ -566,35 +566,58 @@ public class GraduationStudentRecordService {
             log.info("Optional program code 1 is :: {} , extract {}", demStudent.getProgramCode1(), extractProgramCode(demStudent.getProgramCode1()));
             var programCode1Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode1()), gradProgram);
             log.info("Optional program code 1 found is :: {}", programCode1Entity);
-            programCode1Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
+            if(programCode1Entity.isPresent()) {
+                var optionalID = programCode1Entity.get().getOptionalProgramID();
+                optionalProgramIDs.add(optionalID);
+            }
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode2())) {
             log.info("Optional program code 2 is :: {} , extract {}", demStudent.getProgramCode2(), extractProgramCode(demStudent.getProgramCode2()));
             var programCode2Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode2()), gradProgram);
             log.info("Optional program code 2 found is :: {}", programCode2Entity);
-            programCode2Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
+            if(programCode2Entity.isPresent()) {
+                var optionalID = programCode2Entity.get().getOptionalProgramID();
+                if(optionalProgramIDs.stream().noneMatch(id -> Objects.equals(id, optionalID))) {
+                    optionalProgramIDs.add(optionalID);
+                }
+            }
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode3())) {
             log.info("Optional program code 3 is :: {} , extract {}", demStudent.getProgramCode3(), extractProgramCode(demStudent.getProgramCode3()));
             var programCode3Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode3()), gradProgram);
             log.info("Optional program code 3 found is :: {}", programCode3Entity);
-            programCode3Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
+            if(programCode3Entity.isPresent()) {
+                var optionalID = programCode3Entity.get().getOptionalProgramID();
+                if(optionalProgramIDs.stream().noneMatch(id -> Objects.equals(id, optionalID))) {
+                    optionalProgramIDs.add(optionalID);
+                }
+            }
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode4())) {
             log.info("Optional program code 4 is :: {} , extract {}", demStudent.getProgramCode4(), extractProgramCode(demStudent.getProgramCode4()));
             var programCode4Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode4()), gradProgram);
             log.info("Optional program code 4 found is :: {}", programCode4Entity);
-            programCode4Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
+            if(programCode4Entity.isPresent()) {
+                var optionalID = programCode4Entity.get().getOptionalProgramID();
+                if(optionalProgramIDs.stream().noneMatch(id -> Objects.equals(id, optionalID))) {
+                    optionalProgramIDs.add(optionalID);
+                }
+            }
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode5())) {
             log.info("Optional program code 5 is :: {} , extract {}", demStudent.getProgramCode5(), extractProgramCode(demStudent.getProgramCode5()));
             var programCode5Entity = getOptionalProgramCode(optionalProgramCodes, extractProgramCode(demStudent.getProgramCode5()), gradProgram);
             log.info("Optional program code 5 found is :: {}", programCode5Entity);
-            programCode5Entity.ifPresent(entity -> optionalProgramIDs.add(entity.getOptionalProgramID()));
+            if(programCode5Entity.isPresent()) {
+                var optionalID = programCode5Entity.get().getOptionalProgramID();
+                if(optionalProgramIDs.stream().noneMatch(id -> Objects.equals(id, optionalID))) {
+                    optionalProgramIDs.add(optionalID);
+                }
+            }
         }
         return optionalProgramIDs;
     }
@@ -609,22 +632,42 @@ public class GraduationStudentRecordService {
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode2())) {
             var programCode2Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(extractProgramCode(demStudent.getProgramCode2())));
-            programCode2Entity.ifPresent(entity -> careerProgramIDs.add(entity.getCode()));
+            if(programCode2Entity.isPresent()) {
+                var careerCode = programCode2Entity.get().getCode();
+                if(careerProgramIDs.stream().noneMatch(id -> Objects.equals(id, careerCode))) {
+                    careerProgramIDs.add(careerCode);
+                }
+            }
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode3())) {
             var programCode3Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(extractProgramCode(demStudent.getProgramCode3())));
-            programCode3Entity.ifPresent(entity -> careerProgramIDs.add(entity.getCode()));
+            if(programCode3Entity.isPresent()) {
+                var careerCode = programCode3Entity.get().getCode();
+                if(careerProgramIDs.stream().noneMatch(id -> Objects.equals(id, careerCode))) {
+                    careerProgramIDs.add(careerCode);
+                }
+            }
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode4())) {
             var programCode4Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(extractProgramCode(demStudent.getProgramCode4())));
-            programCode4Entity.ifPresent(entity -> careerProgramIDs.add(entity.getCode()));
+            if(programCode4Entity.isPresent()) {
+                var careerCode = programCode4Entity.get().getCode();
+                if(careerProgramIDs.stream().noneMatch(id -> Objects.equals(id, careerCode))) {
+                    careerProgramIDs.add(careerCode);
+                }
+            }
         }
 
         if(StringUtils.isNotBlank(demStudent.getProgramCode5())) {
             var programCode5Entity = getOptionalCareerCode(careerProgramCodes, extractProgramCode(extractProgramCode(demStudent.getProgramCode5())));
-            programCode5Entity.ifPresent(entity -> careerProgramIDs.add(entity.getCode()));
+            if(programCode5Entity.isPresent()) {
+                var careerCode = programCode5Entity.get().getCode();
+                if(careerProgramIDs.stream().noneMatch(id -> Objects.equals(id, careerCode))) {
+                    careerProgramIDs.add(careerCode);
+                }
+            }
         }
         return careerProgramIDs;
     }
