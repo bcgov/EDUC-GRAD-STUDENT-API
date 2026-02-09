@@ -268,6 +268,9 @@ public class GraduationStudentRecordService {
         //List of duplicate optional programs
         List<String> duplicateList = new ArrayList<>(duplicateProgramCodes);
 
+        log.info("uniqueProgramCodesList: {}", uniqueProgramCodesList);
+        log.info("duplicateList: {}", duplicateList);
+
         List<UUID> incomingProgramIDs = new ArrayList<>();
         List<String> careerProgramIDs = new ArrayList<>();
 
