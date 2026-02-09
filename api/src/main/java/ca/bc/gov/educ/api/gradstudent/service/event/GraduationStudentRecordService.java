@@ -164,9 +164,7 @@ public class GraduationStudentRecordService {
         }
 
         //List of unique optional programs
-        List<String> uniqueProgramCodesList = allProgramCodes.stream()
-                .filter(code -> !duplicateProgramCodes.contains(code))
-                .toList();
+        List<String> uniqueProgramCodesList = new ArrayList<>(uniqueProgramCodes);
         //List of duplicate optional programs
         List<String> duplicateList = new ArrayList<>(duplicateProgramCodes);
 
@@ -266,9 +264,7 @@ public class GraduationStudentRecordService {
         }
 
         //List of unique optional programs
-        List<String> uniqueProgramCodesList = allProgramCodes.stream()
-                .filter(code -> !duplicateProgramCodes.contains(code))
-                .toList();
+        List<String> uniqueProgramCodesList = new ArrayList<>(uniqueProgramCodes);
         //List of duplicate optional programs
         List<String> duplicateList = new ArrayList<>(duplicateProgramCodes);
 
