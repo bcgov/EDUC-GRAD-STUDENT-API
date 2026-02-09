@@ -155,16 +155,18 @@ public class GraduationStudentRecordService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        Set<String> uniqueProgramCodes = new LinkedHashSet<>();
+        Set<String> programCodes = new LinkedHashSet<>();
         Set<String> duplicateProgramCodes = new LinkedHashSet<>();
         for (String code : allProgramCodes) {
-            if (!uniqueProgramCodes.add(code)) {
+            if (!programCodes.add(code)) {
                 duplicateProgramCodes.add(code);
             }
         }
 
         //List of unique optional programs
-        List<String> uniqueProgramCodesList = new ArrayList<>(uniqueProgramCodes);
+        List<String> uniqueProgramCodesList = allProgramCodes.stream()
+                .filter(code -> !duplicateProgramCodes.contains(code))
+                .toList();
         //List of duplicate optional programs
         List<String> duplicateList = new ArrayList<>(duplicateProgramCodes);
 
@@ -189,6 +191,11 @@ public class GraduationStudentRecordService {
         var cpProgram = optionalCPProgramCode.orElse(null);
         //check if the optional program list from DEM file contains CP
         var noCPInDem = incomingProgramIDs.stream().noneMatch(id -> cpProgram != null && Objects.equals(cpProgram.getOptionalProgramID(), id));
+
+        if(!noCPInDem && careerProgramIDs.isEmpty()) {
+            incomingProgramIDs.removeIf(id -> Objects.equals(cpProgram.getOptionalProgramID(), id));
+        }
+
         incomingProgramIDs.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
 
         if(StringUtils.isNotBlank(savedStudentRecord.getProgram()) && savedStudentRecord.getProgram().equalsIgnoreCase("SCCP") && savedStudentRecord.getProgramCompletionDate() != null && demStudent.getSchoolReportingRequirementCode().equalsIgnoreCase("CSF")) {
@@ -196,7 +203,7 @@ public class GraduationStudentRecordService {
             frProgram.ifPresent(optionalProgramCode -> optionalProgramEntities.add(createStudentOptionalProgramEntity(optionalProgramCode.getOptionalProgramID(), savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         }
 
-        if(!noCPInDem) {
+        if(!noCPInDem && !careerProgramIDs.isEmpty()) {
             List<String> careerCodesToAdd = getCareerProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), careerProgramIDs);
             // this will save career codes to the career repository
             List<StudentCareerProgramEntity> careerProgramEntities = new ArrayList<>();
@@ -255,16 +262,18 @@ public class GraduationStudentRecordService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        Set<String> uniqueProgramCodes = new LinkedHashSet<>();
+        Set<String> programCodes = new LinkedHashSet<>();
         Set<String> duplicateProgramCodes = new LinkedHashSet<>();
         for (String code : allProgramCodes) {
-            if (!uniqueProgramCodes.add(code)) {
+            if (!programCodes.add(code)) {
                 duplicateProgramCodes.add(code);
             }
         }
 
         //List of unique optional programs
-        List<String> uniqueProgramCodesList = new ArrayList<>(uniqueProgramCodes);
+        List<String> uniqueProgramCodesList = allProgramCodes.stream()
+                .filter(code -> !duplicateProgramCodes.contains(code))
+                .toList();
         //List of duplicate optional programs
         List<String> duplicateList = new ArrayList<>(duplicateProgramCodes);
 
@@ -321,11 +330,15 @@ public class GraduationStudentRecordService {
         List<UUID> programIDsToAdd = getOptionalProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs);
         log.info("Found optional program IDs to add :: {}", programIDsToAdd);
 
+        if(!noCPInDem && careerProgramIDs.isEmpty()) {
+            programIDsToAdd.removeIf(id -> Objects.equals(cpProgram.getOptionalProgramID(), id));
+        }
+
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
         programIDsToAdd.forEach(programID -> optionalProgramEntities.add(createStudentOptionalProgramEntity(programID, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
         var savedOptionalEntities = studentOptionalProgramRepository.saveAll(optionalProgramEntities);
 
-        if(!noCPInDem) {
+        if(!noCPInDem && !careerProgramIDs.isEmpty()) {
             List<String> careerCodesToAdd = getCareerProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), careerProgramIDs);
             // this will save career codes to the career repository
             log.info("Found career codes to add :: {}", careerCodesToAdd);
