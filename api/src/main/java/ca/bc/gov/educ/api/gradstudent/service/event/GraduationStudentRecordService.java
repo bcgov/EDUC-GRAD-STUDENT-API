@@ -277,9 +277,6 @@ public class GraduationStudentRecordService {
         //List of duplicate optional programs
         List<String> duplicateList = new ArrayList<>(duplicateProgramCodes);
 
-        log.info("uniqueProgramCodesList: {}", uniqueProgramCodesList);
-        log.info("duplicateList: {}", duplicateList);
-
         List<UUID> incomingProgramIDs = new ArrayList<>();
         List<String> careerProgramIDs = new ArrayList<>();
 
@@ -297,7 +294,6 @@ public class GraduationStudentRecordService {
 
         //CP optional program ID
         var optionalCPProgramCode = getOptionalProgramCode(optionalProgramCodes, "CP", savedStudentRecord.getProgram());
-        log.info("optionalCPProgramCode: {}", optionalCPProgramCode);
 
         //if student is not grad. and program code is -PF - add DD if not present
         if (!isGraduated && StringUtils.endsWithIgnoreCase(savedStudentRecord.getProgram(), "-PF")) {
@@ -306,21 +302,19 @@ public class GraduationStudentRecordService {
                     .filter(ddId -> !incomingProgramIDs.contains(ddId))
                     .ifPresent(incomingProgramIDs::add);
         }
-        log.info("Incoming program ids :: {}", incomingProgramIDs);
+        log.debug("Incoming program ids :: {}", incomingProgramIDs);
         var cpProgram = optionalCPProgramCode.orElse(null);
 
         //check if the optional program list from DEM file contains CP
         var noCPInDem = incomingProgramIDs.stream().noneMatch(id -> cpProgram != null && Objects.equals(cpProgram.getOptionalProgramID(), id));
         //if no CP- delete the career programs codes for that student
-        log.info("found no CP in dem file: {}", noCPInDem);
-        log.info("is graduated: {}", !isGraduated);
         if(!isGraduated && noCPInDem) {
             studentCareerProgramRepository.deleteByStudentID(savedStudentRecord.getStudentID());
         }
 
         //remove optional prog. - it will remove optional program code and CP if condition is met
         var optionalProgramsToRemove = getOptionalProgramForRemoval(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs, optionalProgramCodes, isGraduated, savedStudentRecord.getProgram());
-        log.info("Found optional program IDs to remove :: {}", optionalProgramsToRemove);
+        log.debug("Found optional program IDs to remove :: {}", optionalProgramsToRemove);
         if(!optionalProgramsToRemove.isEmpty()) {
             optionalProgramsToRemove.forEach(optEntity -> historyService.createStudentOptionalProgramHistory(optEntity, GDC_DELETE));
             studentOptionalProgramRepository.deleteAll(optionalProgramsToRemove);
@@ -328,7 +322,7 @@ public class GraduationStudentRecordService {
 
         //add optional prog. - this will add CP if condition is met
         List<UUID> programIDsToAdd = getOptionalProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs);
-        log.info("Found optional program IDs to add :: {}", programIDsToAdd);
+        log.debug("Found optional program IDs to add :: {}", programIDsToAdd);
 
         if(!noCPInDem && careerProgramIDs.isEmpty()) {
             programIDsToAdd.removeIf(id -> Objects.equals(cpProgram.getOptionalProgramID(), id));
@@ -341,7 +335,7 @@ public class GraduationStudentRecordService {
         if(!noCPInDem && !careerProgramIDs.isEmpty()) {
             List<String> careerCodesToAdd = getCareerProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), careerProgramIDs);
             // this will save career codes to the career repository
-            log.info("Found career codes to add :: {}", careerCodesToAdd);
+            log.debug("Found career codes to add :: {}", careerCodesToAdd);
             List<StudentCareerProgramEntity> careerProgramEntities = new ArrayList<>();
             careerCodesToAdd.forEach(programCode -> careerProgramEntities.add(createStudentCareerProgramEntity(programCode, savedStudentRecord.getStudentID(), demStudent.getCreateUser(), demStudent.getUpdateUser())));
             studentCareerProgramRepository.saveAll(careerProgramEntities);
