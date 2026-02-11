@@ -167,6 +167,23 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    void testHandleEvent_givenEventTypeSET_STUDENT_FLAGS__shouldFlipStudentWithEventOutcome_STUDENT_FLAGS_UPDATED() throws IOException {
+        var sagaId = UUID.randomUUID();
+        final Event event = Event
+                .builder()
+                .eventType(EventType.SET_STUDENT_FLAGS)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(UUID.randomUUID() + "," + UUID.randomUUID())
+                .build();
+        var response = eventHandlerService.handleFlipStudentFlagsEvent(event);
+        assertThat(response).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response);
+        assertThat(responseEvent).isNotNull();
+        assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.STUDENT_FLAGS_UPDATED);
+    }
+
+    @Test
     void testHandleEvent_givenEventTypePROCESS_STUDENT_DEM_DATA__whenNoStudentExist_shouldCreateStudentAndOptionalProgsWithEventOutcome_DEM_STUDENT_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
         var demStudent = createMockDemographicStudent("N", "CSF");
         demStudent.setGradRequirementYear("SCCP");

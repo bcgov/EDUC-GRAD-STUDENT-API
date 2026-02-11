@@ -39,6 +39,7 @@ public enum EventType {
   PROCESS_STUDENT_COURSE_DATA,
   ADOPT_GRAD_STUDENT,
   GET_STUDENT_COURSES,
+  SET_STUDENT_FLAGS,
   UPDATE_STUDENT_COURSES;
 
   public static boolean isValid(String value) {

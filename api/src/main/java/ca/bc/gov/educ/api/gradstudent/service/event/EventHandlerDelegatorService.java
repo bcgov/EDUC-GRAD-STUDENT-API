@@ -52,13 +52,13 @@ public class EventHandlerDelegatorService {
 
   public void handleChoreographyEvent(@NonNull final ChoreographedEvent choreographedEvent, final Message message) throws IOException {
     try {
-      log.debug("Prior to processing Choreographed event {}", choreographedEvent);
+      log.info("Prior to processing Choreographed event {}", choreographedEvent);
       if (this.graduationStatusService.eventExistsInDB(choreographedEvent).isEmpty()) {
-        log.debug("Inside processing Choreographed event {}", choreographedEvent);
+        log.info("Inside processing Choreographed event {}", choreographedEvent);
         final var persistedEvent = this.graduationStatusService.persistEventToDB(choreographedEvent);
         if (persistedEvent != null) {
           message.ack(); // acknowledge to Jet Stream that api got the message and it is now in DB.
-          log.debug("acknowledged to Jet Stream...");
+          log.info("acknowledged to Jet Stream 1...");
 
           switch (choreographedEvent.getEventType()) {
             case ASSESSMENT_STUDENT_UPDATE:
@@ -77,7 +77,8 @@ public class EventHandlerDelegatorService {
         } 
       } else {
         message.ack(); // acknowledge to Jet Stream that api got the message and it is already in DB.
-        log.debug("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
+        log.info("acknowledged to Jet Stream 2...");
+        log.info("Event with ID {} already exists in the database. No further action taken.", choreographedEvent.getEventID());
       }
     }catch (final Exception e) {
       log.error("Exception occurred processing choreographed event: {}", e.getMessage());
@@ -120,6 +121,13 @@ public class EventHandlerDelegatorService {
           log.debug("Received GET_STUDENT_COURSES event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());
           response = eventHandlerService.handleGetStudentCoursesEvent(event);
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          publishToNATS(event, message, isSynchronous, response);
+          break;
+        case SET_STUDENT_FLAGS:
+          log.debug("Received SET_STUDENT_FLAGS event :: {}", event);
+          log.trace(PAYLOAD_LOG, event.getEventPayload());
+          response = eventHandlerService.handleFlipStudentFlagsEvent(event);
           log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
