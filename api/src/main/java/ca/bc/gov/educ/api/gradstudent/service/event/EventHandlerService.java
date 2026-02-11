@@ -230,6 +230,7 @@ public class EventHandlerService {
                 .toList();
 
         // Process in batches
+        log.info("Setting flags for students in batch");
         int batchSize = 1000;
         for (int i = 0; i < studentIds.size(); i += batchSize) {
             int end = Math.min(i + batchSize, studentIds.size());
@@ -240,6 +241,8 @@ public class EventHandlerService {
             entityManager.flush();
             entityManager.clear();
         }
+
+        log.info("Flags for students in batch");
 
         event.setEventOutcome(EventOutcome.STUDENT_FLAGS_UPDATED);
         return JsonUtil.getJsonBytesFromObject(event);
