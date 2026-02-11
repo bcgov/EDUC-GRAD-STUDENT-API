@@ -210,9 +210,7 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
                 HONOURS_STANDING,
                 PROGRAM_COMPLETION_DATE,
                 RECALCULATE_GRAD_STATUS,
-                SCHOOL_OF_RECORD,
                 STUDENT_GRADE,
-                SCHOOL_AT_GRADUATION,
                 CREATE_USER,
                 CREATE_DATE,
                 UPDATE_USER,
@@ -234,9 +232,7 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
                 HONOURS_STANDING,
                 PROGRAM_COMPLETION_DATE,
                 RECALCULATE_GRAD_STATUS,
-                SCHOOL_OF_RECORD,
                 STUDENT_GRADE,
-                SCHOOL_AT_GRADUATION,
                 CREATE_USER,
                 CREATE_DATE,
                 :updateUser,
@@ -254,6 +250,5 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
     @Modifying
     @Query(value= INSERT_INTO_GRADUATION_STUDENT_RECORD_HISTORY_BY_STUDENT_IDS_IN_SQL, nativeQuery=true)
     Integer insertGraduationStudentRecordHistoryByStudentIDs(@Param(value = "studentIDs") List<UUID> studentIDs, @Param(value = "activityCode") String activityCode, @Param(value = "updateUser") String updateUser);
-
-
+    
 }
