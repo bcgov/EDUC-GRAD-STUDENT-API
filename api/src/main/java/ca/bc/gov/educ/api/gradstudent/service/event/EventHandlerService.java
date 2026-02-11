@@ -20,6 +20,8 @@ import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseAlgorithmDataMap
 import ca.bc.gov.educ.api.gradstudent.model.mapper.StudentCourseMapper;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.GraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.GradStatusEventRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import ca.bc.gov.educ.api.gradstudent.service.CourseService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
@@ -29,9 +31,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Pair;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,9 +63,11 @@ public class EventHandlerService {
     private final CourseService courseService;
     private final GradStatusEventRepository gradStatusEventRepository;
     private final StudentCourseRepository studentCourseRepository;
+    private final GraduationStudentRecordRepository graduationStudentRecordRepository;
     private final GraduationStatusTransformer graduationStatusTransformer;
     private static final StudentCourseMapper courseMapper = StudentCourseMapper.mapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private EntityManager entityManager;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<byte[], List<GradStatusEvent>> handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
@@ -210,6 +216,32 @@ public class EventHandlerService {
         } else {
             return new byte[0];
         }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public byte[] handleFlipStudentFlagsEvent(Event event) {
+        String payload = event.getEventPayload();
+
+        List<String> studentIdStrings = Arrays.asList(payload.split(","));
+
+        List<UUID> studentIds = studentIdStrings.stream()
+                .map(String::trim)
+                .map(UUID::fromString)
+                .toList();
+
+        // Process in batches
+        int batchSize = 1000;
+        for (int i = 0; i < studentIds.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, studentIds.size());
+            List<UUID> batch = studentIds.subList(i, end);
+
+            graduationStudentRecordRepository.updateStudentFlags(batch);
+
+            entityManager.flush();
+            entityManager.clear();
+        }
+
+        return new byte[0];
     }
 
     private List<StudentCourseAlgorithmData> enhanceStudentCoursesWithCourseDetails(List<StudentCourseAlgorithmData> studentCourses) {

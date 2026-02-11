@@ -114,7 +114,7 @@ public class Subscriber {
    * @param message the string representation of {@link ChoreographedEvent} if it not type of event then it will throw exception and will be ignored.
    */
   public void onMessage(final Message message) {
-    log.debug("Received message Subject:: {} , SID :: {} , sequence :: {}, pending :: {} ", message.getSubject(), message.getSID(), message.metaData().consumerSequence(), message.metaData().pendingCount());
+    log.info("Received message Subject:: {} , SID :: {} , sequence :: {}, pending :: {} ", message.getSubject(), message.getSID(), message.metaData().consumerSequence(), message.metaData().pendingCount());
     try {
       val eventString = new String(message.getData());
       LogHelper.logMessagingEventDetails(eventString, constants.isSplunkLogHelperEnabled());
@@ -130,6 +130,7 @@ public class Subscriber {
           } else{
             jetStreamEventHandlerService.updateEventStatus(event);
             log.debug("Ignoring event :: {} ", event);
+            log.info("acknowledged to Jet Stream 3...");
             message.ack();
           }
         } catch (final IOException e) {
@@ -137,6 +138,7 @@ public class Subscriber {
         }
       });
     } catch (final IgnoreEventException ex) {
+      log.info("acknowledged to Jet Stream 4...");
       log.warn("Ignoring event with type :: {} :: and event outcome :: {}", ex.getEventType(), ex.getEventOutcome());
       message.ack();
     } catch (final Exception ex) {

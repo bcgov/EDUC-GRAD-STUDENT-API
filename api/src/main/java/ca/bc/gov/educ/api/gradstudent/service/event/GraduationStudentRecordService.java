@@ -42,6 +42,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ca.bc.gov.educ.api.gradstudent.constant.HistoryActivityCodes.ASSESSUPD;
 import static ca.bc.gov.educ.api.gradstudent.constant.HistoryActivityCodes.PENALERT;
 
 @Service
@@ -123,7 +124,8 @@ public class GraduationStudentRecordService {
         existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
         existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
         existingStudentRecordEntity.setRecalculateGradStatus("Y");
-        graduationStudentRecordRepository.save(existingStudentRecordEntity);
+        var saved = graduationStudentRecordRepository.save(existingStudentRecordEntity);
+        historyService.createStudentHistory(saved, ASSESSUPD.getCode());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
