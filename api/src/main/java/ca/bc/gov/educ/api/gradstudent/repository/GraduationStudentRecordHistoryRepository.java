@@ -199,4 +199,61 @@ public interface GraduationStudentRecordHistoryRepository extends JpaRepository<
     @Query(value= INSERT_INTO_GRADUATION_STUDENT_RECORD_HISTORY_BY_STUDENT_ID_IN_SQL, nativeQuery=true)
     Integer insertGraduationStudentRecordHistoryByStudentId(@Param(value = "studentID") UUID studentID, @Param(value = "activityCode") String activityCode);
 
+    String INSERT_INTO_GRADUATION_STUDENT_RECORD_HISTORY_BY_STUDENT_IDS_IN_SQL = """
+            INSERT INTO GRADUATION_STUDENT_RECORD_HISTORY (
+                GRADUATION_STUDENT_RECORD_HISTORY_ID,
+                HISTORY_ACTIVITY_CODE,
+                GRADUATION_STUDENT_RECORD_ID,
+                GRADUATION_PROGRAM_CODE,
+                GPA,
+                STUDENT_STATUS_CODE,
+                HONOURS_STANDING,
+                PROGRAM_COMPLETION_DATE,
+                RECALCULATE_GRAD_STATUS,
+                SCHOOL_OF_RECORD,
+                STUDENT_GRADE,
+                SCHOOL_AT_GRADUATION,
+                CREATE_USER,
+                CREATE_DATE,
+                UPDATE_USER,
+                UPDATE_DATE,
+                RECALCULATE_PROJECTED_GRAD,
+                BATCH_ID,
+                CONSUMER_EDUC_REQT_MET,
+                STUDENT_CITIZENSHIP_CODE,
+                ADULT_START_DATE,
+                SCHOOL_OF_RECORD_ID,
+                SCHOOL_AT_GRADUATION_ID
+            ) SELECT 
+                SYS_GUID(),
+                :activityCode,
+                GRADUATION_STUDENT_RECORD_ID,
+                GRADUATION_PROGRAM_CODE,
+                GPA,
+                STUDENT_STATUS_CODE,
+                HONOURS_STANDING,
+                PROGRAM_COMPLETION_DATE,
+                RECALCULATE_GRAD_STATUS,
+                SCHOOL_OF_RECORD,
+                STUDENT_GRADE,
+                SCHOOL_AT_GRADUATION,
+                CREATE_USER,
+                CREATE_DATE,
+                :updateUser,
+                SYSDATE,
+                RECALCULATE_PROJECTED_GRAD,
+                BATCH_ID,
+                CONSUMER_EDUC_REQT_MET,
+                STUDENT_CITIZENSHIP_CODE,
+                ADULT_START_DATE,
+                SCHOOL_OF_RECORD_ID,
+                SCHOOL_AT_GRADUATION_ID
+            FROM GRADUATION_STUDENT_RECORD
+            WHERE GRADUATION_STUDENT_RECORD_ID IN (:studentIDs)
+            """;
+    @Modifying
+    @Query(value= INSERT_INTO_GRADUATION_STUDENT_RECORD_HISTORY_BY_STUDENT_IDS_IN_SQL, nativeQuery=true)
+    Integer insertGraduationStudentRecordHistoryByStudentIDs(@Param(value = "studentIDs") List<UUID> studentIDs, @Param(value = "activityCode") String activityCode, @Param(value = "updateUser") String updateUser);
+
+
 }

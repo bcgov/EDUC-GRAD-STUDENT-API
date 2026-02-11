@@ -47,6 +47,7 @@ import java.util.stream.Stream;
 
 import static ca.bc.gov.educ.api.gradstudent.constant.EventStatus.MESSAGE_PUBLISHED;
 import static ca.bc.gov.educ.api.gradstudent.constant.EventType.*;
+import static ca.bc.gov.educ.api.gradstudent.constant.HistoryActivityCodes.ASSESSUPD;
 
 /**
  * The type Event handler service.
@@ -64,6 +65,7 @@ public class EventHandlerService {
     private final GradStatusEventRepository gradStatusEventRepository;
     private final StudentCourseRepository studentCourseRepository;
     private final GraduationStudentRecordRepository graduationStudentRecordRepository;
+    private final GraduationStudentRecordHistoryRepository graduationStudentRecordHistoryRepository;
     private final GraduationStatusTransformer graduationStatusTransformer;
     private static final StudentCourseMapper courseMapper = StudentCourseMapper.mapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -232,17 +234,19 @@ public class EventHandlerService {
         // Process in batches
         log.info("Setting flags for students in batch");
         int batchSize = 1000;
+        var date = LocalDateTime.now();
         for (int i = 0; i < studentIds.size(); i += batchSize) {
             int end = Math.min(i + batchSize, studentIds.size());
             List<UUID> batch = studentIds.subList(i, end);
 
-            graduationStudentRecordRepository.updateStudentFlags(batch);
-
+            graduationStudentRecordRepository.updateStudentFlags(batch, date, "ASMT_APPR");
+            graduationStudentRecordHistoryRepository.insertGraduationStudentRecordHistoryByStudentIDs(batch, ASSESSUPD.getCode(),"ASMT_APPR");
+            
             entityManager.flush();
             entityManager.clear();
         }
 
-        log.info("Flags for students in batch");
+        log.info("Flags set for students in batch");
 
         event.setEventOutcome(EventOutcome.STUDENT_FLAGS_UPDATED);
         return JsonUtil.getJsonBytesFromObject(event);

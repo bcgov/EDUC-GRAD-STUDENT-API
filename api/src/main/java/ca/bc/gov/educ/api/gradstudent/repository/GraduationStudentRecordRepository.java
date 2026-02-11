@@ -22,8 +22,13 @@ import java.util.UUID;
 public interface GraduationStudentRecordRepository extends JpaRepository<GraduationStudentRecordEntity, UUID> {
 
 	@Modifying
-	@Query("UPDATE GraduationStudentRecordEntity s SET s.recalculateGradStatus = 'Y', s.recalculateProjectedGrad = 'Y' WHERE s.studentID IN :studentIds")
-	void updateStudentFlags(List<UUID> studentIds);
+	@Query("UPDATE GraduationStudentRecordEntity s " +
+			"SET s.recalculateGradStatus = 'Y'," +
+			" s.recalculateProjectedGrad = 'Y'," +
+			" s.updateUser = :updateUser," +
+			" s.updateDate = :updateDate " +
+			"WHERE s.studentID IN :studentIds")
+	void updateStudentFlags(List<UUID> studentIds, LocalDateTime updateDate, String updateUser);
 	
 	boolean existsByStudentID(UUID studentId);
 
