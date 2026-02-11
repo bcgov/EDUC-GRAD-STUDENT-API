@@ -67,7 +67,7 @@ public class EventHandlerService {
     private final GraduationStatusTransformer graduationStatusTransformer;
     private static final StudentCourseMapper courseMapper = StudentCourseMapper.mapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<byte[], List<GradStatusEvent>> handleProcessStudentDemDataEvent(Event event) throws JsonProcessingException {
@@ -219,7 +219,7 @@ public class EventHandlerService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public byte[] handleFlipStudentFlagsEvent(Event event) {
+    public byte[] handleFlipStudentFlagsEvent(Event event) throws JsonProcessingException {
         String payload = event.getEventPayload();
 
         List<String> studentIdStrings = Arrays.asList(payload.split(","));
@@ -241,7 +241,8 @@ public class EventHandlerService {
             entityManager.clear();
         }
 
-        return new byte[0];
+        event.setEventOutcome(EventOutcome.STUDENT_FLAGS_UPDATED);
+        return JsonUtil.getJsonBytesFromObject(event);
     }
 
     private List<StudentCourseAlgorithmData> enhanceStudentCoursesWithCourseDetails(List<StudentCourseAlgorithmData> studentCourses) {
