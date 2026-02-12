@@ -361,11 +361,12 @@ public class StudentCourseService {
                     StudentCourse copiedCourse = new StudentCourse();
                     BeanUtils.copyProperties(sourceCourse, copiedCourse);
                     copiedCourse.setId(null);
+                    if(copiedCourse.getCourseExam() != null){
+                        copiedCourse.getCourseExam().setId(null);
+                    }
                     return copiedCourse;
                 })
                 .toList();
-        validationIssues.addAll(saveStudentCourses(targetStudentId, coursesToOverwrite, true).getLeft());
-        validationIssues.addAll(saveStudentCourses(targetStudentId, coursesToAdd, false).getLeft());
 
         // Only return early if there are errors (warnings are acceptable)
         boolean hasErrors = validationIssues.stream()
@@ -374,11 +375,39 @@ public class StudentCourseService {
         if (hasErrors) {
             return Pair.of(validationIssues, null);
         }
+        saveMergedCourses(targetStudentId, coursesToOverwrite, coursesToAdd);
         List<StudentCourse> courses = new ArrayList<>(coursesToAdd);
         courses.addAll(coursesToOverwrite);
         var gradStatusEvent = EventUtil.createEvent(GRAD_STUDENT_API, GRAD_STUDENT_API, JsonUtil.getJsonStringFromObject(EventUtil.getStudentCourseUpdate(targetStudentId.toString(), courses)), EventType.UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
         gradStatusEventRepository.save(gradStatusEvent);
         return Pair.of(validationIssues, gradStatusEvent);
+    }
+
+    private void saveMergedCourses(UUID targetStudentID, List<StudentCourse> coursesToOverwrite, List<StudentCourse> coursesToAdd) {
+        List<StudentCourseEntity> overwriteStudentCourseEntities = new ArrayList<>();
+        List<StudentCourseEntity> addStudentCourseEntities = new ArrayList<>();
+        coursesToOverwrite.forEach(course -> {
+            StudentCourseEntity entity = mapper.toEntity(course);
+            entity.setStudentID(targetStudentID);
+            overwriteStudentCourseEntities.add(entity);
+        });
+        coursesToAdd.forEach(course -> {
+            StudentCourseEntity entity = mapper.toEntity(course);
+            entity.setStudentID(targetStudentID);
+            addStudentCourseEntities.add(entity);
+        });
+        if (!overwriteStudentCourseEntities.isEmpty()) {
+            List<StudentCourseEntity> savedEntities = studentCourseRepository.saveAll(overwriteStudentCourseEntities);
+            if (!coursesToOverwrite.isEmpty()) {
+                createStudentCourseHistory(targetStudentID, savedEntities, StudentCourseActivityType.USERCOURSEMOD);
+            }
+        }
+        if (!addStudentCourseEntities.isEmpty()) {
+            List<StudentCourseEntity> savedEntities = studentCourseRepository.saveAll(addStudentCourseEntities);
+            if (!coursesToAdd.isEmpty()) {
+                createStudentCourseHistory(targetStudentID, savedEntities, StudentCourseActivityType.USERCOURSEADD);
+            }
+        }
     }
 
     private Map<String, StudentCourse> getStudentCoursesToMove(List<UUID> courseIds, UUID sourceStudentId) {

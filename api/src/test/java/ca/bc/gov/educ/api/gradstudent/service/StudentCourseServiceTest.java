@@ -1708,24 +1708,32 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         setSecurityContext();
         UUID sourceId = UUID.randomUUID();
         UUID targetId = UUID.randomUUID();
-        UUID courseId = UUID.randomUUID();
+        UUID sourceCourseId = UUID.randomUUID();
+        UUID targetCourseId = UUID.randomUUID();
 
-        StudentCourseEntity sourceCourse = createStudentCourseEntity(sourceId, "999", "202201"); // Invalid course ID
-        sourceCourse.setId(courseId);
+        // Source student course
+        StudentCourseEntity sourceCourse = createStudentCourseEntity(sourceId, "1", "202504");
+        sourceCourse.setId(sourceCourseId);
+
+        // Target student has existing course with exam score - merge validation prevents overwrite
+        StudentCourseEntity targetCourse = createStudentCourseEntity(targetId, "1", "202504");
+        targetCourse.setId(targetCourseId);
+        StudentCourseExam examWithScore = createStudentCourseExam(null, null, 80, null);
+        targetCourse.setCourseExam(createStudentCourseExamEntity(examWithScore));
 
         StudentCoursesMoveReq request = new StudentCoursesMoveReq();
         request.setSourceStudentId(sourceId);
         request.setTargetStudentId(targetId);
-        request.setStudentCourseIdsToMove(List.of(courseId));
+        request.setStudentCourseIdsToMove(List.of(sourceCourseId));
 
         GraduationStudentRecord dummyGradStatus = new GraduationStudentRecord();
         dummyGradStatus.setStudentStatus("CUR");
         Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(sourceId);
         Mockito.doReturn(dummyGradStatus).when(graduationStatusService).getGraduationStatus(targetId);
 
-        Mockito.when(studentCourseRepository.findAllById(List.of(courseId)))
+        Mockito.when(studentCourseRepository.findAllById(List.of(sourceCourseId)))
             .thenReturn(List.of(sourceCourse));
-        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(Collections.emptyList());
+        Mockito.when(studentCourseRepository.findByStudentID(targetId)).thenReturn(List.of(targetCourse));
         Mockito.when(studentCourseRepository.findByStudentID(sourceId)).thenReturn(List.of(sourceCourse));
 
         when(courseService.getCourses(anyList())).thenReturn(getCourses());
@@ -1738,8 +1746,13 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
         var validationIssues = pairResult.getLeft();
         var gradStatusEvent = pairResult.getRight();
 
-        // Should have validation issues from saveStudentCourses
+        // Merge validation: target course has exam with score - should return validation issues and no persist
         assertThat(validationIssues).isNotEmpty();
+        assertThat(validationIssues.stream()
+            .flatMap(issue -> issue.getValidationIssues().stream())
+            .anyMatch(validation ->
+                StudentCourseValidationIssueTypeCode.STUDENT_COURSE_MERGE_EXAM_WRITTEN.getMessage().equals(validation.getValidationIssueMessage()))
+        ).isTrue();
         assertThat(gradStatusEvent).isNull();
     }
 
