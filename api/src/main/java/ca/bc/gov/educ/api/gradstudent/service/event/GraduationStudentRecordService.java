@@ -169,7 +169,11 @@ public class GraduationStudentRecordService {
         var optionalCPProgramCode = getOptionalProgramCode(optionalProgramCodes, "CP", savedStudentRecord.getProgram());
 
         if(!careerProgramIDs.isEmpty() && optionalCPProgramCode.isPresent()) {
-            incomingProgramIDs.add(optionalCPProgramCode.get().getOptionalProgramID());
+            var hasCP = incomingProgramIDs.stream()
+                    .anyMatch(cpId -> Objects.equals(cpId, optionalCPProgramCode.get().getOptionalProgramID()));
+            if(!hasCP) {
+                incomingProgramIDs.add(optionalCPProgramCode.get().getOptionalProgramID());
+            }
         }
 
         //if student is not grad. and program code is -PF - add DD if not present
@@ -279,10 +283,7 @@ public class GraduationStudentRecordService {
         }
 
         //add optional prog. - this will add CP if condition is met
-        List<UUID> programIDsToAdd = getOptionalProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs);
-        if(!careerProgramIDs.isEmpty() && optionalCPProgramCode.isPresent()) {
-            programIDsToAdd.add(optionalCPProgramCode.get().getOptionalProgramID());
-        }
+        List<UUID> programIDsToAdd = getOptionalProgramToAdd(UUID.fromString(studentFromApi.getStudentID()), incomingProgramIDs, !careerProgramIDs.isEmpty(), optionalCPProgramCode);
         log.debug("Found optional program IDs to add :: {}", programIDsToAdd);
 
         List<StudentOptionalProgramEntity> optionalProgramEntities = new ArrayList<>();
@@ -579,7 +580,7 @@ public class GraduationStudentRecordService {
         return optionalProgramsToRemove;
     }
 
-    private List<UUID> getOptionalProgramToAdd(UUID studentID, List<UUID> incomingProgramIDs) {
+    private List<UUID> getOptionalProgramToAdd(UUID studentID, List<UUID> incomingProgramIDs, boolean hasCareerCodes, Optional<OptionalProgramCode> cpProgram) {
         List<StudentOptionalProgramEntity> existingPrograms = studentOptionalProgramRepository.findByStudentID(studentID);
 
         List<UUID> optionalProgramsToAdd = new ArrayList<>();
@@ -588,6 +589,18 @@ public class GraduationStudentRecordService {
                 optionalProgramsToAdd.add(programID);
             }
         });
+
+        if(cpProgram.isPresent()) {
+            var cpProgramCode = cpProgram.get().getOptionalProgramID();
+            var hasCPInExisting = existingPrograms.stream()
+                    .anyMatch(cpId -> Objects.equals(cpId.getOptionalProgramID(), cpProgramCode));
+            var hasCPInNew = optionalProgramsToAdd.stream()
+                    .anyMatch(cpId -> Objects.equals(cpId, cpProgramCode));
+            if(!hasCPInExisting && !hasCPInNew && hasCareerCodes) {
+                optionalProgramsToAdd.add(cpProgramCode);
+            }
+        }
+
         return optionalProgramsToAdd;
     }
 
