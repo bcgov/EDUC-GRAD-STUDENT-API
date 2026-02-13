@@ -259,7 +259,7 @@ public class EventHandlerService {
             entityManager.clear();
         }
 
-        log.info("Flags set for students in batch");
+        log.info("Flags set for {} students in batch", studentIds.size());
 
         event.setEventOutcome(EventOutcome.STUDENT_FLAGS_UPDATED);
         return JsonUtil.getJsonBytesFromObject(event);
