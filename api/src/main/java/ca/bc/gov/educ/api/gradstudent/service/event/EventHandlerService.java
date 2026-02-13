@@ -221,6 +221,17 @@ public class EventHandlerService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public byte[] handleAdoptStudentEvent(Event event) throws JsonProcessingException {
+        final String studentID = JsonUtil.getJsonObjectFromString(String.class, event.getEventPayload());
+        Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentID);
+        if (student.isEmpty()) {
+            graduationStudentRecordService.handleAssessmentAdoptEvent(studentID, "ASMT_ADOPT").getRight();
+        }
+        event.setEventOutcome(EventOutcome.GRAD_STUDENT_ADOPTED);
+        return JsonUtil.getJsonBytesFromObject(event);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public byte[] handleFlipStudentFlagsEvent(Event event) throws JsonProcessingException {
         String payload = event.getEventPayload();
 
