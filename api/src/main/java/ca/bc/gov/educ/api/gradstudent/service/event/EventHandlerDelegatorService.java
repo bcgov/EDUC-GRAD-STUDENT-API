@@ -131,6 +131,16 @@ public class EventHandlerDelegatorService {
           log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, response);
           break;
+        case ADOPT_STUDENT:
+          log.debug("Received ADOPT_STUDENT event :: {}", event);
+          log.trace(PAYLOAD_LOG, event.getEventPayload());
+          var pairAdoptResponse = eventHandlerService.handleAdoptStudentEvent(event);
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          publishToNATS(event, message, isSynchronous, pairAdoptResponse.getLeft());
+          if(pairAdoptResponse.getRight() != null) {
+            publishToJetStream(pairAdoptResponse.getRight());
+          }
+          break;
         default:
           log.debug("silently ignoring other events :: {}", event);
           break;
