@@ -52,9 +52,9 @@ public class StudentCourseService {
 
     public List<StudentCourse> getStudentCourses(UUID studentID) {
         if (studentID != null) {
-            log.info("getStudentCourses: studentID = {}", studentID);
+            log.debug("getStudentCourses: studentID = {}", studentID);
             List<StudentCourseEntity> studentCourseEntities = studentCourseRepository.findByStudentID(studentID);
-            log.info("Retrieved {} student courses for studentID = {}", studentCourseEntities.size(), studentID);
+            log.debug("Retrieved {} student courses for studentID = {}", studentCourseEntities.size(), studentID);
             return studentCourseEntities.stream().map(mapper::toStructure).toList();
         }
         return Collections.emptyList();
@@ -90,12 +90,12 @@ public class StudentCourseService {
         List<StudentCourse> existingStudentCourses = getStudentCourses(studentID);
         GraduationStudentRecord graduationStudentRecord = graduationStatusService.getGraduationStatus(studentID);
         //Performance consideration: Consolidate and fetch all courses in a single call.
-        log.info("Retrieving {} student courses from DB", existingStudentCourses.size());
+        log.debug("Retrieving {} student courses from DB", existingStudentCourses.size());
         List<Course> courses = courseService.getCourses(studentCourses.stream()
                 .flatMap(sc -> Stream.of(sc.getCourseID(), sc.getRelatedCourseId()))
                 .filter(StringUtils::isNotBlank)
                 .toList());
-        log.info("Retrieved {} student courses", courses.size());
+        log.debug("Retrieved {} student courses", courses.size());
         StudentCourseActivityType activityCode = isUpdate ? StudentCourseActivityType.USERCOURSEMOD : StudentCourseActivityType.USERCOURSEADD;
 
         studentCourses.forEach(studentCourse -> {
