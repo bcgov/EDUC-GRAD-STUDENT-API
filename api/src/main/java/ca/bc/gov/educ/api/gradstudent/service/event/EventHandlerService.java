@@ -88,6 +88,11 @@ public class EventHandlerService {
             graduationStudentRecordEntity = result.getRight();
         } else {
             graduationStudentRecordEntity = graduationStudentRecordService.createNewStudentRecord(demStudent, studentFromApi);
+            var gradStudent = graduationStatusTransformer.transformToDTO(graduationStudentRecordEntity);
+            var gradStatusEvent = EventUtil.createEvent(demStudent.getCreateUser(),
+                demStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(gradStudent), ADOPT_GRAD_STUDENT, EventOutcome.GRAD_STUDENT_ADOPTED);
+            gradStatusEventRepository.save(gradStatusEvent);
+            gradStatusEventList.add(gradStatusEvent);
         }
         
         if(gradStudentUpdateResult != null) {
