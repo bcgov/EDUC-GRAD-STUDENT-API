@@ -709,9 +709,10 @@ public class GraduationStudentRecordService {
     }
 
     private Optional<CareerProgramCode> getOptionalCareerCode(List<CareerProgramCode> optionalCareerCodes, String incomingProgramCode) {
+        var extractedProgramCode = extractProgramCode(incomingProgramCode);
         return  optionalCareerCodes
                 .stream()
-                .filter(program -> program.getCode().equalsIgnoreCase(incomingProgramCode)).findFirst();
+                .filter(program -> program.getCode().equalsIgnoreCase(extractedProgramCode)).findFirst();
     }
 
     private StudentOptionalProgramEntity createStudentOptionalProgramEntity(UUID programID, UUID studentID, String createUser, String updateUser) {
