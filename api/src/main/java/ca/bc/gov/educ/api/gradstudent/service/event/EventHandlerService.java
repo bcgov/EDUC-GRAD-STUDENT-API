@@ -144,9 +144,7 @@ public class EventHandlerService {
         val studentEvent = createEventRecord(event);
         var courses = studentCourseRepository.findByStudentID(UUID.fromString(studentFromApi.getStudentID()));
         List<StudentCourse> courseList =  new ArrayList<>();
-        courses.forEach(course -> {
-            courseList.add(courseMapper.toStructure(course)); 
-        });
+        courses.forEach(course -> courseList.add(courseMapper.toStructure(course)));
         var gradStatusEvent = EventUtil.createEvent(courseStudent.getCreateUser(),
                 courseStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(EventUtil.getStudentCourseUpdate(studentFromApi.getStudentID(), courseList)), UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
         gradStatusEventRepository.save(gradStatusEvent);
