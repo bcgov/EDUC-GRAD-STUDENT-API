@@ -123,17 +123,19 @@ public class EventHandlerService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<byte[], GradStatusEvent> handleProcessStudentCourseDataEvent(Event event) throws JsonProcessingException {
+    public Pair<byte[], List<GradStatusEvent>> handleProcessStudentCourseDataEvent(Event event) throws JsonProcessingException {
         CourseStudent courseStudent = objectMapper.readValue(event.getEventPayload(), new TypeReference<>() {
         });
         var studentFromApi = graduationStudentRecordService.getStudentByPenFromStudentAPI(courseStudent.getPen());
         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
         log.debug("handleProcessStudentCourseDataEvent found student :: {}", student);
+        List<GradStatusEvent> gradStatusEventList = new ArrayList<>();
 
         if (student.isPresent()) {
             graduationStudentRecordService.handleStudentCourseRecord(student.get(), courseStudent, studentFromApi);
         } else {
-            graduationStudentRecordService.handleAssessmentAdoptEvent(studentFromApi.getStudentID(), EducGradStudentApiConstants.DEFAULT_CREATED_BY);
+            var pair = graduationStudentRecordService.handleAssessmentAdoptEvent(studentFromApi.getStudentID(), EducGradStudentApiConstants.DEFAULT_CREATED_BY);
+            gradStatusEventList.add(pair.getRight());
             Optional<GraduationStudentRecordEntity> adoptedStudent = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
             graduationStudentRecordService.handleStudentCourseRecord(adoptedStudent.get(), courseStudent, studentFromApi);
         }
@@ -148,7 +150,9 @@ public class EventHandlerService {
         var gradStatusEvent = EventUtil.createEvent(courseStudent.getCreateUser(),
                 courseStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(EventUtil.getStudentCourseUpdate(studentFromApi.getStudentID(), courseList)), UPDATE_STUDENT_COURSES, EventOutcome.STUDENT_COURSES_UPDATED);
         gradStatusEventRepository.save(gradStatusEvent);
-        return Pair.of(createResponseEvent(studentEvent), gradStatusEvent);
+
+        gradStatusEventList.add(gradStatusEvent);
+        return Pair.of(createResponseEvent(studentEvent), gradStatusEventList);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

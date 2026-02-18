@@ -114,7 +114,7 @@ public class EventHandlerDelegatorService {
           log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
           publishToNATS(event, message, isSynchronous, pairCourseResponse.getLeft());
           if(pairCourseResponse.getRight() != null) {
-            publishToJetStream(pairCourseResponse.getRight());
+            pairCourseResponse.getRight().forEach(this::publishToJetStream);
           }
           break;
         case GET_STUDENT_COURSES:
