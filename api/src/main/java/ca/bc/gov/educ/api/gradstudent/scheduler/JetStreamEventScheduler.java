@@ -50,7 +50,7 @@ public class JetStreamEventScheduler {
     log.debug("PUBLISH_GRAD_STATUS_EVENTS_TO_JET_STREAM: started - cron {}, lockAtMostFor {}", constants.getGradToTraxCronRun(), constants.getGradToTraxLockAtMostFor());
     LockAssert.assertLocked();
     log.debug("Fired jet stream choreography scheduler");
-    var gradSchoolEventTypes = Arrays.asList(EventType.UPDATE_SCHOOL_OF_RECORD.toString(), EventType.GRAD_STUDENT_GRADUATED.toString(), EventType.GRAD_STUDENT_UPDATED.toString(), EventType.GRAD_STUDENT_UNDO_COMPLETION.toString(), EventType.UPDATE_STUDENT_COURSES.toString());
+    var gradSchoolEventTypes = Arrays.asList(EventType.UPDATE_SCHOOL_OF_RECORD.toString(), EventType.GRAD_STUDENT_GRADUATED.toString(), EventType.GRAD_STUDENT_UPDATED.toString(), EventType.GRAD_STUDENT_UNDO_COMPLETION.toString(), EventType.UPDATE_STUDENT_COURSES.toString(), EventType.ADOPT_GRAD_STUDENT.toString());
     var results = gradStatusEventRepository.findByEventStatusAndEventTypeIn(DB_COMMITTED.toString(), gradSchoolEventTypes);
     if (!results.isEmpty()) {
       results.forEach(el -> {
