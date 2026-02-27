@@ -208,7 +208,7 @@ public class GraduationStudentRecordService {
         var newStudentRecordEntity = new GraduationStudentRecordEntity();
         var gradStudentUpdateResult = new GradStudentUpdateResult();
         gradStudentUpdateResult.setSchoolOfRecordUpdated(checkIfSchoolOfRecordIsUpdated(demStudent, existingStudentRecordEntity));
-        BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity, CREATE_USER, CREATE_DATE);
+        BeanUtils.copyProperties(existingStudentRecordEntity, newStudentRecordEntity);
         Pair<Boolean,GraduationStudentRecordEntity> studentUpdate = compareAndUpdateGraduationStudentRecordEntity(demStudent, newStudentRecordEntity, gradStudentUpdateResult);
         
         var studentWasUpdated = studentUpdate.getLeft();
