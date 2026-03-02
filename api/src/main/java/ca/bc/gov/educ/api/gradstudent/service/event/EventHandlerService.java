@@ -229,7 +229,7 @@ public class EventHandlerService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Pair<byte[], GradStatusEvent> handleAdoptStudentEvent(Event event) throws JsonProcessingException {
-        final String studentID = JsonUtil.getJsonObjectFromString(String.class, event.getEventPayload());
+        final String studentID = event.getEventPayload();
         Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentID);
         event.setEventOutcome(EventOutcome.GRAD_STUDENT_ADOPTED);
         if (student.isEmpty()) {
