@@ -46,6 +46,7 @@ spring:
             issuer-uri: ${TOKEN_ISSUER_URL}
             token-uri: ${TOKEN_ISSUER_URL}/protocol/openid-connect/token
 
+
 #Logging properties
 logging:
   file:
@@ -257,3 +258,17 @@ threads:
   max:
     subscriber: ${THREADS_MAX_SUBSCRIBER}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
