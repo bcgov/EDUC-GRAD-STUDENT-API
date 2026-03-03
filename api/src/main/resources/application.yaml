@@ -257,3 +257,17 @@ threads:
   max:
     subscriber: ${THREADS_MAX_SUBSCRIBER}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
