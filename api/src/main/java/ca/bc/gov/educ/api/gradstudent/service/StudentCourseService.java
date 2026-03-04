@@ -108,7 +108,7 @@ public class StudentCourseService {
                 studentCourseResponse.add(prepareInvalidCourseValidationIssue(studentCourse, existingStudentCourse, course, isUpdate));
             } else {
                 //Perform validation checks
-                StudentCourseRuleData studentCourseRuleData = prepareStudentCourseRuleData(studentCourse, graduationStudentRecord, course, relatedCourse, activityCode);
+                StudentCourseRuleData studentCourseRuleData = prepareStudentCourseRuleData(studentCourse, existingStudentCourse, graduationStudentRecord, course, relatedCourse, activityCode);
                 List<ValidationIssue> validationIssues = upsertStudentCourseRulesProcessor.processRules(studentCourseRuleData);
                 boolean hasError = validationIssues.stream().anyMatch(issue -> ERROR.equals(issue.getValidationIssueSeverityCode()));
                 if (!hasError) {
@@ -506,10 +506,11 @@ public class StudentCourseService {
         return false;
     }
 
-    private StudentCourseRuleData prepareStudentCourseRuleData(StudentCourse studentCourse, GraduationStudentRecord graduationStudentRecord, Course course, Course relatedCourse, StudentCourseActivityType activityCode) {
+    private StudentCourseRuleData prepareStudentCourseRuleData(StudentCourse studentCourse, StudentCourse existingStudentCourse, GraduationStudentRecord graduationStudentRecord, Course course, Course relatedCourse, StudentCourseActivityType activityCode) {
         StudentCourseRuleData studentCourseRuleData = new StudentCourseRuleData();
         studentCourseRuleData.setGraduationStudentRecord(graduationStudentRecord);
         studentCourseRuleData.setStudentCourse(studentCourse);
+        studentCourseRuleData.setExistingStudentCourse(existingStudentCourse);
         studentCourseRuleData.setCourse(course);
         studentCourseRuleData.setRelatedCourse(relatedCourse);
         studentCourseRuleData.setActivityType(activityCode);

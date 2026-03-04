@@ -1963,4 +1963,122 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
                         && "ERROR".equals(issue.getValidationIssueSeverityCode()));
         assertFalse("Updated withdrawn course with 0 credits should not have credit validation error", hasCreditValidationError);
     }
+
+    @Test
+    public void testCreateStudentCourse_CourseWithNoAllowableCredits_ShouldSkipAllowableCreditValidation() throws JsonProcessingException {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+
+        StudentCourse studentCourse = createStudentCourse("5", "202504", null, null, null, null, 4, null, null);
+        Map<String, StudentCourse> studentCourses = new HashMap<>();
+        studentCourses.put("studentCourseMissingAllowableCredits", studentCourse);
+
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2018-EN");
+        graduationStatusEntity.setStudentID(studentID);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+
+        List<Course> courses = getCourses();
+        courses.stream()
+                .filter(course -> "5".equals(course.getCourseID()))
+                .findFirst()
+                .ifPresent(course -> course.setCourseAllowableCredit(null));
+
+        when(courseService.getCourses(anyList())).thenReturn(courses);
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
+
+        assertNotNull(result);
+        var validation = result.stream()
+                .filter(v -> "5".equals(v.getCourseID()) && "202504".equals(v.getCourseSession()))
+                .findFirst();
+
+        assertTrue("Validation result should be present for course with missing allowable credits", validation.isPresent());
+        boolean hasCreditValidationError = validation.get().getValidationIssues().stream()
+                .anyMatch(issue -> issue.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())
+                        && "ERROR".equals(issue.getValidationIssueSeverityCode()));
+        assertFalse("Course with missing allowable credits should skip allowable-credit validation", hasCreditValidationError);
+    }
+
+    @Test
+    public void testCreateStudentCourse_AllowableCreditsFormatted_ShouldAcceptEquivalentNumericValue() throws JsonProcessingException {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+
+        StudentCourse studentCourse = createStudentCourse("5", "202504", null, null, null, null, 4, null, null);
+        Map<String, StudentCourse> studentCourses = new HashMap<>();
+        studentCourses.put("studentCourseFormattedAllowableCredits", studentCourse);
+
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2018-EN");
+        graduationStatusEntity.setStudentID(studentID);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+
+        List<Course> courses = getCourses();
+        courses.stream()
+                .filter(course -> "5".equals(course.getCourseID()))
+                .findFirst()
+                .ifPresent(course -> course.setCourseAllowableCredit(List.of(CourseAllowableCredits.builder().creditValue("04").build())));
+
+        when(courseService.getCourses(anyList())).thenReturn(courses);
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
+
+        assertNotNull(result);
+        var validation = result.stream()
+                .filter(v -> "5".equals(v.getCourseID()) && "202504".equals(v.getCourseSession()))
+                .findFirst();
+
+        assertTrue("Validation result should be present for formatted allowable credits", validation.isPresent());
+        boolean hasCreditValidationError = validation.get().getValidationIssues().stream()
+                .anyMatch(issue -> issue.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())
+                        && "ERROR".equals(issue.getValidationIssueSeverityCode()));
+        assertFalse("Equivalent numeric credit value should pass allowable-credit validation", hasCreditValidationError);
+    }
+
+    @Test
+    public void testUpdateStudentCourse_LegacyZeroCredits_ShouldAllowFinalMarkUpdate() throws JsonProcessingException {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+        UUID courseId = UUID.randomUUID();
+
+        StudentCourseEntity existingCourse = createStudentCourseEntity(studentID, "5", "202004");
+        existingCourse.setId(courseId);
+        existingCourse.setCredits(0);
+
+        StudentCourse updateCourse = createStudentCourse("5", "202004", null, null, 86, "A", 0, null, null);
+        updateCourse.setId(courseId.toString());
+        updateCourse.setStudentID(studentID.toString());
+
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2018-EN");
+        graduationStatusEntity.setStudentID(studentID);
+
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+        when(studentCourseRepository.findByStudentID(studentID)).thenReturn(List.of(existingCourse));
+        when(studentCourseRepository.saveAll(anyList())).thenAnswer(i -> i.getArgument(0));
+        when(courseService.getCourses(anyList())).thenReturn(getCourses());
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.saveStudentCourses(studentID, List.of(updateCourse), true);
+        var result = pairResult.getLeft();
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        var validationIssues = result.get(0).getValidationIssues();
+        boolean hasCreditValidationError = validationIssues.stream()
+                .anyMatch(issue -> issue.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())
+                        && "ERROR".equals(issue.getValidationIssueSeverityCode()));
+        assertFalse("Legacy zero-credit update should not fail allowable-credit validation", hasCreditValidationError);
+    }
 }

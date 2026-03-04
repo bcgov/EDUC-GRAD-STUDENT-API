@@ -13,6 +13,7 @@ import lombok.experimental.SuperBuilder;
 public class StudentCourseRuleData {
 
     StudentCourse studentCourse;
+    StudentCourse existingStudentCourse;
     GraduationStudentRecord graduationStudentRecord;
     Course course;
     Course relatedCourse;

@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.validator.rules.studentcourse.impl;
 
+import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseActivityType;
 import ca.bc.gov.educ.api.gradstudent.constant.StudentCourseValidationIssueTypeCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.Course;
 import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
@@ -12,7 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -55,9 +58,16 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
             boolean isZeroCreditsAllowed = studentCourse.getCredits() != null && studentCourse.getCredits() == 0
                     && StringUtils.isNotBlank(studentCourse.getFinalLetterGrade())
                     && (studentCourse.getFinalLetterGrade().equalsIgnoreCase("W") || studentCourse.getFinalLetterGrade().equalsIgnoreCase("F"));
+            boolean isLegacyZeroCreditPlaceholder = studentCourseRuleData.getActivityType() == StudentCourseActivityType.USERCOURSEMOD
+                    && studentCourse.getCredits() != null
+                    && studentCourse.getCredits() == 0
+                    && studentCourseRuleData.getExistingStudentCourse() != null
+                    && studentCourseRuleData.getExistingStudentCourse().getCredits() != null
+                    && studentCourseRuleData.getExistingStudentCourse().getCredits() == 0;
 
-            if(studentCourse.getCredits() != null && !isZeroCreditsAllowed
-                    && course.getCourseAllowableCredit().stream().filter(x -> x.getCreditValue().equals(studentCourse.getCredits().toString())).findFirst().isEmpty()) {
+            if(studentCourse.getCredits() != null && !isZeroCreditsAllowed && !isLegacyZeroCreditPlaceholder
+                    && !CollectionUtils.isEmpty(course.getCourseAllowableCredit())
+                    && course.getCourseAllowableCredit().stream().noneMatch(x -> isEquivalentCreditValue(studentCourse.getCredits(), x.getCreditValue()))) {
                 validationIssues.add(createValidationIssue(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID));
             }
             if (!validationIssues.isEmpty()) return validationIssues;
@@ -112,6 +122,22 @@ public class StudentProgramCreditRule implements UpsertStudentCourseValidationBa
             return courseCacheService.getFineArtsAppliedSkillsCodesFromCache().stream().anyMatch(fineArtsAppliedSkillsCode -> fineArtsAppliedSkillsCode.getFineArtsAppliedSkillsCode().equals(code));
         }
         return true;
+    }
+
+    private boolean isEquivalentCreditValue(Integer studentCredits, String allowableCreditValue) {
+        if (studentCredits == null || StringUtils.isBlank(allowableCreditValue)) {
+            return false;
+        }
+        String trimmedAllowable = allowableCreditValue.trim();
+        if (studentCredits.toString().equals(trimmedAllowable)) {
+            return true;
+        }
+        try {
+            BigDecimal allowableNumeric = new BigDecimal(trimmedAllowable);
+            return allowableNumeric.stripTrailingZeros().compareTo(BigDecimal.valueOf(studentCredits)) == 0;
+        } catch (NumberFormatException ex) {
+            return false;
+        }
     }
 
 }
