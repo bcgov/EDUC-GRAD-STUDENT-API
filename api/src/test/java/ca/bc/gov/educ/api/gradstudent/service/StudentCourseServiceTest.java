@@ -1917,6 +1917,47 @@ public class StudentCourseServiceTest  extends BaseIntegrationTest {
     }
 
     @Test
+    public void testCreateStudentCourse_XCourse_PassingGrade_ZeroCredits_ShouldPassValidation() throws JsonProcessingException {
+        setSecurityContext();
+        UUID studentID = UUID.randomUUID();
+
+        StudentCourse studentCourse = createStudentCourse("5", "202504", null, null, 89, "A", 0, null, null);
+        Map<String, StudentCourse> studentCourses = new HashMap<>();
+        studentCourses.put("studentCourseWithZeroCredits", studentCourse);
+
+        GraduationStudentRecordEntity graduationStatusEntity = getGraduationStudentRecordEntity("CUR", "2018-EN");
+        graduationStatusEntity.setStudentID(studentID);
+        when(graduationStatusRepository.findById(studentID)).thenReturn(Optional.of(graduationStatusEntity));
+
+        List<Course> courses = getCourses();
+        courses.stream()
+                .filter(course -> "5".equals(course.getCourseID()))
+                .findFirst()
+                .ifPresent(course -> course.setCourseCode("XA"));
+
+        when(courseService.getCourses(anyList())).thenReturn(courses);
+        when(courseCacheService.getLetterGradesFromCache()).thenReturn(getLetterGrades());
+        when(courseCacheService.getExaminableCoursesFromCache()).thenReturn(getExaminableCourses());
+        when(courseCacheService.getEquivalentOrChallengeCodesFromCache()).thenReturn(getEquivalentOrChallengeCodes());
+        when(courseCacheService.getFineArtsAppliedSkillsCodesFromCache()).thenReturn(getFineArtsAppliedSkillsCodes());
+
+        var pairResult = studentCourseService.saveStudentCourses(studentID, studentCourses.values().stream().toList(), false);
+        var result = pairResult.getLeft();
+
+        assertNotNull(result);
+        var courseValidation = result.stream()
+                .filter(v -> "5".equals(v.getCourseID()) && "202504".equals(v.getCourseSession()))
+                .findFirst();
+
+        assertTrue("Validation result should be present for X course with zero credits", courseValidation.isPresent());
+        var validationIssues = courseValidation.get().getValidationIssues();
+        boolean hasCreditValidationError = validationIssues.stream()
+                .anyMatch(issue -> issue.getValidationIssueMessage().equals(StudentCourseValidationIssueTypeCode.STUDENT_COURSE_CREDITS_VALID.getMessage())
+                        && "ERROR".equals(issue.getValidationIssueSeverityCode()));
+        assertFalse("X-prefixed course with 0 credits should not have credit validation error", hasCreditValidationError);
+    }
+
+    @Test
     public void testUpdateStudentCourse_WithdrawnGrade_ZeroCredits_ShouldPassValidation() throws JsonProcessingException {
         setSecurityContext();
         UUID studentID = UUID.randomUUID();
