@@ -419,7 +419,7 @@ public class GraduationStudentRecordService {
         }
 
         if(StringUtils.isNotBlank(newStudentCourseEntity.getFinalLetterGrade())
-                && StringUtils.isNotBlank(newStudentCourseEntity.getFinalLetterGrade())
+                && StringUtils.isNotBlank(courseStudent.getFinalLetterGrade())
                 && !newStudentCourseEntity.getFinalLetterGrade().equalsIgnoreCase(courseStudent.getFinalLetterGrade())) {
             newStudentCourseEntity.setFinalLetterGrade(courseStudent.getFinalLetterGrade());
         } else if(StringUtils.isBlank(newStudentCourseEntity.getFinalLetterGrade())) {
