@@ -74,7 +74,7 @@ class GraduationStudentRecordServiceTest {
         UUID studentID = UUID.randomUUID();
         UUID schoolID = UUID.randomUUID();
 
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "A", schoolID.toString());
+        DemographicStudent demStudent = createMockDemographicStudent("N", "REGULAR", "A", schoolID.toString());
         Student studentFromApi = Student.builder()
                 .studentID(studentID.toString())
                 .pen("987654321")
@@ -107,7 +107,7 @@ class GraduationStudentRecordServiceTest {
         UUID studentID = UUID.randomUUID();
         UUID schoolID = UUID.randomUUID();
 
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "A", schoolID.toString());
+        DemographicStudent demStudent = createMockDemographicStudent("N", "REGULAR", "A", schoolID.toString());
         Student studentFromApi = Student.builder()
                 .studentID(studentID.toString())
                 .pen("987654321")
@@ -133,7 +133,7 @@ class GraduationStudentRecordServiceTest {
         // Given
         UUID studentID = UUID.randomUUID();
         
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", reportingSchoolId.toString());
+        DemographicStudent demStudent = createMockDemographicStudent("N", "REGULAR", "T", reportingSchoolId.toString());
         Student studentFromApi = createMockStudent(studentID.toString());
         GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolOfRecordId, currentStatus);
         
@@ -166,7 +166,7 @@ class GraduationStudentRecordServiceTest {
         UUID studentID = UUID.randomUUID();
         UUID schoolID = UUID.randomUUID();
         
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", schoolID.toString());
+        DemographicStudent demStudent = createMockDemographicStudent("N", "REGULAR", "T", schoolID.toString());
         Student studentFromApi = createMockStudent(studentID.toString());
         GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, unexpectedStatus);
         
@@ -190,7 +190,7 @@ class GraduationStudentRecordServiceTest {
         UUID studentID = UUID.randomUUID();
         UUID schoolID = UUID.randomUUID();
         
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "T", schoolID.toString());
+        DemographicStudent demStudent = createMockDemographicStudent("N", "REGULAR", "T", schoolID.toString());
         Student studentFromApi = createMockStudent(studentID.toString());
         GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, null);
         
@@ -205,7 +205,7 @@ class GraduationStudentRecordServiceTest {
         UUID studentID = UUID.randomUUID();
         UUID schoolID = UUID.randomUUID();
         
-        DemographicStudent demStudent = createMockDemographicStudent("N", "CSF", "X", schoolID.toString());
+        DemographicStudent demStudent = createMockDemographicStudent("N", "REGULAR", "X", schoolID.toString());
         Student studentFromApi = createMockStudent(studentID.toString());
         GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "CUR");
         
