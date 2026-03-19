@@ -36,7 +36,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
@@ -1221,21 +1221,26 @@ public class GraduationStatusService extends GradBaseService {
     }
     
     public void deleteStudentAchievements(UUID studentID,String accessToken) {
-        try {
-            studentApiClient.delete().uri(String.format(constants.getDeleteStudentAchievements(), studentID))
-                    .headers(h -> h.setBearerAuth(accessToken))
-                    .retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
-        }catch (Exception e) {
-            logger.error(e.getLocalizedMessage());
-        }
+        performAchievementRemoval(String.format(constants.getDeleteStudentAchievements(), studentID));
     }
 
     public void archiveStudentAchievements(UUID studentID,String accessToken) {
+        performAchievementRemoval(String.format(constants.getArchiveStudentAchievements(), studentID));
+    }
+
+    private void performAchievementRemoval(String uri) {
         try {
-            studentApiClient.delete().uri(String.format(constants.getArchiveStudentAchievements(), studentID))
-                    .headers(h -> h.setBearerAuth(accessToken)).retrieve().onStatus(p -> p.value() == 404, error -> Mono.error(new Exception("Credential Not Found"))).bodyToMono(Integer.class).block();
-        }catch (Exception e) {
-            logger.error(e.getLocalizedMessage());
+            studentApiClient
+                    .delete()
+                    .uri(uri)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+        } catch (WebClientResponseException.NotFound ex) {
+            logger.debug("No student achievements found for request URI [{}].", uri);
+        } catch (RuntimeException ex) {
+            logger.error("Failed achievement delete/archive request for URI [{}].", uri, ex);
+            throw ex;
         }
     }
 

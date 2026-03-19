@@ -33,14 +33,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -55,6 +58,8 @@ import static ca.bc.gov.educ.api.gradstudent.constant.Topics.GRAD_STUDENT_API_TO
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -77,6 +82,10 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     StudentCourseRepository studentCourseRepository;
     @Autowired
     GradStatusEventRepository gradStatusEventRepository;
+    @Autowired
+    StudentOptionalProgramRepository studentOptionalProgramRepository;
+    @Autowired
+    StudentCareerProgramRepository studentCareerProgramRepository;
     @MockBean
     FineArtsAppliedSkillsCodeRepository fineArtsAppliedSkillsCodeRepository;
     @MockBean
@@ -87,6 +96,12 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     SchoolService schoolService;
     @MockBean
     CourseService courseService;
+    @Mock
+    WebClient.RequestHeadersUriSpec<?> requestHeadersUriMock;
+    @Mock
+    WebClient.RequestHeadersSpec<?> requestHeadersMock;
+    @Mock
+    WebClient.ResponseSpec responseMock;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
     @BeforeEach
@@ -142,7 +157,16 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 )
         );
 
+        // Archive/delete achievement calls are side-effects during program transitions.
+        // Mock the no-token delete flow used by GraduationStatusService.
+        doReturn(this.requestHeadersUriMock).when(this.webClient).delete();
+        doReturn(this.requestHeadersMock).when(this.requestHeadersUriMock).uri(anyString());
+        doReturn(this.responseMock).when(this.requestHeadersMock).retrieve();
+        doReturn(Mono.just(ResponseEntity.<Void>ok().build())).when(this.responseMock).toBodilessEntity();
+
         studentCourseRepository.deleteAll();
+        studentCareerProgramRepository.deleteAll();
+        studentOptionalProgramRepository.deleteAll();
         graduationStudentRecordRepository.deleteAll();
         gradStatusEventRepository.deleteAll();
     }
@@ -797,8 +821,21 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         var existing = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolID()));
         existing.setProgram("SCCP");
         existing.setProgramCompletionDate(Date.valueOf(LocalDate.now()));
+        existing.setSchoolAtGradId(UUID.randomUUID());
+        existing.setGpa("4.00");
+        existing.setHonoursStanding("Y");
         existing.setStudentGradData("{\"graduated\":true}");
+        existing.setRecalculateGradStatus(null);
+        existing.setRecalculateProjectedGrad(null);
         graduationStudentRecordRepository.save(existing);
+        studentOptionalProgramRepository.save(StudentOptionalProgramEntity.builder()
+                .studentID(existing.getStudentID())
+                .optionalProgramID(UUID.randomUUID())
+                .build());
+        studentCareerProgramRepository.save(StudentCareerProgramEntity.builder()
+                .studentID(existing.getStudentID())
+                .careerProgramCode("XA")
+                .build());
 
         when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
 
@@ -815,6 +852,57 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         var persisted = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
         assertThat(persisted).isPresent();
         assertThat(persisted.get().getProgram()).isEqualTo("2018-EN");
+        assertThat(persisted.get().getProgramCompletionDate()).isNull();
+        assertThat(persisted.get().getSchoolAtGradId()).isNull();
+        assertThat(persisted.get().getGpa()).isNull();
+        assertThat(persisted.get().getHonoursStanding()).isNull();
+        assertThat(persisted.get().getStudentGradData()).isNull();
+        assertThat(persisted.get().getRecalculateGradStatus()).isEqualTo("Y");
+        assertThat(persisted.get().getRecalculateProjectedGrad()).isEqualTo("Y");
+        assertThat(studentOptionalProgramRepository.findByStudentID(persisted.get().getStudentID())).isEmpty();
+        assertThat(studentCareerProgramRepository.findByStudentID(persisted.get().getStudentID())).isEmpty();
+    }
+
+    @Test
+    void testHandleEvent_givenStudentExists_whenIncomingGradYearAndSCCPWithoutCompletionDate_shouldStillUpdateProgram() throws IOException {
+        var demStudent = createMockDemographicStudent("Y", "REGULAR");
+        demStudent.setGradRequirementYear("2018");
+        var studentFromApi = createmockStudent();
+
+        var existing = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolID()));
+        existing.setProgram("SCCP");
+        existing.setProgramCompletionDate(null);
+        existing.setSchoolAtGradId(UUID.randomUUID());
+        existing.setGpa("4.00");
+        existing.setHonoursStanding("Y");
+        existing.setStudentGradData("{\"graduated\":true}");
+        graduationStudentRecordRepository.save(existing);
+        studentOptionalProgramRepository.save(StudentOptionalProgramEntity.builder()
+                .studentID(existing.getStudentID())
+                .optionalProgramID(UUID.randomUUID())
+                .build());
+
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+
+        var sagaId = UUID.randomUUID();
+        final Event event = Event.builder()
+                .eventType(EventType.PROCESS_STUDENT_DEM_DATA)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+
+        eventHandlerService.handleProcessStudentDemDataEvent(event);
+
+        var persisted = graduationStudentRecordRepository.findOptionalByStudentID(UUID.fromString(studentFromApi.getStudentID()));
+        assertThat(persisted).isPresent();
+        assertThat(persisted.get().getProgram()).isEqualTo("2018-EN");
+        assertThat(persisted.get().getProgramCompletionDate()).isNull();
+        assertThat(persisted.get().getSchoolAtGradId()).isNull();
+        assertThat(persisted.get().getGpa()).isNull();
+        assertThat(persisted.get().getHonoursStanding()).isNull();
+        assertThat(persisted.get().getStudentGradData()).isNull();
+        assertThat(studentOptionalProgramRepository.findByStudentID(persisted.get().getStudentID())).isEmpty();
     }
 
     @Test

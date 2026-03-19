@@ -620,6 +620,8 @@ public class GraduationStudentRecordService {
         int projectedChangeCount = 0;
         int statusChangeCount = 0;
         boolean hasAdultChange = false;
+        boolean hasProgramTransition = false;
+        String previousProgram = newStudentRecordEntity.getProgram();
         if(demStudent.getIsSummerCollection().equalsIgnoreCase("N")) {
             UUID originalSchoolOfRecordId = newStudentRecordEntity.getSchoolOfRecordId();
             if(newStudentRecordEntity.getSchoolOfRecordId() != null && !Objects.equals(newStudentRecordEntity.getSchoolOfRecordId(), UUID.fromString(demStudent.getSchoolID()))) {
@@ -663,9 +665,9 @@ public class GraduationStudentRecordService {
         if (StringUtils.isNotBlank(demStudent.getGradRequirementYear())) {
             String mappedProgram = mapGradProgramCode(demStudent.getGradRequirementYear(), demStudent.getSchoolReportingRequirementCode());
             boolean isGraduated = deriveIfGraduated(newStudentRecordEntity);
-            boolean hasProgramCompletionDate = newStudentRecordEntity.getProgramCompletionDate() != null;
-            boolean completedSCCP = hasProgramCompletionDate && "SCCP".equalsIgnoreCase(newStudentRecordEntity.getProgram());
-            if (!isGraduated || completedSCCP) {
+            boolean currentProgramIsSccp = "SCCP".equalsIgnoreCase(newStudentRecordEntity.getProgram());
+            if (!isGraduated || currentProgramIsSccp) {
+                hasProgramTransition = !StringUtils.equalsIgnoreCase(newStudentRecordEntity.getProgram(), mappedProgram);
                 newStudentRecordEntity.setProgram(mappedProgram);
                 projectedChangeCount++;
                 statusChangeCount++;
@@ -693,9 +695,46 @@ public class GraduationStudentRecordService {
             newStudentRecordEntity.setRecalculateGradStatus("Y");
             newStudentRecordEntity.setRecalculateProjectedGrad("Y");
         }
+
+        if (hasProgramTransition) {
+            applyProgramChangeSideEffects(previousProgram, newStudentRecordEntity);
+        }
         
         var hasUpdates = projectedChangeCount > 0 || statusChangeCount > 0 || hasAdultChange;
         return Pair.of(hasUpdates, newStudentRecordEntity);
+    }
+
+    private void applyProgramChangeSideEffects(String previousProgram, GraduationStudentRecordEntity studentRecordEntity) {
+        deleteAllStudentProgramAssociations(studentRecordEntity.getStudentID());
+        if ("SCCP".equalsIgnoreCase(previousProgram)) {
+            resetGraduationDataForSCCPProgramTransition(studentRecordEntity);
+        } else {
+            graduationStatusService.deleteStudentAchievements(studentRecordEntity.getStudentID(), null);
+        }
+    }
+
+    private void resetGraduationDataForSCCPProgramTransition(GraduationStudentRecordEntity studentRecordEntity) {
+        studentRecordEntity.setProgramCompletionDate(null);
+        studentRecordEntity.setStudentGradData(null);
+        studentRecordEntity.setHonoursStanding(null);
+        studentRecordEntity.setGpa(null);
+        studentRecordEntity.setSchoolAtGradId(null);
+        studentRecordEntity.setRecalculateGradStatus("Y");
+        studentRecordEntity.setRecalculateProjectedGrad("Y");
+        graduationStatusService.archiveStudentAchievements(studentRecordEntity.getStudentID(), null);
+    }
+
+    private void deleteAllStudentProgramAssociations(UUID studentID) {
+        List<StudentOptionalProgramEntity> existingOptionalPrograms = studentOptionalProgramRepository.findByStudentID(studentID);
+        if (!existingOptionalPrograms.isEmpty()) {
+            existingOptionalPrograms.forEach(optionalProgram -> historyService.createStudentOptionalProgramHistory(optionalProgram, GDC_DELETE));
+            studentOptionalProgramRepository.deleteAll(existingOptionalPrograms);
+        }
+
+        List<StudentCareerProgramEntity> existingCareerPrograms = studentCareerProgramRepository.findByStudentID(studentID);
+        if (!existingCareerPrograms.isEmpty()) {
+            studentCareerProgramRepository.deleteAll(existingCareerPrograms);
+        }
     }
 
     private Optional<OptionalProgramCode> getOptionalProgramCode(List<OptionalProgramCode> optionalProgramCodes, String incomingProgramCode, String gradProgram) {
