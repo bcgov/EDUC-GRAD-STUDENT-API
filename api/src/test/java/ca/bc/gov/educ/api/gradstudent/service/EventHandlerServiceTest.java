@@ -792,7 +792,7 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
 
         var existing = createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolID()));
         existing.setProgram("2023-EN");
-        existing.setStudentGradData("{\"graduated\":true}");
+        existing.setProgramCompletionDate(Date.valueOf(LocalDate.now()));
         graduationStudentRecordRepository.save(existing);
 
         when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
