@@ -20,8 +20,6 @@ import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.service.HistoryService;
 import ca.bc.gov.educ.api.gradstudent.util.DateUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -930,6 +928,6 @@ public class GraduationStudentRecordService {
     }
 
     private boolean deriveIfGraduated(GraduationStudentRecordEntity studentRecord) {
-        return studentRecord != null && studentRecord.getProgramCompletionDate() != null;
+        return studentRecord.getProgramCompletionDate() != null && !studentRecord.getProgram().equalsIgnoreCase("SCCP");
     }
 }
