@@ -930,12 +930,6 @@ public class GraduationStudentRecordService {
     }
 
     private boolean deriveIfGraduated(GraduationStudentRecordEntity studentRecord) {
-        GraduationData graduationData = null;
-        try {
-            graduationData = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(studentRecord.getStudentGradData(), GraduationData.class);
-        } catch (Exception e) {
-            logger.debug("Parsing Graduation Data Error {}", e.getMessage());
-        }
-        return graduationData != null && graduationData.isGraduated();
+        return studentRecord != null && studentRecord.getProgramCompletionDate() != null;
     }
 }
