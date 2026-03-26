@@ -1471,10 +1471,7 @@ public class GraduationStatusService extends GradBaseService {
             graduationStudentRecordGuids.addAll(graduationStatusRepository.findBySchoolOfRecordIdInAndStudentStatus(schoolOfRecordIds, recordStudentStatus));
             archivedStudentsCount = graduationStatusRepository.archiveStudents(schoolOfRecordIds, recordStudentStatus, "ARC", batchId, user);
         } else {
-            Integer numberOfUpdated = graduationStatusRepository.updateGraduationStudentRecordEntitiesBatchIdWhereStudentStatus(batchId, recordStudentStatus);
-            if(numberOfUpdated > 0) {
-                archivedStudentsCount = graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId, user);
-            }
+            archivedStudentsCount = graduationStatusRepository.archiveStudents(recordStudentStatus, "ARC", batchId, user);
         }
         if(archivedStudentsCount > 0) {
             auditHistoryStudentsCount = historyService.updateStudentRecordHistoryDistributionRun(batchId, user, "USERSTUDARC", graduationStudentRecordGuids);
