@@ -25,6 +25,7 @@ import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordHistoryR
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCourseRepository;
 import ca.bc.gov.educ.api.gradstudent.service.CourseService;
+import ca.bc.gov.educ.api.gradstudent.service.GraduationStatusService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EventUtil;
 import ca.bc.gov.educ.api.gradstudent.util.JsonUtil;
@@ -36,6 +37,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -62,6 +64,7 @@ public class EventHandlerService {
     public static final String PAYLOAD_LOG = "payload is :: {}";
     private static final StudentCourseAlgorithmDataMapper STUDENT_COURSE_ALGORITHM_DATA_MAPPER = StudentCourseAlgorithmDataMapper.mapper;
     private final GraduationStudentRecordService graduationStudentRecordService;
+    private final GraduationStatusService graduationStatusService;
     private final CourseService courseService;
     private final GradStatusEventRepository gradStatusEventRepository;
     private final StudentCourseRepository studentCourseRepository;
@@ -136,22 +139,25 @@ public class EventHandlerService {
         if(student.isPresent()) {
             var result = graduationStudentRecordService.updateStudentRecordSchoolOfRecordAndStatus(demStudent, studentFromApi, student.get());
             gradStudentUpdateResult = result.getLeft();
-        } 
-
-        if(gradStudentUpdateResult != null) {
-            if(gradStudentUpdateResult.isSchoolOfRecordUpdated()) {
-                var studentForUpdate = StudentForAssessmentUpdate
-                        .builder()
-                        .studentID(studentFromApi.getStudentID())
-                        .schoolOfRecordID(demStudent.getSchoolOfRecordID())
-                        .build();
-                var gradStatusEvent = EventUtil.createEvent(demStudent.getCreateUser(),
-                        demStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, EventOutcome.SCHOOL_OF_RECORD_UPDATED);
-                gradStatusEventRepository.save(gradStatusEvent);
-                gradStatusEventList.add(gradStatusEvent);
-            }
+        }else{
+            var pair = graduationStatusService.adoptStudent(UUID.fromString(studentFromApi.getStudentID()), StringUtils.isNotBlank(demStudent.getUpdateUser()) ? demStudent.getUpdateUser(): "GRAD_DATA_COLLECTION" );
+            if (pair.getRight() != null) {
+                gradStatusEventList.add(pair.getRight());
+            }   
         }
 
+        if(gradStudentUpdateResult != null && gradStudentUpdateResult.isSchoolOfRecordUpdated()) {
+            var studentForUpdate = StudentForAssessmentUpdate
+                    .builder()
+                    .studentID(studentFromApi.getStudentID())
+                    .schoolOfRecordID(demStudent.getSchoolOfRecordID())
+                    .build();
+            var gradStatusEvent = EventUtil.createEvent(demStudent.getCreateUser(),
+                    demStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, EventOutcome.SCHOOL_OF_RECORD_UPDATED);
+            gradStatusEventRepository.save(gradStatusEvent);
+            gradStatusEventList.add(gradStatusEvent);
+        }
+        
         event.setEventOutcome(EventOutcome.DEM_STATUS_AND_SOR_PROCESSED_IN_GRAD_STUDENT_API);
         val studentEvent = createEventRecord(event);
         return Pair.of(createResponseEvent(studentEvent), gradStatusEventList);

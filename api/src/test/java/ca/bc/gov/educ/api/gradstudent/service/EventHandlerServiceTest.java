@@ -321,6 +321,28 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    void testHandleEvent_givenEventTypeUPDATE_STUDENT_SCHOOL_OF_RECORD_AND_STATUS__whenStudentDoesntExists_shouldUpdateStudentWithEventOutcome_DEM_STATUS_AND_SOR_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
+        var demStudent = createMockDemographicStudentStatusAndSchoolOfRec();
+        var studentFromApi = createmockStudent();
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+        when(gradStudentService.getStudentByStudentIDFromStudentAPI(any())).thenReturn(createMockGradSearchStudent());
+        when(schoolService.getSchoolByMincode(any())).thenReturn(createMockSchoolTombstone());
+        var sagaId = UUID.randomUUID();
+        final Event event = Event
+                .builder()
+                .eventType(EventType.UPDATE_STUDENT_SCHOOL_OF_RECORD_AND_STATUS)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+        var response = eventHandlerService.handleProcessStudentSchoolOfRecordAndStatusEvent(event);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
+        assertThat(responseEvent).isNotNull();
+        assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.DEM_STATUS_AND_SOR_PROCESSED_IN_GRAD_STUDENT_API);
+    }
+
+    @Test
     void testHandleEvent_givenEventTypePROCESS_STUDENT_COURSE_DATA__whenCourseDoesNotExists_shouldCreateCourseWithEventOutcome_COURSE_STUDENT_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
         var course = createMockCourseStudent("N", "APPEND");
         var studentFromApi = createmockStudent();
