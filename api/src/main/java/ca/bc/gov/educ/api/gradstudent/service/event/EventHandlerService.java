@@ -12,6 +12,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.StudentCourse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.algorithm.v1.StudentCourseAlgorithmData;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.assessment.v1.StudentForAssessmentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemStudentSchoolOfRecordAndStatus;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.student.v1.StudentUpdate;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStatusEvent;
@@ -118,6 +119,40 @@ public class EventHandlerService {
         }
 
         event.setEventOutcome(EventOutcome.DEM_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
+        val studentEvent = createEventRecord(event);
+        return Pair.of(createResponseEvent(studentEvent), gradStatusEventList);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Pair<byte[], List<GradStatusEvent>> handleProcessStudentSchoolOfRecordAndStatusEvent(Event event) throws JsonProcessingException {
+        final DemStudentSchoolOfRecordAndStatus demStudent = JsonUtil.getJsonObjectFromString(DemStudentSchoolOfRecordAndStatus.class, event.getEventPayload());
+        var studentFromApi = graduationStudentRecordService.getStudentByPenFromStudentAPI(demStudent.getPen());
+        log.debug("Student response from API is: {}", studentFromApi);
+        Optional<GraduationStudentRecordEntity> student = graduationStudentRecordService.getStudentByStudentID(studentFromApi.getStudentID());
+        log.debug("handleProcessStudentDemDataEvent found student :: {}", student);
+
+        List<GradStatusEvent> gradStatusEventList = new ArrayList<>();
+        GradStudentUpdateResult gradStudentUpdateResult = null;
+        if(student.isPresent()) {
+            var result = graduationStudentRecordService.updateStudentRecordSchoolOfRecordAndStatus(demStudent, studentFromApi, student.get());
+            gradStudentUpdateResult = result.getLeft();
+        } 
+
+        if(gradStudentUpdateResult != null) {
+            if(gradStudentUpdateResult.isSchoolOfRecordUpdated()) {
+                var studentForUpdate = StudentForAssessmentUpdate
+                        .builder()
+                        .studentID(studentFromApi.getStudentID())
+                        .schoolOfRecordID(demStudent.getSchoolOfRecordID())
+                        .build();
+                var gradStatusEvent = EventUtil.createEvent(demStudent.getCreateUser(),
+                        demStudent.getUpdateUser(), JsonUtil.getJsonStringFromObject(studentForUpdate), UPDATE_SCHOOL_OF_RECORD, EventOutcome.SCHOOL_OF_RECORD_UPDATED);
+                gradStatusEventRepository.save(gradStatusEvent);
+                gradStatusEventList.add(gradStatusEvent);
+            }
+        }
+
+        event.setEventOutcome(EventOutcome.DEM_STATUS_AND_SOR_PROCESSED_IN_GRAD_STUDENT_API);
         val studentEvent = createEventRecord(event);
         return Pair.of(createResponseEvent(studentEvent), gradStatusEventList);
     }

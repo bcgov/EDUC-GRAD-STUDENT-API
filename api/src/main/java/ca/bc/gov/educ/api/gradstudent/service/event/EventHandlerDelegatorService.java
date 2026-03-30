@@ -107,6 +107,16 @@ public class EventHandlerDelegatorService {
             pairResponse.getRight().forEach(this::publishToJetStream);
           }
           break;
+        case UPDATE_STUDENT_SCHOOL_OF_RECORD_AND_STATUS:
+          log.debug("Received UPDATE_STUDENT_SCHOOL_OF_RECORD_AND_STATUS event :: {}", event);
+          log.trace(PAYLOAD_LOG, event.getEventPayload());
+          var pairResponseStatus = eventHandlerService.handleProcessStudentSchoolOfRecordAndStatusEvent(event);
+          log.debug(RESPONDING_BACK_TO_NATS_ON_CHANNEL, message.getReplyTo() != null ? message.getReplyTo() : event.getReplyTo());
+          publishToNATS(event, message, isSynchronous, pairResponseStatus.getLeft());
+          if(pairResponseStatus.getRight() != null) {
+            pairResponseStatus.getRight().forEach(this::publishToJetStream);
+          }
+          break;
         case PROCESS_STUDENT_COURSE_DATA:
           log.debug("Received PROCESS_STUDENT_COURSE_DATA event :: {}", event);
           log.trace(PAYLOAD_LOG, event.getEventPayload());

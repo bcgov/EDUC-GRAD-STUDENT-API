@@ -7,6 +7,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CoregCoursesRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDetail;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemStudentSchoolOfRecordAndStatus;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.CareerProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
@@ -234,6 +235,40 @@ public class GraduationStudentRecordService {
         }
 
         handleOptionalPrograms(demStudent, studentFromApi, updatedEntity);
+        return Pair.of(gradStudentUpdateResult, savedStudentRecord);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Pair<GradStudentUpdateResult, GraduationStudentRecordEntity> updateStudentRecordSchoolOfRecordAndStatus(DemStudentSchoolOfRecordAndStatus demStudent, Student studentFromApi, GraduationStudentRecordEntity existingStudentRecordEntity) {
+        var gradStudentUpdateResult = new GradStudentUpdateResult();
+        gradStudentUpdateResult.setSchoolOfRecordUpdated(checkIfSchoolOfRecordIsUpdated(demStudent, existingStudentRecordEntity));
+        var originalSchoolOfRecordId = existingStudentRecordEntity.getSchoolOfRecordId();
+        existingStudentRecordEntity.setSchoolOfRecordId(UUID.fromString(demStudent.getSchoolOfRecordID()));
+
+        var mappedStudentStatus = mapStudentStatusForUpdate(demStudent, existingStudentRecordEntity, originalSchoolOfRecordId);
+        if(!existingStudentRecordEntity.getStudentStatus().equalsIgnoreCase(mappedStudentStatus)) {
+            existingStudentRecordEntity.setStudentStatus(mappedStudentStatus);
+        }
+
+        existingStudentRecordEntity.setUpdateUser(demStudent.getUpdateUser());
+        existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
+        // ensure latest demographics from student api
+        if (studentFromApi != null) {
+            existingStudentRecordEntity.setPen(studentFromApi.getPen());
+            existingStudentRecordEntity.setLegalFirstName(studentFromApi.getLegalFirstName());
+            existingStudentRecordEntity.setLegalMiddleNames(studentFromApi.getLegalMiddleNames());
+            existingStudentRecordEntity.setLegalLastName(studentFromApi.getLegalLastName());
+            existingStudentRecordEntity.setGenderCode(studentFromApi.getGenderCode());
+            if (StringUtils.isNotBlank(studentFromApi.getDob())) {
+                try {
+                    existingStudentRecordEntity.setDob(DateUtils.stringToLocalDateTime(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT), studentFromApi.getDob()));
+                } catch (Exception e) {
+                    logger.warn("Invalid DOB from Student API for student {}: {}", studentFromApi.getStudentID(), studentFromApi.getDob());
+                }
+            }
+        }
+        var savedStudentRecord = graduationStudentRecordRepository.save(existingStudentRecordEntity);
+        historyService.createStudentHistory(savedStudentRecord, GDC_UPDATE);
         return Pair.of(gradStudentUpdateResult, savedStudentRecord);
     }
 
@@ -901,6 +936,37 @@ public class GraduationStudentRecordService {
         }
     }
 
+    private String mapStudentStatusForUpdate(DemStudentSchoolOfRecordAndStatus demStudent, GraduationStudentRecordEntity graduationStudentRecordEntity, UUID originalSchoolOfRecordId) {
+        String demStudentStatus = demStudent.getStatus();
+        if(demStudentStatus.equalsIgnoreCase("A")) {
+            return CURRENT;
+        } else if(demStudentStatus.equalsIgnoreCase("D")) {
+            return DECEASED;
+        } else if(demStudentStatus.equalsIgnoreCase("T")) {
+            String currentGradStatus = graduationStudentRecordEntity.getStudentStatus();
+
+            if (currentGradStatus.equalsIgnoreCase(TERMINATED)) {
+                return TERMINATED;
+            }
+            if (currentGradStatus.equalsIgnoreCase(ARC)) {
+                return ARC;
+            }
+            if (currentGradStatus.equalsIgnoreCase(CURRENT)) {
+                boolean isSchoolOfRecord = Objects.equals(UUID.fromString(demStudent.getSchoolOfRecordID()), originalSchoolOfRecordId);
+                if (isSchoolOfRecord) {
+                    return TERMINATED;
+                } else {
+                    return CURRENT;
+                }
+            }
+            log.error("Unable to map student status for update. Reported status: {}, Current GRAD status: {}", demStudentStatus, currentGradStatus);
+            throw new IllegalArgumentException("Unable to map student status for update. Reported status: " + demStudentStatus + ", Current GRAD status: " + currentGradStatus);
+        } else {
+            log.error("Invalid student status: {}", demStudentStatus);
+            throw new IllegalArgumentException("Invalid student status: " + demStudentStatus);
+        }
+    }
+
     private String mapGradProgramCode(String demGradProgramCode, String schoolReportingRequirementCode) {
         if(demGradProgramCode.equalsIgnoreCase("2018")
         || demGradProgramCode.equalsIgnoreCase("2004")
@@ -925,6 +991,11 @@ public class GraduationStudentRecordService {
     private boolean checkIfSchoolOfRecordIsUpdated(DemographicStudent demStudent, GraduationStudentRecordEntity existingStudentRecordEntity) {
         return existingStudentRecordEntity.getSchoolOfRecordId() != null
                 && !Objects.equals(existingStudentRecordEntity.getSchoolOfRecordId(), UUID.fromString(demStudent.getSchoolID()));
+    }
+
+    private boolean checkIfSchoolOfRecordIsUpdated(DemStudentSchoolOfRecordAndStatus demStudent, GraduationStudentRecordEntity existingStudentRecordEntity) {
+        return existingStudentRecordEntity.getSchoolOfRecordId() != null
+                && !Objects.equals(existingStudentRecordEntity.getSchoolOfRecordId(), UUID.fromString(demStudent.getSchoolOfRecordID()));
     }
 
     private boolean deriveIfGraduated(GraduationStudentRecordEntity studentRecord) {

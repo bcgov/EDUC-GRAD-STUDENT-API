@@ -16,6 +16,7 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCharacte
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.coreg.v1.CourseCodeRecord;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.CourseStudentDetail;
+import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemStudentSchoolOfRecordAndStatus;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.gdc.v1.DemographicStudent;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.GraduationProgramCode;
 import ca.bc.gov.educ.api.gradstudent.model.dto.external.program.v1.OptionalProgramCode;
@@ -296,6 +297,27 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
         Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
         assertThat(responseEvent).isNotNull();
         assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.DEM_STUDENT_PROCESSED_IN_GRAD_STUDENT_API);
+    }
+
+    @Test
+    void testHandleEvent_givenEventTypeUPDATE_STUDENT_SCHOOL_OF_RECORD_AND_STATUS__whenStudentExists_shouldUpdateStudentWithEventOutcome_DEM_STATUS_AND_SOR_PROCESSED_IN_GRAD_STUDENT_API() throws IOException {
+        var demStudent = createMockDemographicStudentStatusAndSchoolOfRec();
+        var studentFromApi = createmockStudent();
+        graduationStudentRecordRepository.save(createMockGraduationStudentRecordEntity(UUID.fromString(studentFromApi.getStudentID()), UUID.fromString(demStudent.getSchoolOfRecordID())));
+        when(restUtils.getStudentByPEN(any(), any())).thenReturn(studentFromApi);
+        var sagaId = UUID.randomUUID();
+        final Event event = Event
+                .builder()
+                .eventType(EventType.UPDATE_STUDENT_SCHOOL_OF_RECORD_AND_STATUS)
+                .sagaId(sagaId)
+                .replyTo(String.valueOf(GRAD_STUDENT_API_TOPIC))
+                .eventPayload(JsonUtil.getJsonStringFromObject(demStudent))
+                .build();
+        var response = eventHandlerService.handleProcessStudentSchoolOfRecordAndStatusEvent(event);
+        assertThat(response.getLeft()).isNotEmpty();
+        Event responseEvent = JsonUtil.getObjectFromJsonBytes(Event.class, response.getLeft());
+        assertThat(responseEvent).isNotNull();
+        assertThat(responseEvent.getEventOutcome()).isEqualTo(EventOutcome.DEM_STATUS_AND_SOR_PROCESSED_IN_GRAD_STUDENT_API);
     }
 
     @Test
@@ -1095,6 +1117,18 @@ class EventHandlerServiceTest extends BaseIntegrationTest {
                 .isSummerCollection(isSummerCollection)
                 .schoolCertificateCompletionDate("20230701")
                 .schoolReportingRequirementCode(schoolReportingRequirementCode)
+                .build();
+    }
+
+    private DemStudentSchoolOfRecordAndStatus createMockDemographicStudentStatusAndSchoolOfRec (){
+        return DemStudentSchoolOfRecordAndStatus.builder()
+                .pen("123456789")
+                .createDate(LocalDateTime.now())
+                .updateDate(LocalDateTime.now())
+                .createUser("ABC")
+                .updateUser("ABC")
+                .status("A")
+                .schoolOfRecordID(UUID.randomUUID().toString())
                 .build();
     }
 
