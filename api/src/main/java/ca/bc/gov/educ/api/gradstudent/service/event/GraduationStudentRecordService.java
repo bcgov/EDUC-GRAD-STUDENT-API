@@ -693,6 +693,11 @@ public class GraduationStudentRecordService {
                 statusChangeCount++;
                 gradStudentUpdateResult.setCitizenshipUpdated(true);
             }
+        } else if (demStudent.getIsSummerCollection().equalsIgnoreCase("Y")
+                && !CURRENT.equalsIgnoreCase(newStudentRecordEntity.getStudentStatus())) {
+            newStudentRecordEntity.setStudentStatus(CURRENT);
+            projectedChangeCount++;
+            statusChangeCount++;
         }
 
         if (StringUtils.isNotBlank(demStudent.getGradRequirementYear())) {

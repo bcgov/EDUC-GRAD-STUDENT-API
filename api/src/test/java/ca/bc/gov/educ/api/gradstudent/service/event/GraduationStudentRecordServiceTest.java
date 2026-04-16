@@ -13,12 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -32,7 +30,6 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 @AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
 @ActiveProfiles("integration-test")
 @SpringBootTest
 class GraduationStudentRecordServiceTest {
@@ -123,6 +120,24 @@ class GraduationStudentRecordServiceTest {
         var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity);
         assertNotNull(result);
         assertNull(result.getRight().getDob());
+    }
+
+    @Test
+    @Transactional
+    void testUpdateStudentRecord_SummerCollectionY_NonCurrentStatusShouldBecomeCur() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolID = UUID.randomUUID();
+
+        DemographicStudent demStudent = createMockDemographicStudent("Y", "REGULAR", "A", schoolID.toString());
+        Student studentFromApi = createMockStudent(studentID.toString());
+        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "TER");
+
+        var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity);
+
+        assertNotNull(result);
+        assertEquals("CUR", result.getRight().getStudentStatus());
+        assertEquals("Y", result.getRight().getRecalculateGradStatus());
+        assertEquals("Y", result.getRight().getRecalculateProjectedGrad());
     }
 
     @ParameterizedTest
