@@ -314,7 +314,6 @@ public class EventHandlerService {
     }
 
     private List<StudentCourseAlgorithmData> enhanceStudentCoursesWithCourseDetails(List<StudentCourseAlgorithmData> studentCourses) {
-        log.info("Enhancing student courses with course details, student courses: {}", studentCourses);
         List<String> courseIDs = studentCourses.stream()
             .flatMap(studentCourse -> Stream.of(
                 studentCourse.getCourseCode(),
@@ -324,7 +323,6 @@ public class EventHandlerService {
             .distinct()
             .toList();
 
-        log.info("Extracted course IDs from student courses: {}", courseIDs);
         if (courseIDs.isEmpty()) {
             log.error("No valid course IDs found in student courses");
             throw new ServiceException("No valid course IDs found in student courses");
@@ -332,8 +330,6 @@ public class EventHandlerService {
 
         // Get course details from CourseService
         List<Course> courseDetails = courseService.getCourses(courseIDs);
-
-        log.info("Retrieved course details for course IDs: {}, course details: {}", courseIDs, courseDetails);
 
         if (courseDetails.isEmpty()) {
             log.error("No course details found for course IDs: {}", courseIDs);
@@ -349,8 +345,6 @@ public class EventHandlerService {
             .filter(courseID -> !courseMap.containsKey(courseID))
             .toList();
 
-        log.info("Missing course IDs after lookup: {}", missingCourseIDs);
-
         if (!missingCourseIDs.isEmpty()) {
             log.error("Missing course details for course IDs: {}", missingCourseIDs);
             throw new ServiceException("Missing course details for course IDs: " + missingCourseIDs);
@@ -363,7 +357,6 @@ public class EventHandlerService {
                     Course courseDetail = courseMap.get(studentCourse.getRelatedCourse());
                     studentCourse.setRelatedCourse(courseDetail.getCourseCode());
                     studentCourse.setRelatedCourseName(courseDetail.getCourseName());
-                    log.info("Enhanced related course for student course {}, related course details: {}", studentCourse, courseDetail);
                 }
                 if (studentCourse.getCourseCode() != null) {
                     Course courseDetail = courseMap.get(studentCourse.getCourseCode());
@@ -374,7 +367,6 @@ public class EventHandlerService {
                     studentCourse.setGenericCourseType(courseDetail.getGenericCourseType());
                     studentCourse.setCourseName(courseDetail.getCourseName());
                     studentCourse.setLanguage(courseDetail.getLanguage());
-                    log.info("Enhanced course for student course {}, course details: {}", studentCourse, courseDetail);
                 } else {
                     throw new ServiceException("Student course missing course information");
                 }
