@@ -34,7 +34,9 @@ public class CourseService {
         if(!CollectionUtils.isEmpty(courseIDs)) {
             CourseSearchRequest courseSearchRequest = new CourseSearchRequest();
             courseSearchRequest.setCourseIds(courseIDs);
+            log.info("Searching for courses for courseIDs {}", courseIDs);
             var response = restService.post(String.format(constants.getCourseDetailSearchUrl()), courseSearchRequest, List.class, studentApiClient);
+            log.info("response {}", response);
             return jsonTransformer.convertValue(response, new TypeReference<List<Course>>() {});
         }
         return Collections.emptyList();
