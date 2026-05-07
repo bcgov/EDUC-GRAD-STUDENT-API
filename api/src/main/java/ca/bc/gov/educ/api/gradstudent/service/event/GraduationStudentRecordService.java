@@ -90,6 +90,11 @@ public class GraduationStudentRecordService {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void handleStudentUpdated(StudentUpdate studentUpdate, GraduationStudentRecordEntity existingStudentRecordEntity, final GradStatusEvent event){
+        LocalDateTime originalDob       = existingStudentRecordEntity.getDob();
+        String originalLegalFirstName   = existingStudentRecordEntity.getLegalFirstName();
+        String originalLegalLastName    = existingStudentRecordEntity.getLegalLastName();
+        String originalLegalMiddleNames = existingStudentRecordEntity.getLegalMiddleNames();
+
         String dob = studentUpdate.getDob();
         if(StringUtils.isNotBlank(dob)){
             try {
@@ -109,7 +114,13 @@ public class GraduationStudentRecordService {
         existingStudentRecordEntity.setLegalMiddleNames(studentUpdate.getLegalMiddleNames());
         existingStudentRecordEntity.setUpdateUser(event.getUpdateUser());
         existingStudentRecordEntity.setUpdateDate(LocalDateTime.now());
-        if(!studentUpdate.getStatusCode().equals("M")){
+
+        boolean gradRelevantChange = !Objects.equals(originalDob, existingStudentRecordEntity.getDob())
+                || !StringUtils.equals(originalLegalFirstName, studentUpdate.getLegalFirstName())
+                || !StringUtils.equals(originalLegalLastName, studentUpdate.getLegalLastName())
+                || !StringUtils.equals(originalLegalMiddleNames, studentUpdate.getLegalMiddleNames());
+
+        if(!studentUpdate.getStatusCode().equals("M") && gradRelevantChange){
             existingStudentRecordEntity.setRecalculateProjectedGrad("Y");
             existingStudentRecordEntity.setRecalculateGradStatus("Y");
         }
