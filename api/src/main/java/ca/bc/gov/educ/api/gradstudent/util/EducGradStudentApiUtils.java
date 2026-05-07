@@ -10,7 +10,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
@@ -133,7 +132,7 @@ public class EducGradStudentApiUtils {
     }
 
     public static Date parsingProgramCompletionDate(String sessionDate) {
-        String actualSessionDate = sessionDate + "/01";
+        String actualSessionDate = normalizeProgramCompletionMonth(sessionDate) + "/01";
         Date temp;
         Date sDate = null;
         try {
@@ -146,12 +145,19 @@ public class EducGradStudentApiUtils {
         return sDate;
     }
 
+    private static String normalizeProgramCompletionMonth(String sessionDate) {
+        return sessionDate == null ? null : sessionDate.replace('-', '/');
+    }
+
     public static boolean isDateInFuture(Date programCompletionDate) {
         if (programCompletionDate != null) {
             String sessionDate = EducGradStudentApiUtils.formatDate(programCompletionDate, EducGradStudentApiConstants.PROGRAM_COMPLETION_DATE_FORMAT);
             Date pCD = EducGradStudentApiUtils.parsingProgramCompletionDate(sessionDate);
-            int diff = EducGradStudentApiUtils.getDifferenceInDays(EducGradStudentApiUtils.getProgramCompletionDate(pCD), EducGradStudentApiUtils.getCurrentDate());
-            return diff < 0;
+            if (pCD == null) {
+                return false;
+            }
+            LocalDate completionDate = LocalDate.parse(EducGradStudentApiUtils.getProgramCompletionDate(pCD));
+            return completionDate.isAfter(LocalDate.now());
         }
         return false;
     }
@@ -165,13 +171,6 @@ public class EducGradStudentApiUtils {
     public static String getProgramCompletionDate(Date pcd) {
         DateFormat dateFormat = new SimpleDateFormat(EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
         return dateFormat.format(pcd);
-    }
-
-    public static int getDifferenceInDays(String date1, String date2) {
-        Period diff = Period.between(
-                LocalDate.parse(date1),
-                LocalDate.parse(date2));
-        return diff.getDays() + diff.getMonths()*30;
     }
 
     public static GradStatusEventPayloadDTO transform(GraduationStudentRecordEntity graduationStudentRecord) {
