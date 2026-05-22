@@ -3500,18 +3500,37 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
     @Test
     void testGetStudentsForAmalgamatedSchoolReport() {
-        List<UUID> res = amalgamatedReports("TVRNONGRAD", false);
+        List<UUID> res = amalgamatedReports("TVRNONGRAD", false, null);
         assertThat(res).isNotNull().hasSize(1);
 
-        res = amalgamatedReports("TVRGRAD", true);
+        res = amalgamatedReports("TVRGRAD", true, null);
         assertThat(res).isNotNull().hasSize(1);
 
-        res = amalgamatedReports("GRAD", false);
+        res = amalgamatedReports("GRAD", false, null);
         assertThat(res).isNotNull().isEmpty();
     }
 
-    private List<UUID> amalgamatedReports(String type, boolean isGraduated) {
+    @Test
+    void testGetStudentsForAmalgamatedSchoolReport_excludesProgramCompletionDateBeforeCurrentSchoolYear() {
+        LocalDate schoolYearStart = getCurrentSchoolYearStart();
+
+        List<UUID> res = amalgamatedReports("TVRGRAD", true, Date.valueOf(schoolYearStart.minusDays(1)));
+
+        assertThat(res).isNotNull().isEmpty();
+    }
+
+    @Test
+    void testGetStudentsForAmalgamatedSchoolReport_includesProgramCompletionDateWithinCurrentSchoolYear() {
+        LocalDate schoolYearStart = getCurrentSchoolYearStart();
+
+        List<UUID> res = amalgamatedReports("TVRGRAD", true, Date.valueOf(schoolYearStart.plusDays(1)));
+
+        assertThat(res).isNotNull().hasSize(1);
+    }
+
+    private List<UUID> amalgamatedReports(String type, boolean isGraduated, java.util.Date programCompletionDate) {
         UUID schoolId = UUID.randomUUID();
+        UUID studentId = UUID.randomUUID();
 
         ProjectedRunClob projectedRunClob = new ProjectedRunClob();
         projectedRunClob.setGraduated(isGraduated);
@@ -3525,7 +3544,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
             @Override
             public java.util.Date getProgramCompletionDate() {
-                return null;
+                return programCompletionDate;
             }
 
             @Override
@@ -3555,7 +3574,7 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
 
             @Override
             public UUID getStudentID() {
-                return UUID.randomUUID();
+                return studentId;
             }
 
             @Override
@@ -3609,8 +3628,15 @@ class GraduationStatusServiceTest extends BaseIntegrationTest {
             }
         };
         Mockito.when(graduationStatusRepository.findBySchoolOfRecordIdAndStudentStatusAndStudentGradeIn(schoolId, "CUR", List.of("AD", "12"))).thenReturn(List.of(graduationStatusEntity));
+        Mockito.when(reportGradStudentDataRepository.findReportGradStudentDataEntityByGraduationStudentRecordIdInOrderBySchoolNameAscLastNameAsc(List.of(studentId))).thenReturn(List.of());
 
         return graduationStatusService.getStudentsForAmalgamatedSchoolReport(schoolId, type);
+    }
+
+    private LocalDate getCurrentSchoolYearStart() {
+        LocalDate today = LocalDate.now();
+        int schoolYearStartYear = today.getMonthValue() >= 10 ? today.getYear() : today.getYear() - 1;
+        return LocalDate.of(schoolYearStartYear, 10, 1);
     }
 
     @Test

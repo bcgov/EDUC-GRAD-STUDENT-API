@@ -185,8 +185,13 @@ public class GraduationStatusTransformer {
     private boolean isPriorToCurrentSchoolYear(java.util.Date date) {
         ZoneId zone = ZoneId.systemDefault();
         LocalDate localDate = Instant.ofEpochMilli(date.getTime()).atZone(zone).toLocalDate();
-        LocalDate oct1 = LocalDate.of(LocalDate.now(zone).getYear(), 10, 1);
-        return localDate.isBefore(oct1);
+        return localDate.isBefore(getCurrentSchoolYearStart(zone));
+    }
+
+    private LocalDate getCurrentSchoolYearStart(ZoneId zone) {
+        LocalDate today = LocalDate.now(zone);
+        int schoolYearStartYear = today.getMonthValue() >= 10 ? today.getYear() : today.getYear() - 1;
+        return LocalDate.of(schoolYearStartYear, 10, 1);
     }
 
     private Map<UUID, ReportGradStudentDataEntity> convertGraduationStudentRecordViewToReportGradStudentDataMap(List<GraduationStudentRecordView> gradStatusEntities) {
