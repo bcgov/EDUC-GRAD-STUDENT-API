@@ -41,6 +41,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -200,46 +201,16 @@ public class CSVReportService {
                 .map(StudentCourseSearchReportHeader::getCode)
                 .toList();
 
-        setCSVResponseHeaders(response, "StudentCourseSearch-");
-
-        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
-
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
-             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
-             Stream<CourseReport> courseReportStream = studentCoursePaginationRepository.streamForCourseReport(whereClause)) {
-
-            csvPrinter.printRecord(headers);
-            csvPrinter.flush();
-
-            AtomicInteger rowCount = new AtomicInteger(0);
-            AtomicBoolean clientDisconnected = new AtomicBoolean(false);
-
-            log.debug("Starting course student search report stream processing");
-
-            courseReportStream
-                    .takeWhile(dto -> !clientDisconnected.get())
-                    .forEach(courseDTO -> {
-                        try {
-                            List<String> csvRowData = prepareCourseReportDataForCsv(courseDTO);
-                            csvPrinter.printRecord(csvRowData);
-                            int count = rowCount.incrementAndGet();
-                            if (count % CSV_FLUSH_INTERVAL == 0) {
-                                csvPrinter.flush();
-                            }
-                        } catch (IOException e) {
-                            log.debug("Client disconnected during course student search report at record {}. Stopping stream.", rowCount.get());
-                            clientDisconnected.set(true);
-                        }
-                    });
-
-            if (!clientDisconnected.get()) {
-                csvPrinter.flush();
-                log.debug("Successfully generated course student search report with {} rows", rowCount.get());
-            } else {
-                log.debug("Course student search report generation stopped at {} rows due to client disconnect", rowCount.get());
-            }
-        } catch (IOException e) {
-            log.warn("Failed to start or complete course student search report generation: {}", e.getMessage());
+        try (Stream<CourseReport> courseReportStream = studentCoursePaginationRepository.streamForCourseReport(whereClause)) {
+            streamCsvReport(
+                    response,
+                    "StudentCourseSearch-",
+                    headers,
+                    courseReportStream,
+                    this::prepareCourseReportDataForCsv,
+                    "course student search report",
+                    false
+            );
         }
     }
 
@@ -499,51 +470,16 @@ public class CSVReportService {
                 .map(StudentProgramSearchReportHeader::getCode)
                 .toList();
 
-        setCSVResponseHeaders(response, "StudentProgramSearch-");
-
-        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
-
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
-             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
-             Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
-
-            csvPrinter.printRecord(headers);
-            csvPrinter.flush();
-
-            AtomicInteger rowCount = new AtomicInteger(0);
-            AtomicBoolean clientDisconnected = new AtomicBoolean(false);
-
-            log.debug("Starting program student search report stream processing");
-
-            gradStudentStream
-                    .takeWhile(gs -> !clientDisconnected.get())
-                    .forEach(gradStudent -> {
-                        try {
-                            List<String> csvRowData = prepareProgramStudentSearchDataForCsv(gradStudent);
-                            csvPrinter.printRecord(csvRowData);
-                            int count = rowCount.incrementAndGet();
-
-                            if (count % CSV_FLUSH_INTERVAL == 0) {
-                                csvPrinter.flush();
-                            }
-
-                            if (count % ENTITY_MANAGER_CLEAR_INTERVAL == 0) {
-                                entityManager.clear();
-                            }
-                        } catch (IOException e) {
-                            log.debug("Client disconnected during program student search report at record {}. Stopping stream.", rowCount.get());
-                            clientDisconnected.set(true);
-                        }
-                    });
-
-            if (!clientDisconnected.get()) {
-                csvPrinter.flush();
-                log.debug("Successfully generated program student search report with {} rows", rowCount.get());
-            } else {
-                log.debug("Program student search report generation stopped at {} rows due to client disconnect", rowCount.get());
-            }
-        } catch (IOException e) {
-            log.warn("Failed to start or complete program student search report generation: {}", e.getMessage());
+        try (Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
+            streamCsvReport(
+                    response,
+                    "StudentProgramSearch-",
+                    headers,
+                    gradStudentStream,
+                    this::prepareProgramStudentSearchDataForCsv,
+                    "program student search report",
+                    true
+            );
         }
     }
 
@@ -615,50 +551,18 @@ public class CSVReportService {
         List<String> headers = Arrays.stream(StudentOptionalProgramSearchReportHeader.values())
                 .map(StudentOptionalProgramSearchReportHeader::getCode)
                 .toList();
+        List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
 
-        setCSVResponseHeaders(response, "StudentOptionalProgramSearch-");
-
-        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
-
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
-             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
-             Stream<OptionalProgramReport> optionalProgramReportStream = studentOptionalProgramPaginationRepository.streamForOptionalProgramReport(whereClause)) {
-
-            csvPrinter.printRecord(headers);
-            csvPrinter.flush();
-
-            List<OptionalProgramCode> optionalProgramCodes = restUtils.getOptionalProgramCodeList();
-
-            AtomicInteger rowCount = new AtomicInteger(0);
-            AtomicBoolean clientDisconnected = new AtomicBoolean(false);
-
-            log.debug("Starting optional program student search report stream processing");
-
-            optionalProgramReportStream
-                    .takeWhile(op -> !clientDisconnected.get())
-                    .forEach(optionalProgramDTO -> {
-                        try {
-                            List<String> csvRowData = prepareOptionalProgramReportDataForCsv(optionalProgramDTO, optionalProgramCodes);
-                            csvPrinter.printRecord(csvRowData);
-                            int count = rowCount.incrementAndGet();
-
-                            if (count % CSV_FLUSH_INTERVAL == 0) {
-                                csvPrinter.flush();
-                            }
-                        } catch (IOException e) {
-                            log.debug("Client disconnected during optional program student search report at record {}. Stopping stream.", rowCount.get());
-                            clientDisconnected.set(true);
-                        }
-                    });
-
-            if (!clientDisconnected.get()) {
-                csvPrinter.flush();
-                log.debug("Successfully generated optional program student search report with {} rows", rowCount.get());
-            } else {
-                log.debug("Optional program student search report generation stopped at {} rows due to client disconnect", rowCount.get());
-            }
-        } catch (IOException e) {
-            log.warn("Failed to start or complete optional program student search report generation: {}", e.getMessage());
+        try (Stream<OptionalProgramReport> optionalProgramReportStream = studentOptionalProgramPaginationRepository.streamForOptionalProgramReport(whereClause)) {
+            streamCsvReport(
+                    response,
+                    "StudentOptionalProgramSearch-",
+                    headers,
+                    optionalProgramReportStream,
+                    optionalProgramDTO -> prepareOptionalProgramReportDataForCsv(optionalProgramDTO, optionalProgramCodes),
+                    "optional program student search report",
+                    false
+            );
         }
     }
 
@@ -717,49 +621,17 @@ public class CSVReportService {
         List<String> headers = Arrays.stream(ReportGradStudentDataHeader.values())
                 .map(ReportGradStudentDataHeader::getCode)
                 .toList();
-        setCSVResponseHeaders(response, "CurrentStudentsSearch-");
-        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
-             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
-             Stream<ReportGradStudentDataEntity> gradStudentStream = this.reportGradStudentPaginationRepository.streamAll(studentSpecs)) {
 
-            csvPrinter.printRecord(headers);
-            csvPrinter.flush();
-
-            AtomicInteger rowCount = new AtomicInteger(0);
-            AtomicBoolean clientDisconnected = new AtomicBoolean(false);
-
-            log.debug("Starting generateStudentSearchReportGradStudentDataStream report stream processing");
-
-            gradStudentStream
-                    .takeWhile(gs -> !clientDisconnected.get())
-                    .forEach(gradStudent -> {
-                        try {
-                            List<String> csvRowData = prepareReportStudentSearchDataForCsv(gradStudent);
-                            csvPrinter.printRecord(csvRowData);
-                            int count = rowCount.incrementAndGet();
-
-                            if (count % CSV_FLUSH_INTERVAL == 0) {
-                                csvPrinter.flush();
-                            }
-
-                            if (count % ENTITY_MANAGER_CLEAR_INTERVAL == 0) {
-                                entityManager.clear();
-                            }
-                        } catch (IOException e) {
-                            log.debug("Client disconnected during generateStudentSearchReportGradStudentDataStream at record {}. Stopping stream.", rowCount.get());
-                            clientDisconnected.set(true);
-                        }
-                    });
-
-            if (!clientDisconnected.get()) {
-                csvPrinter.flush();
-                log.debug("Successfully generated student search report at generateStudentSearchReportGradStudentDataStream with {} rows", rowCount.get());
-            } else {
-                log.debug("Student search report generation stopped at {} rows due to client disconnect in generateStudentSearchReportGradStudentDataStream", rowCount.get());
-            }
-        } catch (IOException e) {
-            log.warn("Failed to start or complete student search report generation in generateStudentSearchReportGradStudentDataStream: {}", e.getMessage());
+        try (Stream<ReportGradStudentDataEntity> gradStudentStream = this.reportGradStudentPaginationRepository.streamAll(studentSpecs)) {
+            streamCsvReport(
+                    response,
+                    "CurrentStudentsSearch-",
+                    headers,
+                    gradStudentStream,
+                    this::prepareReportStudentSearchDataForCsv,
+                    "current students search report",
+                    true
+            );
         }
     }
 
@@ -814,51 +686,16 @@ public class CSVReportService {
                 .map(StudentSearchReportHeader::getCode)
                 .toList();
 
-        setCSVResponseHeaders(response, "StudentSearch-");
-
-        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
-
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
-             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
-             Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
-
-            csvPrinter.printRecord(headers);
-            csvPrinter.flush();
-
-            AtomicInteger rowCount = new AtomicInteger(0);
-            AtomicBoolean clientDisconnected = new AtomicBoolean(false);
-
-            log.debug("Starting student search report stream processing");
-
-            gradStudentStream
-                    .takeWhile(gs -> !clientDisconnected.get())
-                    .forEach(gradStudent -> {
-                        try {
-                            List<String> csvRowData = prepareStudentSearchDataForCsv(gradStudent);
-                            csvPrinter.printRecord(csvRowData);
-                            int count = rowCount.incrementAndGet();
-
-                            if (count % CSV_FLUSH_INTERVAL == 0) {
-                                csvPrinter.flush();
-                            }
-
-                            if (count % ENTITY_MANAGER_CLEAR_INTERVAL == 0) {
-                                entityManager.clear();
-                            }
-                        } catch (IOException e) {
-                            log.debug("Client disconnected during student search report at record {}. Stopping stream.", rowCount.get());
-                            clientDisconnected.set(true);
-                        }
-                    });
-
-            if (!clientDisconnected.get()) {
-                csvPrinter.flush();
-                log.debug("Successfully generated student search report with {} rows", rowCount.get());
-            } else {
-                log.debug("Student search report generation stopped at {} rows due to client disconnect", rowCount.get());
-            }
-        } catch (IOException e) {
-            log.warn("Failed to start or complete student search report generation: {}", e.getMessage());
+        try (Stream<GradStudentSearchDataEntity> gradStudentStream = gradStudentSearchRepository.streamAll(specs)) {
+            streamCsvReport(
+                    response,
+                    "StudentSearch-",
+                    headers,
+                    gradStudentStream,
+                    this::prepareStudentSearchDataForCsv,
+                    "student search report",
+                    true
+            );
         }
     }
 
@@ -918,6 +755,61 @@ public class CSVReportService {
             case "TER" -> "Terminated";
             default -> statusCode;
         };
+    }
+
+    private <T> void streamCsvReport(
+            HttpServletResponse response,
+            String fileNamePrefix,
+            List<String> headers,
+            Stream<T> dataStream,
+            Function<T, List<String>> rowMapper,
+            String reportDescription,
+            boolean clearEntityManager
+    ) throws IOException {
+        setCSVResponseHeaders(response, fileNamePrefix);
+
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
+             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat)) {
+
+            csvPrinter.printRecord(headers);
+            csvPrinter.flush();
+
+            AtomicInteger rowCount = new AtomicInteger(0);
+            AtomicBoolean clientDisconnected = new AtomicBoolean(false);
+
+            log.debug("Starting {} stream processing", reportDescription);
+
+            dataStream
+                    .takeWhile(row -> !clientDisconnected.get())
+                    .forEach(row -> {
+                        try {
+                            csvPrinter.printRecord(rowMapper.apply(row));
+                            int count = rowCount.incrementAndGet();
+
+                            if (count % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
+
+                            if (clearEntityManager && count % ENTITY_MANAGER_CLEAR_INTERVAL == 0) {
+                                entityManager.clear();
+                            }
+                        } catch (IOException e) {
+                            log.debug("Client disconnected during {} at record {}. Stopping stream.", reportDescription, rowCount.get());
+                            clientDisconnected.set(true);
+                        }
+                    });
+
+            if (!clientDisconnected.get()) {
+                csvPrinter.flush();
+                log.debug("Successfully generated {} with {} rows", reportDescription, rowCount.get());
+            } else {
+                log.debug("{} generation stopped at {} rows due to client disconnect", StringUtils.capitalize(reportDescription), rowCount.get());
+            }
+        } catch (IOException e) {
+            log.warn("Failed to start or complete {} generation: {}", reportDescription, e.getMessage());
+        }
     }
 
     private void setCSVResponseHeaders(HttpServletResponse response, String fileNamePrefix) {
