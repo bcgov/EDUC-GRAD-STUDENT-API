@@ -64,9 +64,7 @@ public class CSVReportService {
 
     private final RestUtils restUtils;
     private final GraduationStudentRecordRepository graduationStudentRecordRepository;
-    private final StudentCoursePaginationService studentCoursePaginationService;
     private final StudentCoursePaginationRepository studentCoursePaginationRepository;
-    private final StudentOptionalProgramPaginationService studentOptionalProgramPaginationService;
     private final StudentOptionalProgramPaginationRepository studentOptionalProgramPaginationRepository;
     private final StudentOptionalProgramPaginationLeanRepository studentOptionalProgramPaginationLeanRepository;
     private final GradStudentSearchService gradStudentSearchService;
@@ -491,95 +489,6 @@ public class CSVReportService {
         );
     }
 
-    private List<String> prepareCourseStudentSearchDataForCsv(StudentCoursePaginationEntity studentCourse) {
-        var gradStudentRecord = studentCourse.getGraduationStudentRecordEntity();
-
-        String schoolOfRecordCode = gradStudentRecord != null && gradStudentRecord.getSchoolOfRecord() != null
-                ? gradStudentRecord.getSchoolOfRecord() : "";
-        String schoolOfGraduationCode = gradStudentRecord != null && gradStudentRecord.getSchoolAtGraduation() != null
-                ? gradStudentRecord.getSchoolAtGraduation() : "";
-
-        String schoolOfRecordName = "";
-        if (gradStudentRecord != null && gradStudentRecord.getSchoolOfRecordId() != null) {
-            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudentRecord.getSchoolOfRecordId().toString());
-            schoolOfRecordName = school.map(School::getDisplayName).orElse("");
-        }
-
-        String schoolOfGraduationName = "";
-        if (gradStudentRecord != null && gradStudentRecord.getSchoolAtGraduationId() != null) {
-            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudentRecord.getSchoolAtGraduationId().toString());
-            schoolOfGraduationName = school.map(School::getDisplayName).orElse("");
-        }
-
-        // Get course info from coreg39 course cache
-        String courseCode = "";
-        String courseLevel = "";
-        if (studentCourse.getCourseID() != null) {
-            Optional<CourseCodeRecord> courseRecord = restUtils.getCoreg39CourseByID(studentCourse.getCourseID().toString());
-            if (courseRecord.isPresent() && StringUtils.isNotBlank(courseRecord.get().getExternalCode())) {
-                String externalCode = courseRecord.get().getExternalCode();
-                courseCode = externalCode.substring(0, Math.min(5, externalCode.length())).trim();
-                if (externalCode.length() > 5) {
-                    courseLevel = externalCode.substring(5).trim();
-                }
-            }
-        }
-
-        // Format birthdate as yyyy-MM-dd
-        String birthdate = "";
-        if (gradStudentRecord != null && gradStudentRecord.getDob() != null) {
-            birthdate = EducGradStudentApiUtils.formatDate(gradStudentRecord.getDob(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
-        }
-
-        // Format completion date as yyyy-MM-dd
-        String completionDate = "";
-        if (gradStudentRecord != null && gradStudentRecord.getProgramCompletionDate() != null) {
-            completionDate = EducGradStudentApiUtils.formatDate(gradStudentRecord.getProgramCompletionDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
-        }
-
-        // Equiv. Chall. - E for Equivalency, C for Challenge
-        String equivChall = "";
-        if (StringUtils.isNotBlank(studentCourse.getEquivOrChallenge())) {
-            if (studentCourse.getEquivOrChallenge().startsWith("E")) {
-                equivChall = "E";
-            } else if (studentCourse.getEquivOrChallenge().startsWith("C")) {
-                equivChall = "C";
-            }
-        }
-
-        String fineArtsAppSkill = StringUtils.isNotBlank(studentCourse.getFineArtsAppliedSkillsCode())
-                ? studentCourse.getFineArtsAppliedSkillsCode()
-                : "";
-
-        // Has Exam? - Yes if there's a student exam ID, No otherwise
-        String hasExam = studentCourse.getStudentExamId() != null ? "Yes" : "No";
-
-        return Arrays.asList(
-                gradStudentRecord != null && gradStudentRecord.getPen() != null ? gradStudentRecord.getPen() : "",
-                gradStudentRecord != null && gradStudentRecord.getStudentStatus() != null ? getHumanReadableStudentStatus(gradStudentRecord.getStudentStatus()) : "",
-                gradStudentRecord != null && gradStudentRecord.getLegalLastName() != null ? gradStudentRecord.getLegalLastName() : "",
-                birthdate,
-                gradStudentRecord != null && gradStudentRecord.getStudentGrade() != null ? gradStudentRecord.getStudentGrade() : "",
-                gradStudentRecord != null && gradStudentRecord.getProgram() != null ? gradStudentRecord.getProgram() : "",
-                completionDate,
-                schoolOfRecordCode,
-                schoolOfRecordName,
-                schoolOfGraduationCode,
-                schoolOfGraduationName,
-                courseCode,
-                courseLevel,
-                studentCourse.getCourseSession() != null ? studentCourse.getCourseSession() : "",
-                studentCourse.getInterimPercent() != null ? studentCourse.getInterimPercent().toString() : "",
-                studentCourse.getInterimLetterGrade() != null ? studentCourse.getInterimLetterGrade() : "",
-                studentCourse.getFinalPercent() != null ? studentCourse.getFinalPercent().toString() : "",
-                studentCourse.getFinalLetterGrade() != null ? studentCourse.getFinalLetterGrade() : "",
-                studentCourse.getCredits() != null ? studentCourse.getCredits().toString() : "",
-                equivChall,
-                fineArtsAppSkill,
-                hasExam
-        );
-    }
-
     public void generateProgramStudentSearchReportStream(String searchCriteriaListJson, HttpServletResponse response) throws IOException {
         List<Sort.Order> sorts = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -863,16 +772,15 @@ public class CSVReportService {
         String birthDate = StringUtils.defaultString(gradStudent.getDob());
         String grade = StringUtils.defaultString(gradStudent.getStudentGrade());
         String program = StringUtils.defaultString(gradStudent.getProgramCode());
-        String completionDate = gradStudent.getProgramCompletionDate() != null ?
-                new SimpleDateFormat("yyyy/MM").format(gradStudent.getProgramCompletionDate()) : "";
+        String completionDate = StringUtils.defaultString(gradStudent.getProgramCompletionDate());
         String schoolAtGraduationName = "";
         if (gradStudent.getSchoolAtGradId() != null) {
-            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudent.getSchoolOfRecordId().toString());
+            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudent.getSchoolAtGradId().toString());
             if (school.isPresent()) {
                 schoolAtGraduationName = StringUtils.defaultString(school.get().getDisplayName());
             }
         }
-        String honoursStanding = StringUtils.defaultString(gradStudent.getHonorsStanding());
+        String honoursStanding = StringUtils.defaultString(gradStudent.getHonorsStanding()).equalsIgnoreCase("Y") ? "Yes" : "No";
 
         return List.of(
                 pen,
