@@ -1,11 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.constant.OptionalProgramCodes;
-import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentCourseSearchReportHeader;
-import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentOptionalProgramSearchReportHeader;
-import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentProgramSearchReportHeader;
-import ca.bc.gov.educ.api.gradstudent.constant.v1.StudentSearchReportHeader;
-import ca.bc.gov.educ.api.gradstudent.constant.v1.YukonReportHeader;
+import ca.bc.gov.educ.api.gradstudent.constant.v1.*;
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.exception.GradStudentAPIRuntimeException;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
@@ -64,6 +60,7 @@ public class CSVReportService {
     private static final String DATE_FORMAT_YYYYMMDD = "yyyyMMdd";
     private static final String CSV_FILE_EXTENSION = ".csv\"";
     private static final String ATTACHMENT_FILENAME_PREFIX = "attachment; filename=\"";
+    private static final String UTF8_CHARSET = "UTF-8";
 
     private final RestUtils restUtils;
     private final GraduationStudentRecordRepository graduationStudentRecordRepository;
@@ -75,6 +72,7 @@ public class CSVReportService {
     private final GradStudentSearchService gradStudentSearchService;
     private final GradStudentSearchRepository gradStudentSearchRepository;
     private final EntityManager entityManager;
+    private final ReportGradStudentPaginationRepository reportGradStudentPaginationRepository;
 
 
     public DownloadableReportResponse generateYukonReport(UUID districtID, String fromDate, String toDate) {
@@ -204,10 +202,7 @@ public class CSVReportService {
                 .map(StudentCourseSearchReportHeader::getCode)
                 .toList();
 
-        response.setContentType(CONTENT_TYPE_CSV);
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_PREFIX + "StudentCourseSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_YYYYMMDD)) + CSV_FILE_EXTENSION);
-        response.setBufferSize(CSV_BUFFER_SIZE);
+        setCSVResponseHeaders(response, "StudentCourseSearch-");
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
@@ -595,10 +590,7 @@ public class CSVReportService {
                 .map(StudentProgramSearchReportHeader::getCode)
                 .toList();
 
-        response.setContentType(CONTENT_TYPE_CSV);
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_PREFIX + "StudentProgramSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_YYYYMMDD)) + CSV_FILE_EXTENSION);
-        response.setBufferSize(CSV_BUFFER_SIZE);
+        setCSVResponseHeaders(response, "StudentProgramSearch-");
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
@@ -715,10 +707,7 @@ public class CSVReportService {
                 .map(StudentOptionalProgramSearchReportHeader::getCode)
                 .toList();
 
-        response.setContentType(CONTENT_TYPE_CSV);
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_PREFIX + "StudentOptionalProgramSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_YYYYMMDD)) + CSV_FILE_EXTENSION);
-        response.setBufferSize(CSV_BUFFER_SIZE);
+        setCSVResponseHeaders(response, "StudentOptionalProgramSearch-");
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
@@ -815,88 +804,88 @@ public class CSVReportService {
         );
     }
 
-    private List<String> prepareOptionalProgramStudentSearchDataForCsv(StudentOptionalProgramPaginationEntity studentOptionalProgram, List<OptionalProgramCode> optionalProgramCodes) {
-        var gradStudentRecord = studentOptionalProgram.getGraduationStudentRecordEntity();
+    public void generateStudentSearchReportGradStudentDataStream(Specification<ReportGradStudentDataEntity> studentSpecs, HttpServletResponse response)  throws IOException {
+        List<String> headers = Arrays.stream(ReportGradStudentDataHeader.values())
+                .map(ReportGradStudentDataHeader::getCode)
+                .toList();
+        setCSVResponseHeaders(response, "CurrentStudentsSearch-");
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), CSV_BUFFER_SIZE);
+             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat);
+             Stream<ReportGradStudentDataEntity> gradStudentStream = this.reportGradStudentPaginationRepository.streamAll(studentSpecs)) {
 
-        String pen = gradStudentRecord != null && gradStudentRecord.getPen() != null
-                ? gradStudentRecord.getPen() : "";
+            csvPrinter.printRecord(headers);
+            csvPrinter.flush();
 
-        String studentStatus = gradStudentRecord != null
-                ? getHumanReadableStudentStatus(gradStudentRecord.getStudentStatus()) : "";
+            AtomicInteger rowCount = new AtomicInteger(0);
+            AtomicBoolean clientDisconnected = new AtomicBoolean(false);
 
-        String surname = gradStudentRecord != null && gradStudentRecord.getLegalLastName() != null
-                ? gradStudentRecord.getLegalLastName() : "";
+            log.debug("Starting generateStudentSearchReportGradStudentDataStream report stream processing");
 
-        String givenName = gradStudentRecord != null && gradStudentRecord.getLegalFirstName() != null
-                ? gradStudentRecord.getLegalFirstName() : "";
+            gradStudentStream
+                    .takeWhile(gs -> !clientDisconnected.get())
+                    .forEach(gradStudent -> {
+                        try {
+                            List<String> csvRowData = prepareReportStudentSearchDataForCsv(gradStudent);
+                            csvPrinter.printRecord(csvRowData);
+                            int count = rowCount.incrementAndGet();
 
-        String middleName = gradStudentRecord != null && gradStudentRecord.getLegalMiddleNames() != null
-                ? gradStudentRecord.getLegalMiddleNames() : "";
+                            if (count % CSV_FLUSH_INTERVAL == 0) {
+                                csvPrinter.flush();
+                            }
 
-        String birthdate = "";
-        if (gradStudentRecord != null && gradStudentRecord.getDob() != null) {
-            birthdate = EducGradStudentApiUtils.formatDate(gradStudentRecord.getDob(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+                            if (count % ENTITY_MANAGER_CLEAR_INTERVAL == 0) {
+                                entityManager.clear();
+                            }
+                        } catch (IOException e) {
+                            log.debug("Client disconnected during generateStudentSearchReportGradStudentDataStream at record {}. Stopping stream.", rowCount.get());
+                            clientDisconnected.set(true);
+                        }
+                    });
+
+            if (!clientDisconnected.get()) {
+                csvPrinter.flush();
+                log.debug("Successfully generated student search report at generateStudentSearchReportGradStudentDataStream with {} rows", rowCount.get());
+            } else {
+                log.debug("Student search report generation stopped at {} rows due to client disconnect in generateStudentSearchReportGradStudentDataStream", rowCount.get());
+            }
+        } catch (IOException e) {
+            log.warn("Failed to start or complete student search report generation in generateStudentSearchReportGradStudentDataStream: {}", e.getMessage());
         }
+    }
 
-        String grade = gradStudentRecord != null && gradStudentRecord.getStudentGrade() != null
-                ? gradStudentRecord.getStudentGrade() : "";
-
-        String program = gradStudentRecord != null && gradStudentRecord.getProgram() != null
-                ? gradStudentRecord.getProgram() : "";
-
-        String completionDate = "";
-        if (gradStudentRecord != null && gradStudentRecord.getProgramCompletionDate() != null) {
-            completionDate = EducGradStudentApiUtils.formatDate(gradStudentRecord.getProgramCompletionDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
+    private List<String> prepareReportStudentSearchDataForCsv(ReportGradStudentDataEntity gradStudent) {
+        String pen = StringUtils.defaultString(gradStudent.getPen());
+        String localId = StringUtils.defaultString(gradStudent.getLocalID());
+        String lastName = StringUtils.defaultString(gradStudent.getLastName());
+        String firstName = StringUtils.defaultString(gradStudent.getFirstName());
+        String middleName = StringUtils.defaultString(gradStudent.getMiddleName());
+        String birthDate = StringUtils.defaultString(gradStudent.getDob());
+        String grade = StringUtils.defaultString(gradStudent.getStudentGrade());
+        String program = StringUtils.defaultString(gradStudent.getProgramCode());
+        String completionDate = gradStudent.getProgramCompletionDate() != null ?
+                new SimpleDateFormat("yyyy/MM").format(gradStudent.getProgramCompletionDate()) : "";
+        String schoolAtGraduationName = "";
+        if (gradStudent.getSchoolAtGradId() != null) {
+            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudent.getSchoolOfRecordId().toString());
+            if (school.isPresent()) {
+                schoolAtGraduationName = StringUtils.defaultString(school.get().getDisplayName());
+            }
         }
+        String honoursStanding = StringUtils.defaultString(gradStudent.getHonorsStanding());
 
-        String schoolOfRecordCode = gradStudentRecord != null && gradStudentRecord.getSchoolOfRecord() != null
-                ? gradStudentRecord.getSchoolOfRecord() : "";
-
-        String schoolOfGraduationCode = gradStudentRecord != null && gradStudentRecord.getSchoolAtGraduation() != null
-                ? gradStudentRecord.getSchoolAtGraduation() : "";
-
-        String schoolOfRecordName = "";
-        if (gradStudentRecord != null && gradStudentRecord.getSchoolOfRecordId() != null) {
-            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudentRecord.getSchoolOfRecordId().toString());
-            schoolOfRecordName = school.map(School::getDisplayName).orElse("");
-        }
-
-        String schoolOfGraduationName = "";
-        if (gradStudentRecord != null && gradStudentRecord.getSchoolAtGraduationId() != null) {
-            Optional<School> school = restUtils.getSchoolBySchoolID(gradStudentRecord.getSchoolAtGraduationId().toString());
-            schoolOfGraduationName = school.map(School::getDisplayName).orElse("");
-        }
-
-        String optionalProgramName = "";
-        if (studentOptionalProgram.getOptionalProgramID() != null) {
-            optionalProgramName = optionalProgramCodes.stream()
-                    .filter(op -> op.getOptionalProgramID().equals(studentOptionalProgram.getOptionalProgramID()))
-                    .findFirst()
-                    .map(OptionalProgramCode::getOptionalProgramName)
-                    .orElse("");
-        }
-
-        String optionalProgramCompletionDate = "";
-        if (studentOptionalProgram.getCompletionDate() != null) {
-            optionalProgramCompletionDate = EducGradStudentApiUtils.formatDate(studentOptionalProgram.getCompletionDate(), EducGradStudentApiConstants.DEFAULT_DATE_FORMAT);
-        }
-
-        return Arrays.asList(
+        return List.of(
                 pen,
-                studentStatus,
-                surname,
-                givenName,
+                localId,
+                lastName,
+                firstName,
                 middleName,
-                birthdate,
+                birthDate,
                 grade,
                 program,
                 completionDate,
-                schoolOfRecordCode,
-                schoolOfRecordName,
-                schoolOfGraduationCode,
-                schoolOfGraduationName,
-                optionalProgramName,
-                optionalProgramCompletionDate
+                schoolAtGraduationName,
+                honoursStanding
         );
     }
 
@@ -917,10 +906,7 @@ public class CSVReportService {
                 .map(StudentSearchReportHeader::getCode)
                 .toList();
 
-        response.setContentType(CONTENT_TYPE_CSV);
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_PREFIX + "StudentSearch-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_YYYYMMDD)) + CSV_FILE_EXTENSION);
-        response.setBufferSize(CSV_BUFFER_SIZE);
+        setCSVResponseHeaders(response, "StudentSearch-");
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder().build();
 
@@ -1024,5 +1010,12 @@ public class CSVReportService {
             case "TER" -> "Terminated";
             default -> statusCode;
         };
+    }
+
+    private void setCSVResponseHeaders(HttpServletResponse response, String fileNamePrefix) {
+        response.setContentType(CONTENT_TYPE_CSV);
+        response.setCharacterEncoding(UTF8_CHARSET);
+        response.setHeader(CONTENT_DISPOSITION_HEADER, ATTACHMENT_FILENAME_PREFIX + fileNamePrefix + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_YYYYMMDD)) + CSV_FILE_EXTENSION);
+        response.setBufferSize(CSV_BUFFER_SIZE);
     }
 }

@@ -9,11 +9,7 @@ import ca.bc.gov.educ.api.gradstudent.model.mapper.GradStudentSearchMapper;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.ReportGradStudentTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentCoursePaginationTransformer;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.StudentOptionalProgramPaginationTransformer;
-import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
-import ca.bc.gov.educ.api.gradstudent.service.ReportGradStudentSearchService;
-import ca.bc.gov.educ.api.gradstudent.service.StudentCoursePaginationService;
-import ca.bc.gov.educ.api.gradstudent.service.StudentOptionalProgramPaginationService;
-import ca.bc.gov.educ.api.gradstudent.service.GradStudentSearchService;
+import ca.bc.gov.educ.api.gradstudent.service.*;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -22,6 +18,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -32,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -57,8 +55,10 @@ public class GradStudentController {
 	private final StudentOptionalProgramPaginationTransformer studentOptionalProgramPaginationTransformer;
     private final GradStudentSearchService gradStudentSearchService;
     private static final GradStudentSearchMapper GRAD_STUDENT_SEARCH_MAPPER = GradStudentSearchMapper.mapper;
+	private static final String TOKEN_PREFIX = "Bearer ";
+	private final CSVReportService csvReportService;
 
-    public GradStudentController(GradStudentService gradStudentService, ReportGradStudentSearchService reportGradStudentSearchService, StudentCoursePaginationService studentCoursePaginationService, StudentOptionalProgramPaginationService studentOptionalProgramPaginationService, ReportGradStudentTransformer reportGradStudentTransformer, StudentCoursePaginationTransformer gradStudentPaginationTransformer, StudentOptionalProgramPaginationTransformer studentOptionalProgramPaginationTransformer, GradStudentSearchService gradStudentSearchService) {
+    public GradStudentController(GradStudentService gradStudentService, ReportGradStudentSearchService reportGradStudentSearchService, StudentCoursePaginationService studentCoursePaginationService, StudentOptionalProgramPaginationService studentOptionalProgramPaginationService, ReportGradStudentTransformer reportGradStudentTransformer, StudentCoursePaginationTransformer gradStudentPaginationTransformer, StudentOptionalProgramPaginationTransformer studentOptionalProgramPaginationTransformer, GradStudentSearchService gradStudentSearchService, CSVReportService csvReportService) {
     	this.gradStudentService = gradStudentService;
         this.reportGradStudentSearchService = reportGradStudentSearchService;
         this.studentCoursePaginationService = studentCoursePaginationService;
@@ -67,6 +67,7 @@ public class GradStudentController {
         this.gradStudentPaginationTransformer = gradStudentPaginationTransformer;
         this.studentOptionalProgramPaginationTransformer = studentOptionalProgramPaginationTransformer;
         this.gradStudentSearchService = gradStudentSearchService;
+        this.csvReportService = csvReportService;
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_PAGINATION)
@@ -116,7 +117,7 @@ public class GradStudentController {
 			.usualFirstName(usualFirstName).usualLastName(usualLastName).usualMiddleNames(usualMiddleNames)
 			.gender(gender).mincode(mincode).localID(localID).birthdateFrom(birthdateFrom).birthdateTo(birthdateTo)
 			.build();
-        return gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest,accessToken.replaceAll("Bearer ", ""));
+        return gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest,accessToken.replaceAll(TOKEN_PREFIX, ""));
 		
 	}
 	
@@ -153,7 +154,7 @@ public class GradStudentController {
 	@Operation(summary = "Search For Students by PEN", description = "Search for Student Demographics by PEN", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public List<GradSearchStudent> getGradStudentByPenFromStudentAPI(@PathVariable String pen, @RequestHeader(name="Authorization") String accessToken) {
-    	 return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken.replaceAll("Bearer ", ""));
+    	 return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken.replaceAll(TOKEN_PREFIX, ""));
     }
     
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API)
@@ -169,13 +170,13 @@ public class GradStudentController {
 	@Operation(summary = "GET Student by STUDENT ID", description = "Get Student Demographics by Student ID", tags = { "Student Demographics" })
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
 	public GraduationStudentRecordDistribution getGradStudentByStudentIDFromGRAD(@PathVariable String studentID, @RequestHeader(name="Authorization") String accessToken) {
-		return gradStudentService.getStudentByStudentIDFromGrad(studentID, accessToken.replaceAll("Bearer ", ""));
+		return gradStudentService.getStudentByStudentIDFromGrad(studentID, accessToken.replaceAll(TOKEN_PREFIX, ""));
 	}
 
     @PostMapping
 	@PreAuthorize("hasAuthority('SCOPE_WRITE_STUDENT')")
     public Student addNewPenFromStudentAPI(@Validated @RequestBody StudentCreate student, @RequestHeader(name="Authorization") String accessToken) {
-		return gradStudentService.addNewPenFromStudentAPI(student, accessToken.replaceAll("Bearer ", ""));
+		return gradStudentService.addNewPenFromStudentAPI(student, accessToken.replaceAll(TOKEN_PREFIX, ""));
 	}
 
 	@PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_BY_SEARCH_CRITERIAS)
@@ -197,6 +198,25 @@ public class GradStudentController {
 	public List<GraduationCountProjection> getGraduationCountsBySchools(@RequestBody GraduationCountRequest requestBody) {
 		List<UUID> schoolIDs = requestBody.getSchoolID();
 		return gradStudentService.getGraduationCountsBySchools(schoolIDs);
+	}
+
+	@GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_DOWNLOAD)
+	@PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+	@Transactional(readOnly = true)
+	@Operation(summary = "Download Student Search Results", description = "Download CSV file of student search results")
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+	public void findAllDownload(@RequestParam(name = "sort", defaultValue = "") String sortCriteriaJson,
+								@RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson,
+								HttpServletResponse response) throws IOException {
+		final List<Sort.Order> sorts = new ArrayList<>();
+		Specification<ReportGradStudentDataEntity> studentSpecs = reportGradStudentSearchService
+				.setSpecificationAndSortCriteria(
+						sortCriteriaJson,
+						searchCriteriaListJson,
+						mapper,
+						sorts
+				);
+		csvReportService.generateStudentSearchReportGradStudentDataStream(studentSpecs, response);
 	}
 	
 	@GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)
