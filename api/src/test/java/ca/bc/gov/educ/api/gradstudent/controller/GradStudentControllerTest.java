@@ -35,9 +35,11 @@ import java.util.*;
 
 import static ca.bc.gov.educ.api.gradstudent.model.dto.Condition.AND;
 import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -77,6 +79,7 @@ public class GradStudentControllerTest {
     @After
     public void cleanupTestData() {
         studentOptionalProgramPaginationRepository.deleteAll();
+        reportGradStudentDataRepository.deleteAll();
     }
 
     @Test
@@ -128,7 +131,6 @@ public class GradStudentControllerTest {
         // ID
         final UUID studentID = UUID.randomUUID();
         final String pen = "123456789";
-        final String lastName = "LastName";
         final String program = "2018-EN";
         final String gradStatus = "A";
         final String stdGrade = "12";
@@ -158,11 +160,7 @@ public class GradStudentControllerTest {
         final String pen = "123456789";
         final String firstName = "FirstName";
         final String lastName = "LastName";
-        final String program = "2018-EN";
-        final String gradStatus = "A";
-        final String stdGrade = "12";
         final String mincode = "12345678";
-        final String schoolName = "Test School";
 
         // Grad Student
         final StudentCreate student = new StudentCreate();
@@ -260,6 +258,38 @@ public class GradStudentControllerTest {
                         .contentType(APPLICATION_JSON))
                 .andReturn();
         this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+    }
+
+    @Test
+    public void testReadReportGradStudentDownload_Always_ShouldReturnCsvWithRow() throws Exception {
+        var schoolID = UUID.randomUUID();
+        ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
+        entity.setGraduationStudentRecordId(UUID.randomUUID());
+        entity.setSchoolOfRecordId(schoolID);
+        entity.setPen("123456789");
+        entity.setLocalID("900148");
+        entity.setLastName("DOE");
+        entity.setFirstName("JANE");
+        entity.setMiddleName("Q");
+        entity.setDob("2008/11/20");
+        entity.setStudentGrade("12");
+        entity.setProgramCode("2023-EN");
+        entity.setProgramCompletionDate("2025/06");
+        entity.setHonorsStanding("N");
+        reportGradStudentDataRepository.save(entity);
+
+        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
+        final String criteriaJSON = searchCriteriaToString(criteria);
+
+        this.mockMvc
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_DOWNLOAD)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .param("searchCriteriaList", criteriaJSON)
+                        .contentType(APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("PEN,LOCAL_ID,LAST_NAME,FIRST_NAME,MIDDLE_NAME,BIRTH_DATE,GRADE,PROGRAM,PROGRAM_COMPLETION_DATE,SCHOOL_AT_GRADUATION,HONOURS_STANDING")))
+                .andExpect(content().string(containsString("123456789,900148,DOE,JANE,Q,2008/11/20,12,2023-EN,2025/06,,No")));
     }
 
     @Test
