@@ -208,15 +208,7 @@ public class GradStudentController {
 	public void findAllDownload(@RequestParam(name = "sort", defaultValue = "") String sortCriteriaJson,
 								@RequestParam(name = "searchCriteriaList", required = false) String searchCriteriaListJson,
 								HttpServletResponse response) throws IOException {
-		final List<Sort.Order> sorts = new ArrayList<>();
-		Specification<ReportGradStudentDataEntity> studentSpecs = reportGradStudentSearchService
-				.setSpecificationAndSortCriteria(
-						sortCriteriaJson,
-						searchCriteriaListJson,
-						mapper,
-						sorts
-				);
-		csvReportService.generateStudentSearchReportGradStudentDataStream(studentSpecs, response);
+		csvReportService.generateStudentSearchReportGradStudentDataStream(sortCriteriaJson, searchCriteriaListJson, response);
 	}
 	
 	@GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)

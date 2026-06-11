@@ -69,6 +69,7 @@ public class CSVReportService {
     private final StudentOptionalProgramPaginationRepository studentOptionalProgramPaginationRepository;
     private final StudentOptionalProgramPaginationLeanRepository studentOptionalProgramPaginationLeanRepository;
     private final GradStudentSearchService gradStudentSearchService;
+    private final ReportGradStudentSearchService reportGradStudentSearchService;
     private final GradStudentSearchRepository gradStudentSearchRepository;
     private final EntityManager entityManager;
     private final ReportGradStudentPaginationRepository reportGradStudentPaginationRepository;
@@ -617,15 +618,28 @@ public class CSVReportService {
         );
     }
 
-    public void generateStudentSearchReportGradStudentDataStream(Specification<ReportGradStudentDataEntity> studentSpecs, HttpServletResponse response)  throws IOException {
+    public void generateStudentSearchReportGradStudentDataStream(
+            String sortCriteriaJson,
+            String searchCriteriaListJson,
+            HttpServletResponse response
+    )  throws IOException {
+        List<Sort.Order> sorts = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Specification<ReportGradStudentDataEntity> studentSpecs =
+                reportGradStudentSearchService.setSpecificationAndSortCriteria(
+                        sortCriteriaJson,
+                        searchCriteriaListJson,
+                        objectMapper,
+                        sorts
+                );
         List<String> headers = Arrays.stream(ReportGradStudentDataHeader.values())
                 .map(ReportGradStudentDataHeader::getCode)
                 .toList();
-
+        String fileNamePrefix = buildCurrentStudentsSearchFileNamePrefix(searchCriteriaListJson);
         try (Stream<ReportGradStudentDataEntity> gradStudentStream = this.reportGradStudentPaginationRepository.streamAll(studentSpecs)) {
             streamCsvReport(
                     response,
-                    "CurrentStudentsSearch-",
+                    fileNamePrefix,
                     headers,
                     gradStudentStream,
                     this::prepareReportStudentSearchDataForCsv,
@@ -667,6 +681,40 @@ public class CSVReportService {
                 schoolAtGraduationName,
                 honoursStanding
         );
+    }
+
+    private String buildCurrentStudentsSearchFileNamePrefix(String searchCriteriaListJson) {
+        String defaultPrefix = "CurrentStudentsSearch-";
+        if (StringUtils.isBlank(searchCriteriaListJson)) {
+            return defaultPrefix;
+        }
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<Search> searches = objectMapper.readValue(searchCriteriaListJson, new TypeReference<>() {});
+
+            for (Search search : searches) {
+                if (search.getSearchCriteriaList() == null) {
+                    continue;
+                }
+
+                for (SearchCriteria criteria : search.getSearchCriteriaList()) {
+                    if (!StringUtils.equals(criteria.getKey(), "schoolOfRecordId") || StringUtils.isBlank(criteria.getValue())) {
+                        continue;
+                    }
+
+                    return restUtils.getSchoolBySchoolID(criteria.getValue())
+                            .map(School::getMincode)
+                            .filter(StringUtils::isNotBlank)
+                            .map(mincode -> defaultPrefix + mincode + "-")
+                            .orElse(defaultPrefix);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Unable to resolve school mincode for current students CSV filename: {}", e.getMessage());
+        }
+
+        return defaultPrefix;
     }
 
     /**

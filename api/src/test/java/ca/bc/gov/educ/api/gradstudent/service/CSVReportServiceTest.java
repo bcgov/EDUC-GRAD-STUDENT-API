@@ -36,6 +36,8 @@ class CSVReportServiceTest {
     @Mock
     private GradStudentSearchService gradStudentSearchService;
     @Mock
+    private ReportGradStudentSearchService reportGradStudentSearchService;
+    @Mock
     private GradStudentSearchRepository gradStudentSearchRepository;
     @Mock
     private EntityManager entityManager;
@@ -68,12 +70,13 @@ class CSVReportServiceTest {
         School school = new School();
         school.setDisplayName("Mount Baker Secondary");
 
+        when(reportGradStudentSearchService.setSpecificationAndSortCriteria(any(), any(), any(), anyList())).thenReturn(null);
         when(reportGradStudentPaginationRepository.streamAll(null)).thenReturn(Stream.of(entity));
         when(restUtils.getSchoolBySchoolID(schoolAtGradId.toString())).thenReturn(Optional.of(school));
 
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        csvReportService.generateStudentSearchReportGradStudentDataStream(null, response);
+        csvReportService.generateStudentSearchReportGradStudentDataStream("", null, response);
 
         String csv = response.getContentAsString();
         String[] lines = csv.split("\\R");
