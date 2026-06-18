@@ -19,6 +19,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -138,6 +140,27 @@ class GraduationStudentRecordServiceTest {
         assertEquals("CUR", result.getRight().getStudentStatus());
         assertEquals("Y", result.getRight().getRecalculateGradStatus());
         assertEquals("Y", result.getRight().getRecalculateProjectedGrad());
+    }
+
+    @Test
+    @Transactional
+    void testUpdateStudentRecord_1950Program_SetsAdultStartDateToEighteenthBirthday() {
+        UUID studentID = UUID.randomUUID();
+        UUID schoolID = UUID.randomUUID();
+
+        DemographicStudent demStudent = createMockDemographicStudent("N", "REGULAR", "A", schoolID.toString());
+        demStudent.setBirthdate("20050616");
+        demStudent.setGradRequirementYear("1950");
+        demStudent.setGrade("AD");
+        Student studentFromApi = createMockStudent(studentID.toString());
+        GraduationStudentRecordEntity existingEntity = createMockGraduationStudentRecordEntity(studentID, schoolID, "CUR");
+        existingEntity.setProgram("1950");
+        existingEntity.setAdultStartDate(null);
+
+        var result = graduationStudentRecordService.updateStudentRecord(demStudent, studentFromApi, existingEntity);
+
+        assertNotNull(result);
+        assertEquals(Date.valueOf(LocalDate.of(2023, 6, 16)), result.getRight().getAdultStartDate());
     }
 
     @ParameterizedTest

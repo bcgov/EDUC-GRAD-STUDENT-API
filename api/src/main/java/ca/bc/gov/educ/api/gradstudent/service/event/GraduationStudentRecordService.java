@@ -865,7 +865,7 @@ public class GraduationStudentRecordService {
         if(StringUtils.isNotBlank(gradYear) && gradYear.equalsIgnoreCase("1950")) {
             var parsedBirthdate = LocalDate.parse(birthdate, DateTimeFormatter.ofPattern(YYYY_MM_DD));
             if(parsedBirthdate.getYear() >= 1994) {
-                return Date.valueOf(parsedBirthdate.plusYears(18).plusMonths(1));
+                return Date.valueOf(parsedBirthdate.plusYears(18));
             } else {
                 return Date.valueOf(parsedBirthdate.plusYears(19));
             }
