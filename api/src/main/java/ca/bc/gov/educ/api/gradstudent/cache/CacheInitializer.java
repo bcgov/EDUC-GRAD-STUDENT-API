@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 public class CacheInitializer {
     private final CourseCacheService courseCacheService;
 
+    // test comment
+
     public CacheInitializer(CourseCacheService courseCacheService) {
         this.courseCacheService = courseCacheService;
     }
