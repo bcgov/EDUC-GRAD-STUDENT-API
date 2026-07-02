@@ -1,6 +1,7 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStudentSearchDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordPaginationEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
@@ -11,6 +12,7 @@ import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSearchRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramPaginationRepository;
+import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -76,10 +78,14 @@ public class GradStudentControllerTest {
     @Autowired
     StudentOptionalProgramPaginationRepository studentOptionalProgramPaginationRepository;
 
+    @Autowired
+    RestUtils restUtils;
+
     @After
     public void cleanupTestData() {
         studentOptionalProgramPaginationRepository.deleteAll();
         reportGradStudentDataRepository.deleteAll();
+        Mockito.reset(restUtils);
     }
 
     @Test
@@ -257,6 +263,39 @@ public class GradStudentControllerTest {
                         .param("searchCriteriaList", criteriaJSON)
                         .contentType(APPLICATION_JSON))
                 .andReturn();
+        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+    }
+
+    @Test
+    public void testReadReportGradStudentPaginated_WithDistrictAndSchoolCategoryRewrite_ShouldReturnStatusOk() throws Exception {
+        final UUID schoolId = UUID.randomUUID();
+        final UUID districtId = UUID.randomUUID();
+
+        ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
+        entity.setGraduationStudentRecordId(UUID.randomUUID());
+        entity.setSchoolOfRecordId(schoolId);
+        reportGradStudentDataRepository.save(entity);
+
+        Mockito.when(restUtils.getSchoolList()).thenReturn(List.of(
+                School.builder().schoolId(schoolId.toString()).districtId(districtId.toString()).schoolCategoryCode("PUBLIC").build(),
+                School.builder().schoolId(UUID.randomUUID().toString()).districtId(districtId.toString()).schoolCategoryCode("INDEPEND").build()
+        ));
+
+        final List<SearchCriteria> criteriaList = new ArrayList<>();
+        criteriaList.add(SearchCriteria.builder().condition(AND).key("districtId").operation(FilterOperation.EQUAL).value(districtId.toString()).valueType(ValueType.UUID).build());
+        criteriaList.add(SearchCriteria.builder().condition(AND).key("schoolCategoryCode").operation(FilterOperation.EQUAL).value("PUBLIC").valueType(ValueType.STRING).build());
+
+        final List<Search> searches = new LinkedList<>();
+        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+        final String criteriaJSON = new ObjectMapper().writeValueAsString(searches);
+        final MvcResult result = this.mockMvc
+                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+                        .param("searchCriteriaList", criteriaJSON)
+                        .contentType(APPLICATION_JSON))
+                .andReturn();
+
         this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
     }
 
