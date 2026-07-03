@@ -38,6 +38,7 @@ public class ReportGradStudentSearchService extends PaginationService {
   private final ReportGradStudentFilterSpecs reportGradStudentFilterSpecs;
 
   private final ReportGradStudentPaginationRepository reportGradStudentPaginationRepository;
+  private final ReportGradStudentSearchCriteriaEnricher reportGradStudentSearchCriteriaEnricher;
 
   private final Executor paginatedQueryExecutor = new EnhancedQueueExecutor.Builder()
     .setThreadFactory(new ThreadFactoryBuilder().setNameFormat("async-pagination-query-executor-%d").build())
@@ -68,6 +69,7 @@ public class ReportGradStudentSearchService extends PaginationService {
       if (StringUtils.isNotBlank(searchCriteriaListJson)) {
         List<Search> searches = objectMapper.readValue(searchCriteriaListJson, new TypeReference<>() {
         });
+        searches = reportGradStudentSearchCriteriaEnricher.enrich(searches);
         int i = 0;
         for (var search : searches) {
           schoolSpecs = getSpecifications(schoolSpecs, i, search, reportGradStudentFilterSpecs);
