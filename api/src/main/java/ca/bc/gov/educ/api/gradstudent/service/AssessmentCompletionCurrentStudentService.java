@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AssessmentCompletionCurrentStudentService {
   private static final String CURRENT_STUDENT_STATUS = "CUR";
-  private static final int DEFAULT_PAGE_SIZE = 1000;
+  private static final int DEFAULT_PAGE_SIZE = 2000;
   private static final int MAX_PAGE_SIZE = 5000;
 
   private final GraduationStudentRecordRepository graduationStudentRecordRepository;
