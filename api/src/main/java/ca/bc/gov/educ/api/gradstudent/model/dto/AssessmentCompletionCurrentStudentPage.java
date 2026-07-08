@@ -9,7 +9,7 @@ import java.util.List;
 @Value
 @Builder
 public class AssessmentCompletionCurrentStudentPage implements Serializable {
-  static List<AssessmentCompletionCurrentStudent> content;
+  List<AssessmentCompletionCurrentStudent> content;
   int pageNumber;
   int pageSize;
   int numberOfElements;
