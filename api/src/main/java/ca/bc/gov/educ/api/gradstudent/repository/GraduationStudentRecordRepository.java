@@ -40,6 +40,28 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.recalculateProjectedGrad=:recalculateProjectedGrad and c.studentStatus <> 'MER'")
 	List<UUID> findByRecalculateProjectedGradForBatch(String recalculateProjectedGrad);
 
+	@Query("""
+			select distinct c.schoolOfRecordId
+			from GraduationStudentRecordEntity c
+			where c.studentStatus = 'CUR'
+			  and c.schoolOfRecordId is not null
+			  and c.pen is not null
+			  and ((c.programCompletionDate >= :startDate and c.programCompletionDate <= :endDate)
+			    or (c.programCompletionDate is null and c.studentGrade in ('12', 'AD')))
+			""")
+	List<UUID> findEdwSnapshotSchoolOfRecordIds(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+	@Query("""
+			select c
+			from GraduationStudentRecordEntity c
+			where c.studentStatus = 'CUR'
+			  and c.schoolOfRecordId = :schoolOfRecordId
+			  and c.pen is not null
+			  and ((c.programCompletionDate >= :startDate and c.programCompletionDate <= :endDate)
+			    or (c.programCompletionDate is null and c.studentGrade in ('12', 'AD')))
+			""")
+	List<GraduationStudentRecordEntity> findEdwSnapshotStudentsBySchoolOfRecordId(@Param("schoolOfRecordId") UUID schoolOfRecordId, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
 	@Query("select new ca.bc.gov.educ.api.gradstudent.model.dto.BatchGraduationStudentRecord(c.program,c.programCompletionDate,c.schoolOfRecordId, c.studentID) from GraduationStudentRecordEntity c where c.studentID=:studentID")
 	Optional<BatchGraduationStudentRecord> findByStudentIDForBatch(UUID studentID);
 

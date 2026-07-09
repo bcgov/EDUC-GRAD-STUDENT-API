@@ -129,6 +129,8 @@ public class EducGradStudentApiConstants {
     public static final String CONV_STUDENT_CAREER_PROGRAM_BY_STUDENT_ID = "/conv/studentcareerprogram/{careerProgramCode}/{studentID}";
 
     public static final String EDW_GRADUATION_STATUS_SNAPSHOT = "/edw/snapshot";
+    public static final String EDW_SNAPSHOT_SCHOOLS = "/edw/snapshot/schools/{gradYear}";
+    public static final String EDW_SNAPSHOT_STUDENTS_BY_MINCODE = "/edw/snapshot/students/{gradYear}/{minCode}";
 
     public static final String EQUIVALENT_OR_CHALLENGE_CODES_MAPPING = "/equivalentOrChallengeCodes";
     public static final String EQUIVALENT_OR_CHALLENGE_CODE_MAPPING = "/equivalentOrChallengeCodes/{equivalentOrChallengeCode}";
