@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,9 +79,9 @@ class AssessmentCompletionCurrentStudentServiceTest {
 
     when(restUtils.getSchoolList()).thenReturn(List.of(publicSchool, independentSchool));
     when(graduationStudentRecordRepository.findAssessmentCompletionCurrentStudentsBySchoolOfRecordIdInAndStudentStatus(
-      eq(List.of(schoolId)),
-      eq("CUR"),
-      eq(PageRequest.of(0, 1000, DEFAULT_SORT))
+      List.of(schoolId),
+      "CUR",
+      PageRequest.of(0, 1000, DEFAULT_SORT)
     )).thenReturn(new SliceImpl<>(List.of(projection), PageRequest.of(0, 1000, DEFAULT_SORT), false));
 
     AssessmentCompletionCurrentStudentPage result = service.getCurrentStudents(null, districtId, "PUBLIC", 0, 1000);
@@ -94,9 +93,9 @@ class AssessmentCompletionCurrentStudentServiceTest {
     assertEquals("Surrey Secondary", result.getContent().get(0).getSchoolOfRecordName());
     assertEquals("12345678", result.getContent().get(0).getSchoolOfRecordMincode());
     verify(graduationStudentRecordRepository).findAssessmentCompletionCurrentStudentsBySchoolOfRecordIdInAndStudentStatus(
-      eq(List.of(schoolId)),
-      eq("CUR"),
-      eq(PageRequest.of(0, 1000, DEFAULT_SORT))
+      List.of(schoolId),
+      "CUR",
+      PageRequest.of(0, 1000, DEFAULT_SORT)
     );
   }
 
