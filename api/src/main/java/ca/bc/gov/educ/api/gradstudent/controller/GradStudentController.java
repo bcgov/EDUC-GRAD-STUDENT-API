@@ -52,13 +52,14 @@ public class GradStudentController {
 	private final StudentOptionalProgramPaginationService studentOptionalProgramPaginationService;
 	private final ReportGradStudentTransformer reportGradStudentTransformer;
 	private final StudentCoursePaginationTransformer gradStudentPaginationTransformer;
-	private final StudentOptionalProgramPaginationTransformer studentOptionalProgramPaginationTransformer;
+    private final StudentOptionalProgramPaginationTransformer studentOptionalProgramPaginationTransformer;
     private final GradStudentSearchService gradStudentSearchService;
     private static final GradStudentSearchMapper GRAD_STUDENT_SEARCH_MAPPER = GradStudentSearchMapper.mapper;
 	private static final String TOKEN_PREFIX = "Bearer ";
 	private final CSVReportService csvReportService;
+    private final AssessmentCompletionCurrentStudentService assessmentCompletionCurrentStudentService;
 
-    public GradStudentController(GradStudentService gradStudentService, ReportGradStudentSearchService reportGradStudentSearchService, StudentCoursePaginationService studentCoursePaginationService, StudentOptionalProgramPaginationService studentOptionalProgramPaginationService, ReportGradStudentTransformer reportGradStudentTransformer, StudentCoursePaginationTransformer gradStudentPaginationTransformer, StudentOptionalProgramPaginationTransformer studentOptionalProgramPaginationTransformer, GradStudentSearchService gradStudentSearchService, CSVReportService csvReportService) {
+    public GradStudentController(GradStudentService gradStudentService, ReportGradStudentSearchService reportGradStudentSearchService, StudentCoursePaginationService studentCoursePaginationService, StudentOptionalProgramPaginationService studentOptionalProgramPaginationService, ReportGradStudentTransformer reportGradStudentTransformer, StudentCoursePaginationTransformer gradStudentPaginationTransformer, StudentOptionalProgramPaginationTransformer studentOptionalProgramPaginationTransformer, GradStudentSearchService gradStudentSearchService, CSVReportService csvReportService, AssessmentCompletionCurrentStudentService assessmentCompletionCurrentStudentService) {
     	this.gradStudentService = gradStudentService;
         this.reportGradStudentSearchService = reportGradStudentSearchService;
         this.studentCoursePaginationService = studentCoursePaginationService;
@@ -68,6 +69,7 @@ public class GradStudentController {
         this.studentOptionalProgramPaginationTransformer = studentOptionalProgramPaginationTransformer;
         this.gradStudentSearchService = gradStudentSearchService;
         this.csvReportService = csvReportService;
+        this.assessmentCompletionCurrentStudentService = assessmentCompletionCurrentStudentService;
     }
 
     @GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_PAGINATION)
@@ -117,7 +119,7 @@ public class GradStudentController {
 			.usualFirstName(usualFirstName).usualLastName(usualLastName).usualMiddleNames(usualMiddleNames)
 			.gender(gender).mincode(mincode).localID(localID).birthdateFrom(birthdateFrom).birthdateTo(birthdateTo)
 			.build();
-        return gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest,accessToken.replaceAll(TOKEN_PREFIX, ""));
+        return gradStudentService.getStudentFromStudentAPIGradOnly(studentSearchRequest,accessToken.replace(TOKEN_PREFIX, ""));
 		
 	}
 	
@@ -154,7 +156,7 @@ public class GradStudentController {
 	@Operation(summary = "Search For Students by PEN", description = "Search for Student Demographics by PEN", tags = { "Student Demographics" })
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     public List<GradSearchStudent> getGradStudentByPenFromStudentAPI(@PathVariable String pen, @RequestHeader(name="Authorization") String accessToken) {
-    	 return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken.replaceAll(TOKEN_PREFIX, ""));
+    	 return gradStudentService.getStudentByPenFromStudentAPI(pen,accessToken.replace(TOKEN_PREFIX, ""));
     }
     
     @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API)
@@ -170,13 +172,13 @@ public class GradStudentController {
 	@Operation(summary = "GET Student by STUDENT ID", description = "Get Student Demographics by Student ID", tags = { "Student Demographics" })
 	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
 	public GraduationStudentRecordDistribution getGradStudentByStudentIDFromGRAD(@PathVariable String studentID, @RequestHeader(name="Authorization") String accessToken) {
-		return gradStudentService.getStudentByStudentIDFromGrad(studentID, accessToken.replaceAll(TOKEN_PREFIX, ""));
+		return gradStudentService.getStudentByStudentIDFromGrad(studentID, accessToken.replace(TOKEN_PREFIX, ""));
 	}
 
     @PostMapping
 	@PreAuthorize("hasAuthority('SCOPE_WRITE_STUDENT')")
     public Student addNewPenFromStudentAPI(@Validated @RequestBody StudentCreate student, @RequestHeader(name="Authorization") String accessToken) {
-		return gradStudentService.addNewPenFromStudentAPI(student, accessToken.replaceAll(TOKEN_PREFIX, ""));
+		return gradStudentService.addNewPenFromStudentAPI(student, accessToken.replace(TOKEN_PREFIX, ""));
 	}
 
 	@PostMapping (EducGradStudentApiConstants.GRAD_STUDENT_BY_SEARCH_CRITERIAS)
@@ -230,6 +232,21 @@ public class GradStudentController {
 		return this.reportGradStudentSearchService
 				.findAll(studentSpecs, pageNumber, pageSize, sorts)
 				.thenApplyAsync(student -> student.map(reportGradStudentTransformer::transformToDTO));
+	}
+
+	@GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_ASSESSMENT_COMPLETION_CURRENT_STUDENTS_PAGINATION)
+	@PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+	@Transactional(readOnly = true)
+	@Operation(summary = "Get current students for assessment completion reports", description = "Returns a paged chunk of current students scoped to a school or district for report generation.")
+	@ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"), @ApiResponse(responseCode = "400", description = "BAD REQUEST")})
+	public AssessmentCompletionCurrentStudentPage getAssessmentCompletionCurrentStudents(
+		@RequestParam(name = "schoolId", required = false) UUID schoolId,
+		@RequestParam(name = "districtId", required = false) UUID districtId,
+		@RequestParam(name = "schoolCategoryCode", required = false) String schoolCategoryCode,
+		@RequestParam(name = "pageNumber", defaultValue = "0") Integer pageNumber,
+		@RequestParam(name = "pageSize", defaultValue = "1000") Integer pageSize
+	) {
+		return assessmentCompletionCurrentStudentService.getCurrentStudents(schoolId, districtId, schoolCategoryCode, pageNumber, pageSize);
 	}
 
 	@GetMapping (EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)

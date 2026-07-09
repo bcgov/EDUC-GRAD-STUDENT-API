@@ -34,6 +34,7 @@ public class EducGradStudentApiConstants {
     public static final String GRAD_STUDENT_BY_SEARCH_CRITERIAS = "/gradstudentbysearchcriteria";
     public static final String GRADUATION_COUNTS = "/graduation-counts";
     public static final String GRAD_STUDENT_REPORT_PAGINATION = "/grad/student/search";
+    public static final String GRAD_STUDENT_ASSESSMENT_COMPLETION_CURRENT_STUDENTS_PAGINATION = "/grad/student/reports/assessment-completions/current-students";
     public static final String GRAD_STUDENT_SEARCH_DOWNLOAD = "/grad/student/search/download";
     public static final String GRAD_STUDENT_SEARCH_PAGINATION = "/search/pagination";
     public static final String GRAD_STUDENT_COURSE_PAGINATION = "/grad/student/course/search/pagination";

@@ -1,11 +1,13 @@
 package ca.bc.gov.educ.api.gradstudent.repository;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.BatchGraduationStudentRecord;
+import ca.bc.gov.educ.api.gradstudent.model.dto.AssessmentCompletionCurrentStudentProjection;
 import ca.bc.gov.educ.api.gradstudent.model.dto.GraduationCountProjection;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordView;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -103,6 +105,27 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.studentStatus=:studentStatus")
 	Page<UUID> findByStudentStatus(String studentStatus, Pageable paging);
+
+	@Query("""
+			select
+			  gsr.studentID as graduationStudentRecordId,
+			  gsr.schoolOfRecordId as schoolOfRecordId,
+			  gsr.pen as pen,
+			  gsr.legalLastName as lastName,
+			  gsr.legalFirstName as firstName,
+			  gsr.legalMiddleNames as middleName,
+			  gsr.dob as dob,
+			  gsr.studentGrade as studentGrade,
+			  gsr.program as programCode
+			from GraduationStudentRecordEntity gsr
+			where gsr.schoolOfRecordId in :schoolOfRecordIds
+			  and gsr.studentStatus = :studentStatus
+			""")
+	Slice<AssessmentCompletionCurrentStudentProjection> findAssessmentCompletionCurrentStudentsBySchoolOfRecordIdInAndStudentStatus(
+		@Param("schoolOfRecordIds") List<UUID> schoolOfRecordIds,
+		@Param("studentStatus") String studentStatus,
+		Pageable pageable
+	);
 
 	@Query("select distinct c.studentID from GraduationStudentRecordEntity c")
 	List<UUID> findAllStudentGuids();
