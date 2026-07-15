@@ -207,7 +207,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
         SchoolClob schoolClob = new SchoolClob();
         schoolClob.setMinCode("12345678");
         Date expectedStart = Date.from(LocalDate.of(2025, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date expectedEnd = Date.from(LocalDate.of(2026, Month.AUGUST, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date expectedEnd = Date.from(LocalDate.of(2026, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         when(graduationStudentRecordRepository.findEdwSnapshotSchoolOfRecordIds(expectedStart, expectedEnd)).thenReturn(List.of(schoolId));
         when(restService.get(anyString(), eq(SchoolClob.class), eq(webClient))).thenReturn(schoolClob);
@@ -230,7 +230,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
         student.setSchoolOfRecordId(schoolId);
         student.setStudentGrade("12");
         Date expectedStart = Date.from(LocalDate.of(2025, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date expectedEnd = Date.from(LocalDate.of(2026, Month.AUGUST, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date expectedEnd = Date.from(LocalDate.of(2026, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         when(schoolService.getSchoolByMincode("12345678")).thenReturn(school);
         when(graduationStudentRecordRepository.findEdwSnapshotStudentsBySchoolOfRecordId(schoolId, expectedStart, expectedEnd)).thenReturn(List.of(student));

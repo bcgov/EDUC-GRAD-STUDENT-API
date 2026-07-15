@@ -48,7 +48,7 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 			where c.studentStatus = 'CUR'
 			  and c.schoolOfRecordId is not null
 			  and c.pen is not null
-			  and ((c.programCompletionDate >= :startDate and c.programCompletionDate <= :endDate)
+			  and ((c.programCompletionDate >= :startDate and c.programCompletionDate < :endDate)
 			    or (c.programCompletionDate is null and c.studentGrade in ('12', 'AD')))
 			""")
 	List<UUID> findEdwSnapshotSchoolOfRecordIds(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
@@ -59,7 +59,7 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 			where c.studentStatus = 'CUR'
 			  and c.schoolOfRecordId = :schoolOfRecordId
 			  and c.pen is not null
-			  and ((c.programCompletionDate >= :startDate and c.programCompletionDate <= :endDate)
+			  and ((c.programCompletionDate >= :startDate and c.programCompletionDate < :endDate)
 			    or (c.programCompletionDate is null and c.studentGrade in ('12', 'AD')))
 			""")
 	List<GraduationStudentRecordEntity> findEdwSnapshotStudentsBySchoolOfRecordId(@Param("schoolOfRecordId") UUID schoolOfRecordId, @Param("startDate") Date startDate, @Param("endDate") Date endDate);

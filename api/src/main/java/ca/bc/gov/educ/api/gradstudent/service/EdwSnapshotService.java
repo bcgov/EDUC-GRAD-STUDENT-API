@@ -160,6 +160,6 @@ public class EdwSnapshotService {
     }
 
     private Date getGradYearEndDate(Integer gradYear) {
-        return Date.from(LocalDate.of(gradYear, Month.AUGUST, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return Date.from(LocalDate.of(gradYear, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 }
