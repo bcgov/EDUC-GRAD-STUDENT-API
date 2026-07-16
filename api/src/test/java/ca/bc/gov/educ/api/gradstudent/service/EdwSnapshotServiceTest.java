@@ -14,6 +14,7 @@ import ca.bc.gov.educ.api.gradstudent.model.transformer.EDWGraduationStatusTrans
 import ca.bc.gov.educ.api.gradstudent.repository.EdwGraduationSnapshotRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +31,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -212,6 +215,26 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testGetSchoolsForSnapshotSkipsNullIdsAndMissingSchools() {
+        Integer gradYear = 2026;
+        UUID schoolId = UUID.randomUUID();
+        UUID missingSchoolId = UUID.randomUUID();
+        School school = new School();
+        school.setMincode("12345678");
+        Date expectedStart = Date.from(LocalDate.of(2025, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date expectedEnd = Date.from(LocalDate.of(2026, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        when(graduationStudentRecordRepository.findEdwSnapshotSchoolOfRecordIds(expectedStart, expectedEnd))
+                .thenReturn(Arrays.asList(null, schoolId, missingSchoolId, schoolId));
+        when(schoolService.getSchoolBySchoolId(schoolId)).thenReturn(school);
+        when(schoolService.getSchoolBySchoolId(missingSchoolId)).thenReturn(null);
+
+        var result = edwSnapshotService.getEdwSnapshotSchools(gradYear);
+
+        assertThat(result).containsExactly("12345678");
+    }
+
+    @Test
     public void testGetStudentsForSnapshotUsesGradYearWindow() {
         Integer gradYear = 2026;
         UUID schoolId = UUID.randomUUID();
@@ -223,6 +246,9 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
         student.setPen("123456789");
         student.setSchoolOfRecordId(schoolId);
         student.setStudentGrade("12");
+        student.setProgramCompletionDate(Date.from(LocalDate.of(2026, Month.JUNE, 30).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        student.setGpa("3.75");
+        student.setHonoursStanding("Y");
         Date expectedStart = Date.from(LocalDate.of(2025, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date expectedEnd = Date.from(LocalDate.of(2026, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -235,6 +261,29 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getPen()).isEqualTo("123456789");
         assertThat(result.get(0).getSchoolOfRecord()).isEqualTo("12345678");
+        assertThat(result.get(0).getGraduatedDate()).isEqualTo(EducGradStudentApiUtils.formatDate(student.getProgramCompletionDate(), EducGradStudentApiConstants.TRAX_DATE_FORMAT));
+        assertThat(result.get(0).getGpa()).isEqualByComparingTo(new BigDecimal("3.75"));
+        assertThat(result.get(0).getHonourFlag()).isEqualTo("Y");
+    }
+
+    @Test
+    public void testGetStudentsForSnapshotReturnsEmptyWhenSchoolNotFound() {
+        when(schoolService.getSchoolByMincode("12345678")).thenReturn(null);
+
+        List<SnapshotResponse> result = edwSnapshotService.getEdwSnapshotStudents(2026, "12345678");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentsForSnapshotReturnsEmptyWhenSchoolIdBlank() {
+        School school = new School();
+        school.setSchoolId(" ");
+        when(schoolService.getSchoolByMincode("12345678")).thenReturn(school);
+
+        List<SnapshotResponse> result = edwSnapshotService.getEdwSnapshotStudents(2026, "12345678");
+
+        assertThat(result).isEmpty();
     }
 
 }
