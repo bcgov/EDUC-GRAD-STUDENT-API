@@ -6,7 +6,6 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.EdwGraduationSnapshot;
-import ca.bc.gov.educ.api.gradstudent.model.dto.SchoolClob;
 import ca.bc.gov.educ.api.gradstudent.model.dto.SnapshotResponse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.EdwGraduationSnapshotEntity;
@@ -38,8 +37,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -67,9 +64,6 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
     @MockBean
     @Qualifier("studentApiClient")
     WebClient webClient;
-
-    @MockBean
-    RESTService restService;
 
     @MockBean
     SchoolService schoolService;
@@ -204,13 +198,13 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
     public void testGetSchoolsForSnapshotUsesGradYearWindow() {
         Integer gradYear = 2026;
         UUID schoolId = UUID.randomUUID();
-        SchoolClob schoolClob = new SchoolClob();
-        schoolClob.setMinCode("12345678");
+        School school = new School();
+        school.setMincode("12345678");
         Date expectedStart = Date.from(LocalDate.of(2025, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date expectedEnd = Date.from(LocalDate.of(2026, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         when(graduationStudentRecordRepository.findEdwSnapshotSchoolOfRecordIds(expectedStart, expectedEnd)).thenReturn(List.of(schoolId));
-        when(restService.get(anyString(), eq(SchoolClob.class), eq(webClient))).thenReturn(schoolClob);
+        when(schoolService.getSchoolBySchoolId(schoolId)).thenReturn(school);
 
         var result = edwSnapshotService.getEdwSnapshotSchools(gradYear);
 
@@ -223,8 +217,8 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
         UUID schoolId = UUID.randomUUID();
         School school = new School();
         school.setSchoolId(schoolId.toString());
-        SchoolClob schoolClob = new SchoolClob();
-        schoolClob.setMinCode("12345678");
+        School schoolById = new School();
+        schoolById.setMincode("12345678");
         GraduationStudentRecordEntity student = new GraduationStudentRecordEntity();
         student.setPen("123456789");
         student.setSchoolOfRecordId(schoolId);
@@ -234,7 +228,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
 
         when(schoolService.getSchoolByMincode("12345678")).thenReturn(school);
         when(graduationStudentRecordRepository.findEdwSnapshotStudentsBySchoolOfRecordId(schoolId, expectedStart, expectedEnd)).thenReturn(List.of(student));
-        when(restService.get(anyString(), eq(SchoolClob.class), eq(webClient))).thenReturn(schoolClob);
+        when(schoolService.getSchoolBySchoolId(schoolId)).thenReturn(schoolById);
 
         List<SnapshotResponse> result = edwSnapshotService.getEdwSnapshotStudents(gradYear, "12345678");
 

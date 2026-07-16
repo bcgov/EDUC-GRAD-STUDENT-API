@@ -1,7 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.EdwGraduationSnapshot;
-import ca.bc.gov.educ.api.gradstudent.model.dto.SchoolClob;
 import ca.bc.gov.educ.api.gradstudent.model.dto.SnapshotResponse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.EdwGraduationSnapshotEntity;
@@ -14,14 +13,13 @@ import ca.bc.gov.educ.api.gradstudent.repository.StudentNonGradReasonRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -32,6 +30,7 @@ import java.util.stream.Collectors;
 
 import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.SECOND_DEFAULT_DATE_FORMAT;
 
+@Slf4j
 @Service
 public class EdwSnapshotService {
 
@@ -39,12 +38,8 @@ public class EdwSnapshotService {
 
     final EDWGraduationStatusTransformer edwGraduationStatusTransformer;
 
-    final EducGradStudentApiConstants constants;
-
-    final WebClient webClient;
     final GradValidation validation;
     final GraduationStudentRecordRepository graduationStudentRecordRepository;
-    final RESTService restService;
     final SchoolService schoolService;
 
     @Autowired
@@ -54,18 +49,12 @@ public class EdwSnapshotService {
                 GraduationStudentRecordRepository graduationStudentRecordRepository,
                 StudentNonGradReasonRepository studentNonGradReasonRepository,
                 StudentNonGradReasonTransformer studentNonGradReasonTransformer,
-                EducGradStudentApiConstants constants,
-                @Qualifier("studentApiClient") WebClient webClient,
                 GradValidation validation,
-                RESTService restService,
                 SchoolService schoolService) {
-        this.constants = constants;
-        this.webClient = webClient;
         this.validation = validation;
         this.edwGraduationSnapshotRepository = edwGraduationSnapshotRepository;
         this.edwGraduationStatusTransformer = edwGraduationStatusTransformer;
         this.graduationStudentRecordRepository = graduationStudentRecordRepository;
-        this.restService = restService;
         this.schoolService = schoolService;
     }
 
@@ -88,8 +77,8 @@ public class EdwSnapshotService {
     public List<String> getEdwSnapshotSchools(Integer gradYear) {
         Date startDate = getGradYearStartDate(gradYear);
         Date endDate = getGradYearEndDate(gradYear);
-        return loadSchoolClobs(graduationStudentRecordRepository.findEdwSnapshotSchoolOfRecordIds(startDate, endDate)).values().stream()
-                .map(SchoolClob::getMinCode)
+        return loadSchools(graduationStudentRecordRepository.findEdwSnapshotSchoolOfRecordIds(startDate, endDate)).values().stream()
+                .map(School::getMincode)
                 .filter(StringUtils::isNotBlank)
                 .distinct()
                 .sorted()
@@ -105,10 +94,10 @@ public class EdwSnapshotService {
         Date startDate = getGradYearStartDate(gradYear);
         Date endDate = getGradYearEndDate(gradYear);
         List<GraduationStudentRecordEntity> students = graduationStudentRecordRepository.findEdwSnapshotStudentsBySchoolOfRecordId(schoolOfRecordId, startDate, endDate);
-        Map<UUID, SchoolClob> schoolClobs = loadSchoolClobs(List.of(schoolOfRecordId));
+        Map<UUID, School> schools = loadSchools(List.of(schoolOfRecordId));
         return students.stream()
                 .sorted(Comparator.comparing(GraduationStudentRecordEntity::getPen, Comparator.nullsLast(String::compareTo)))
-                .map(student -> toSnapshotResponse(student, schoolClobs.get(student.getSchoolOfRecordId())))
+                .map(student -> toSnapshotResponse(student, schools.get(student.getSchoolOfRecordId())))
                 .toList();
     }
 
@@ -132,12 +121,12 @@ public class EdwSnapshotService {
         return edwGraduationStatusTransformer.transformToDTO(savedEntity);
     }
 
-    private SnapshotResponse toSnapshotResponse(GraduationStudentRecordEntity student, SchoolClob schoolClob) {
+    private SnapshotResponse toSnapshotResponse(GraduationStudentRecordEntity student, School school) {
         SnapshotResponse response = new SnapshotResponse();
         response.setPen(student.getPen());
         response.setStudentGrade(student.getStudentGrade());
         response.setSchoolOfRecordId(student.getSchoolOfRecordId() != null ? student.getSchoolOfRecordId().toString() : null);
-        response.setSchoolOfRecord(schoolClob != null ? schoolClob.getMinCode() : null);
+        response.setSchoolOfRecord(school != null ? school.getMincode() : null);
         response.setGraduatedDate(student.getProgramCompletionDate() != null
                 ? EducGradStudentApiUtils.formatDate(student.getProgramCompletionDate(), EducGradStudentApiConstants.TRAX_DATE_FORMAT)
                 : null);
@@ -146,12 +135,18 @@ public class EdwSnapshotService {
         return response;
     }
 
-    private Map<UUID, SchoolClob> loadSchoolClobs(List<UUID> schoolIds) {
+    private Map<UUID, School> loadSchools(List<UUID> schoolIds) {
         return schoolIds.stream()
                 .filter(Objects::nonNull)
                 .distinct()
-                .map(id -> Map.entry(id, restService.get(String.format(constants.getSchoolClobBySchoolIdUrl(), id), SchoolClob.class, webClient)))
-                .filter(entry -> entry.getValue() != null)
+                .flatMap(id -> {
+                    School school = schoolService.getSchoolBySchoolId(id);
+                    if (school == null) {
+                        log.error("Unable to load school for schoolId {} while loading schools for EDW Snapshot", id);
+                        return java.util.stream.Stream.empty();
+                    }
+                    return java.util.stream.Stream.of(Map.entry(id, school));
+                })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> left, HashMap::new));
     }
 
