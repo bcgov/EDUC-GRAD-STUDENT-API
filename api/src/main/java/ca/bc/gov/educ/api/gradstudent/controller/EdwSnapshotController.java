@@ -1,9 +1,9 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
 import ca.bc.gov.educ.api.gradstudent.model.dto.EdwGraduationSnapshot;
+import ca.bc.gov.educ.api.gradstudent.model.dto.SnapshotResponse;
 import ca.bc.gov.educ.api.gradstudent.service.EdwSnapshotService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import ca.bc.gov.educ.api.gradstudent.util.PermissionsConstants;
 import ca.bc.gov.educ.api.gradstudent.util.ResponseHelper;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -16,11 +16,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
@@ -29,14 +33,14 @@ public class EdwSnapshotController {
 
     private static final Logger logger = LoggerFactory.getLogger(EdwSnapshotController.class);
 
-    @Autowired
     EdwSnapshotService edwSnapshotService;
-
-    @Autowired
-    GradValidation validation;
-
-    @Autowired
     ResponseHelper response;
+
+    @Autowired
+    public EdwSnapshotController(EdwSnapshotService edwSnapshotService, ResponseHelper response) {
+        this.edwSnapshotService = edwSnapshotService;
+        this.response = response;
+    }
 
     @PostMapping(EducGradStudentApiConstants.EDW_GRADUATION_STATUS_SNAPSHOT)
     @PreAuthorize(PermissionsConstants.UPDATE_GRADUATION_STUDENT)
@@ -46,6 +50,24 @@ public class EdwSnapshotController {
         logger.debug("Save Graduation Status Snapshot for EDW");
         var result = edwSnapshotService.saveEdwGraduationSnapshot(edwGraduationSnapshot);
         return response.GET(result);
+    }
+
+    @GetMapping(EducGradStudentApiConstants.EDW_SNAPSHOT_SCHOOLS)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Schools for EDW Snapshot", description = "Get Schools for EDW Snapshot", tags = { "EDW Snapshot" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<String>> getSchoolsForEDWSnapshot(@PathVariable Integer gradYear) {
+        logger.debug("Get schools for EDW Snapshot for grad year {}", gradYear);
+        return response.GET(edwSnapshotService.getEdwSnapshotSchools(gradYear));
+    }
+
+    @GetMapping(EducGradStudentApiConstants.EDW_SNAPSHOT_STUDENTS_BY_MINCODE)
+    @PreAuthorize(PermissionsConstants.READ_GRADUATION_STUDENT)
+    @Operation(summary = "Get Students for EDW Snapshot", description = "Get Students for EDW Snapshot", tags = { "EDW Snapshot" })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+    public ResponseEntity<List<SnapshotResponse>> getStudentsForEDWSnapshot(@PathVariable Integer gradYear, @PathVariable String minCode) {
+        logger.debug("Get students for EDW Snapshot for grad year {} and mincode {}", gradYear, minCode);
+        return response.GET(edwSnapshotService.getEdwSnapshotStudents(gradYear, minCode));
     }
 
 }

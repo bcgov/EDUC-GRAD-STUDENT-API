@@ -6,10 +6,15 @@ import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.FetchGradStatusSubscri
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Publisher;
 import ca.bc.gov.educ.api.gradstudent.messaging.jetstream.Subscriber;
 import ca.bc.gov.educ.api.gradstudent.model.dto.EdwGraduationSnapshot;
+import ca.bc.gov.educ.api.gradstudent.model.dto.SnapshotResponse;
+import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.EdwGraduationSnapshotEntity;
+import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
 import ca.bc.gov.educ.api.gradstudent.model.transformer.EDWGraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.EdwGraduationSnapshotRepository;
+import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
+import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
 import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,8 +28,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,11 +59,17 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
     EdwGraduationSnapshotRepository edwGraduationSnapshotRepository;
 
     @MockBean
+    GraduationStudentRecordRepository graduationStudentRecordRepository;
+
+    @MockBean
     GradValidation validation;
 
     @MockBean
     @Qualifier("studentApiClient")
     WebClient webClient;
+
+    @MockBean
+    SchoolService schoolService;
 
     @MockBean
     FetchGradStatusSubscriber fetchGradStatusSubscriber;
@@ -177,6 +195,95 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getPen()).isEqualTo(pen);
+    }
+
+    @Test
+    public void testGetSchoolsForSnapshotUsesGradYearWindow() {
+        Integer gradYear = 2026;
+        UUID schoolId = UUID.randomUUID();
+        School school = new School();
+        school.setMincode("12345678");
+        Date expectedStart = Date.from(LocalDate.of(2025, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date expectedEnd = Date.from(LocalDate.of(2026, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        when(graduationStudentRecordRepository.findEdwSnapshotSchoolOfRecordIds(expectedStart, expectedEnd)).thenReturn(List.of(schoolId));
+        when(schoolService.getSchoolBySchoolId(schoolId)).thenReturn(school);
+
+        var result = edwSnapshotService.getEdwSnapshotSchools(gradYear);
+
+        assertThat(result).containsExactly("12345678");
+    }
+
+    @Test
+    public void testGetSchoolsForSnapshotSkipsNullIdsAndMissingSchools() {
+        Integer gradYear = 2026;
+        UUID schoolId = UUID.randomUUID();
+        UUID missingSchoolId = UUID.randomUUID();
+        School school = new School();
+        school.setMincode("12345678");
+        Date expectedStart = Date.from(LocalDate.of(2025, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date expectedEnd = Date.from(LocalDate.of(2026, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        when(graduationStudentRecordRepository.findEdwSnapshotSchoolOfRecordIds(expectedStart, expectedEnd))
+                .thenReturn(Arrays.asList(null, schoolId, missingSchoolId, schoolId));
+        when(schoolService.getSchoolBySchoolId(schoolId)).thenReturn(school);
+        when(schoolService.getSchoolBySchoolId(missingSchoolId)).thenReturn(null);
+
+        var result = edwSnapshotService.getEdwSnapshotSchools(gradYear);
+
+        assertThat(result).containsExactly("12345678");
+    }
+
+    @Test
+    public void testGetStudentsForSnapshotUsesGradYearWindow() {
+        Integer gradYear = 2026;
+        UUID schoolId = UUID.randomUUID();
+        School school = new School();
+        school.setSchoolId(schoolId.toString());
+        School schoolById = new School();
+        schoolById.setMincode("12345678");
+        GraduationStudentRecordEntity student = new GraduationStudentRecordEntity();
+        student.setPen("123456789");
+        student.setSchoolOfRecordId(schoolId);
+        student.setStudentGrade("12");
+        student.setProgramCompletionDate(Date.from(LocalDate.of(2026, Month.JUNE, 30).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        student.setGpa("3.75");
+        student.setHonoursStanding("Y");
+        Date expectedStart = Date.from(LocalDate.of(2025, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date expectedEnd = Date.from(LocalDate.of(2026, Month.SEPTEMBER, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        when(schoolService.getSchoolByMincode("12345678")).thenReturn(school);
+        when(graduationStudentRecordRepository.findEdwSnapshotStudentsBySchoolOfRecordId(schoolId, expectedStart, expectedEnd)).thenReturn(List.of(student));
+        when(schoolService.getSchoolBySchoolId(schoolId)).thenReturn(schoolById);
+
+        List<SnapshotResponse> result = edwSnapshotService.getEdwSnapshotStudents(gradYear, "12345678");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getPen()).isEqualTo("123456789");
+        assertThat(result.get(0).getSchoolOfRecord()).isEqualTo("12345678");
+        assertThat(result.get(0).getGraduatedDate()).isEqualTo(EducGradStudentApiUtils.formatDate(student.getProgramCompletionDate(), EducGradStudentApiConstants.TRAX_DATE_FORMAT));
+        assertThat(result.get(0).getGpa()).isEqualByComparingTo(new BigDecimal("3.75"));
+        assertThat(result.get(0).getHonourFlag()).isEqualTo("Y");
+    }
+
+    @Test
+    public void testGetStudentsForSnapshotReturnsEmptyWhenSchoolNotFound() {
+        when(schoolService.getSchoolByMincode("12345678")).thenReturn(null);
+
+        List<SnapshotResponse> result = edwSnapshotService.getEdwSnapshotStudents(2026, "12345678");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void testGetStudentsForSnapshotReturnsEmptyWhenSchoolIdBlank() {
+        School school = new School();
+        school.setSchoolId(" ");
+        when(schoolService.getSchoolByMincode("12345678")).thenReturn(school);
+
+        List<SnapshotResponse> result = edwSnapshotService.getEdwSnapshotStudents(2026, "12345678");
+
+        assertThat(result).isEmpty();
     }
 
 }
