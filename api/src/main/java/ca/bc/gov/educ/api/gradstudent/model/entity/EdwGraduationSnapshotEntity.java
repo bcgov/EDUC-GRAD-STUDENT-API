@@ -37,5 +37,7 @@ public class EdwGraduationSnapshotEntity {
     private String schoolOfRecord;
     @Column(name = "SCHOOL_OF_RECORD_ID", nullable = true)
     private UUID schoolOfRecordId;
+    @Column(name = "ELIGIBLE", nullable = true)
+    private String eligible;
 
 }

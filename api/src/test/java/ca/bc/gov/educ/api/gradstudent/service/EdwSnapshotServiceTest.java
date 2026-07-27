@@ -10,12 +10,10 @@ import ca.bc.gov.educ.api.gradstudent.model.dto.SnapshotResponse;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
 import ca.bc.gov.educ.api.gradstudent.model.entity.EdwGraduationSnapshotEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
-import ca.bc.gov.educ.api.gradstudent.model.transformer.EDWGraduationStatusTransformer;
 import ca.bc.gov.educ.api.gradstudent.repository.EdwGraduationSnapshotRepository;
 import ca.bc.gov.educ.api.gradstudent.repository.GraduationStudentRecordRepository;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiUtils;
-import ca.bc.gov.educ.api.gradstudent.util.GradValidation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +26,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -49,20 +47,11 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
     @Autowired
     EdwSnapshotService edwSnapshotService;
 
-    @Autowired
-    EducGradStudentApiConstants constants;
-
-    @Autowired
-    EDWGraduationStatusTransformer edwGraduationStatusTransformer;
-
     @MockBean
     EdwGraduationSnapshotRepository edwGraduationSnapshotRepository;
 
     @MockBean
     GraduationStudentRecordRepository graduationStudentRecordRepository;
-
-    @MockBean
-    GradValidation validation;
 
     @MockBean
     @Qualifier("studentApiClient")
@@ -160,11 +149,13 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
         snapshotRequest.setGradYear(gradYear);
         snapshotRequest.setPen(pen);
         snapshotRequest.setGraduationFlag("N");
+        snapshotRequest.setEligible("Y");
 
         EdwGraduationSnapshotEntity entity = new EdwGraduationSnapshotEntity();
         entity.setGradYear(gradYear.longValue());
         entity.setPen(pen);
         entity.setGraduationFlag("N");
+        entity.setEligible("Y");
 
         when(edwGraduationSnapshotRepository.findByGradYearAndPen(gradYear, pen)).thenReturn(Optional.empty());
         when(edwGraduationSnapshotRepository.saveAndFlush(any())).thenReturn(entity);
@@ -172,6 +163,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getPen()).isEqualTo(pen);
+        assertThat(result.getEligible()).isEqualTo("Y");
     }
 
     @Test
@@ -183,11 +175,13 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
         snapshotRequest.setGradYear(gradYear);
         snapshotRequest.setPen(pen);
         snapshotRequest.setGraduationFlag("N");
+        snapshotRequest.setEligible("N");
 
         EdwGraduationSnapshotEntity entity = new EdwGraduationSnapshotEntity();
         entity.setGradYear(gradYear.longValue());
         entity.setPen(pen);
         entity.setGraduationFlag("N");
+        entity.setEligible("N");
 
         when(edwGraduationSnapshotRepository.findByGradYearAndPen(gradYear, pen)).thenReturn(Optional.of(entity));
         when(edwGraduationSnapshotRepository.saveAndFlush(entity)).thenReturn(entity);
@@ -195,6 +189,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getPen()).isEqualTo(pen);
+        assertThat(result.getEligible()).isEqualTo("N");
     }
 
     @Test
