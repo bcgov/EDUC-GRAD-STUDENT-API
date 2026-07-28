@@ -548,7 +548,7 @@ public class GraduationStudentRecordService {
 
     private String mapLetterGrade(String letterGrade, String percent) {
         List<LetterGrade> letterGradeList = courseCacheService.getLetterGradesFromCache();
-        var doublePercent = percent != null ? Double.parseDouble(percent) : null;
+        var doublePercent = parsePercentage(percent);
         var percentageScrub = getPercentage(letterGrade, doublePercent);
         if(StringUtils.isBlank(letterGrade) && percentageScrub != null) {
             var letterEntity =  letterGradeList.stream().filter(grade -> grade.getPercentRangeHigh() != null &&
@@ -562,7 +562,7 @@ public class GraduationStudentRecordService {
 
     private Double mapPercentage(String letterGrade, String percent) {
         List<LetterGrade> letterGradeList = courseCacheService.getLetterGradesFromCache();
-        var doublePercent = percent != null ? Double.parseDouble(percent) : null;
+        var doublePercent = parsePercentage(percent);
         if(StringUtils.isNotBlank(letterGrade)) {
             var letterEntity =  letterGradeList.stream()
                     .filter(grade -> grade.getGrade().equalsIgnoreCase(letterGrade)
@@ -571,6 +571,18 @@ public class GraduationStudentRecordService {
             return letterEntity.isPresent() ? getPercentage(letterGrade, doublePercent) : null;
         } else {
             return getPercentage(letterGrade, doublePercent);
+        }
+    }
+
+    Double parsePercentage(String percent) {
+        if (StringUtils.isBlank(percent)) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(percent.trim());
+        } catch (NumberFormatException ex) {
+            log.warn("Invalid percentage value: {}", percent);
+            return null;
         }
     }
     
