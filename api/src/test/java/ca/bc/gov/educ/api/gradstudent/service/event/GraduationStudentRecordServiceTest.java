@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,6 +46,27 @@ class GraduationStudentRecordServiceTest {
 
     @Autowired
     private GraduationStudentRecordService graduationStudentRecordService;
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"", " ", "SC", "not-a-number"})
+    void parsePercentage_WhenValueIsBlankOrNonNumeric_ReturnsNull(String percent) {
+        assertNull(graduationStudentRecordService.parsePercentage(percent));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideValidPercentageValues")
+    void parsePercentage_WhenValueIsNumeric_ReturnsParsedValue(String percent, Double expected) {
+        assertEquals(expected, graduationStudentRecordService.parsePercentage(percent));
+    }
+
+    private static Stream<Arguments> provideValidPercentageValues() {
+        return Stream.of(
+                Arguments.of("0", 0.0),
+                Arguments.of("75", 75.0),
+                Arguments.of(" 87.5 ", 87.5)
+        );
+    }
 
     @Test
     @Transactional
