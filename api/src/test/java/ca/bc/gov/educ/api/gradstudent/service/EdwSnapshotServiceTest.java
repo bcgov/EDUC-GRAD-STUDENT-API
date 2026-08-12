@@ -144,14 +144,17 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
     public void testSaveEdwGraduationStatusForNew() {
         Integer gradYear = 2023;
         String pen = "123456789";
+        UUID studentID = UUID.randomUUID();
 
         EdwGraduationSnapshot snapshotRequest = new EdwGraduationSnapshot();
         snapshotRequest.setGradYear(gradYear);
         snapshotRequest.setPen(pen);
         snapshotRequest.setGraduationFlag("N");
+        snapshotRequest.setStudentID(studentID);
         snapshotRequest.setEligible("Y");
 
         EdwGraduationSnapshotEntity entity = new EdwGraduationSnapshotEntity();
+        entity.setStudentID(studentID);
         entity.setGradYear(gradYear.longValue());
         entity.setPen(pen);
         entity.setGraduationFlag("N");
@@ -163,6 +166,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getPen()).isEqualTo(pen);
+        assertThat(result.getStudentID()).isEqualTo(studentID);
         assertThat(result.getEligible()).isEqualTo("Y");
     }
 
@@ -170,14 +174,17 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
     public void testSaveEdwGraduationStatusForUpdate() {
         Integer gradYear = 2023;
         String pen = "123456789";
+        UUID studentID = UUID.randomUUID();
 
         EdwGraduationSnapshot snapshotRequest = new EdwGraduationSnapshot();
         snapshotRequest.setGradYear(gradYear);
         snapshotRequest.setPen(pen);
         snapshotRequest.setGraduationFlag("N");
+        snapshotRequest.setStudentID(studentID);
         snapshotRequest.setEligible("N");
 
         EdwGraduationSnapshotEntity entity = new EdwGraduationSnapshotEntity();
+        entity.setStudentID(studentID);
         entity.setGradYear(gradYear.longValue());
         entity.setPen(pen);
         entity.setGraduationFlag("N");
@@ -189,6 +196,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getPen()).isEqualTo(pen);
+        assertThat(result.getStudentID()).isEqualTo(studentID);
         assertThat(result.getEligible()).isEqualTo("N");
     }
 
@@ -238,6 +246,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
         School schoolById = new School();
         schoolById.setMincode("12345678");
         GraduationStudentRecordEntity student = new GraduationStudentRecordEntity();
+        student.setStudentID(UUID.randomUUID());
         student.setPen("123456789");
         student.setSchoolOfRecordId(schoolId);
         student.setStudentGrade("12");
@@ -254,6 +263,7 @@ public class EdwSnapshotServiceTest extends BaseIntegrationTest {
         List<SnapshotResponse> result = edwSnapshotService.getEdwSnapshotStudents(gradYear, "12345678");
 
         assertThat(result).hasSize(1);
+        assertThat(result.get(0).getStudentID()).isEqualTo(student.getStudentID());
         assertThat(result.get(0).getPen()).isEqualTo("123456789");
         assertThat(result.get(0).getSchoolOfRecord()).isEqualTo("12345678");
         assertThat(result.get(0).getGraduatedDate()).isEqualTo(EducGradStudentApiUtils.formatDate(student.getProgramCompletionDate(), EducGradStudentApiConstants.TRAX_DATE_FORMAT));

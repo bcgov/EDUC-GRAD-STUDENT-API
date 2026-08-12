@@ -14,6 +14,8 @@ import java.util.UUID;
 @Table(name = "EDW_GRADUATION_SNAPSHOT")
 @IdClass(EdwSnapshotID.class)
 public class EdwGraduationSnapshotEntity {
+    @Column(name = "STUDENT_ID", nullable = true)
+    private UUID studentID;
     @Id
     @Column(name = "GRAD_YEAR", nullable = false)
     private Long gradYear;

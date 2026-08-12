@@ -123,6 +123,7 @@ public class EdwSnapshotService {
 
     private SnapshotResponse toSnapshotResponse(GraduationStudentRecordEntity student, School school) {
         SnapshotResponse response = new SnapshotResponse();
+        response.setStudentID(student.getStudentID());
         response.setPen(student.getPen());
         response.setStudentGrade(student.getStudentGrade());
         response.setSchoolOfRecordId(student.getSchoolOfRecordId() != null ? student.getSchoolOfRecordId().toString() : null);
