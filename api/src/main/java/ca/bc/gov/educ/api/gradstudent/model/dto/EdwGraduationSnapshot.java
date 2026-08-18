@@ -19,6 +19,7 @@ import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.DE
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EdwGraduationSnapshot {
+    private UUID studentID;
     private Integer gradYear;
     private String pen;
     private String graduationFlag;
@@ -33,4 +34,5 @@ public class EdwGraduationSnapshot {
 
     private String schoolOfRecord;
     private UUID schoolOfRecordId;
+    private String eligible;
 }
