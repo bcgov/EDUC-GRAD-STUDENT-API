@@ -16,13 +16,12 @@ public class GradStudentRecordCoursesLoad {
 
   private String courseCode;
   private String courseLevel;
-  private String credits;
+  private Integer credits;
   private String creditsUsedForGrad;
   @JsonAlias("completedCourseLetterGrade")
   private String finalLetterGrade;
   @JsonAlias("completedCoursePercentage")
-  private String finalPercent;
+  private Integer finalPercent;
   private String sessionDate;
   private String gradReqMet;
-  private String pen;
 }

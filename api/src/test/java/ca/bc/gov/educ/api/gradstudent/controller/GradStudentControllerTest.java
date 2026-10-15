@@ -172,7 +172,7 @@ public class GradStudentControllerTest {
 
     var expectedCourses = gradStudentCoursePayload.getStudentCourses().getStudentCourseList();
 
-    String pen = expectedCourses.get(0).getPen();
+    String pen = "144474947";
     int expectedCourseCount = expectedCourses.size();
 
     GraduationStudentRecordEntity studentRecord = new GraduationStudentRecordEntity();
