@@ -2,6 +2,7 @@ package ca.bc.gov.educ.api.gradstudent.service;
 
 import ca.bc.gov.educ.api.gradstudent.exception.EntityNotFoundException;
 import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentCoursePayload;
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordCoursesLoad;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.messaging.GradStudentRecord;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordEntity;
@@ -451,5 +452,21 @@ public class GradStudentService {
 			logger.debug("Parsing Graduation Data Error {}", e.getMessage());
 		}
 		return gradStudentCoursePayload;
+	}
+
+	public List<GradStudentRecordCoursesLoad> getStudentCourseClobByPen(String pen) {
+		List<GraduationStudentRecordEntity> records = graduationStatusRepository.findAllByPen(pen);
+		if (records.isEmpty()) {
+			throw new EntityNotFoundException("Graduation student record was not found for PEN: " + pen);
+		}
+		if (records.size() > 1) {
+			throw new IllegalStateException("Expected one unique graduation student record for PEN " + pen + ", but found " + records.size());
+		}
+
+		GradStudentCoursePayload payload = setGradMetaData(records.get(0).getStudentGradData());
+		if (payload == null || payload.getStudentCourses() == null || payload.getStudentCourses().getStudentCourseList() == null) {
+			return Collections.emptyList();
+		}
+		return payload.getStudentCourses().getStudentCourseList();
 	}
 }

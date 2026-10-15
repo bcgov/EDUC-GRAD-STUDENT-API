@@ -140,6 +140,7 @@ public class EducGradStudentApiConstants {
     public static final String FINE_ART_APPLIED_SKILLS_CODES_MAPPING = "/fineArtsAppliedSkillsCodes";
     public static final String FINE_ART_APPLIED_SKILLS_CODE_MAPPING = "/fineArtsAppliedSkillsCodes/{fineArtsAppliedSkillsCode}";
     public static final String STUDENT_COURSE_MAPPING = "/courses/{studentID}";
+    public static final String GRAD_STUDENT_COURSE_CLOB_BY_PEN = "/course-clob/pen/{pen}";
     public static final String STUDENT_COURSE_HISTORY_MAPPING = "/courses/{studentID}/history";
     public static final String STUDENT_COURSE_TRANSFER_MAPPING = "/courses/transfer";
     public static final String STUDENT_COURSE_MERGE_MAPPING = "/courses/merge";

@@ -1,5 +1,6 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentRecordCoursesLoad;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.entity.GradStudentSearchDataEntity;
 import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
@@ -157,6 +158,14 @@ public class GradStudentController {
   @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
   public List<GradSearchStudent> getGradStudentByPenFromStudentAPI(@PathVariable String pen, @RequestHeader(name = "Authorization") String accessToken) {
     return gradStudentService.getStudentByPenFromStudentAPI(pen, accessToken.replace(TOKEN_PREFIX, ""));
+  }
+
+  @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_COURSE_CLOB_BY_PEN)
+  @PreAuthorize("hasAuthority('SCOPE_READ_GRAD_STUDENT_DATA')")
+  @Operation(summary = "Search for student course clob information used by pen replication api to update stud_xcrse table", description = "Search for student clob information by PEN", tags = {"Student Demographics"})
+  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
+  public List<GradStudentRecordCoursesLoad> getStudentCourseClobByPen(@PathVariable String pen) {
+    return gradStudentService.getStudentCourseClobByPen(pen);
   }
 
   @GetMapping(EducGradStudentApiConstants.GRAD_STUDENT_BY_STUDENT_ID_STUDENT_API)
