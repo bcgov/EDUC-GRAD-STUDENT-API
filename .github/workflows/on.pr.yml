@@ -1,6 +1,7 @@
 name: API Build
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - grad-release
