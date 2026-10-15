@@ -36,6 +36,8 @@ public interface GraduationStudentRecordRepository extends JpaRepository<Graduat
 
     List<GraduationStudentRecordEntity> findAll();
 
+    List<GraduationStudentRecordEntity> findAllByPen(String pen);
+
 	@Query("select c.studentID from GraduationStudentRecordEntity c where c.recalculateGradStatus=:recalculateFlag and c.studentStatus <> 'MER'")
 	List<UUID> findByRecalculateGradStatusForBatch(String recalculateFlag);
 

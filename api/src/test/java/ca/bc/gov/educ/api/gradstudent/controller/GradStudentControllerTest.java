@@ -1,21 +1,15 @@
 package ca.bc.gov.educ.api.gradstudent.controller;
 
+import ca.bc.gov.educ.api.gradstudent.model.dc.GradStudentCoursePayload;
 import ca.bc.gov.educ.api.gradstudent.model.dto.*;
 import ca.bc.gov.educ.api.gradstudent.model.dto.institute.School;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GradStudentSearchDataEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.GraduationStudentRecordPaginationEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.ReportGradStudentDataEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentCoursePaginationEntity;
-import ca.bc.gov.educ.api.gradstudent.model.entity.StudentOptionalProgramPaginationEntity;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStudentPaginationRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.GradStudentSearchRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.ReportGradStudentDataRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentCoursePaginationRepository;
-import ca.bc.gov.educ.api.gradstudent.repository.StudentOptionalProgramPaginationRepository;
+import ca.bc.gov.educ.api.gradstudent.model.entity.*;
+import ca.bc.gov.educ.api.gradstudent.repository.*;
 import ca.bc.gov.educ.api.gradstudent.rest.RestUtils;
 import ca.bc.gov.educ.api.gradstudent.service.GradStudentService;
 import ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.After;
@@ -32,21 +26,22 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static ca.bc.gov.educ.api.gradstudent.model.dto.Condition.AND;
 import static ca.bc.gov.educ.api.gradstudent.util.EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
@@ -54,740 +49,776 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 public class GradStudentControllerTest {
 
-    @Mock
-    private GradStudentService gradStudentService;
+  @Mock
+  private GradStudentService gradStudentService;
 
-    @InjectMocks
-    private GradStudentController gradStudentController;
+  @InjectMocks
+  private GradStudentController gradStudentController;
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Autowired
-    ReportGradStudentDataRepository reportGradStudentDataRepository;
+  @Autowired
+  ReportGradStudentDataRepository reportGradStudentDataRepository;
 
-    @Autowired
-    private GradStudentSearchRepository gradStudentSearchRepository;
+  @Autowired
+  private GradStudentSearchRepository gradStudentSearchRepository;
 
-    @Autowired
-    GradStudentPaginationRepository gradStudentPaginationRepository;
+  @Autowired
+  GradStudentPaginationRepository gradStudentPaginationRepository;
 
-    @Autowired
-    StudentCoursePaginationRepository studentcoursePaginationRepository;
+  @Autowired
+  GraduationStudentRecordRepository graduationStudentRecordRepository;
 
-    @Autowired
-    StudentOptionalProgramPaginationRepository studentOptionalProgramPaginationRepository;
+  @Autowired
+  StudentCoursePaginationRepository studentcoursePaginationRepository;
 
-    @Autowired
-    RestUtils restUtils;
+  @Autowired
+  StudentOptionalProgramPaginationRepository studentOptionalProgramPaginationRepository;
 
-    @After
-    public void cleanupTestData() {
-        studentOptionalProgramPaginationRepository.deleteAll();
-        reportGradStudentDataRepository.deleteAll();
-        Mockito.reset(restUtils);
+  @Autowired
+  RestUtils restUtils;
+
+  @After
+  public void cleanupTestData() {
+    studentOptionalProgramPaginationRepository.deleteAll();
+    reportGradStudentDataRepository.deleteAll();
+    Mockito.reset(restUtils);
+  }
+
+  @Test
+  public void testFake() {
+    assertEquals(20 - 10, 40 - 30);
+  }
+
+  @Test
+  public void testGetGradStudentFromStudentAPI() {
+    // ID
+    final UUID studentID = UUID.randomUUID();
+    final String pen = "123456789";
+    final String lastName = "LastName";
+    final String program = "2018-EN";
+    final String gradStatus = "A";
+    final String stdGrade = "12";
+    final String mincode = "12345678";
+    final String schoolName = "Test School";
+
+    // Grad Search Students
+    final GradSearchStudent gradSearchStudent = new GradSearchStudent();
+    gradSearchStudent.setStudentID(studentID.toString());
+    gradSearchStudent.setPen(pen);
+    gradSearchStudent.setLegalLastName(lastName);
+    gradSearchStudent.setSchoolOfRecord(mincode);
+    gradSearchStudent.setProgram(program);
+    gradSearchStudent.setStudentGrade(stdGrade);
+    gradSearchStudent.setStudentStatus(gradStatus);
+    gradSearchStudent.setSchoolOfRecordName(schoolName);
+
+    StudentSearch studentSearch = new StudentSearch();
+    studentSearch.setGradSearchStudents(Arrays.asList(gradSearchStudent));
+    studentSearch.setNumber(1);
+    studentSearch.setSize(5);
+    studentSearch.setNumberOfElements(1);
+
+
+    StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder().legalLastName(lastName).mincode(mincode).build();
+
+    Mockito.when(gradStudentService.getStudentFromStudentAPI(studentSearchRequest, 1, 5, null)).thenReturn(studentSearch);
+    gradStudentController.getGradNPenGradStudentFromStudentAPI(null, lastName, null, null, null, null, null, mincode, null, null,
+        null, 1, 5, null);
+    Mockito.verify(gradStudentService).getStudentFromStudentAPI(studentSearchRequest, 1, 5, null);
+
+  }
+
+  @Test
+  public void testGetGradStudentByPenFromStudentAPI() {
+    // ID
+    final UUID studentID = UUID.randomUUID();
+    final String pen = "123456789";
+    final String program = "2018-EN";
+    final String gradStatus = "A";
+    final String stdGrade = "12";
+    final String mincode = "12345678";
+    final String schoolName = "Test School";
+
+    // Grad Search Students
+    final GradSearchStudent gradSearchStudent = new GradSearchStudent();
+    gradSearchStudent.setStudentID(studentID.toString());
+    gradSearchStudent.setPen(pen);
+    gradSearchStudent.setSchoolOfRecord(mincode);
+    gradSearchStudent.setProgram(program);
+    gradSearchStudent.setStudentGrade(stdGrade);
+    gradSearchStudent.setStudentStatus(gradStatus);
+    gradSearchStudent.setSchoolOfRecordName(schoolName);
+
+
+    Mockito.when(gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken")).thenReturn(Arrays.asList(gradSearchStudent));
+    gradStudentController.getGradStudentByPenFromStudentAPI(pen, "accessToken");
+    Mockito.verify(gradStudentService).getStudentByPenFromStudentAPI(pen, "accessToken");
+  }
+
+  @Test
+  public void testGetStudentCourseClobByPenReturnsAllCoursesInClob() throws Exception {
+    UUID studentID = UUID.randomUUID();
+    String studentGradData;
+    try (InputStream inputStream = getClass().getResourceAsStream("/json/studentGradData.json")) {
+      assertThat(inputStream).as("studentGradData.json must exist in test resources").isNotNull();
+      studentGradData = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     }
 
-    @Test
-    public void testFake() {
-        assertEquals(20-10, 40-30);
-    }
-
-    @Test
-    public void testGetGradStudentFromStudentAPI() {
-        // ID
-        final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
-        final String lastName = "LastName";
-        final String program = "2018-EN";
-        final String gradStatus = "A";
-        final String stdGrade = "12";
-        final String mincode = "12345678";
-        final String schoolName = "Test School";
-
-        // Grad Search Students
-        final GradSearchStudent gradSearchStudent = new GradSearchStudent();
-        gradSearchStudent.setStudentID(studentID.toString());
-        gradSearchStudent.setPen(pen);
-        gradSearchStudent.setLegalLastName(lastName);
-        gradSearchStudent.setSchoolOfRecord(mincode);
-        gradSearchStudent.setProgram(program);
-        gradSearchStudent.setStudentGrade(stdGrade);
-        gradSearchStudent.setStudentStatus(gradStatus);
-        gradSearchStudent.setSchoolOfRecordName(schoolName);
-
-        StudentSearch studentSearch = new StudentSearch();
-        studentSearch.setGradSearchStudents(Arrays.asList(gradSearchStudent));
-        studentSearch.setNumber(1);
-        studentSearch.setSize(5);
-        studentSearch.setNumberOfElements(1);
-
-
-        StudentSearchRequest studentSearchRequest = StudentSearchRequest.builder().legalLastName(lastName).mincode(mincode).build();
-
-        Mockito.when(gradStudentService.getStudentFromStudentAPI(studentSearchRequest, 1, 5, null)).thenReturn(studentSearch);
-        gradStudentController.getGradNPenGradStudentFromStudentAPI(null, lastName, null, null, null, null, null, mincode, null, null,
-                null, 1, 5, null);
-        Mockito.verify(gradStudentService).getStudentFromStudentAPI(studentSearchRequest, 1, 5, null);
-
-    }
-
-    @Test
-    public void testGetGradStudentByPenFromStudentAPI() {
-        // ID
-        final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
-        final String program = "2018-EN";
-        final String gradStatus = "A";
-        final String stdGrade = "12";
-        final String mincode = "12345678";
-        final String schoolName = "Test School";
-
-        // Grad Search Students
-        final GradSearchStudent gradSearchStudent = new GradSearchStudent();
-        gradSearchStudent.setStudentID(studentID.toString());
-        gradSearchStudent.setPen(pen);
-        gradSearchStudent.setSchoolOfRecord(mincode);
-        gradSearchStudent.setProgram(program);
-        gradSearchStudent.setStudentGrade(stdGrade);
-        gradSearchStudent.setStudentStatus(gradStatus);
-        gradSearchStudent.setSchoolOfRecordName(schoolName);
-
-
-        Mockito.when(gradStudentService.getStudentByPenFromStudentAPI(pen, "accessToken")).thenReturn(Arrays.asList(gradSearchStudent));
-        gradStudentController.getGradStudentByPenFromStudentAPI(pen, "accessToken");
-        Mockito.verify(gradStudentService).getStudentByPenFromStudentAPI(pen, "accessToken");
-    }
-
-    @Test
-    public void testAddNewPenFromStudentAPI() {
-        // ID
-        final UUID studentID = UUID.randomUUID();
-        final String pen = "123456789";
-        final String firstName = "FirstName";
-        final String lastName = "LastName";
-        final String mincode = "12345678";
-
-        // Grad Student
-        final StudentCreate student = new StudentCreate();
-        student.setStudentID(studentID.toString());
-        student.setPen(pen);
-        student.setLegalLastName(lastName);
-        student.setLegalFirstName(firstName);
-        student.setMincode(mincode);
-        student.setSexCode("M");
-        student.setGenderCode("M");
-        student.setUsualFirstName("Usual First");
-        student.setUsualLastName("Usual Last");
-        student.setEmail("junit@test.com");
-        student.setEmailVerified("Y");
-        student.setStatusCode("A");
-        student.setDob("1990-01-01");
-        student.setHistoryActivityCode("USERNEW");
-
-
-        Mockito.when(gradStudentService.addNewPenFromStudentAPI(student, "accessToken")).thenReturn(student);
-        gradStudentController.addNewPenFromStudentAPI(student, "accessToken");
-        Mockito.verify(gradStudentService).addNewPenFromStudentAPI(student, "accessToken");
-    }
-
-    @Test
-    public void testSearchGraduationStudentRecords() {
-        StudentSearchRequest searchRequest = StudentSearchRequest.builder().schoolIds(List.of(UUID.randomUUID())).build();
-        Mockito.when(gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest)).thenReturn(List.of(UUID.randomUUID()));
-        gradStudentController.searchGraduationStudentRecords(searchRequest);
-        Mockito.verify(gradStudentService).getStudentIDsBySearchCriteriaOrAll(searchRequest);
-    }
-
-    @Test
-    public void testSearchGraduationStudentRecordsWithMultipleCriteria() {
-        // Given
-        UUID schoolID = UUID.randomUUID();
-        StudentSearchRequest searchRequest = StudentSearchRequest.builder()
-                .schoolIds(List.of(schoolID))
-                .programs(List.of("1950", "SCCP", "2018"))
-                .grades(List.of("12", "AD"))
-                .build();
-        
-        List<UUID> expectedStudentIds = List.of(UUID.randomUUID(), UUID.randomUUID());
-        
-        // When
-        Mockito.when(gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest)).thenReturn(expectedStudentIds);
-        List<UUID> result = gradStudentController.searchGraduationStudentRecords(searchRequest);
-        
-        // Then
-        Mockito.verify(gradStudentService).getStudentIDsBySearchCriteriaOrAll(searchRequest);
-        assertEquals(expectedStudentIds, result);
-    }
-
-    @Test
-    public void testSearchForStudentByCriteria_shouldReturnStudentRecords() throws Exception {
-        GradStudentSearchDataEntity gsd = new GradStudentSearchDataEntity();
-        gsd.setStudentID(UUID.randomUUID());
-        gsd.setPen("123456789");
-        gsd.setStudentStatus("CUR");
-        gsd.setLegalFirstName("FirstName");
-        gradStudentSearchRepository.save(gsd);
-        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("legalFirstName").operation(FilterOperation.EQUAL).value(gsd.getLegalFirstName()).valueType(ValueType.STRING).build();
-        final String criteriaJSON = searchCriteriaToString(criteria);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
-    }
-
-    private static String searchCriteriaToString(SearchCriteria criteria) throws JsonProcessingException {
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-        final List<Search> searches = new LinkedList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-        final var objectMapper = new ObjectMapper();
-        return objectMapper.writeValueAsString(searches);
-    }
-
-    @Test
-    public void testReadReportGradStudentPaginated_Always_ShouldReturnStatusOk() throws Exception {
-        var schoolID = UUID.randomUUID();
-        ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
-        entity.setGraduationStudentRecordId(UUID.randomUUID());
-        entity.setSchoolOfRecordId(schoolID);
-        reportGradStudentDataRepository.save(entity);
-        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
-        final String criteriaJSON = searchCriteriaToString(criteria);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
-    }
-
-    @Test
-    public void testReadReportGradStudentPaginated_WithDistrictAndSchoolCategoryRewrite_ShouldReturnStatusOk() throws Exception {
-        final UUID schoolId = UUID.randomUUID();
-        final UUID districtId = UUID.randomUUID();
-
-        ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
-        entity.setGraduationStudentRecordId(UUID.randomUUID());
-        entity.setSchoolOfRecordId(schoolId);
-        reportGradStudentDataRepository.save(entity);
-
-        Mockito.when(restUtils.getSchoolList()).thenReturn(List.of(
-                School.builder().schoolId(schoolId.toString()).districtId(districtId.toString()).schoolCategoryCode("PUBLIC").build(),
-                School.builder().schoolId(UUID.randomUUID().toString()).districtId(districtId.toString()).schoolCategoryCode("INDEPEND").build()
-        ));
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(SearchCriteria.builder().condition(AND).key("districtId").operation(FilterOperation.EQUAL).value(districtId.toString()).valueType(ValueType.UUID).build());
-        criteriaList.add(SearchCriteria.builder().condition(AND).key("schoolCategoryCode").operation(FilterOperation.EQUAL).value("PUBLIC").valueType(ValueType.STRING).build());
-
-        final List<Search> searches = new LinkedList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final String criteriaJSON = new ObjectMapper().writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
-    }
-
-    @Test
-    public void testReadReportGradStudentDownload_Always_ShouldReturnCsvWithRow() throws Exception {
-        var schoolID = UUID.randomUUID();
-        ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
-        entity.setGraduationStudentRecordId(UUID.randomUUID());
-        entity.setSchoolOfRecordId(schoolID);
-        entity.setPen("123456789");
-        entity.setLocalID("900148");
-        entity.setLastName("DOE");
-        entity.setFirstName("JANE");
-        entity.setMiddleName("Q");
-        entity.setDob("2008/11/20");
-        entity.setStudentGrade("12");
-        entity.setProgramCode("2023-EN");
-        entity.setProgramCompletionDate("2025/06");
-        entity.setHonorsStanding("N");
-        reportGradStudentDataRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
-        final String criteriaJSON = searchCriteriaToString(criteria);
-
-        this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_DOWNLOAD)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("PEN,LOCAL_ID,LAST_NAME,FIRST_NAME,MIDDLE_NAME,BIRTH_DATE,GRADE,PROGRAM,PROGRAM_COMPLETION_DATE,SCHOOL_AT_GRADUATION,HONOURS_STANDING")))
-                .andExpect(content().string(containsString("123456789,900148,DOE,JANE,Q,2008/11/20,12,2023-EN,2025/06,,No")));
-    }
-
-    @Test
-    public void testReadGradStudentPaginated_Always_ShouldReturnStatusOk() throws Exception {
-        var schoolID = UUID.randomUUID();
-
-        GraduationStudentRecordPaginationEntity entity = new GraduationStudentRecordPaginationEntity();
-        entity.setStudentID(UUID.randomUUID());
-        entity.setSchoolOfRecordId(schoolID);
-        entity.setStudentStatus("CUR");
-        StudentCoursePaginationEntity course1 = new StudentCoursePaginationEntity();
-        course1.setCourseSession("202408");
-        course1.setEquivOrChallenge("C");
-        course1.setCourseID(BigInteger.ONE);
-        course1.setGraduationStudentRecordEntity(entity);
-        course1.setCredits(0);
-        gradStudentPaginationRepository.save(entity);
-        studentcoursePaginationRepository.save(course1);
-
-        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("graduationStudentRecordEntity.schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new LinkedList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
-    }
-
-    @Test
-    public void testGetGraduationCountsBySchools_WithNoSchoolIds_ShouldReject() throws Exception {
-
-        mockMvc.perform(post(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRADUATION_COUNTS)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .contentType(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentCoursePagination_WithDateRangeFilter_BothDates() {
-        final Date completionDate = new Date();
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
-        graduationStudentRecordEntity.setProgram("1950");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
-        entity.setStudentCourseID(UUID.randomUUID());
-        entity.setCourseID(BigInteger.valueOf(86784));
-        entity.setCourseSession("202509");
-        entity.setCredits(4);
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentcoursePaginationRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder()
-                .key("graduationStudentRecordEntity.programCompletionDate")
-                .operation(FilterOperation.DATE_RANGE)
-                .value("2025-01-01,2025-12-31")
-                .valueType(ValueType.DATE)
-                .condition(AND)
-                .build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new ArrayList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentCoursePagination_WithDateRangeFilter_OnlyStartDate() {
-        final Date completionDate = new Date();
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
-        graduationStudentRecordEntity.setProgram("1950");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
-        entity.setStudentCourseID(UUID.randomUUID());
-        entity.setCourseID(BigInteger.valueOf(86784));
-        entity.setCourseSession("202509");
-        entity.setCredits(4);
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentcoursePaginationRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder()
-                .key("graduationStudentRecordEntity.programCompletionDate")
-                .operation(FilterOperation.DATE_RANGE)
-                .value("2025-01-01,")
-                .valueType(ValueType.DATE)
-                .condition(AND)
-                .build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new ArrayList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentCoursePagination_WithDateRangeFilter_OnlyEndDate() {
-        final Date completionDate = new Date();
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
-        graduationStudentRecordEntity.setProgram("1950");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
-        entity.setStudentCourseID(UUID.randomUUID());
-        entity.setCourseID(BigInteger.valueOf(86784));
-        entity.setCourseSession("202509");
-        entity.setCredits(4);
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentcoursePaginationRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder()
-                .key("graduationStudentRecordEntity.programCompletionDate")
-                .operation(FilterOperation.DATE_RANGE)
-                .value(",2025-12-31")
-                .valueType(ValueType.DATE)
-                .condition(AND)
-                .build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new ArrayList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentCoursePagination_WithDateRangeFilter_DateTimeValueType() {
-        final Date completionDate = new Date();
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
-        graduationStudentRecordEntity.setProgram("1950");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
-        entity.setStudentCourseID(UUID.randomUUID());
-        entity.setCourseID(BigInteger.valueOf(86784));
-        entity.setCourseSession("202509");
-        entity.setCredits(4);
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentcoursePaginationRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder()
-                .key("graduationStudentRecordEntity.programCompletionDate")
-                .operation(FilterOperation.DATE_RANGE)
-                .value("2025-01-01,2025-12-31")
-                .valueType(ValueType.DATE_TIME)
-                .condition(AND)
-                .build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new ArrayList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentCoursePagination_WithDateRangeFilter_DateTimeStrings() {
-        final Date completionDate = new Date();
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
-        graduationStudentRecordEntity.setProgram("1950");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
-        entity.setStudentCourseID(UUID.randomUUID());
-        entity.setCourseID(BigInteger.valueOf(86784));
-        entity.setCourseSession("202509");
-        entity.setCredits(4);
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentcoursePaginationRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder()
-                .key("graduationStudentRecordEntity.programCompletionDate")
-                .operation(FilterOperation.DATE_RANGE)
-                .value("2025-01-01T00:00:00,2025-12-31T23:59:59")
-                .valueType(ValueType.DATE_TIME)
-                .condition(AND)
-                .build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new ArrayList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentOptionalProgramPagination_WithNoFilter() {
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgram("2018-EN");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
-        entity.setStudentOptionalProgramID(UUID.randomUUID());
-        entity.setOptionalProgramID(UUID.randomUUID());
-        entity.setCompletionDate(new Date());
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentOptionalProgramPaginationRepository.save(entity);
-
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentOptionalProgramPagination_WithOptionalProgramIDFilter() {
-        final UUID optionalProgramID = UUID.randomUUID();
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgram("2018-EN");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
-        entity.setStudentOptionalProgramID(UUID.randomUUID());
-        entity.setOptionalProgramID(optionalProgramID);
-        entity.setCompletionDate(new Date());
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentOptionalProgramPaginationRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("optionalProgramID").operation(FilterOperation.EQUAL).value(optionalProgramID.toString()).valueType(ValueType.UUID).build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new LinkedList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentOptionalProgramPagination_WithStudentIDFilter() {
-        final UUID studentID = UUID.randomUUID();
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(studentID);
-        graduationStudentRecordEntity.setProgram("2018-EN");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
-        entity.setStudentOptionalProgramID(UUID.randomUUID());
-        entity.setOptionalProgramID(UUID.randomUUID());
-        entity.setCompletionDate(new Date());
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentOptionalProgramPaginationRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("graduationStudentRecordEntity.studentID").operation(FilterOperation.EQUAL).value(studentID.toString()).valueType(ValueType.UUID).build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new LinkedList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentOptionalProgramPagination_WithDateFilter() {
-        final Date completionDate = new Date();
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgram("2018-EN");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
-        entity.setStudentOptionalProgramID(UUID.randomUUID());
-        entity.setOptionalProgramID(UUID.randomUUID());
-        entity.setCompletionDate(completionDate);
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentOptionalProgramPaginationRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder()
-                .key("completionDate")
-                .operation(FilterOperation.DATE_RANGE)
-                .value("2025-01-01,2025-12-31")
-                .valueType(ValueType.DATE)
-                .condition(AND)
-                .build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new ArrayList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
-    }
-
-    @Test
-    @SneakyThrows
-    public void testStudentOptionalProgramPagination_WithProgramFilter() {
-        final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
-        graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
-        graduationStudentRecordEntity.setProgram("2018-EN");
-        graduationStudentRecordEntity.setStudentStatus("CUR");
-
-        gradStudentPaginationRepository.save(graduationStudentRecordEntity);
-
-        final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
-        entity.setStudentOptionalProgramID(UUID.randomUUID());
-        entity.setOptionalProgramID(UUID.randomUUID());
-        entity.setCompletionDate(new Date());
-        entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
-
-        studentOptionalProgramPaginationRepository.save(entity);
-
-        final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("graduationStudentRecordEntity.program").operation(FilterOperation.EQUAL).value("2018-EN").valueType(ValueType.STRING).build();
-
-        final List<SearchCriteria> criteriaList = new ArrayList<>();
-        criteriaList.add(criteria);
-
-        final List<Search> searches = new LinkedList<>();
-        searches.add(Search.builder().searchCriteriaList(criteriaList).build());
-
-        final var objectMapper = new ObjectMapper();
-        final String criteriaJSON = objectMapper.writeValueAsString(searches);
-        final MvcResult result = this.mockMvc
-                .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
-                        .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
-                        .param("searchCriteriaList", criteriaJSON)
-                        .contentType(APPLICATION_JSON))
-                .andReturn();
-        this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
-    }
+    GradStudentCoursePayload gradStudentCoursePayload = new ObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .readValue(studentGradData, GradStudentCoursePayload.class);
+
+    var expectedCourses = gradStudentCoursePayload.getStudentCourses().getStudentCourseList();
+
+    String pen = "144474947";
+    int expectedCourseCount = expectedCourses.size();
+
+    GraduationStudentRecordEntity studentRecord = new GraduationStudentRecordEntity();
+    studentRecord.setStudentID(studentID);
+    studentRecord.setPen(pen);
+    studentRecord.setStudentStatus("CUR");
+    studentRecord.setStudentGradData(studentGradData);
+    graduationStudentRecordRepository.saveAndFlush(studentRecord);
+
+    this.mockMvc.perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_CLOB_BY_PEN, pen)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_STUDENT_DATA")))
+            .contentType(APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(expectedCourseCount)));
+  }
+
+  @Test
+  public void testAddNewPenFromStudentAPI() {
+    // ID
+    final UUID studentID = UUID.randomUUID();
+    final String pen = "123456789";
+    final String firstName = "FirstName";
+    final String lastName = "LastName";
+    final String mincode = "12345678";
+
+    // Grad Student
+    final StudentCreate student = new StudentCreate();
+    student.setStudentID(studentID.toString());
+    student.setPen(pen);
+    student.setLegalLastName(lastName);
+    student.setLegalFirstName(firstName);
+    student.setMincode(mincode);
+    student.setSexCode("M");
+    student.setGenderCode("M");
+    student.setUsualFirstName("Usual First");
+    student.setUsualLastName("Usual Last");
+    student.setEmail("junit@test.com");
+    student.setEmailVerified("Y");
+    student.setStatusCode("A");
+    student.setDob("1990-01-01");
+    student.setHistoryActivityCode("USERNEW");
+
+
+    Mockito.when(gradStudentService.addNewPenFromStudentAPI(student, "accessToken")).thenReturn(student);
+    gradStudentController.addNewPenFromStudentAPI(student, "accessToken");
+    Mockito.verify(gradStudentService).addNewPenFromStudentAPI(student, "accessToken");
+  }
+
+  @Test
+  public void testSearchGraduationStudentRecords() {
+    StudentSearchRequest searchRequest = StudentSearchRequest.builder().schoolIds(List.of(UUID.randomUUID())).build();
+    Mockito.when(gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest)).thenReturn(List.of(UUID.randomUUID()));
+    gradStudentController.searchGraduationStudentRecords(searchRequest);
+    Mockito.verify(gradStudentService).getStudentIDsBySearchCriteriaOrAll(searchRequest);
+  }
+
+  @Test
+  public void testSearchGraduationStudentRecordsWithMultipleCriteria() {
+    // Given
+    UUID schoolID = UUID.randomUUID();
+    StudentSearchRequest searchRequest = StudentSearchRequest.builder()
+        .schoolIds(List.of(schoolID))
+        .programs(List.of("1950", "SCCP", "2018"))
+        .grades(List.of("12", "AD"))
+        .build();
+
+    List<UUID> expectedStudentIds = List.of(UUID.randomUUID(), UUID.randomUUID());
+
+    // When
+    Mockito.when(gradStudentService.getStudentIDsBySearchCriteriaOrAll(searchRequest)).thenReturn(expectedStudentIds);
+    List<UUID> result = gradStudentController.searchGraduationStudentRecords(searchRequest);
+
+    // Then
+    Mockito.verify(gradStudentService).getStudentIDsBySearchCriteriaOrAll(searchRequest);
+    assertEquals(expectedStudentIds, result);
+  }
+
+  @Test
+  public void testSearchForStudentByCriteria_shouldReturnStudentRecords() throws Exception {
+    GradStudentSearchDataEntity gsd = new GradStudentSearchDataEntity();
+    gsd.setStudentID(UUID.randomUUID());
+    gsd.setPen("123456789");
+    gsd.setStudentStatus("CUR");
+    gsd.setLegalFirstName("FirstName");
+    gradStudentSearchRepository.save(gsd);
+    final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("legalFirstName").operation(FilterOperation.EQUAL).value(gsd.getLegalFirstName()).valueType(ValueType.STRING).build();
+    final String criteriaJSON = searchCriteriaToString(criteria);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+  }
+
+  private static String searchCriteriaToString(SearchCriteria criteria) throws JsonProcessingException {
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+    final List<Search> searches = new LinkedList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+    final var objectMapper = new ObjectMapper();
+    return objectMapper.writeValueAsString(searches);
+  }
+
+  @Test
+  public void testReadReportGradStudentPaginated_Always_ShouldReturnStatusOk() throws Exception {
+    var schoolID = UUID.randomUUID();
+    ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
+    entity.setGraduationStudentRecordId(UUID.randomUUID());
+    entity.setSchoolOfRecordId(schoolID);
+    reportGradStudentDataRepository.save(entity);
+    final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
+    final String criteriaJSON = searchCriteriaToString(criteria);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+  }
+
+  @Test
+  public void testReadReportGradStudentPaginated_WithDistrictAndSchoolCategoryRewrite_ShouldReturnStatusOk() throws Exception {
+    final UUID schoolId = UUID.randomUUID();
+    final UUID districtId = UUID.randomUUID();
+
+    ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
+    entity.setGraduationStudentRecordId(UUID.randomUUID());
+    entity.setSchoolOfRecordId(schoolId);
+    reportGradStudentDataRepository.save(entity);
+
+    Mockito.when(restUtils.getSchoolList()).thenReturn(List.of(
+        School.builder().schoolId(schoolId.toString()).districtId(districtId.toString()).schoolCategoryCode("PUBLIC").build(),
+        School.builder().schoolId(UUID.randomUUID().toString()).districtId(districtId.toString()).schoolCategoryCode("INDEPEND").build()
+    ));
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(SearchCriteria.builder().condition(AND).key("districtId").operation(FilterOperation.EQUAL).value(districtId.toString()).valueType(ValueType.UUID).build());
+    criteriaList.add(SearchCriteria.builder().condition(AND).key("schoolCategoryCode").operation(FilterOperation.EQUAL).value("PUBLIC").valueType(ValueType.STRING).build());
+
+    final List<Search> searches = new LinkedList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final String criteriaJSON = new ObjectMapper().writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_REPORT_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+  }
+
+  @Test
+  public void testReadReportGradStudentDownload_Always_ShouldReturnCsvWithRow() throws Exception {
+    var schoolID = UUID.randomUUID();
+    ReportGradStudentDataEntity entity = new ReportGradStudentDataEntity();
+    entity.setGraduationStudentRecordId(UUID.randomUUID());
+    entity.setSchoolOfRecordId(schoolID);
+    entity.setPen("123456789");
+    entity.setLocalID("900148");
+    entity.setLastName("DOE");
+    entity.setFirstName("JANE");
+    entity.setMiddleName("Q");
+    entity.setDob("2008/11/20");
+    entity.setStudentGrade("12");
+    entity.setProgramCode("2023-EN");
+    entity.setProgramCompletionDate("2025/06");
+    entity.setHonorsStanding("N");
+    reportGradStudentDataRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
+    final String criteriaJSON = searchCriteriaToString(criteria);
+
+    this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_SEARCH_DOWNLOAD)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("PEN,LOCAL_ID,LAST_NAME,FIRST_NAME,MIDDLE_NAME,BIRTH_DATE,GRADE,PROGRAM,PROGRAM_COMPLETION_DATE,SCHOOL_AT_GRADUATION,HONOURS_STANDING")))
+        .andExpect(content().string(containsString("123456789,900148,DOE,JANE,Q,2008/11/20,12,2023-EN,2025/06,,No")));
+  }
+
+  @Test
+  public void testReadGradStudentPaginated_Always_ShouldReturnStatusOk() throws Exception {
+    var schoolID = UUID.randomUUID();
+
+    GraduationStudentRecordPaginationEntity entity = new GraduationStudentRecordPaginationEntity();
+    entity.setStudentID(UUID.randomUUID());
+    entity.setSchoolOfRecordId(schoolID);
+    entity.setStudentStatus("CUR");
+    StudentCoursePaginationEntity course1 = new StudentCoursePaginationEntity();
+    course1.setCourseSession("202408");
+    course1.setEquivOrChallenge("C");
+    course1.setCourseID(BigInteger.ONE);
+    course1.setGraduationStudentRecordEntity(entity);
+    course1.setCredits(0);
+    gradStudentPaginationRepository.save(entity);
+    studentcoursePaginationRepository.save(course1);
+
+    final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("graduationStudentRecordEntity.schoolOfRecordId").operation(FilterOperation.EQUAL).value(schoolID.toString()).valueType(ValueType.UUID).build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new LinkedList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+  }
+
+  @Test
+  public void testGetGraduationCountsBySchools_WithNoSchoolIds_ShouldReject() throws Exception {
+
+    mockMvc.perform(post(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRADUATION_COUNTS)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .contentType(APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentCoursePagination_WithDateRangeFilter_BothDates() {
+    final Date completionDate = new Date();
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+    graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+    graduationStudentRecordEntity.setProgram("1950");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+    entity.setStudentCourseID(UUID.randomUUID());
+    entity.setCourseID(BigInteger.valueOf(86784));
+    entity.setCourseSession("202509");
+    entity.setCredits(4);
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentcoursePaginationRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder()
+        .key("graduationStudentRecordEntity.programCompletionDate")
+        .operation(FilterOperation.DATE_RANGE)
+        .value("2025-01-01,2025-12-31")
+        .valueType(ValueType.DATE)
+        .condition(AND)
+        .build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new ArrayList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentCoursePagination_WithDateRangeFilter_OnlyStartDate() {
+    final Date completionDate = new Date();
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+    graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+    graduationStudentRecordEntity.setProgram("1950");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+    entity.setStudentCourseID(UUID.randomUUID());
+    entity.setCourseID(BigInteger.valueOf(86784));
+    entity.setCourseSession("202509");
+    entity.setCredits(4);
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentcoursePaginationRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder()
+        .key("graduationStudentRecordEntity.programCompletionDate")
+        .operation(FilterOperation.DATE_RANGE)
+        .value("2025-01-01,")
+        .valueType(ValueType.DATE)
+        .condition(AND)
+        .build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new ArrayList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentCoursePagination_WithDateRangeFilter_OnlyEndDate() {
+    final Date completionDate = new Date();
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+    graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+    graduationStudentRecordEntity.setProgram("1950");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+    entity.setStudentCourseID(UUID.randomUUID());
+    entity.setCourseID(BigInteger.valueOf(86784));
+    entity.setCourseSession("202509");
+    entity.setCredits(4);
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentcoursePaginationRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder()
+        .key("graduationStudentRecordEntity.programCompletionDate")
+        .operation(FilterOperation.DATE_RANGE)
+        .value(",2025-12-31")
+        .valueType(ValueType.DATE)
+        .condition(AND)
+        .build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new ArrayList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentCoursePagination_WithDateRangeFilter_DateTimeValueType() {
+    final Date completionDate = new Date();
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+    graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+    graduationStudentRecordEntity.setProgram("1950");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+    entity.setStudentCourseID(UUID.randomUUID());
+    entity.setCourseID(BigInteger.valueOf(86784));
+    entity.setCourseSession("202509");
+    entity.setCredits(4);
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentcoursePaginationRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder()
+        .key("graduationStudentRecordEntity.programCompletionDate")
+        .operation(FilterOperation.DATE_RANGE)
+        .value("2025-01-01,2025-12-31")
+        .valueType(ValueType.DATE_TIME)
+        .condition(AND)
+        .build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new ArrayList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentCoursePagination_WithDateRangeFilter_DateTimeStrings() {
+    final Date completionDate = new Date();
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+    graduationStudentRecordEntity.setProgramCompletionDate(completionDate);
+    graduationStudentRecordEntity.setProgram("1950");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentCoursePaginationEntity entity = new StudentCoursePaginationEntity();
+    entity.setStudentCourseID(UUID.randomUUID());
+    entity.setCourseID(BigInteger.valueOf(86784));
+    entity.setCourseSession("202509");
+    entity.setCredits(4);
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentcoursePaginationRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder()
+        .key("graduationStudentRecordEntity.programCompletionDate")
+        .operation(FilterOperation.DATE_RANGE)
+        .value("2025-01-01T00:00:00,2025-12-31T23:59:59")
+        .valueType(ValueType.DATE_TIME)
+        .condition(AND)
+        .build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new ArrayList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentOptionalProgramPagination_WithNoFilter() {
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+    graduationStudentRecordEntity.setProgram("2018-EN");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
+    entity.setStudentOptionalProgramID(UUID.randomUUID());
+    entity.setOptionalProgramID(UUID.randomUUID());
+    entity.setCompletionDate(new Date());
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentOptionalProgramPaginationRepository.save(entity);
+
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentOptionalProgramPagination_WithOptionalProgramIDFilter() {
+    final UUID optionalProgramID = UUID.randomUUID();
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+    graduationStudentRecordEntity.setProgram("2018-EN");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
+    entity.setStudentOptionalProgramID(UUID.randomUUID());
+    entity.setOptionalProgramID(optionalProgramID);
+    entity.setCompletionDate(new Date());
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentOptionalProgramPaginationRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("optionalProgramID").operation(FilterOperation.EQUAL).value(optionalProgramID.toString()).valueType(ValueType.UUID).build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new LinkedList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentOptionalProgramPagination_WithStudentIDFilter() {
+    final UUID studentID = UUID.randomUUID();
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(studentID);
+    graduationStudentRecordEntity.setProgram("2018-EN");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
+    entity.setStudentOptionalProgramID(UUID.randomUUID());
+    entity.setOptionalProgramID(UUID.randomUUID());
+    entity.setCompletionDate(new Date());
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentOptionalProgramPaginationRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("graduationStudentRecordEntity.studentID").operation(FilterOperation.EQUAL).value(studentID.toString()).valueType(ValueType.UUID).build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new LinkedList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentOptionalProgramPagination_WithDateFilter() {
+    final Date completionDate = new Date();
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+    graduationStudentRecordEntity.setProgram("2018-EN");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
+    entity.setStudentOptionalProgramID(UUID.randomUUID());
+    entity.setOptionalProgramID(UUID.randomUUID());
+    entity.setCompletionDate(completionDate);
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentOptionalProgramPaginationRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder()
+        .key("completionDate")
+        .operation(FilterOperation.DATE_RANGE)
+        .value("2025-01-01,2025-12-31")
+        .valueType(ValueType.DATE)
+        .condition(AND)
+        .build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new ArrayList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk());
+  }
+
+  @Test
+  @SneakyThrows
+  public void testStudentOptionalProgramPagination_WithProgramFilter() {
+    final GraduationStudentRecordPaginationEntity graduationStudentRecordEntity = new GraduationStudentRecordPaginationEntity();
+    graduationStudentRecordEntity.setStudentID(UUID.randomUUID());
+    graduationStudentRecordEntity.setProgram("2018-EN");
+    graduationStudentRecordEntity.setStudentStatus("CUR");
+
+    gradStudentPaginationRepository.save(graduationStudentRecordEntity);
+
+    final StudentOptionalProgramPaginationEntity entity = new StudentOptionalProgramPaginationEntity();
+    entity.setStudentOptionalProgramID(UUID.randomUUID());
+    entity.setOptionalProgramID(UUID.randomUUID());
+    entity.setCompletionDate(new Date());
+    entity.setGraduationStudentRecordEntity(graduationStudentRecordEntity);
+
+    studentOptionalProgramPaginationRepository.save(entity);
+
+    final SearchCriteria criteria = SearchCriteria.builder().condition(AND).key("graduationStudentRecordEntity.program").operation(FilterOperation.EQUAL).value("2018-EN").valueType(ValueType.STRING).build();
+
+    final List<SearchCriteria> criteriaList = new ArrayList<>();
+    criteriaList.add(criteria);
+
+    final List<Search> searches = new LinkedList<>();
+    searches.add(Search.builder().searchCriteriaList(criteriaList).build());
+
+    final var objectMapper = new ObjectMapper();
+    final String criteriaJSON = objectMapper.writeValueAsString(searches);
+    final MvcResult result = this.mockMvc
+        .perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_OPTIONAL_PROGRAM_PAGINATION)
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_GRADUATION_STATUS")))
+            .param("searchCriteriaList", criteriaJSON)
+            .contentType(APPLICATION_JSON))
+        .andReturn();
+    this.mockMvc.perform(asyncDispatch(result)).andDo(print()).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
+  }
 
 }
