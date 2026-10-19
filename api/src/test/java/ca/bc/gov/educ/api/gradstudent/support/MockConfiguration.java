@@ -12,13 +12,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * The type Mock configuration.
  */
-@Profile("integration-test")
+@Profile({"integration-test"})
 @Configuration
 public class MockConfiguration {
 
@@ -32,6 +33,11 @@ public class MockConfiguration {
   @Primary
   public WebClient webClient() {
     return Mockito.mock(WebClient.class);
+  }
+
+  @Bean
+  public ClientRegistrationRepository clientRegistrationRepository() {
+    return Mockito.mock(ClientRegistrationRepository.class);
   }
 
   @Bean
