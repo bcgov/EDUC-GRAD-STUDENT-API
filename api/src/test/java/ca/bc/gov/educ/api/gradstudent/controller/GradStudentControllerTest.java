@@ -191,6 +191,15 @@ public class GradStudentControllerTest {
   }
 
   @Test
+  public void testGetStudentCourseClobByPenRejectsNonDigitPen() throws Exception {
+    this.mockMvc.perform(get(GRAD_STUDENT_API_ROOT_MAPPING + EducGradStudentApiConstants.GRAD_STUDENT_COURSE_CLOB_BY_PEN, "Invalid-pen")
+            .with(jwt().jwt(jwt -> jwt.claim("scope", "READ_GRAD_STUDENT_DATA")))
+            .contentType(APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   public void testAddNewPenFromStudentAPI() {
     // ID
     final UUID studentID = UUID.randomUUID();

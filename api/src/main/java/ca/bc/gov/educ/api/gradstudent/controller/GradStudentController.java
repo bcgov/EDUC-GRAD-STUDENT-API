@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -42,6 +43,7 @@ import static ca.bc.gov.educ.api.gradstudent.util.JsonUtil.mapper;
 @CrossOrigin
 @RequestMapping(EducGradStudentApiConstants.GRAD_STUDENT_API_ROOT_MAPPING)
 @OpenAPIDefinition(info = @Info(title = "API for Student Demographics.", description = "This API is for Reading demographics data of a student.", version = "1"), security = {@SecurityRequirement(name = "OAUTH2", scopes = {"READ_GRAD_STUDENT_DATA"})})
+@Validated
 public class GradStudentController {
 
   @SuppressWarnings("unused")
@@ -164,7 +166,7 @@ public class GradStudentController {
   @PreAuthorize("hasAuthority('SCOPE_READ_GRAD_STUDENT_DATA')")
   @Operation(summary = "Search for student course clob information used by pen replication api to update stud_xcrse table", description = "Search for student clob information by PEN", tags = {"Student Demographics"})
   @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
-  public List<GradStudentRecordCoursesLoad> getStudentCourseClobByPen(@PathVariable String pen) {
+  public List<GradStudentRecordCoursesLoad> getStudentCourseClobByPen(@PathVariable @Pattern(regexp = "\\d+", message = "PEN must contain only digits") String pen) {
     return gradStudentService.getStudentCourseClobByPen(pen);
   }
 
