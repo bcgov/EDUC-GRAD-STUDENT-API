@@ -465,6 +465,7 @@ public class GradStudentService {
 
 		GradStudentCoursePayload payload = setGradMetaData(records.get(0).getStudentGradData());
 		if (payload == null || payload.getStudentCourses() == null || payload.getStudentCourses().getStudentCourseList() == null) {
+      logger.warn("Graduation student record for PEN {} has no course data", pen);
 			return Collections.emptyList();
 		}
 		return payload.getStudentCourses().getStudentCourseList();

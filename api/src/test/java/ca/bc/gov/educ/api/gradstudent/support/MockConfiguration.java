@@ -19,7 +19,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * The type Mock configuration.
  */
-@Profile({"integration-test"})
+@Profile("integration-test")
 @Configuration
 public class MockConfiguration {
 
